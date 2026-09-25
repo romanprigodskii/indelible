@@ -13,9 +13,9 @@ import unittest
 from pathlib import Path
 
 try:
-    from helpers import make_ws, run
+    from helpers import HAS_TZDB, make_ws, run
 except ImportError:  # run as part of the tests package
-    from tests.helpers import make_ws, run
+    from tests.helpers import HAS_TZDB, make_ws, run
 
 from lib import io as fio
 
@@ -93,6 +93,8 @@ def write_grades(folder, name, grades):
 
 def read_rows(path):
     return fio.read_jsonl(path)
+
+
 
 
 class GradeBase(unittest.TestCase):
@@ -570,6 +572,7 @@ class GradingRegressionTests(GradeBase):
         self.assertEqual(by_ask, {"1a": "T01", "1b": "T02"})
         self.assert_no_secrets()
 
+    @unittest.skipUnless(HAS_TZDB, "no tz database")
     def test_the_sitting_date_follows_the_workspace_clock(self):
         # 19:30 in New York is 00:30 the next day in Lisbon, the workspace zone.
         items = [make_item(1, "T02", ["1a"], layer="reading")]

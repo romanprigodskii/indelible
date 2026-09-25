@@ -16,7 +16,7 @@ from pathlib import Path
 from unittest import mock
 
 try:
-    from helpers import CLI, make_ws, run
+    from helpers import HAS_TZDB, CLI, make_ws, run
     from test_sheet import (NOW, SUBJECT, add_exposure, answers_for, cold_spec, drills_spec, new_sheet, sheet_row,
                             subject_dir, theory_spec)
     from test_lint import ctx, result
@@ -24,7 +24,7 @@ try:
     from test_plan import PlanCase, SID
     from test_render import typst_balance_problems
 except ImportError:  # run as part of the tests package
-    from tests.helpers import CLI, make_ws, run
+    from tests.helpers import HAS_TZDB, CLI, make_ws, run
     from tests.test_sheet import (NOW, SUBJECT, add_exposure, answers_for, cold_spec, drills_spec, new_sheet,
                                   sheet_row, subject_dir, theory_spec)
     from tests.test_lint import ctx, result
@@ -37,6 +37,8 @@ from lib import io as fio
 from lib import cmd_session
 
 CYRILLIC = re.compile("[%s-%s]" % (chr(0x0400), chr(0x04FF)))   # built from code points: no such text in the repo
+
+
 
 
 class TmpCase(unittest.TestCase):
@@ -462,6 +464,7 @@ class OnDemandRegressions(TmpCase):
         self.assertNotIn("still to book", r.stdout)
         self.assertIn("nothing to book", r.stdout)
 
+    @unittest.skipUnless(HAS_TZDB, "no tz database")
     def test_the_recheck_window_is_exactly_72_elapsed_hours_across_the_clock_change(self):
         taught = "2026-10-22T20:37+02:00"   # Berlin leaves summer time on 25 Oct
         self.cli(["session", "taught", "rust", "T01"], now=taught)
@@ -476,6 +479,7 @@ class OnDemandRegressions(TmpCase):
 # ==========================================================================
 
 class SessionRegressions(TmpCase):
+    @unittest.skipUnless(HAS_TZDB, "no tz database")
     def test_c4_uses_elapsed_hours_across_the_clock_change(self):
         # Lisbon: +01:00 until 25 Oct 02:00, then +00:00. Taught Sat 24 Oct 14:00 (13:00 UTC):
         # the window closes at 13:00 UTC on Tue 27 Oct, i.e. 13:00 local (not 14:00).

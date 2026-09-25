@@ -40,6 +40,20 @@ if str(CLI.parent) not in sys.path:
 if not os.environ.get("INDELIBLE_TEST_BROWSER"):
     os.environ["INDELIBLE_NO_BROWSER"] = "1"
 
+def _has_tz_database():
+    """True when zoneinfo can load IANA zones (Windows needs the optional tzdata package)."""
+    try:
+        from zoneinfo import ZoneInfo
+        ZoneInfo("Europe/Lisbon")
+        return True
+    except Exception:
+        return False
+
+
+# Tests that depend on real clock-change rules skip without a tz database; the
+# fallback path (the computer's own zone) is tested separately.
+HAS_TZDB = _has_tz_database()
+
 _SANDBOX = []
 
 
