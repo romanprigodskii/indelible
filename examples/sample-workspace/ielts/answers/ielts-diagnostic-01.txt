@@ -1,0 +1,12 @@
+Diagnostic, part A
+Start time: 07:05
+1. F | check: the passage gives 07:00 and 16:00, which is two a day
+2. 1 | check: sentences 2 and 3 are what changed after the station closed
+3. shut (first wrote "stopped") | check: "was stopped for repairs" sounded wrong; "was shut for repairs" reads right
+4. The number of bicycles sold went up every month, from 40 in January to 120 in June. | check: 40 first, 120 last
+5. I don't know
+6. F | check: the passage says the museum is small and run by volunteers
+7. In 2020, 45% went to work by car and 25% by bicycle, so cars went down. | check: the numbers match the chart
+8. C
+Stop time: 07:24
+Least sure of: 7

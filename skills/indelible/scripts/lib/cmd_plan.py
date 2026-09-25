@@ -1757,6 +1757,9 @@ def cmd_cal_ics(args):
     if _inside(out, SKILL_DIR):
         raise UsageError("Refused: write the .ics inside the workspace (e.g. %s), not inside the skill folder"
                          % ws.rel(ws.ics_dir / out.name))
+    if not _inside(out, ws.root):
+        raise UsageError("Refused: the scripts write only inside the workspace. Write the .ics there "
+                         "(e.g. %s); the learner imports it from that folder" % ws.rel(ws.ics_dir / out.name))
     if args.subject:
         ws.subject(args.subject)
     d0 = parse_day(args.from_date, "--from") if args.from_date else ctx.now.date()

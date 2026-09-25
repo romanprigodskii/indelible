@@ -1,0 +1,43 @@
+{
+  "start": "07:19",
+  "stop": "07:29",
+  "date": "2026-10-13",
+  "asks": [
+    {
+      "ask": "1a",
+      "verdict": "right",
+      "check": "filled",
+      "least_sure": false
+    },
+    {
+      "ask": "2a",
+      "verdict": "right",
+      "check": "filled",
+      "least_sure": false
+    },
+    {
+      "ask": "3a",
+      "verdict": "right",
+      "check": "caught",
+      "least_sure": false
+    },
+    {
+      "ask": "4a",
+      "verdict": "right",
+      "check": "filled",
+      "least_sure": false
+    },
+    {
+      "ask": "5a",
+      "verdict": "right",
+      "check": "filled",
+      "least_sure": true
+    },
+    {
+      "ask": "6a",
+      "verdict": "right",
+      "check": "filled",
+      "least_sure": false
+    }
+  ]
+}

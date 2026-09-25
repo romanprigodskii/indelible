@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="indelible">
+<title>Headings: the whole paragraph first</title>
+<style>
+  /* indelible sheet. Printed on A4 (headless browser or File > Print) or read on screen.
+     Self-contained: no external fonts, scripts or images. Unicode maths only. */
+  :root {
+    --ink: #111111;
+    --muted: #474747;
+    --rule: #1f1f1f;
+    --soft: #eeeeee;
+    --paper: #ffffff;
+    --serif: "Noto Serif", "Libertinus Serif", "Iowan Old Style", "Palatino Linotype", Palatino,
+             Georgia, Cambria, serif;
+    --mono: "SFMono-Regular", Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", "Courier New", monospace;
+  }
+  @page {
+    size: A4;
+    margin: 15mm 16mm 18mm 16mm;
+    @bottom-center {
+      content: "page " counter(page) " of " counter(pages);
+      font-family: Georgia, Cambria, serif;
+      font-size: 9pt;
+      color: #555555;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--paper); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    margin: 0 auto;
+    max-width: calc(178mm + 32px);
+    padding: 24px 16px 48px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 13pt;
+    line-height: 1.45;
+    overflow-wrap: break-word;
+  }
+  @media print {
+    body { max-width: none; padding: 0; font-size: 12.5pt; }
+  }
+  h1, h2, h3 { line-height: 1.2; margin: 0; }
+  h1 { font-size: 20pt; }
+  h2 {
+    font-size: 14pt; margin: 7mm 0 3mm; padding-bottom: 1mm;
+    border-bottom: 1px solid var(--rule); break-after: avoid;
+  }
+  .sheet-head .head-row {
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2mm 6mm;
+  }
+  .sheet-head .when { margin: 0; font-size: 12pt; white-space: nowrap; }
+  .sheet-head .meta { margin: 1.5mm 0 4mm; font-size: 11pt; color: var(--muted); }
+
+  /* Boxed regions: rules, floor, reading pages */
+  .rules, .floor, .pages {
+    border: 1.5px solid var(--rule); border-radius: 3px; padding: 2.5mm 5mm 3mm; margin: 0 0 5mm;
+    break-inside: avoid;
+  }
+  .rules h2, .floor h2, .pages h2 { font-size: 12pt; border: 0; margin: 0 0 1mm; padding: 0; }
+  .rules ul, .floor ul { margin: 0; padding-left: 5mm; }
+  .rules li { font-size: 11.5pt; margin: 0.6mm 0; }
+  .rules li.v-rule { font-weight: 700; }
+  .pages p { margin: 0; }
+
+  /* Theory */
+  .words dl { margin: 0; }
+  .words dt { font-weight: 700; margin-top: 2mm; }
+  .words .gloss { font-weight: 400; font-style: italic; }
+  .words dd { margin: 0 0 0 6mm; }
+  .sec p { margin: 0 0 2.5mm; }
+  .sec-rule, .sec-warning {
+    border: 1.5px solid var(--rule); border-radius: 3px; padding: 0 5mm 1mm; margin: 5mm 0;
+    break-inside: avoid;
+  }
+  .sec-warning { border-style: dashed; }
+  .sec-rule h2, .sec-warning h2 { border: 0; margin: 3mm 0 1.5mm; }
+
+  /* Write-in lines: start, stop, least sure */
+  .line { display: flex; align-items: flex-end; gap: 2mm; margin: 4mm 0; }
+  .line .fill { flex: 1; border-bottom: 1px solid var(--rule); min-height: 8mm; }
+  .line .fill.short { flex: 0 0 40mm; }
+  .num { font-weight: 700; }
+
+  /* Questions */
+  .item { display: grid; grid-template-columns: 10mm minmax(0, 1fr); column-gap: 1mm; margin: 5mm 0 1mm; }
+  .item.keep { break-inside: avoid; }
+  .qnum { grid-column: 1; font-size: 13pt; }
+  .qbody { grid-column: 2; min-width: 0; }
+  .stem p { margin: 0 0 2mm; }
+  .ask { margin: 1mm 0 5mm; break-inside: avoid; }
+  .ask-label { margin: 0 0 1.5mm; }
+  .ask-id { font-weight: 700; margin-right: 1.5mm; }
+  .box { width: 100%; border: 1.5px solid var(--rule); border-radius: 3px; }
+  .check { display: flex; align-items: flex-end; gap: 2mm; margin: 2mm 0 0; }
+  .check .fill { flex: 1; border-bottom: 1px solid var(--rule); min-height: 9mm; }
+  .hint { margin: 0.8mm 0 0; font-size: 10pt; color: var(--muted); }
+  /* Code: verbatim, indentation kept, monospace */
+  pre.code {
+    font-family: var(--mono); font-size: 10.5pt; line-height: 1.4; white-space: pre; overflow-x: auto;
+    margin: 0 0 2.5mm; padding: 2mm 3mm; border: 1px solid #bdbdbd; border-radius: 3px; background: #f6f6f6;
+    break-inside: avoid;
+  }
+  pre.code code { font-family: inherit; font-size: inherit; background: none; padding: 0; }
+  code { font-family: var(--mono); font-size: 0.9em; background: #f1f1f1; padding: 0 0.15em; border-radius: 2px; }
+  @media print { pre.code { white-space: pre-wrap; overflow-wrap: anywhere; } }
+  .gate {
+    margin: 3mm 0 5mm; padding: 2.5mm 4mm; border-left: 4px solid var(--rule); background: var(--soft);
+    font-weight: 700; break-inside: avoid;
+  }
+
+  /* End of sheet */
+  .end { margin-top: 8mm; padding-top: 1mm; border-top: 1px solid var(--rule); break-inside: avoid; }
+  .close-line { margin: 6mm 0 0; text-align: center; font-size: 13pt; }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+</style>
+</head>
+<body>
+<main aria-labelledby="sheet-title">
+<header class="sheet-head">
+<div class="head-row"><h1 id="sheet-title">Headings: the whole paragraph first</h1><p class="when">Date: ____________</p></div>
+<p class="meta">About 10 min · 2 questions · Practice — written by Claude</p>
+</header>
+<section class="rules" aria-labelledby="rules-h">
+<h2 id="rules-h">Rules</h2>
+<ul>
+<li>Read this sheet once, doing the pencil items as you meet them. Then close it: the questions that follow are closed book.</li>
+<li>Answer on paper, one answer in each box.</li>
+<li>Write the check beside each answer where a Check line is printed. Work backwards from it: put it back in, rebuild the total, or test the definition you used against the question&#x27;s words.</li>
+<li>“I don&#x27;t know” is always an accepted answer.</li>
+<li>Stop after 10 minutes.</li>
+<li>Tools allowed: none.</li>
+<li class="v-rule">A word used and not defined on this sheet is my error: mark it V.</li>
+</ul>
+</section>
+<p class="line start"><span class="num">0.</span> <span>Start time:</span> <span class="fill short" aria-hidden="true"></span></p>
+<section class="floor" aria-labelledby="floor-h">
+<h2 id="floor-h">Before this sheet</h2>
+<ul>
+<li>The main idea of a paragraph: the point that the other sentences explain or give examples of. You found one on the diagnostic.</li>
+</ul>
+</section>
+<section class="words" aria-labelledby="words-h">
+<h2 id="words-h">Words on this sheet</h2>
+<dl>
+<dt>heading <span class="gloss">(título)</span></dt><dd>a short title that says what a whole paragraph is about</dd>
+<dt>distractor <span class="gloss">(distrator)</span></dt><dd>a wrong option written to look right, often because it repeats a word from the paragraph</dd>
+</dl>
+</section>
+<section class="sec sec-worked" aria-labelledby="sec-1">
+<h2 id="sec-1">A worked case</h2>
+<p>Paragraph: In 1890 the town of Selby had no clean water. Families carried water up from the river, and every summer many children fell ill. In 1902 the council built a pumping station and laid pipes to every street. Within ten years, summer illness in the town had almost disappeared.</p>
+<p>Headings: A. The history of the river · B. How clean water changed a town&#x27;s health · C. Why children fall ill in summer</p>
+<p>Step 1. Cover the headings. Say what the whole paragraph is about in five words or fewer: &#x27;piped water ended town illness&#x27;.</p>
+<p>Step 2. Look at the distractors. A repeats &#x27;river&#x27;, but the paragraph is not about the river. C repeats &#x27;children&#x27;, &#x27;ill&#x27; and &#x27;summer&#x27;, but those are details inside the story.</p>
+<p>Step 3. Compare each heading with your five words, not with single words in the paragraph. B says the same thing as &#x27;piped water ended town illness&#x27;.</p>
+<p>Step 4. Check: read the whole paragraph again under B. Every sentence belongs under it.</p>
+</section>
+<section class="sec sec-rule" aria-labelledby="sec-2">
+<h2 id="sec-2">The rule</h2>
+<p>Say the main idea of the whole paragraph in your words before you look at the headings. Then choose the heading that says the same thing. A heading that repeats a word from the paragraph is not a reason to choose it.</p>
+</section>
+<section class="sec sec-contrast" aria-labelledby="sec-3">
+<h2 id="sec-3">Two headings, one paragraph</h2>
+<p>Paragraph: Rain fell on the valley for two days in March. Then warm air melted the snow on the hills, the river climbed a metre in one night, and the lower streets flooded.</p>
+<p>&#x27;Rain in the valley&#x27; matches the first sentence. &#x27;Why the valley flooded that spring&#x27; matches the whole paragraph. The second is the heading.</p>
+</section>
+<section class="sec sec-both-hold" aria-labelledby="sec-4">
+<h2 id="sec-4">When matching words works</h2>
+<p>Sometimes the heading that repeats a word is also the right one, because that word names the main idea. That is why matching words feels safe: it works often enough. Your five-word summary shows you when it does not.</p>
+</section>
+<section class="sec sec-warning" aria-labelledby="sec-5">
+<h2 id="sec-5">The likeliest wrong turn</h2>
+<p>Choosing the heading that shares the most words with the first sentence. First sentences often describe the scene; the main idea can come later in the paragraph.</p>
+</section>
+<section class="sec sec-where" aria-labelledby="sec-6">
+<h2 id="sec-6">Where this lives</h2>
+<p>IELTS Academic reading: a list of headings, one for each paragraph, with more headings than paragraphs. The same steps help with questions on the main idea of a whole passage.</p>
+</section>
+<section class="block" aria-label="Questions">
+<article class="item keep" aria-labelledby="q-1">
+<h3 id="q-1" class="qnum"><span class="sr-only">Question </span>1.</h3>
+<div class="qbody">
+<div class="stem">
+<p>Pencil questions: the same steps as the worked case, on a new paragraph.</p>
+<p>Paragraph: In 2019 the primary school in Carden dug up half of its car park and planted vegetables. The pupils water the beds before lessons. Last autumn the garden gave so many potatoes that the school kitchen bought no vegetables for a month, and the extra went to the village market.</p>
+<p>Headings:<br>A. Why children should learn to cook<br>B. A busy market in a small village<br>C. How a school came to feed itself<br>D. The trouble with car parks</p>
+</div>
+<div class="ask" role="group" aria-labelledby="a-1a">
+<p class="ask-label" id="a-1a"><span class="ask-id">1a</span> Step 1: the whole paragraph in five words or fewer:</p>
+<div class="box" style="min-height:16mm" aria-hidden="true"></div>
+</div>
+<div class="ask" role="group" aria-labelledby="a-1b">
+<p class="ask-label" id="a-1b"><span class="ask-id">1b</span> Step 3: letter of the heading that matches your five words:</p>
+<div class="box" style="min-height:14mm" aria-hidden="true"></div>
+</div>
+</div>
+</article>
+</section>
+<section class="end" aria-label="End of sheet">
+<p class="line"><span>Stop time:</span> <span class="fill short" aria-hidden="true"></span></p>
+<p class="close-line"><strong>Close this sheet now. The drills come separately.</strong></p>
+</section>
+</main>
+</body>
+</html>

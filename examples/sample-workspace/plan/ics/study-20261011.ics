@@ -1,0 +1,156 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//indelible//indelible 0.1.1//EN
+CALSCALE:GREGORIAN
+X-WR-CALNAME:Study
+BEGIN:VEVENT
+UID:B-20261012-ielts-1@indelible
+DTSTAMP:20261011T170000Z
+DTSTART:20261012T060000Z
+DTEND:20261012T070000Z
+SEQUENCE:0
+SUMMARY:IELTS Academic · diagnostic test · 60m
+DESCRIPTION:[ind:B-20261012-ielts-1]\n1. Clear the desk: notes\, books and 
+ phone away.\n2. Sit it in one go\; "I don't know" is always an accepted an
+ swer.\n3. Write the start and stop times on the sheet.\n4. Photograph or t
+ ype your answers for marking.\nShort on time: tell Claude before you start
+ \, so the test can move.\nStart: open Claude in ~/Study and say "start iel
+ ts"
+CATEGORIES:indelible
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:IELTS Academic · diagnostic test · 60m
+TRIGGER:-PT15M
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:B-20261013-ielts-1@indelible
+DTSTAMP:20261011T170000Z
+DTSTART:20261013T060000Z
+DTEND:20261013T070000Z
+SEQUENCE:0
+SUMMARY:IELTS Academic · new skill · 60m
+DESCRIPTION:[ind:B-20261013-ielts-1]\n1. Clear the desk: notes and books cl
+ osed.\n2. Read the new-skill sheet\, then close it.\n3. Do the drills\, wi
+ th the check beside each answer.\n4. Photograph or type your answers for m
+ arking.\nShort on time: read the sheet and do the first drill block only.\
+ nStart: open Claude in ~/Study and say "start ielts"
+CATEGORIES:indelible
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:IELTS Academic · new skill · 60m
+TRIGGER:-PT15M
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:B-20261015-ielts-1@indelible
+DTSTAMP:20261011T170000Z
+DTSTART:20261015T060000Z
+DTEND:20261015T070000Z
+SEQUENCE:0
+SUMMARY:IELTS Academic · fix mistakes · 60m
+DESCRIPTION:[ind:B-20261015-ielts-1]\n1. Clear the desk: notes and books cl
+ osed.\n2. Sit the 2-day recheck first.\n3. Work through the fix-mistakes s
+ heet in order.\n4. Write the check beside each answer.\n5. Photograph or t
+ ype your answers for marking.\nShort on time: do the recheck only\; it is 
+ the part that can't move.\nStart: open Claude in ~/Study and say "start ie
+ lts"
+CATEGORIES:indelible
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:IELTS Academic · fix mistakes · 60m
+TRIGGER:-PT15M
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:B-20261019-ielts-1@indelible
+DTSTAMP:20261011T170000Z
+DTSTART:20261019T060000Z
+DTEND:20261019T070000Z
+SEQUENCE:0
+SUMMARY:IELTS Academic · new skill · 60m
+DESCRIPTION:[ind:B-20261019-ielts-1]\n1. Clear the desk: notes and books cl
+ osed.\n2. Read the new-skill sheet\, then close it.\n3. Do the drills\, wi
+ th the check beside each answer.\n4. Photograph or type your answers for m
+ arking.\nShort on time: read the sheet and do the first drill block only.\
+ nStart: open Claude in ~/Study and say "start ielts"
+CATEGORIES:indelible
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:IELTS Academic · new skill · 60m
+TRIGGER:-PT15M
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:B-20261020-ielts-1@indelible
+DTSTAMP:20261011T170000Z
+DTSTART:20261020T060000Z
+DTEND:20261020T070000Z
+SEQUENCE:0
+SUMMARY:IELTS Academic · new skill · 60m
+DESCRIPTION:[ind:B-20261020-ielts-1]\n1. Clear the desk: notes and books cl
+ osed.\n2. Read the new-skill sheet\, then close it.\n3. Do the drills\, wi
+ th the check beside each answer.\n4. Photograph or type your answers for m
+ arking.\nShort on time: read the sheet and do the first drill block only.\
+ nStart: open Claude in ~/Study and say "start ielts"
+CATEGORIES:indelible
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:IELTS Academic · new skill · 60m
+TRIGGER:-PT15M
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:B-20261022-ielts-1@indelible
+DTSTAMP:20261011T170000Z
+DTSTART:20261022T060000Z
+DTEND:20261022T070000Z
+SEQUENCE:0
+SUMMARY:IELTS Academic · new skill · 60m
+DESCRIPTION:[ind:B-20261022-ielts-1]\n1. Clear the desk: notes and books cl
+ osed.\n2. Sit the 2-day recheck first.\n3. Read the new-skill sheet\, then
+  close it.\n4. Do the drills\, with the check beside each answer.\n5. Phot
+ ograph or type your answers for marking.\nShort on time: do the recheck on
+ ly\; it is the part that can't move.\nStart: open Claude in ~/Study and sa
+ y "start ielts"
+CATEGORIES:indelible
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:IELTS Academic · new skill · 60m
+TRIGGER:-PT15M
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:B-20261024-ielts-1@indelible
+DTSTAMP:20261011T170000Z
+DTSTART:20261024T090000Z
+DTEND:20261024T103000Z
+SEQUENCE:0
+SUMMARY:IELTS Academic · long session · 90m
+DESCRIPTION:[ind:B-20261024-ielts-1]\n1. Clear the desk: notes and books cl
+ osed.\n2. Sit the 2-day recheck first.\n3. Open Claude: the session plan i
+ s in the brief.\n4. Take the planned break.\n5. Photograph or type your an
+ swers for marking.\nShort on time: do the recheck only\; it is the part th
+ at can't move.\nStart: open Claude in ~/Study and say "start ielts"
+CATEGORIES:indelible
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:IELTS Academic · long session · 90m
+TRIGGER:-PT15M
+END:VALARM
+END:VEVENT
+END:VCALENDAR

@@ -62,6 +62,18 @@ LATEX_ENGINES = ("tectonic", "xelatex", "lualatex")
 FORMATS = ("pdf", "html", "md")
 RENDER_TIMEOUT_S = 60
 
+# Chrome/Chromium/Edge flags that keep a headless print off the network. A fresh
+# profile otherwise starts the browser's own background traffic at once (component
+# and safe-browsing updates, variations, DNS-over-HTTPS). The page printed is a local
+# file with nothing to fetch, so every connection is refused: all traffic goes to a
+# proxy that isn't there, and no host name resolves. The copy in cmd_setup.py
+# (doctor's fallback test print) must stay the same; tests check both.
+BROWSER_OFFLINE_FLAGS = (
+    "--disable-background-networking", "--disable-component-update", "--disable-sync",
+    "--disable-default-apps", "--no-pings", "--metrics-recording-only",
+    "--proxy-server=127.0.0.1:9", "--host-resolver-rules=MAP * ~NOTFOUND",
+)
+
 READ_THEN_CLOSE = ("theory", "external", "example")
 THEORY_BEARING = ("theory", "external", "example", "repair")
 BLANK_DATE = "Date: ____________"
@@ -914,9 +926,11 @@ def print_html_to_pdf(html_path, pdf, exe=None, timeout=RENDER_TIMEOUT_S):
     try:
         # --use-mock-keychain / --password-store=basic: never touch the OS keychain
         # (on macOS a headless print otherwise can raise keychain dialogs).
+        # BROWSER_OFFLINE_FLAGS: no network traffic at all (see the constant).
         cmd = [exe, "--headless", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
                "--use-mock-keychain", "--password-store=basic",
-               "--disable-extensions", "--user-data-dir=" + profile,
+               "--disable-extensions"] + list(BROWSER_OFFLINE_FLAGS) + [
+               "--user-data-dir=" + profile,
                "--no-pdf-header-footer", "--print-to-pdf-no-header",
                "--print-to-pdf=" + str(tmp), html_path.resolve().as_uri()]
         if sys.platform.startswith("linux") and hasattr(os, "geteuid") and os.geteuid() == 0:

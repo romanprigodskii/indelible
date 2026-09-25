@@ -1,0 +1,96 @@
+{
+  "v": 1,
+  "timezone": "Europe/Lisbon",
+  "learner": {
+    "age_band": "18+",
+    "l1": "pt",
+    "instruction_lang": "en",
+    "gloss": "first_use",
+    "tone": "B",
+    "vocab": "plain",
+    "chat_math": "unicode"
+  },
+  "time": {
+    "schedule": "scheduled",
+    "weekly_target_min": 240,
+    "weekly_ceiling_min": 336,
+    "sleep": {
+      "bed": "23:30",
+      "wake": "06:30"
+    },
+    "rest_day": "Sun",
+    "buffer_pct": 15,
+    "windows": [
+      {
+        "days": [
+          "Mon",
+          "Tue",
+          "Thu"
+        ],
+        "from": "07:00",
+        "to": "08:15"
+      },
+      {
+        "days": [
+          "Sat"
+        ],
+        "from": "10:00",
+        "to": "12:00"
+      }
+    ],
+    "blocked": [
+      {
+        "days": [
+          "Mon",
+          "Tue",
+          "Wed",
+          "Thu",
+          "Fri"
+        ],
+        "from": "09:00",
+        "to": "18:00",
+        "what": "work"
+      },
+      {
+        "date": "2026-10-17",
+        "what": "wedding"
+      }
+    ]
+  },
+  "session": {
+    "length_min": 60,
+    "max_min": 90,
+    "days_per_week": 4,
+    "overrun": "ask",
+    "extension_max_min": 15,
+    "break_every_min": 75,
+    "break_min": 10
+  },
+  "policies": {
+    "missed": "ask",
+    "calendar_write": "preview_confirm"
+  },
+  "render": {
+    "backend": null,
+    "verified_at": null
+  },
+  "calendar": {
+    "provider": "ics",
+    "signature": null,
+    "reminder_min": 15,
+    "target": "Study"
+  },
+  "subjects": [
+    {
+      "id": "ielts",
+      "dir": "ielts",
+      "state": "live",
+      "priority": 1,
+      "target_weekly_min": 240,
+      "min_weekly_min": null
+    }
+  ],
+  "drop_order": [
+    "buffer"
+  ]
+}

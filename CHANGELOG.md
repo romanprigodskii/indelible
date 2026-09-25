@@ -2,7 +2,36 @@
 
 All notable changes to this project are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
-## [0.1.0] - Unreleased
+## [0.1.1] - 2026-09-25
+
+Documentation and packaging for the plugin directory, and the fixes found while preparing it.
+
+### Added
+
+- **Docs for the directory submission.** The README now covers what the plugin runs, writes and sends; example prompts; a synthetic sample workspace to try (`examples/sample-workspace/`, with its fixed clock); where it works; troubleshooting; and support and security.
+- **`PRIVACY.md`,** a privacy policy: what data exists, where it lives, what is sent where, how long it is kept, how to delete it, and the protective defaults that apply if a learner says they are under 18.
+- **`SECURITY.md`,** how to report a vulnerability privately, what counts, supported versions and what to expect.
+- **A guard for claude.ai chat and the mobile app** in `SKILL.md`. Before any script runs, the skill checks for a folder that lasts between conversations. Without one, it says that v0.1 can't keep the record there and offers a limited manual mode. Cowork with a shared folder is described as untested.
+- `displayName` in `plugin.json`, and a listing description that says v0.1 is built for Claude Code.
+- **Tests** (`tests/test_examples.py`) for the sample workspace, for the browser's offline flags, and for the scripts staying inside the workspace.
+
+### Changed
+
+- **A headless browser that prints a PDF is kept off the network.** Chrome, Chromium and Edge used to contact their makers' services in the background as soon as they started (updates, safe-browsing lists, DNS over HTTPS), even though the page printed is a local file. Both launches, the sheet printer and `doctor`'s test print, now switch that traffic off and send anything left to a proxy address that doesn't exist, with no host name resolving. `doctor`'s fallback test print also runs without extensions.
+- **The scripts write and delete only inside the workspace.** `cal ics` refuses an output path outside the workspace. `sheet new` deletes the builder's answers file only when it is inside the subject's `.indelible/tmp/`; anywhere else, it leaves the file and says so.
+- `allowed-tools` no longer lists `Bash(python *indelible.py *)`, which the skill never uses. The README and `SECURITY.md` now say plainly that the remaining patterns are text patterns, broader than the one script, and give a stricter rule.
+- The one-time notice before the first script call now says the script keeps the record as files on the learner's computer and sends nothing over the internet.
+- The onboarding asks "Are you 18 or over?"; indelible is intended for adults, and the under-18 defaults are a safety net.
+- The README describes the `CLAUDE.md` files the workspace holds, the commands Claude runs for programming subjects and for `migrate`, and what deleting one subject leaves behind in v0.1.
+- For programming subjects, Claude deletes its temporary test copy of the learner's code once the marks are recorded, and says once that the learner's build tool may download declared dependencies.
+- The README labels every v0.2 item as planned and not yet available.
+
+### Fixed
+
+- The skill and the command-line tool report version 0.1.1, matching `plugin.json` (`indelible.py --version` and the `.ics` PRODID said 0.1.0, and CI's version check failed). The sample workspace was rebuilt to match.
+- Tests skip the clock-change cases when there is no time zone database (Windows without `tzdata`) instead of failing. CI installs `tzdata` on one Windows job, so those cases still run there.
+
+## [0.1.0] - 2026-09-25
 
 The first release. Built for Claude Code (terminal or desktop).
 

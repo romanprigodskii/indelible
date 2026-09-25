@@ -151,7 +151,7 @@
       "nothing handed in for a grade; the course's AI rule is recorded"
     ],
     "readback_mentions_if_permission_prompt": [
-      "the one permission rule, with the Windows launcher: Bash(py -3 *indelible.py *)"
+      "the one permission rule, with the Windows launcher: Bash(py -3 *indelible.py*)"
     ],
     "checks": [
       "No file exists in the workspace before the readback 'yes'.",

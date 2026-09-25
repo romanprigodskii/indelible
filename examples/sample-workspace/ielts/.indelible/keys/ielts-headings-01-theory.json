@@ -1,0 +1,18 @@
+{
+  "1a": {
+    "accept": [
+      "school garden feeds its kitchen",
+      "pupils grow the school's food",
+      "a school grows its food"
+    ],
+    "check": "n/a (pencil question)",
+    "solution": "Every sentence is about the school producing food for itself."
+  },
+  "1b": {
+    "accept": [
+      "C"
+    ],
+    "check": "n/a (pencil question)",
+    "solution": "C says the same as the five words; A, B and D pick up single details."
+  }
+}

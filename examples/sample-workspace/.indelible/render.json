@@ -1,0 +1,33 @@
+{
+  "files": {
+    "ielts/views/brief.md": {
+      "sha": "8275965a10eda4127585854f4c2ffae7226eb87a90cf94acab747eb34a75d772",
+      "at": "2026-10-13T07:52+01:00"
+    },
+    "ielts/views/progress.md": {
+      "sha": "524dd2f3e8dab114d288985802ef4a30ddd89bc68605a1dadde4e6fc773c3741",
+      "at": "2026-10-13T07:52+01:00"
+    },
+    "ielts/views/errors.md": {
+      "sha": "6705a314f89d4bdeba512143a0988f08bfbc89ef9b597eabd636915875f8d2b4",
+      "at": "2026-10-13T07:52+01:00"
+    },
+    "ielts/views/log.md": {
+      "sha": "be9b05acdfd495f9f814629e1ad6a48a50db177543c16c73e0b379df154cd277",
+      "at": "2026-10-13T07:52+01:00"
+    },
+    "ielts/CLAUDE.md#generated": {
+      "sha": "f7a5e04c7f6517c660d3c20af986cf596ea4ae2a0cdda64f77eeadbd4abb4389",
+      "at": "2026-10-13T07:52+01:00"
+    },
+    "views/week.md": {
+      "sha": "9bec67e697bb055af869ca662c02edb74c5ee664070093b0bdc378e9b4373ce7",
+      "at": "2026-10-13T07:52+01:00"
+    },
+    "CLAUDE.md#generated": {
+      "sha": "fb8285d58a2ec2d126f18dfda60b69af4524e0365e33a1000969a6944745f9c3",
+      "at": "2026-10-13T07:52+01:00"
+    }
+  },
+  "v": 1
+}

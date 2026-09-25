@@ -1,0 +1,144 @@
+{
+  "v": 1,
+  "id": "ielts-diagnostic-01",
+  "type": "diagnostic",
+  "subject": "ielts",
+  "title": "Diagnostic, part A",
+  "est_min": 15,
+  "tools": "none",
+  "answer_form": "short",
+  "items": [
+    {
+      "n": 1,
+      "topic": "T02",
+      "layer": "reading",
+      "op": "true-false-not-given",
+      "origin": "new",
+      "text": "Passage: The Harwick ferry leaves the harbour twice a day, at 07:00 and at 16:00. On foggy winter afternoons the second crossing sometimes waits until the fog lifts.\n\nSentence: The ferry leaves the harbour three times a day.",
+      "asks": [
+        {
+          "id": "1a",
+          "label": "Write T (true), F (false) or NG (not given):",
+          "check": true,
+          "check_hint": "Underline the passage words your answer rests on."
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "topic": "T01",
+      "layer": "reading",
+      "op": "main-idea",
+      "origin": "new",
+      "text": "Paragraph:\n(1) The town of Eastmere changed a great deal after its railway station closed in 1965. (2) Within five years, most of the shops on Station Road stood empty. (3) Younger families moved away to find work, and the primary school lost half of its pupils.",
+      "asks": [
+        {
+          "id": "2a",
+          "label": "Number of the sentence that carries the main idea:",
+          "check": true,
+          "check_hint": "Read the other two sentences: do they sit under yours?"
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "topic": "T04",
+      "layer": "verbal",
+      "op": "swap-word",
+      "origin": "new",
+      "text": "Sentence: The bridge over the river was closed for repairs last spring.",
+      "asks": [
+        {
+          "id": "3a",
+          "label": "One word that could replace 'closed' and keep the meaning:",
+          "check": true,
+          "check_hint": "Read the sentence again with your word in place of 'closed'."
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "topic": "T03",
+      "layer": "production",
+      "op": "describe-trend",
+      "origin": "new",
+      "text": "A shop's table shows the bicycles it sold each month from January to June: 40, 55, 70, 85, 90, 120.",
+      "asks": [
+        {
+          "id": "4a",
+          "label": "One sentence on what the monthly numbers did over the six months:",
+          "check": true,
+          "check_hint": "Read your sentence against the first and the last number."
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "topic": "T01",
+      "layer": "reading",
+      "op": "pick-heading",
+      "origin": "new",
+      "text": "Paragraph: Every spring, volunteers in the village of Lowden close the lane beside the pond to cars for two weeks. At dusk they carry the frogs that are crossing the lane over to the water in buckets, and they write down each one. Last year they carried more than 3,000.\n\nHeadings:\nA. Why frogs go back to the pond where they hatched\nB. A village effort to keep frogs safe on their journey\nC. The harm that new roads do to wildlife\nD. How to dig a pond in your garden",
+      "asks": [
+        {
+          "id": "5a",
+          "label": "Letter of the right heading for this paragraph:",
+          "check": true,
+          "check_hint": "Read the whole paragraph again under your heading."
+        }
+      ]
+    },
+    {
+      "n": 6,
+      "topic": "T02",
+      "layer": "reading",
+      "op": "true-false-not-given",
+      "origin": "new",
+      "text": "Passage: The old mill on the River Tam closed in 1962. Ten years later the building opened again as a small museum of local crafts, run by volunteers.\n\nSentence: The museum is popular with visitors from abroad.",
+      "asks": [
+        {
+          "id": "6a",
+          "label": "Write T (true), F (false) or NG (not given):",
+          "check": true,
+          "check_hint": "Underline the passage words your answer rests on."
+        }
+      ]
+    },
+    {
+      "n": 7,
+      "topic": "T03",
+      "layer": "production",
+      "op": "write-overview",
+      "origin": "new",
+      "text": "A chart shows how people in the town of Rimford travelled to work in 2000 and in 2020.\nCar: 60% in 2000, 45% in 2020\nBus: 25% in 2000, 20% in 2020\nBicycle: 5% in 2000, 25% in 2020\nOn foot: 10% in 2000, 10% in 2020",
+      "asks": [
+        {
+          "id": "7a",
+          "label": "One overview sentence: the main changes, with no figures:",
+          "check": true,
+          "check_hint": "Read your sentence against the chart: does it hold for both years?"
+        }
+      ]
+    },
+    {
+      "n": 8,
+      "topic": "T04",
+      "layer": "verbal",
+      "op": "match-meaning",
+      "origin": "new",
+      "text": "Sentence from a report: 'Visitor numbers fell sharply after the fire.'\n\nA. After the fire, far fewer people came to visit.\nB. The fire was started by a visitor.\nC. After the fire, the number of visitors slowly recovered.\nD. Few people saw the fire.",
+      "asks": [
+        {
+          "id": "8a",
+          "label": "Letter of the sentence that says the same:",
+          "check": true,
+          "check_hint": "Read your sentence and the report sentence side by side."
+        }
+      ]
+    }
+  ],
+  "blocks": [],
+  "terms": [],
+  "theory": null,
+  "least_sure": true
+}

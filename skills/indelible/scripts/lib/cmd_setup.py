@@ -31,6 +31,13 @@ from lib import ws as wsmod
 CLOUD_MARKERS = ["OneDrive", "iCloud", "Mobile Documents", "Dropbox", "CloudStorage", "Google Drive"]
 LATEX_ENGINES = ("tectonic", "xelatex", "lualatex")
 RENDER_TIMEOUT_S = 60
+# The same as lib.render.BROWSER_OFFLINE_FLAGS (this fallback must not import render):
+# a headless test print makes no network connections.
+BROWSER_OFFLINE_FLAGS = (
+    "--disable-background-networking", "--disable-component-update", "--disable-sync",
+    "--disable-default-apps", "--no-pings", "--metrics-recording-only",
+    "--proxy-server=127.0.0.1:9", "--host-resolver-rules=MAP * ~NOTFOUND",
+)
 
 
 def register(subparsers):
@@ -285,6 +292,7 @@ def _test_chrome(exe):
                              "<p>indelible test page: x² ≤ 3</p>", backup=False)
         cmd = [exe, "--headless", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
                "--use-mock-keychain", "--password-store=basic",
+               "--disable-extensions"] + list(BROWSER_OFFLINE_FLAGS) + [
                "--user-data-dir=" + str(Path(tmp) / "profile"), "--no-pdf-header-footer",
                "--print-to-pdf=" + str(pdf), page.as_uri()]
         ok = _run_until_pdf(cmd, pdf, RENDER_TIMEOUT_S)

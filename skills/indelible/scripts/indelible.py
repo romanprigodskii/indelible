@@ -77,7 +77,9 @@ def build_parser(warn=True):
     parser = argparse.ArgumentParser(
         prog=PROG,
         description="indelible: learning that survives the cold test. "
-                    "Files are read and written only inside the learner's workspace.",
+                    "Learner data is written only inside the learner's workspace. Outside it, files "
+                    "handed to a command are only read, init --pointer writes ~/.indelible/workspace, "
+                    "and PDF printing uses a temporary folder that is deleted afterwards.",
     )
     parser.add_argument("--workspace", metavar="PATH", default=None,
                         help="the workspace folder (default: discovered)")

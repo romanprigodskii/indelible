@@ -468,7 +468,7 @@ Opening a brief also increments `opens_unsat` for every issued sheet that isn't 
 
 - **`sheet new <subject> <id> --spec PATH --answers PATH`**
   - Validates the spec. Copies it to `.indelible/specs/<id>.json`.
-  - Writes the answers to `.indelible/keys/<id>.json` (mode 600) and **deletes** the answers file.
+  - Writes the answers to `.indelible/keys/<id>.json` (mode 600) and **deletes** the answers file when it is inside `<subject>/.indelible/tmp/`. An answers file anywhere else is left in place, with a warning.
   - Appends or updates the sheets row (`status=built`).
   - Prints exactly: `<id> built: <asks> questions, ~<est_min> min, key sealed sha256:<first 12>`.
   - Refuses to overwrite an existing id unless its status is `built`, `linted` or `rendered` and `--replace` is given. **A sealed instrument is never edited after issue.**
@@ -593,7 +593,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
   - **title:** `<Subject title> · <kind in plain words> · <min>m`. A cold block's title never names a topic: it reads `2-day recheck (mixed)`.
   - **notes** (≤600 characters): 3–6 steps, what stays closed, a fallback, and `Start: open Claude in <ws> and say "start <subject>"`, plus the marker `[ind:<block-id>]` on the first line.
 - **`cal ack --from results.json`:** takes a list of `{"block","provider","id","etag","start"}` rows, sets `cal`, and sets `status=synced` (or `cancelled` stays).
-- **`cal ics <out.ics> [--from DATE] [--to DATE] [--subject S]`** writes an RFC 5545 VCALENDAR:
+- **`cal ics <out.ics> [--from DATE] [--to DATE] [--subject S]`** writes an RFC 5545 VCALENDAR (the output path must be inside the workspace; any other path is refused with exit 1):
   - one VEVENT per timed, non-cancelled block;
   - `UID=<block-id>@indelible`, `DTSTAMP` and `DTSTART`/`DTEND` in UTC (`Z`);
   - `SUMMARY` = the title, `DESCRIPTION` = the notes (escaped), `SEQUENCE` = the move count;

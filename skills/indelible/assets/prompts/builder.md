@@ -71,7 +71,7 @@ Never print, echo, `cat` or summarise the answers file. Never put an answer in a
 - **accept:** every defensible form (`0.25`, `1/4`, `25%`); for verbal and reading questions, every defensible wording. Choices: the letter or numeral only. No accepted string of 3 or more characters may appear anywhere in the visible text (lint L8); if the answer would be words copied from a passage, ask for the line number instead.
 - **check:** what a correct check line shows.
 - **solution:** a short worked solution. For code: the reference solution and the hidden tests, with `accept` holding the hidden tests' expected outputs, never the public examples'.
-- **Audit before sealing:** re-derive every answer another way (substitute back; run code with a time limit in a temporary folder outside the learner's project, e.g. `python3 -c "import subprocess, sys; sys.exit(subprocess.run(sys.argv[1:], timeout=60).returncode)" cargo test`, since macOS has no `timeout`; re-read each verbal question looking for a second defensible answer, then rewrite the question or accept both).
+- **Audit before sealing:** re-derive every answer another way (substitute back; run code with a time limit in a temporary folder outside the learner's project, e.g. `python3 -c "import subprocess, sys; sys.exit(subprocess.run(sys.argv[1:], timeout=60).returncode)" cargo test`, since macOS has no `timeout`; re-read each verbal question looking for a second defensible answer, then rewrite the question or accept both). Delete that temporary folder as soon as the audit has run: it holds part of the answer key.
 
 ### Writing rules
 

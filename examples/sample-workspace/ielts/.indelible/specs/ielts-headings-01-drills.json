@@ -1,0 +1,124 @@
+{
+  "v": 1,
+  "id": "ielts-headings-01-drills",
+  "type": "drills",
+  "subject": "ielts",
+  "title": "Choose the heading from the whole paragraph",
+  "est_min": 8,
+  "tools": "none",
+  "answer_form": "short",
+  "items": [
+    {
+      "n": 1,
+      "topic": "T01",
+      "layer": "reading",
+      "op": "pick-heading",
+      "origin": "new",
+      "text": "Worked for you. Read it, then answer the one question below.\n\nParagraph: One family has kept bees on the hill above Oldcastle for four generations. Their honey sells in the town's shops, and each August they open the hives to school groups. The money from those visits now pays for a second hillside of wild flowers.\n\nHeadings:\nA. The dangers of keeping bees\nB. A family business that keeps growing\nC. Where to buy honey in Oldcastle\nD. Why wild flowers need bees\n\nStep 1. The whole paragraph in five words: 'bee family business keeps expanding'.\nStep 2. C repeats 'honey' and 'Oldcastle'; D repeats 'wild flowers'. Both name details.\nStep 3. B says the same as the five words, so B is the heading.",
+      "asks": [
+        {
+          "id": "1a",
+          "label": "Why step 3 does not choose C, which shares two words with the paragraph (one line):",
+          "check": true,
+          "check_hint": "Read your reason against the paragraph's last sentence."
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "topic": "T01",
+      "layer": "reading",
+      "op": "pick-heading",
+      "origin": "new",
+      "text": "Step 1 is done for you; finish steps 2 and 3.\n\nParagraph: For years the ferry to Inchmore carried only twelve cars, and in summer drivers waited half a day to cross. In 2021 a larger boat arrived with room for forty cars. Queues on the pier have almost disappeared, and more visitors now come for a single day.\n\nHeadings:\nA. The history of Inchmore's pier\nB. How a bigger ferry ended the long waits\nC. Summer holidays on the island\nD. How to drive onto a ferry\n\nStep 1. The whole paragraph in five words: 'bigger boat ended the queues'.",
+      "asks": [
+        {
+          "id": "2a",
+          "label": "Step 3: letter of the heading that says the same as the five words:",
+          "check": true,
+          "check_hint": "Read the whole paragraph again under your heading."
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "topic": "T01",
+      "layer": "reading",
+      "op": "pick-heading",
+      "origin": "new",
+      "text": "Paragraph: A retired postal worker in the town began painting at sixty. Her first pictures showed the garden behind her house. Ten years later, her paintings of the coast hang in the national gallery, and art schools invite her to speak.\n\nHeadings:\nA. Life at the post office\nB. A late start that led to success\nC. How to paint the coast\nD. Gardens in art",
+      "asks": [
+        {
+          "id": "3a",
+          "label": "Letter of the heading for this paragraph:",
+          "check": true,
+          "check_hint": "Read the whole paragraph again under your heading."
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "topic": "T01",
+      "layer": "reading",
+      "op": "pick-heading",
+      "origin": "new",
+      "text": "Paragraph: The Kell valley once had eleven working farms. Today two are left. Most of the land is now a forest planted in the 1980s, and the old farmhouses have become holiday cottages.\n\nHeadings:\nA. A valley that turned from farming to forest and holidays\nB. How to plant a forest\nC. The best holiday cottages\nD. Farm work in the 1980s",
+      "asks": [
+        {
+          "id": "4a",
+          "label": "Letter of the heading for this paragraph:",
+          "check": true,
+          "check_hint": "Read the whole paragraph again under your heading."
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "topic": "T01",
+      "layer": "reading",
+      "op": "pick-heading",
+      "origin": "new",
+      "text": "Paragraph: At the start of the school year, the pupils at Harlow Road asked for a quieter lunch hall. The teachers split lunch into two sittings, added a wall of plants and asked the older pupils to eat outside on dry days. By December the noise had halved, and fewer pupils skipped lunch.\n\nHeadings:\nA. Plants that grow indoors\nB. Why pupils skip lunch\nC. How one school made lunch calmer\nD. The school year in December",
+      "asks": [
+        {
+          "id": "5a",
+          "label": "Letter of the heading for this paragraph:",
+          "check": true,
+          "check_hint": "Read the whole paragraph again under your heading."
+        }
+      ]
+    },
+    {
+      "n": 6,
+      "topic": "T01",
+      "layer": "reading",
+      "op": "pick-heading",
+      "origin": "new",
+      "text": "Paragraph: Lighthouse keepers once lived beside every lamp on the Welsh coast. Machines took over the last lamps in 1998. Some keepers' houses are now museums, and one is a small hotel where guests can climb the tower.\n\nHeadings:\nA. A day in the life of a keeper\nB. How lighthouse lamps work\nC. The end of the keepers, and new uses for their homes\nD. The best hotels on the coast",
+      "asks": [
+        {
+          "id": "6a",
+          "label": "Letter of the heading for this paragraph:",
+          "check": true,
+          "check_hint": "Read the whole paragraph again under your heading."
+        }
+      ]
+    }
+  ],
+  "blocks": [
+    {
+      "title": "Block A: choose the heading from the whole paragraph",
+      "items": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    }
+  ],
+  "terms": [],
+  "theory": null,
+  "least_sure": true
+}

@@ -15,8 +15,8 @@ For a new workspace or a new subject. Ask only what the first plan needs, show t
 
 ## 2. Stage 0: silent scan
 
-1. Say once: "I'll run a small script that only reads and writes files in your study folder." Run `ind doctor --json` (it only reports). No Python 3.9+: SKILL.md, "Without Python".
-2. **Folder:** the current one only if empty, outside git and not cloud-synced; else `~/Study` (`%USERPROFILE%\Study`). Never change an existing `CLAUDE.md`.
+1. Say once: "I'll run a small script that keeps your study record as files in a folder on your computer. It sends nothing over the internet." Run `ind doctor --json` (it only reports, and may make a one-page test PDF in a temporary folder). No Python 3.9+: SKILL.md, "Without Python or a lasting folder".
+2. **Folder:** the current one only if empty, outside git and not cloud-synced; else `~/Study` (`%USERPROFILE%\Study`). In Cowork, a new folder inside the shared folder. A temporary sandbox only after saying it will be lost (SKILL.md, setup step 1). Never change an existing `CLAUDE.md`.
 3. **Calendar, by inspection only:** match your tool list against [calendar.md](calendar.md) §2; loading a deferred schema is not a call. **No connector calls, no account reads.**
 4. **Note:** a multiple-choice tool, a narrow screen, the learner's language (interview in it), the time zone, `py -3` on Windows, any permission prompt (readback row 12).
 
@@ -51,10 +51,10 @@ Code adds "Have you ever written and run a program yourself?"; language, "Could 
 **Q4 · Materials:** "What do you already have: official past papers or practice tests (how many haven't you seen yet?), question banks, textbooks or course notes, an official syllabus (a link or a file)? Any book whose notation or pages I should use for the theory? If any come with answers, I'll keep those sealed until marking."
 Feeds `materials.sources`, `.ration` (shapes: [sheets.md](sheets.md) §11) and the theory source. Answer files: path only, never opened here.
 
-**Q5 · About you:** "Three quick ones. (a) Your age: under 16, 16–17, or 18+? It only changes sleep, load and reminder defaults. (b) Is your first language different from the one you'll study in? Then I'll explain hard words in it the first time they appear, and you may draft 'why' answers in it. (c) Which feedback suits you, for a wrong answer on question 7?
+**Q5 · About you:** "Three quick ones. (a) Are you 18 or over? If not, say 'under 16' or '16–17': it only changes sleep, load and reminder defaults. (b) Is your first language different from the one you'll study in? Then I'll explain hard words in it the first time they appear, and you may draft 'why' answers in it. (c) Which feedback suits you, for a wrong answer on question 7?
 A: '7 is wrong: you used the mean where the question asks for the median. Redo it with the median.'
 B: '7 is wrong: mean used where the question asks for the median. That's a definition slip, and your method was right. Next: two median questions.'"
-Ask (b) only if the languages may differ; language profile: "Which language should I explain things in?". Under 18: sleep ≥8.5 h, nothing ending after 22:00 on school nights unless chosen, school plus study against the ceiling; under 16: no connector without a guardian's agreement. Feeds `learner.*`.
+Ask (b) only if the languages may differ; language profile: "Which language should I explain things in?". indelible is meant for adults; the under-18 defaults are a safety net, not a target audience. Under 18: sleep ≥8.5 h, nothing ending after 22:00 on school nights unless chosen, school plus study against the ceiling; under 16: no connector without a guardian's agreement. Feeds `learner.*`.
 
 **Q6 · How long, how often:** "How long should a normal session be: 15–20, 30, 45, 60, 90, or 120–150 minutes? On how many days a week? And what's the longest you'd ever want one to run?"
 Weekly = length × days. ≤30 min: a sheet and its drills may fall on different days. ≥120 min: breaks, plus a daily 15-minute review offered as an if-then plan.
@@ -117,10 +117,10 @@ At most 12 lines, rows that apply; "more" shows the other defaults. Persona A:
 9 Answers: read on screen, write on paper, send phone photos (no printer needed)
 10 Feedback style B · plain words · hard words explained in Portuguese the first time
 11 Files: ~/Study (new folder) · local history with git, never uploaded
-12 One-time step: type /permissions and allow Bash(python3 *indelible.py *)
+12 One-time step, for fewer prompts: type /permissions and allow Bash(python3 *indelible.py*) (it allows any python3 command that mentions indelible.py)
 ```
 
-Row 12 only if a permission prompt appeared during this setup (Windows: `Bash(py -3 *indelible.py *)`). "change N": apply, show changed rows, ask again. "yes": §7 at once.
+Row 12 only if a permission prompt appeared during this setup (Windows: `Bash(py -3 *indelible.py*)`). "change N": apply, show changed rows, ask again. "yes": §7 at once.
 
 ## 7. What teach writes (after "yes" only)
 

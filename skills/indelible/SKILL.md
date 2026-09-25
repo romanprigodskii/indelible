@@ -1,12 +1,12 @@
 ---
 name: indelible
-description: "Use when someone wants to learn, revise or prepare on their own over days or weeks (an exam, a course final, a certification, an interview, a language or a programming skill): setting up study, starting, continuing or closing a study session, checking what is due, being tested on their material, reviewing their mistakes, or planning and rescheduling study time in a calendar, even if they never say \"study plan\". Runs a short onboarding interview, a diagnostic before any teaching, and sessions built from theory sheets that are read and then closed. Drills carry a written check beside each answer and are marked from photos or typed files. Everything taught is re-tested cold two days later, and every mistake returns on a spaced schedule. Files are updated the same day; calendar blocks change only with consent. Not for one-off questions or explanations with no ongoing goal, code review, work scheduling, or writing work the learner will hand in for assessment."
+description: "Use when someone wants to learn, revise or prepare on their own over days or weeks (an exam, course final, certification, interview, language or programming skill): setting up study, starting, continuing or closing a study session, checking what is due, being tested on their material, reviewing their mistakes, or planning and rescheduling study time in a calendar, even if they never say \"study plan\". Runs a short onboarding interview, a diagnostic before any teaching, and sessions built on theory sheets that are read and then closed. Drills carry a written check beside each answer and are marked from photos or typed files. Everything taught is re-tested cold two days later, and every mistake returns on a spaced schedule. Files are updated the same day; calendar changes go one way, only with consent. In claude.ai chat or mobile: a limited manual mode. Not for one-off questions or explanations with no ongoing goal, code review, work scheduling, or writing work the learner will hand in for assessment."
 license: MIT OR Apache-2.0
-compatibility: "Python 3.9+ (standard library only). Optional: typst or a Chromium browser for PDF sheets; a calendar or task connector. Built for Claude Code."
+compatibility: "Python 3.9+ (standard library only) and a folder that lasts between conversations: Claude Code (Cowork with a shared folder is untested). claude.ai chat and mobile: a limited manual mode. Optional: typst or a Chromium browser for PDF sheets; a calendar or task connector."
 argument-hint: "[teach|session|close|status|diagnose|mock|plan|reschedule|review|sync|migrate] [subject]"
-allowed-tools: Bash(python3 *indelible.py *) Bash(py -3 *indelible.py *) Bash(python *indelible.py *)
+allowed-tools: Bash(python3 *indelible.py*) Bash(py -3 *indelible.py*)
 metadata:
-  version: "0.1.0"
+  version: "0.1.1"
   schema: "1"
 ---
 
@@ -14,20 +14,23 @@ Runs a learner's self-study the way a strict, organised tutor would. It measures
 
 ## Setup (every invocation, before anything else)
 
-1. **The CLI.** `ind` below means `python3 "${CLAUDE_SKILL_DIR}/scripts/indelible.py"`.
+1. **A lasting folder, before any script.** The record needs a folder of the learner's that lasts between conversations. Claude Code has one; so does Cowork with a shared folder (the workspace goes inside it). claude.ai chat, the mobile app and other temporary sandboxes don't. If unsure, ask.
+   - Without one, say once, plainly: "indelible v0.1 keeps your record as files in a folder on your computer, and this chat can't keep that folder between conversations. It works in Claude Code, and should work in Cowork with a shared folder. Here I can run a limited manual mode: sheets as files you save, a record you keep and paste back next time, and every number marked [unverified]. Manual mode here, or would you rather switch?"
+   - Manual mode: follow "Without Python or a lasting folder" below. Never create a workspace in a temporary sandbox without first saying it will be lost.
+2. **The CLI.** `ind` below means `python3 "${CLAUDE_SKILL_DIR}/scripts/indelible.py"`.
    - On Windows, use `py -3` instead of `python3`.
    - Outside Claude Code, the path is the `scripts/` folder beside this file.
-   - Before the first script call in a conversation, say once: "I'll run a small script that only reads and writes files in your study folder."
-2. **The workspace.** Run `ind brief`. If it reports no workspace:
+   - Before the first script call in a conversation, say once: "I'll run a small script that keeps your study record as files in a folder on your computer. It sends nothing over the internet."
+3. **The workspace.** Run `ind brief`. If it reports no workspace:
    - **A one-off question with no lasting goal:** answer it directly, and add one line offering to set up study.
    - **A lasting goal:** run `teach`.
    - **The folder already looks like a hand-run study system** (a `CLAUDE.md` plus at least two of `progress.md`, `log.md`, `errors.md`): ask once, "This looks like an existing study system. Import it?" Run `migrate` only on a yes.
-3. **The subject's state,** from `indelible.json` or the brief:
+4. **The subject's state,** from `indelible.json` or the brief:
    - `legacy`: this subject is run by its own `CLAUDE.md`. Follow that file, read nothing of indelible's, and stop here.
    - `shadow`: give a read-only brief marked SHADOW and write nothing.
-4. **Unfinished business first.** If the brief shows an unclosed session, close it first. That takes at most 10 minutes, and the close logs itself as late. If a different subject is mid-session, ask whether to close it or park it. Never switch subjects silently.
-5. **Load the command's reference file** before acting. This is non-negotiable: `session` without `session-open.md` loaded skips the recheck-first order the learner relies on.
-6. **No Python 3.9+:** follow "Without Python" below.
+5. **Unfinished business first.** If the brief shows an unclosed session, close it first. That takes at most 10 minutes, and the close logs itself as late. If a different subject is mid-session, ask whether to close it or park it. Never switch subjects silently.
+6. **Load the command's reference file** before acting. This is non-negotiable: `session` without `session-open.md` loaded skips the recheck-first order the learner relies on.
+7. **No Python 3.9+:** follow "Without Python or a lasting folder" below.
 
 ## Laws
 
@@ -80,7 +83,7 @@ If you are about to do any of these, stop and take the structural route instead.
 | `review` | "weekly review", "how am I doing" | The weekly review, plus 1–3 decisions | [review.md](references/review.md) |
 | `sync` | "put it in my calendar", "fix my calendar" | Calendar diff, preview, write, then read back | [calendar.md](references/calendar.md) |
 | `migrate <path>` | "use my existing notes" | Import a hand-run study system without losing anything | [migrate.md](references/migrate.md) |
-| `forget` (v0.2) | "delete what you recorded about…" | Not in v0.1, and scripts never delete learner data. Say so, show which folder holds it (a subject folder, or the whole workspace) and that the learner can delete it themselves; never delete or edit inside a data file | none |
+| `forget` (v0.2) | "delete what you recorded about…" | Not in v0.1, and scripts never delete learner data. Say so. Deleting the whole workspace folder removes everything; deleting one subject's folder leaves its rows in `plan/blocks.jsonl`, `ledger.jsonl` and `plan/ics/`, and the brief then fails until its entry leaves `subjects` in `indelible.json`. The learner deletes; never delete or edit inside a data file | none |
 
 Sheets, check lines, the checker (lint), keys and evidence are covered in [sheets.md](references/sheets.md), which applies to every command that builds or grades a sheet. The reasons behind every rule, and how strong the evidence is, are in [method.md](references/method.md).
 
@@ -106,15 +109,18 @@ Sheets, check lines, the checker (lint), keys and evidence are covered in [sheet
 
 ## Surfaces
 
-- **Claude Code (terminal or desktop)** is the supported surface for v0.1. It gives file persistence, the builder subagent and connectors.
+- **Claude Code (terminal or desktop):** supported in v0.1. It gives a lasting folder, the builder subagent and connectors.
+- **Cowork with a shared folder:** untested in v0.1. It should work like Claude Code, with the workspace inside the shared folder.
+- **claude.ai chat and the mobile app:** a limited manual mode only (setup step 1). Full support is planned for v0.2 and is not available yet.
 - **Without a calendar connector:** give an `.ics` file (`ind cal ics`) or a table in `views/week.md`. A study session is never blocked because of the calendar.
 - **Plain vocabulary** is the default, so the learner sees "2-day recheck", "fixed", "to do" and "question". The mapping is in [sheets.md](references/sheets.md).
 
-## Without Python
+## Without Python or a lasting folder
 
-When `ind doctor` can't run (no Python 3.9+), say so once and offer a manual mode under the same laws. Nothing enforces the laws here, so keep them by hand.
+When `ind doctor` can't run (no Python 3.9+), say so once and offer a manual mode under the same laws; with no lasting folder, setup step 1 has already offered it. Nothing enforces the laws here, so keep them by hand.
 
-- **Sheets:** `external` pages from the learner's own book, and short probes asked in chat. With the Agent tool, the builder may write a sheet and its answers as two files, `<ws>/manual/<sheet>.md` and `<sheet>.answers.md`; open the answers file only after the learner's answers are in a file or in chat (Law 1). With no Agent tool, build no sheet that needs a key.
+- **Sheets:** `external` pages from the learner's own book, and short probes asked in chat. With the Agent tool, the builder may write a sheet and its answers as two files, `<ws>/manual/<sheet>.md` and `<sheet>.answers.md`; open the answers file only after the learner's answers are in a file or in chat (Law 1). With no Agent tool, build no sheet that needs a key; a theory sheet, which has none, may still be a file.
 - **Records:** one plain Markdown file per subject that the learner keeps (`<ws>/manual/<subject>-record.md`): date, what was taught, results, mistakes as wrong ideas (never the right answer), and their next dates, worked out by hand (recheck 44–72 h after teaching; mistakes after 1, 3, 7 and 21 days). Label every number `[unverified]`.
+- **No lasting folder:** give each sheet and the updated record as a file for the learner to save (never an answers file before the attempt is in), and say this chat won't keep them.
 - **Session open:** there is no brief. Ask the learner to paste or point to their record, and read only that.
 - **Calendar:** none written; say what is due and when in the close message.

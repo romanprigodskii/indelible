@@ -1,0 +1,44 @@
+{
+  "1a": {
+    "accept": [
+      "C names a detail, not the whole paragraph"
+    ],
+    "check": "the last sentence is about the business, not where to buy honey",
+    "solution": "C picks up two words but only one detail; the paragraph is about the business."
+  },
+  "2a": {
+    "accept": [
+      "B"
+    ],
+    "check": "all three sentences sit under B",
+    "solution": "B matches the five words."
+  },
+  "3a": {
+    "accept": [
+      "B"
+    ],
+    "check": "every sentence is about her late start and where it led",
+    "solution": "A, C and D each name one detail."
+  },
+  "4a": {
+    "accept": [
+      "A"
+    ],
+    "check": "farms, forest and cottages all sit under A",
+    "solution": "A covers the whole change; B, C and D name details."
+  },
+  "5a": {
+    "accept": [
+      "C"
+    ],
+    "check": "every sentence is about a quieter lunch",
+    "solution": "C covers the problem, the changes and the result."
+  },
+  "6a": {
+    "accept": [
+      "C"
+    ],
+    "check": "keepers gone, houses used in new ways",
+    "solution": "C covers both halves of the paragraph."
+  }
+}

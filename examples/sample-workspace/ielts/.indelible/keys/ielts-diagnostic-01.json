@@ -1,0 +1,63 @@
+{
+  "1a": {
+    "accept": [
+      "F"
+    ],
+    "check": "07:00 and 16:00 underlined: two crossings",
+    "solution": "The passage gives two times, so three a day contradicts it."
+  },
+  "2a": {
+    "accept": [
+      "1"
+    ],
+    "check": "sentences 2 and 3 are results of the station closing",
+    "solution": "Sentence 1 states the change; 2 and 3 are examples of it."
+  },
+  "3a": {
+    "accept": [
+      "shut"
+    ],
+    "check": "'The bridge was shut for repairs' reads with the same meaning",
+    "solution": "Closed means not open to use here."
+  },
+  "4a": {
+    "accept": [
+      "rose",
+      "increased",
+      "went up",
+      "grew",
+      "climbed",
+      "more than tripled"
+    ],
+    "check": "40 first, 120 last: an upward trend",
+    "solution": "Sales rose every month, from 40 to 120."
+  },
+  "5a": {
+    "accept": [
+      "B"
+    ],
+    "check": "every sentence is about the volunteers moving frogs",
+    "solution": "The paragraph is about a village effort; A, C and D name other things."
+  },
+  "6a": {
+    "accept": [
+      "NG"
+    ],
+    "check": "no words in the passage about visitors from abroad",
+    "solution": "The passage says nothing about who visits."
+  },
+  "7a": {
+    "accept": [
+      "car travel fell while cycling grew"
+    ],
+    "check": "no figures; car down and bicycle up both named",
+    "solution": "Between 2000 and 2020 car use fell while cycling became far more common; bus and walking changed little."
+  },
+  "8a": {
+    "accept": [
+      "A"
+    ],
+    "check": "fell sharply = far fewer",
+    "solution": "Fell sharply means dropped a lot."
+  }
+}

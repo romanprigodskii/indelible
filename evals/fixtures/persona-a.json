@@ -154,7 +154,7 @@
       "what's tested: the published format, with 'say if any is missing' (no separate question)"
     ],
     "readback_mentions_if_permission_prompt": [
-      "the one permission rule: Bash(python3 *indelible.py *)"
+      "the one permission rule: Bash(python3 *indelible.py*)"
     ],
     "checks": [
       "No file exists in the workspace before the readback 'yes'.",

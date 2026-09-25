@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="indelible">
+<title>Choose the heading from the whole paragraph</title>
+<style>
+  /* indelible sheet. Printed on A4 (headless browser or File > Print) or read on screen.
+     Self-contained: no external fonts, scripts or images. Unicode maths only. */
+  :root {
+    --ink: #111111;
+    --muted: #474747;
+    --rule: #1f1f1f;
+    --soft: #eeeeee;
+    --paper: #ffffff;
+    --serif: "Noto Serif", "Libertinus Serif", "Iowan Old Style", "Palatino Linotype", Palatino,
+             Georgia, Cambria, serif;
+    --mono: "SFMono-Regular", Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", "Courier New", monospace;
+  }
+  @page {
+    size: A4;
+    margin: 15mm 16mm 18mm 16mm;
+    @bottom-center {
+      content: "page " counter(page) " of " counter(pages);
+      font-family: Georgia, Cambria, serif;
+      font-size: 9pt;
+      color: #555555;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--paper); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    margin: 0 auto;
+    max-width: calc(178mm + 32px);
+    padding: 24px 16px 48px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 13pt;
+    line-height: 1.45;
+    overflow-wrap: break-word;
+  }
+  @media print {
+    body { max-width: none; padding: 0; font-size: 12.5pt; }
+  }
+  h1, h2, h3 { line-height: 1.2; margin: 0; }
+  h1 { font-size: 20pt; }
+  h2 {
+    font-size: 14pt; margin: 7mm 0 3mm; padding-bottom: 1mm;
+    border-bottom: 1px solid var(--rule); break-after: avoid;
+  }
+  .sheet-head .head-row {
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2mm 6mm;
+  }
+  .sheet-head .when { margin: 0; font-size: 12pt; white-space: nowrap; }
+  .sheet-head .meta { margin: 1.5mm 0 4mm; font-size: 11pt; color: var(--muted); }
+
+  /* Boxed regions: rules, floor, reading pages */
+  .rules, .floor, .pages {
+    border: 1.5px solid var(--rule); border-radius: 3px; padding: 2.5mm 5mm 3mm; margin: 0 0 5mm;
+    break-inside: avoid;
+  }
+  .rules h2, .floor h2, .pages h2 { font-size: 12pt; border: 0; margin: 0 0 1mm; padding: 0; }
+  .rules ul, .floor ul { margin: 0; padding-left: 5mm; }
+  .rules li { font-size: 11.5pt; margin: 0.6mm 0; }
+  .rules li.v-rule { font-weight: 700; }
+  .pages p { margin: 0; }
+
+  /* Theory */
+  .words dl { margin: 0; }
+  .words dt { font-weight: 700; margin-top: 2mm; }
+  .words .gloss { font-weight: 400; font-style: italic; }
+  .words dd { margin: 0 0 0 6mm; }
+  .sec p { margin: 0 0 2.5mm; }
+  .sec-rule, .sec-warning {
+    border: 1.5px solid var(--rule); border-radius: 3px; padding: 0 5mm 1mm; margin: 5mm 0;
+    break-inside: avoid;
+  }
+  .sec-warning { border-style: dashed; }
+  .sec-rule h2, .sec-warning h2 { border: 0; margin: 3mm 0 1.5mm; }
+
+  /* Write-in lines: start, stop, least sure */
+  .line { display: flex; align-items: flex-end; gap: 2mm; margin: 4mm 0; }
+  .line .fill { flex: 1; border-bottom: 1px solid var(--rule); min-height: 8mm; }
+  .line .fill.short { flex: 0 0 40mm; }
+  .num { font-weight: 700; }
+
+  /* Questions */
+  .item { display: grid; grid-template-columns: 10mm minmax(0, 1fr); column-gap: 1mm; margin: 5mm 0 1mm; }
+  .item.keep { break-inside: avoid; }
+  .qnum { grid-column: 1; font-size: 13pt; }
+  .qbody { grid-column: 2; min-width: 0; }
+  .stem p { margin: 0 0 2mm; }
+  .ask { margin: 1mm 0 5mm; break-inside: avoid; }
+  .ask-label { margin: 0 0 1.5mm; }
+  .ask-id { font-weight: 700; margin-right: 1.5mm; }
+  .box { width: 100%; border: 1.5px solid var(--rule); border-radius: 3px; }
+  .check { display: flex; align-items: flex-end; gap: 2mm; margin: 2mm 0 0; }
+  .check .fill { flex: 1; border-bottom: 1px solid var(--rule); min-height: 9mm; }
+  .hint { margin: 0.8mm 0 0; font-size: 10pt; color: var(--muted); }
+  /* Code: verbatim, indentation kept, monospace */
+  pre.code {
+    font-family: var(--mono); font-size: 10.5pt; line-height: 1.4; white-space: pre; overflow-x: auto;
+    margin: 0 0 2.5mm; padding: 2mm 3mm; border: 1px solid #bdbdbd; border-radius: 3px; background: #f6f6f6;
+    break-inside: avoid;
+  }
+  pre.code code { font-family: inherit; font-size: inherit; background: none; padding: 0; }
+  code { font-family: var(--mono); font-size: 0.9em; background: #f1f1f1; padding: 0 0.15em; border-radius: 2px; }
+  @media print { pre.code { white-space: pre-wrap; overflow-wrap: anywhere; } }
+  .gate {
+    margin: 3mm 0 5mm; padding: 2.5mm 4mm; border-left: 4px solid var(--rule); background: var(--soft);
+    font-weight: 700; break-inside: avoid;
+  }
+
+  /* End of sheet */
+  .end { margin-top: 8mm; padding-top: 1mm; border-top: 1px solid var(--rule); break-inside: avoid; }
+  .close-line { margin: 6mm 0 0; text-align: center; font-size: 13pt; }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+</style>
+</head>
+<body>
+<main aria-labelledby="sheet-title">
+<header class="sheet-head">
+<div class="head-row"><h1 id="sheet-title">Choose the heading from the whole paragraph</h1><p class="when">Date: ____________</p></div>
+<p class="meta">About 8 min · 6 questions · Practice — written by Claude</p>
+</header>
+<section class="rules" aria-labelledby="rules-h">
+<h2 id="rules-h">Rules</h2>
+<ul>
+<li>Closed book: no notes, no book, no search, no AI.</li>
+<li>Answer on paper, one answer in each box.</li>
+<li>Write the check beside each answer. Work backwards from it: put it back in, rebuild the total, or test the definition you used against the question&#x27;s words.</li>
+<li>“I don&#x27;t know” is always an accepted answer.</li>
+<li>Stop after 8 minutes.</li>
+<li>Tools allowed: none.</li>
+<li class="v-rule">A word used and not defined on this sheet is my error: mark it V.</li>
+</ul>
+</section>
+<p class="line start"><span class="num">0.</span> <span>Start time:</span> <span class="fill short" aria-hidden="true"></span></p>
+<section class="block" aria-labelledby="blk-1">
+<h2 id="blk-1">Block A: choose the heading from the whole paragraph</h2>
+<article class="item keep" aria-labelledby="q-1">
+<h3 id="q-1" class="qnum"><span class="sr-only">Question </span>1.</h3>
+<div class="qbody">
+<div class="stem">
+<p>Worked for you. Read it, then answer the one question below.</p>
+<p>Paragraph: One family has kept bees on the hill above Oldcastle for four generations. Their honey sells in the town&#x27;s shops, and each August they open the hives to school groups. The money from those visits now pays for a second hillside of wild flowers.</p>
+<p>Headings:<br>A. The dangers of keeping bees<br>B. A family business that keeps growing<br>C. Where to buy honey in Oldcastle<br>D. Why wild flowers need bees</p>
+<p>Step 1. The whole paragraph in five words: &#x27;bee family business keeps expanding&#x27;.<br>Step 2. C repeats &#x27;honey&#x27; and &#x27;Oldcastle&#x27;; D repeats &#x27;wild flowers&#x27;. Both name details.<br>Step 3. B says the same as the five words, so B is the heading.</p>
+</div>
+<div class="ask" role="group" aria-labelledby="a-1a">
+<p class="ask-label" id="a-1a"><span class="ask-id">1a</span> Why step 3 does not choose C, which shares two words with the paragraph (one line):</p>
+<div class="box" style="min-height:16mm" aria-hidden="true"></div>
+<p class="check"><span>Check:</span> <span class="fill" aria-hidden="true"></span></p>
+<p class="hint">Read your reason against the paragraph&#x27;s last sentence.</p>
+</div>
+</div>
+</article>
+<article class="item keep" aria-labelledby="q-2">
+<h3 id="q-2" class="qnum"><span class="sr-only">Question </span>2.</h3>
+<div class="qbody">
+<div class="stem">
+<p>Step 1 is done for you; finish steps 2 and 3.</p>
+<p>Paragraph: For years the ferry to Inchmore carried only twelve cars, and in summer drivers waited half a day to cross. In 2021 a larger boat arrived with room for forty cars. Queues on the pier have almost disappeared, and more visitors now come for a single day.</p>
+<p>Headings:<br>A. The history of Inchmore&#x27;s pier<br>B. How a bigger ferry ended the long waits<br>C. Summer holidays on the island<br>D. How to drive onto a ferry</p>
+<p>Step 1. The whole paragraph in five words: &#x27;bigger boat ended the queues&#x27;.</p>
+</div>
+<div class="ask" role="group" aria-labelledby="a-2a">
+<p class="ask-label" id="a-2a"><span class="ask-id">2a</span> Step 3: letter of the heading that says the same as the five words:</p>
+<div class="box" style="min-height:14mm" aria-hidden="true"></div>
+<p class="check"><span>Check:</span> <span class="fill" aria-hidden="true"></span></p>
+<p class="hint">Read the whole paragraph again under your heading.</p>
+</div>
+</div>
+</article>
+<article class="item keep" aria-labelledby="q-3">
+<h3 id="q-3" class="qnum"><span class="sr-only">Question </span>3.</h3>
+<div class="qbody">
+<div class="stem">
+<p>Paragraph: A retired postal worker in the town began painting at sixty. Her first pictures showed the garden behind her house. Ten years later, her paintings of the coast hang in the national gallery, and art schools invite her to speak.</p>
+<p>Headings:<br>A. Life at the post office<br>B. A late start that led to success<br>C. How to paint the coast<br>D. Gardens in art</p>
+</div>
+<div class="ask" role="group" aria-labelledby="a-3a">
+<p class="ask-label" id="a-3a"><span class="ask-id">3a</span> Letter of the heading for this paragraph:</p>
+<div class="box" style="min-height:14mm" aria-hidden="true"></div>
+<p class="check"><span>Check:</span> <span class="fill" aria-hidden="true"></span></p>
+<p class="hint">Read the whole paragraph again under your heading.</p>
+</div>
+</div>
+</article>
+<p class="gate" role="note">If your check failed on 2 of items 1–3, or you left 2 blank: stop and send a photo of 1–3.</p>
+<article class="item keep" aria-labelledby="q-4">
+<h3 id="q-4" class="qnum"><span class="sr-only">Question </span>4.</h3>
+<div class="qbody">
+<div class="stem">
+<p>Paragraph: The Kell valley once had eleven working farms. Today two are left. Most of the land is now a forest planted in the 1980s, and the old farmhouses have become holiday cottages.</p>
+<p>Headings:<br>A. A valley that turned from farming to forest and holidays<br>B. How to plant a forest<br>C. The best holiday cottages<br>D. Farm work in the 1980s</p>
+</div>
+<div class="ask" role="group" aria-labelledby="a-4a">
+<p class="ask-label" id="a-4a"><span class="ask-id">4a</span> Letter of the heading for this paragraph:</p>
+<div class="box" style="min-height:14mm" aria-hidden="true"></div>
+<p class="check"><span>Check:</span> <span class="fill" aria-hidden="true"></span></p>
+<p class="hint">Read the whole paragraph again under your heading.</p>
+</div>
+</div>
+</article>
+<article class="item keep" aria-labelledby="q-5">
+<h3 id="q-5" class="qnum"><span class="sr-only">Question </span>5.</h3>
+<div class="qbody">
+<div class="stem">
+<p>Paragraph: At the start of the school year, the pupils at Harlow Road asked for a quieter lunch hall. The teachers split lunch into two sittings, added a wall of plants and asked the older pupils to eat outside on dry days. By December the noise had halved, and fewer pupils skipped lunch.</p>
+<p>Headings:<br>A. Plants that grow indoors<br>B. Why pupils skip lunch<br>C. How one school made lunch calmer<br>D. The school year in December</p>
+</div>
+<div class="ask" role="group" aria-labelledby="a-5a">
+<p class="ask-label" id="a-5a"><span class="ask-id">5a</span> Letter of the heading for this paragraph:</p>
+<div class="box" style="min-height:14mm" aria-hidden="true"></div>
+<p class="check"><span>Check:</span> <span class="fill" aria-hidden="true"></span></p>
+<p class="hint">Read the whole paragraph again under your heading.</p>
+</div>
+</div>
+</article>
+<article class="item keep" aria-labelledby="q-6">
+<h3 id="q-6" class="qnum"><span class="sr-only">Question </span>6.</h3>
+<div class="qbody">
+<div class="stem">
+<p>Paragraph: Lighthouse keepers once lived beside every lamp on the Welsh coast. Machines took over the last lamps in 1998. Some keepers&#x27; houses are now museums, and one is a small hotel where guests can climb the tower.</p>
+<p>Headings:<br>A. A day in the life of a keeper<br>B. How lighthouse lamps work<br>C. The end of the keepers, and new uses for their homes<br>D. The best hotels on the coast</p>
+</div>
+<div class="ask" role="group" aria-labelledby="a-6a">
+<p class="ask-label" id="a-6a"><span class="ask-id">6a</span> Letter of the heading for this paragraph:</p>
+<div class="box" style="min-height:14mm" aria-hidden="true"></div>
+<p class="check"><span>Check:</span> <span class="fill" aria-hidden="true"></span></p>
+<p class="hint">Read the whole paragraph again under your heading.</p>
+</div>
+</div>
+</article>
+</section>
+<section class="end" aria-label="End of sheet">
+<p class="line"><span>Stop time:</span> <span class="fill short" aria-hidden="true"></span></p>
+<p class="line"><span>Least sure of (item numbers):</span> <span class="fill" aria-hidden="true"></span></p>
+</section>
+</main>
+</body>
+</html>

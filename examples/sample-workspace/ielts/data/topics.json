@@ -1,0 +1,42 @@
+{
+  "T01": {
+    "level": 2,
+    "level_basis": "practice 5/5 on ielts-headings-01-drills (2026-10-13)",
+    "taught_at": "2026-10-13T07:17+01:00",
+    "taught_by": "sheet",
+    "last_cold": null,
+    "cold_passes": [],
+    "explanation_on_file": false,
+    "note": ""
+  },
+  "T02": {
+    "level": 1,
+    "level_basis": "latest measurement: diagnostic 1/2 on ielts-diagnostic-01",
+    "taught_at": null,
+    "taught_by": null,
+    "last_cold": null,
+    "cold_passes": [],
+    "explanation_on_file": false,
+    "note": ""
+  },
+  "T03": {
+    "level": 1,
+    "level_basis": "latest measurement: diagnostic 1.5/2 on ielts-diagnostic-01 (3p needs at least 4 questions)",
+    "taught_at": null,
+    "taught_by": null,
+    "last_cold": null,
+    "cold_passes": [],
+    "explanation_on_file": false,
+    "note": ""
+  },
+  "T04": {
+    "level": 1,
+    "level_basis": "latest measurement: diagnostic 1/2 on ielts-diagnostic-01",
+    "taught_at": null,
+    "taught_by": null,
+    "last_cold": null,
+    "cold_passes": [],
+    "explanation_on_file": false,
+    "note": ""
+  }
+}

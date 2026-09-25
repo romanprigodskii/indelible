@@ -358,11 +358,20 @@ def cmd_new(args):
         else:
             rows.append(row)
         subj.save_sheets(rows)
-        try:
-            ans_path.unlink()
-        except OSError as exc:
-            sys.stderr.write("indelible: could not delete the answers file %s (%s); delete it now\n"
-                             % (ans_path, type(exc).__name__))
+        # The builder writes its answers file into <subject>/.indelible/tmp/, and only a
+        # file there is deleted once the key is sealed: the scripts never delete a file
+        # outside the workspace.
+        if _inside_dir(ans_path, subj.tmp_dir):
+            try:
+                ans_path.unlink()
+            except OSError as exc:
+                sys.stderr.write("indelible: could not delete the answers file %s (%s); delete it now\n"
+                                 % (ans_path, type(exc).__name__))
+        else:
+            sys.stderr.write("indelible: the key is sealed, but the answers file %s is outside %s, so it "
+                             "was left where it is. It holds the answers: delete it without opening it, "
+                             "and write the next one inside %s\n"
+                             % (ans_path, ws.rel(subj.tmp_dir), ws.rel(subj.tmp_dir)))
         # The builder's scratch copy of the spec is sealed now; it is not kept in tmp.
         if _inside_dir(spec_path, subj.tmp_dir):
             try:

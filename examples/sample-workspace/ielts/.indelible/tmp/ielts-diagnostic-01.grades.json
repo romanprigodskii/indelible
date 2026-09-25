@@ -1,0 +1,64 @@
+{
+  "start": "07:05",
+  "stop": "07:24",
+  "date": "2026-10-12",
+  "asks": [
+    {
+      "ask": "1a",
+      "verdict": "right",
+      "check": "filled",
+      "least_sure": false
+    },
+    {
+      "ask": "2a",
+      "verdict": "right",
+      "check": "filled",
+      "least_sure": false
+    },
+    {
+      "ask": "3a",
+      "verdict": "right",
+      "check": "caught",
+      "least_sure": false
+    },
+    {
+      "ask": "4a",
+      "verdict": "right",
+      "check": "filled",
+      "least_sure": false
+    },
+    {
+      "ask": "5a",
+      "verdict": "dont_know",
+      "check": "n/a",
+      "least_sure": false
+    },
+    {
+      "ask": "6a",
+      "verdict": "wrong",
+      "check": "filled",
+      "least_sure": false,
+      "mode": "R",
+      "kind": "belief",
+      "account": "It doesn't say the museum is popular, so I took that to mean it's false.",
+      "belief": "treats a point the passage does not mention as one the passage contradicts"
+    },
+    {
+      "ask": "7a",
+      "verdict": "half",
+      "check": "filled",
+      "least_sure": true,
+      "account": "I wasn't sure what an overview needs, so I gave the numbers."
+    },
+    {
+      "ask": "8a",
+      "verdict": "wrong",
+      "check": "missing",
+      "least_sure": false,
+      "mode": "C",
+      "kind": "slip",
+      "account": "Slip: I circled A next to the question but wrote C in the box.",
+      "belief": "copied a different letter into the box from the one chosen"
+    }
+  ]
+}

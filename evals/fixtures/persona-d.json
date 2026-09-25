@@ -101,7 +101,7 @@
       "whenever: no fixed sessions, no calendar"
     ],
     "readback_mentions_if_permission_prompt": [
-      "the one permission rule: Bash(python3 *indelible.py *)"
+      "the one permission rule: Bash(python3 *indelible.py*)"
     ],
     "checks": [
       "Express path: at most 5 learner replies during onboarding.",

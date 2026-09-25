@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-13",
+  "asks": [
+    {
+      "ask": "1a",
+      "verdict": "right",
+      "check": "n/a",
+      "least_sure": false
+    },
+    {
+      "ask": "1b",
+      "verdict": "right",
+      "check": "n/a",
+      "least_sure": false
+    }
+  ]
+}

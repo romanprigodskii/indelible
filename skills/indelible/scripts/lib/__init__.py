@@ -12,7 +12,7 @@ Exit codes (shared by every command):
 
 from pathlib import Path
 
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 SCHEMA_VERSION = 1
 
 LIB_DIR = Path(__file__).resolve().parent

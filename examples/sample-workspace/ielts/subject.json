@@ -1,0 +1,182 @@
+{
+  "v": 1,
+  "id": "ielts",
+  "title": "IELTS Academic",
+  "profile": "exam",
+  "intensity": "standard",
+  "target": {
+    "goal": "IELTS Academic 7.5",
+    "why": "master's offer",
+    "success": "7.5 overall, no band under 7.0",
+    "date": "2026-12-12",
+    "floor": "7.0"
+  },
+  "format": {
+    "minutes": 165,
+    "answer_form": "short",
+    "tools": "none",
+    "reference_sheet": false,
+    "time_of_day": "09:00",
+    "accommodations": null,
+    "ai_policy": null
+  },
+  "topics": [
+    {
+      "id": "T01",
+      "name": "Matching headings",
+      "weight": null,
+      "layer": "reading",
+      "floor": [],
+      "confusable_with": [
+        "T04"
+      ],
+      "scope": "in"
+    },
+    {
+      "id": "T02",
+      "name": "True, false or not given",
+      "weight": null,
+      "layer": "reading",
+      "floor": [],
+      "confusable_with": [],
+      "scope": "in"
+    },
+    {
+      "id": "T03",
+      "name": "Task 1 overview",
+      "weight": null,
+      "layer": "production",
+      "floor": [],
+      "confusable_with": [],
+      "scope": "in"
+    },
+    {
+      "id": "T04",
+      "name": "Paraphrase",
+      "weight": null,
+      "layer": "verbal",
+      "floor": [],
+      "confusable_with": [
+        "T01"
+      ],
+      "scope": "in"
+    }
+  ],
+  "taxonomy": [
+    {
+      "code": "V",
+      "name": "a word stopped me",
+      "treatment": "vocabulary probe; words sheet"
+    },
+    {
+      "code": "D",
+      "name": "direction inverted",
+      "treatment": "contrast pairs of direction words"
+    },
+    {
+      "code": "E",
+      "name": "plausible but unsupported",
+      "treatment": "check line copies the supporting words"
+    },
+    {
+      "code": "R",
+      "name": "rule (grammar, usage or task rule)",
+      "treatment": "theory sheet with a contrast pair, one drill block"
+    },
+    {
+      "code": "T",
+      "name": "ran out of time",
+      "treatment": "minutes per passage; skip-and-return in timed sets"
+    },
+    {
+      "code": "C",
+      "name": "careless slip (slip account, same step right elsewhere)",
+      "treatment": "ladder only; compare margin and answer line"
+    },
+    {
+      "code": "A",
+      "name": "essay claim",
+      "treatment": "claim in one sentence first"
+    },
+    {
+      "code": "S",
+      "name": "essay support",
+      "treatment": "claim, reason, example frames"
+    },
+    {
+      "code": "O",
+      "name": "essay structure",
+      "treatment": "three-line outline, then write"
+    },
+    {
+      "code": "W",
+      "name": "wrong register",
+      "treatment": "register contrast pairs"
+    },
+    {
+      "code": "L",
+      "name": "listening",
+      "treatment": "answer first, then compare with the transcript"
+    }
+  ],
+  "cold_window_h": [
+    44,
+    72
+  ],
+  "block_size": {
+    "min": 3,
+    "max": 8,
+    "default": 6
+  },
+  "pace_s": {
+    "procedural": 30,
+    "conceptual": 90,
+    "verbal": 75,
+    "reading": 70,
+    "production": 180,
+    "code": 300
+  },
+  "sense_list": [],
+  "lexicon": [],
+  "checkpoints": [
+    {
+      "date": "2026-11-14",
+      "instrument": "official test 1, reading",
+      "threshold": "30 of 40",
+      "if_below": "two review blocks replace new material for 2 weeks",
+      "status": "armed",
+      "result": null
+    }
+  ],
+  "materials": {
+    "sources": [
+      {
+        "what": "Cambridge IELTS 18",
+        "path": null,
+        "answers": false,
+        "seen": "tests 1-2"
+      },
+      {
+        "what": "Two official practice tests (unopened)",
+        "path": null,
+        "answers": true,
+        "seen": null
+      }
+    ],
+    "ration": [
+      {
+        "unit": "official test 1",
+        "job": "checkpoint",
+        "date": "2026-11-14",
+        "status": "assigned"
+      },
+      {
+        "unit": "official test 2",
+        "job": "final mock",
+        "date": "2026-11-21",
+        "status": "assigned"
+      }
+    ]
+  },
+  "overrides": []
+}
