@@ -1,0 +1,51 @@
+{
+  "v": 1,
+  "timezone": null,
+  "learner": {
+    "age_band": "18+",
+    "l1": null,
+    "instruction_lang": "en",
+    "gloss": "first_use",
+    "tone": "B",
+    "vocab": "plain",
+    "chat_math": "unicode"
+  },
+  "time": {
+    "schedule": "scheduled",
+    "weekly_target_min": 240,
+    "weekly_ceiling_min": 336,
+    "sleep": {"bed": "23:00", "wake": "07:00"},
+    "rest_day": null,
+    "buffer_pct": 15,
+    "windows": [
+      {"days": ["Mon", "Tue", "Wed", "Thu", "Fri"], "from": "17:00", "to": "21:00"},
+      {"days": ["Sat", "Sun"], "from": "10:00", "to": "18:00"}
+    ],
+    "blocked": []
+  },
+  "session": {
+    "length_min": 60,
+    "max_min": 90,
+    "days_per_week": 4,
+    "overrun": "ask",
+    "extension_max_min": 15,
+    "break_every_min": 75,
+    "break_min": 10
+  },
+  "policies": {
+    "missed": "ask",
+    "calendar_write": "preview_confirm"
+  },
+  "render": {
+    "backend": null,
+    "verified_at": null
+  },
+  "calendar": {
+    "provider": "none",
+    "signature": null,
+    "reminder_min": 15,
+    "target": null
+  },
+  "subjects": [],
+  "drop_order": ["buffer"]
+}

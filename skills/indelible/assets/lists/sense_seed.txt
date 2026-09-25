@@ -1,0 +1,123 @@
+# sense_seed.txt: everyday words and phrases that also carry a technical sense.
+# A sheet that uses one of these must define it (theory sheet), or the learner
+# must already own it (glossary), before it appears in a question. The sheet
+# checker (lint rule L4) matches whole words, case-insensitively.
+# Subjects add their own words in subject.json: sense_list and lexicon.
+# One entry per line, lowercase. Lines starting with # are comments.
+valid
+sound
+tally
+range
+mean
+average
+median
+mode
+normal
+significant
+support
+domain
+image
+order
+field
+bias
+multiple
+unit
+at least
+at most
+no more than
+no fewer than
+net
+rate
+factor
+power
+root
+set
+function
+argument
+inverse
+reciprocal
+independent
+dependent
+random
+sample
+population
+variable
+constant
+degree
+term
+product
+sum
+difference
+ratio
+proportion
+gradient
+slope
+weight
+loss
+model
+feature
+label
+class
+score
+error
+residual
+expected
+spread
+deviation
+variance
+distribution
+interval
+confidence
+estimate
+fit
+test
+null
+base
+identity
+complement
+union
+intersection
+rational
+real
+prime
+odd
+even
+similar
+exact
+limit
+continuous
+discrete
+consecutive
+distinct
+respectively
+only if
+unless
+imply
+register
+tone
+gist
+paraphrase
+inference
+claim
+evidence
+assumption
+premise
+conclusion
+stress
+mood
+voice
+tense
+agreement
+context
+purpose
+type
+value
+reference
+borrow
+own
+scope
+call
+return
+statement
+expression
+literal

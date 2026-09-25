@@ -1,0 +1,11 @@
+# indelible workspace: keep answer keys, your answers, answer photos and scratch files out of version control.
+**/.indelible/keys/
+**/.indelible/tmp/
+**/.indelible/legacy/
+**/.indelible/write.lock
+.indelible/cal-results.json
+inbox/
+**/scans/
+**/answers/
+manual/*.answers.*
+*.bak

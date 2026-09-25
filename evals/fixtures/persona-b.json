@@ -1,0 +1,157 @@
+{
+  "v": 1,
+  "persona": "B",
+  "synthetic": true,
+  "about": "An invented learner for tests and evals. Not based on any real person.",
+  "summary": "Spanish for a two-week trip in five months. English first language. Studies on the phone during a 20-minute train commute, every day. No printer, no calendar.",
+  "subject": {"id": "spanish", "title": "Spanish for a trip", "profile": "language"},
+  "timezone": "Europe/London",
+  "onboarding_at": "2026-10-11T21:00+01:00",
+  "surface": {
+    "host": "Claude Code, set up on a laptop; sessions followed and answered from a phone",
+    "os": "macOS (laptop) and a phone",
+    "python": "3.11",
+    "renderers": ["html"],
+    "calendar_connector": null,
+    "printer": false,
+    "screen": "narrow",
+    "answers": "typed on the phone",
+    "message_language": "en",
+    "v01_note": "The claude.ai and mobile-app mode (state file) is v0.2. In v0.1 this learner's sessions run in Claude Code and are read on a narrow screen."
+  },
+  "first_message": "I'm going to Spain in March and want to be able to actually talk to people. I only have my commute, about 20 minutes. Can you run that for me?",
+  "onboarding": {
+    "path": "full",
+    "max_replies": 12,
+    "expected_replies": 10,
+    "replies": [
+      {
+        "n": 1, "q": "Q1", "about": "goal, why, success",
+        "reply": "Enough Spanish to get by on a two-week trip in March: order food, ask for directions, have a short chat. My partner's family will be there and I'd like to talk to them myself.",
+        "sets": ["subject.profile", "subject.target.goal", "subject.target.why", "subject.target.success"]
+      },
+      {
+        "n": 2, "q": "Q2", "about": "date (language branch)",
+        "reply": "We fly out on 12 March.",
+        "sets": ["subject.target.date"]
+      },
+      {
+        "n": 3, "q": "Q3", "about": "current level (language branch: could you order a meal today?)",
+        "reply": "With effort. Two years of Spanish at school, a long time ago. I kept a streak going in a language app for about two months last spring.",
+        "sets": ["claude_md.Do not calibrate on"]
+      },
+      {
+        "n": 4, "q": "Q4", "about": "materials",
+        "reply": "Just the app and a pocket phrasebook.",
+        "sets": ["subject.materials.sources"]
+      },
+      {
+        "n": 5, "q": "Q5", "about": "age band, first language, feedback tone",
+        "reply": "18+. English. A, blunt is fine.",
+        "sets": ["root.learner.age_band", "root.learner.l1", "root.learner.tone"]
+      },
+      {
+        "n": 6, "q": "Q6", "about": "session length, days, maximum",
+        "reply": "20 minutes, every day. 30 at the very most.",
+        "sets": ["root.session.length_min", "root.session.days_per_week", "root.session.max_min", "root.time.weekly_target_min", "root.time.weekly_ceiling_min"]
+      },
+      {
+        "n": 7, "q": "Q7", "about": "windows, clearest time, sleep, fixed-time preferences",
+        "reply": "Weekdays on the train, roughly 7:40 to 8:05. Weekends in the morning, between 9 and 11. Mornings are when I'm sharpest. I sleep from about 23:00 to 6:45.",
+        "sets": ["root.time.windows", "root.time.sleep"]
+      },
+      {
+        "n": 8, "q": "Q8", "about": "fixed commitments and past obstacle",
+        "reply": "Work 8:30 to 5:30 on weekdays, nothing else fixed. What stopped me before: I missed a couple of days, felt behind, and quit.",
+        "sets": ["root.time.blocked", "claude_md.Learner notes"]
+      },
+      {
+        "n": 9, "q": "preview+Q10", "about": "two-week plan preview and calendar choice",
+        "reply": "Fine. 4, no calendar. Just tell me what's next when I open Claude.",
+        "sets": ["root.calendar.provider"]
+      },
+      {
+        "n": 10, "q": "readback", "about": "the only write gate",
+        "reply": "yes",
+        "sets": []
+      }
+    ]
+  },
+  "later_answers": {
+    "P6": "Train was cancelled, I had no signal.",
+    "P8": "No, I'll just type the answers."
+  },
+  "later_phrases": {
+    "start": "on the train, 20 min, go",
+    "due": "anything due?",
+    "missed": "missed yesterday and today, sorry",
+    "close": "my stop, done",
+    "status": "how am I doing?"
+  },
+  "expected": {
+    "match_note": "Ids, enums, numbers, dates and times are compared exactly. Free-text values (goal, why, success, notes, what) are compared by meaning, not wording. Objects inside lists are compared on the keys given.",
+    "root": {
+      "timezone": "Europe/London",
+      "learner.age_band": "18+",
+      "learner.l1": "en",
+      "learner.instruction_lang": "en",
+      "learner.tone": "A",
+      "learner.vocab": "plain",
+      "time.schedule": "scheduled",
+      "time.weekly_target_min": 140,
+      "time.weekly_ceiling_min": 196,
+      "time.sleep": {"bed": "23:00", "wake": "06:45"},
+      "time.rest_day": null,
+      "time.windows": [
+        {"days": ["Mon", "Tue", "Wed", "Thu", "Fri"], "from": "07:40", "to": "08:05"},
+        {"days": ["Sat", "Sun"], "from": "09:00", "to": "11:00"}
+      ],
+      "time.blocked": [
+        {"days": ["Mon", "Tue", "Wed", "Thu", "Fri"], "from": "08:30", "to": "17:30", "what": "work"}
+      ],
+      "session.length_min": 20,
+      "session.max_min": 30,
+      "session.days_per_week": 7,
+      "policies.missed": "ask",
+      "calendar.provider": "none",
+      "subjects": [{"id": "spanish", "dir": "spanish", "state": "live", "priority": 1, "target_weekly_min": 140, "min_weekly_min": null}]
+    },
+    "subject": {
+      "id": "spanish",
+      "title": "Spanish for a trip",
+      "profile": "language",
+      "target.goal": "Order a meal, ask directions, 3 minutes of small talk",
+      "target.why": "a trip in five months",
+      "target.success": "3 minutes of small talk without switching language",
+      "target.date": "2027-03-12",
+      "target.floor": null,
+      "format.answer_form": "typed",
+      "format.tools": "none"
+    },
+    "ledger": [],
+    "claude_md": {
+      "Do not calibrate on": ["the language-app streak", "school Spanish from years ago"],
+      "Learner notes": [
+        "If I miss a day, then the next session is the normal 20 minutes, starting with what's due; nothing is doubled up to catch up"
+      ]
+    },
+    "readback_mentions": [
+      "Spanish for a trip on 12 Mar 2027: order a meal, ask directions, 3 minutes of small talk",
+      "20 min × 7 days, about 2 h 20 min a week",
+      "no calendar: Claude says what's next when opened",
+      "answers typed; no printer needed",
+      "feedback style A"
+    ],
+    "checks": [
+      "No file exists in the workspace before the readback 'yes'.",
+      "The plan preview uses the narrow layout: one day per line, week 2 collapsed into one line.",
+      "Week 1 starts with a 10-minute placement probe, not a long diagnostic.",
+      "Every 20-minute session is budgeted with 1 minute to open, 2 to close, a work fraction of 0.8 and no breaks, and new material arrives by session 3.",
+      "No printer is assumed: sheets read on a phone, and answers are typed.",
+      "No calendar event and no .ics file are created.",
+      "After two missed days, the next open asks once what happened and does not pile on extra work.",
+      "Feedback is blunt (style A) but still names the error, the standard and the next step, with no sarcasm.",
+      "Learner-facing text contains no E-, B-, S- or L- ids, no answers and no emojis."
+    ]
+  }
+}

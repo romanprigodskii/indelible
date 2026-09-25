@@ -1,0 +1,40 @@
+{
+  "v": 1,
+  "id": "",
+  "title": "",
+  "profile": "exam",
+  "intensity": "standard",
+  "target": {
+    "goal": null,
+    "why": null,
+    "success": null,
+    "date": null,
+    "floor": null
+  },
+  "format": {
+    "minutes": null,
+    "answer_form": "short",
+    "tools": "none",
+    "reference_sheet": false,
+    "time_of_day": null,
+    "accommodations": null,
+    "ai_policy": null
+  },
+  "topics": [],
+  "taxonomy": [
+    {"code": "V", "name": "a word stopped me", "treatment": "define or own the word first (glossary, words sheet), then re-serve"},
+    {"code": "M", "name": "wrong method, or did not know how", "treatment": "theory sheet, then a drill block, then the 2-day recheck"},
+    {"code": "R", "name": "misread what was asked", "treatment": "re-serve with a check that tests the question's own words"},
+    {"code": "F", "name": "right idea, wrong answer form", "treatment": "answer-form drill; the check line tests the form"},
+    {"code": "C", "name": "careless slip (slip account, same step done right elsewhere)", "treatment": "ladder only; the written check should catch it"},
+    {"code": "T", "name": "ran out of time", "treatment": "pace drill; check the sheet size against the budget"}
+  ],
+  "cold_window_h": [44, 72],
+  "block_size": {"min": 3, "max": 8, "default": 6},
+  "pace_s": {"procedural": 30, "conceptual": 90, "verbal": 75, "reading": 70, "production": 180, "code": 300},
+  "sense_list": [],
+  "lexicon": [],
+  "checkpoints": [],
+  "materials": {"sources": [], "ration": []},
+  "overrides": []
+}

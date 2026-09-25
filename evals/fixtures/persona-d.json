@@ -1,0 +1,120 @@
+{
+  "v": 1,
+  "persona": "D",
+  "synthetic": true,
+  "about": "An invented learner for tests and evals. Not based on any real person.",
+  "summary": "Rust as a hobby. No date, no calendar, studies whenever there is a free evening. Dislikes questions: takes the express path and skips everything that can be skipped.",
+  "subject": {"id": "rust", "title": "Rust", "profile": "code"},
+  "timezone": "Europe/Berlin",
+  "onboarding_at": "2026-10-11T22:00+02:00",
+  "surface": {
+    "host": "Claude Code (terminal)",
+    "os": "Linux",
+    "python": "3.10",
+    "renderers": ["chromium"],
+    "calendar_connector": null,
+    "printer": false,
+    "screen": "wide",
+    "answers": "code typed in the learner's own editor; short answers typed",
+    "toolchain": "cargo and rustc installed",
+    "message_language": "en"
+  },
+  "first_message": "teach me rust I guess. please don't ask me a million questions",
+  "onboarding": {
+    "path": "express",
+    "max_replies": 12,
+    "expected_replies": 5,
+    "replies": [
+      {
+        "n": 1, "q": "Q1", "about": "goal, why, success (express)",
+        "reply": "Learn Rust properly. For fun. Pick something for me to build.",
+        "sets": ["subject.profile", "subject.target.goal", "subject.target.why", "subject.target.success"]
+      },
+      {
+        "n": 2, "q": "Q2", "about": "date only (express)",
+        "reply": "No date.",
+        "sets": ["subject.target.date"]
+      },
+      {
+        "n": 3, "q": "Q6", "about": "session length (express)",
+        "reply": "Whenever. An hour or so when I feel like it.",
+        "sets": ["root.time.schedule", "root.session.length_min"]
+      },
+      {
+        "n": 4, "q": "preview+Q10", "about": "next useful windows and calendar choice",
+        "reply": "ok. 4",
+        "sets": ["root.calendar.provider"]
+      },
+      {
+        "n": 5, "q": "readback", "about": "the only write gate",
+        "reply": "yes",
+        "sets": []
+      }
+    ],
+    "skipped": ["Q3", "Q4", "Q5", "Q7", "Q8"],
+    "skip_reply": "skip"
+  },
+  "later_answers": {
+    "Q3": "Yes, I write Python scripts at work. Nothing in Rust yet.",
+    "Q4": "The free Rust book online, that's it.",
+    "Q5": "18+. German first language, English is fine.",
+    "Q7": "whenever",
+    "Q8": "skip"
+  },
+  "later_phrases": {
+    "start": "got an hour, let's do some rust",
+    "due": "anything due?",
+    "away": "back after a couple of weeks away",
+    "close": "done",
+    "status": "where am I"
+  },
+  "expected": {
+    "match_note": "Ids, enums, numbers, dates and times are compared exactly. Free-text values (goal, why, success, notes, what) are compared by meaning, not wording. Objects inside lists are compared on the keys given. Fields not listed keep the defaults from assets/workspace/.",
+    "root": {
+      "timezone": "Europe/Berlin",
+      "learner.age_band": "18+",
+      "learner.tone": "B",
+      "learner.vocab": "plain",
+      "time.schedule": "on_demand",
+      "session.length_min": 60,
+      "calendar.provider": "none",
+      "subjects": [{"id": "rust", "dir": "rust", "state": "live", "priority": 1}]
+    },
+    "subject": {
+      "id": "rust",
+      "title": "Rust",
+      "profile": "code",
+      "target.goal": "A CLI tool that parses a CSV, with tests",
+      "target.why": "hobby",
+      "target.success": "the tool runs on a real file and its tests pass",
+      "target.date": null,
+      "format.answer_form": "code",
+      "format.tools": "compiler"
+    },
+    "ledger": [],
+    "claude_md": {
+      "Learner notes": ["Prefers few questions: ask only when a decision needs it"]
+    },
+    "readback_mentions": [
+      "Rust, for fun; capstone: a CLI tool that parses a CSV, with tests",
+      "no date: 4-week cycles, each ending with a capstone check-in",
+      "whenever: no fixed sessions, no calendar"
+    ],
+    "readback_mentions_if_permission_prompt": [
+      "the one permission rule: Bash(python3 *indelible.py *)"
+    ],
+    "checks": [
+      "Express path: at most 5 learner replies during onboarding.",
+      "Q3, Q4, Q5, Q7 and Q8 are not asked during onboarding; each is asked later on its own, only when it becomes needed, never as a batch.",
+      "Express starts from the first message: the opener echoes it, promises 3 questions and lists no others.",
+      "While 'prefers few questions' stands: the scope map is a statement, Q4 carries the theory-source question, Q5 asks only age and first language (tone stays B), and the 10-minute warning is a statement that defaults to closing.",
+      "No file exists in the workspace before the readback 'yes'.",
+      "The preview shows the next useful windows (for example, the 2-day recheck 44 to 72 hours after the first session), not fixed weekly slots.",
+      "The first measurement is a short capstone attempt in the editor (compiler allowed, no AI, no docs) plus a few concept probes.",
+      "On-demand: no attendance, missed-block or execution questions, even after 9 days away; the next open simply shows what is due.",
+      "No calendar event and no .ics file are created unless the learner asks.",
+      "Claude never writes the learner's solution code or edits the learner's exercise files.",
+      "Learner-facing text contains no E-, B-, S- or L- ids, no answers and no emojis."
+    ]
+  }
+}

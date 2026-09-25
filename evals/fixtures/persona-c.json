@@ -1,0 +1,170 @@
+{
+  "v": 1,
+  "persona": "C",
+  "synthetic": true,
+  "about": "An invented learner for tests and evals. Not based on any real person.",
+  "summary": "University statistics final in 3 weeks (2 Nov 2026), needs 70%. Windows laptop, Apple Calendar on an iPhone (no connector, so an .ics file). Two hours a day, every day.",
+  "subject": {"id": "stats", "title": "Statistics final", "profile": "course"},
+  "timezone": "America/New_York",
+  "onboarding_at": "2026-10-11T20:00-04:00",
+  "surface": {
+    "host": "Claude Code (desktop)",
+    "os": "Windows 11",
+    "python": "3.11 via the py -3 launcher",
+    "renderers": ["edge"],
+    "calendar_connector": null,
+    "printer": false,
+    "screen": "wide",
+    "answers": "paper, sent as phone photos",
+    "message_language": "en"
+  },
+  "first_message": "my stats final is in 3 weeks and I'm behind. can you make me a real plan and test me every day",
+  "onboarding": {
+    "path": "full",
+    "max_replies": 12,
+    "expected_replies": 10,
+    "replies": [
+      {
+        "n": 1, "q": "Q1", "about": "goal, why, success",
+        "reply": "Pass my intro statistics final with at least 70%. It's required for my major and I got 58% on the midterm.",
+        "sets": ["subject.profile", "subject.target.goal", "subject.target.why", "subject.target.success"]
+      },
+      {
+        "n": 2, "q": "Q2", "about": "date and format (course branch)",
+        "reply": "Monday 2 November, 9 am, two hours. Calculator allowed, and the department gives us a one-page formula sheet. Nothing from this gets handed in for a grade, the homework is finished. The syllabus says no AI on graded work.",
+        "sets": ["subject.target.date", "subject.format.minutes", "subject.format.tools", "subject.format.reference_sheet", "subject.format.time_of_day", "subject.format.ai_policy"]
+      },
+      {
+        "n": 3, "q": "Q3", "about": "current level and evidence",
+        "reply": "58% on the midterm, and I can open the graded midterm with marks per question right now. Most of the homework I did with a study group, so don't trust that.",
+        "sets": ["claude_md.Do not calibrate on"]
+      },
+      {
+        "n": 4, "q": "Q4", "about": "materials",
+        "reply": "Lecture slides, the textbook, the homework sets, and three past finals with solutions. Follow the textbook's notation, please.",
+        "sets": ["subject.materials.sources"]
+      },
+      {
+        "n": 5, "q": "Q5", "about": "age band, first language, feedback tone",
+        "reply": "18+, English, B.",
+        "sets": ["root.learner.age_band", "root.learner.l1", "root.learner.tone"]
+      },
+      {
+        "n": 6, "q": "Q6", "about": "session length, days, maximum",
+        "reply": "Two hours a day, every day until the exam. Two and a half at most.",
+        "sets": ["root.session.length_min", "root.session.days_per_week", "root.session.max_min", "root.time.weekly_target_min", "root.time.weekly_ceiling_min"]
+      },
+      {
+        "n": 7, "q": "Q7", "about": "windows, clearest time, sleep, fixed-time preferences",
+        "reply": "Afternoons: 2 to 6 on Monday, Wednesday and Friday, 1 to 4:30 on Tuesday and Thursday, and 11 to 5 at weekends. I'm clearest late morning. I go to bed around 12:30 and get up at 8:30. If there's a practice exam, I'd like it at 9 like the real one.",
+        "sets": ["root.time.windows", "root.time.sleep", "claude_md.Learner notes"]
+      },
+      {
+        "n": 8, "q": "Q8", "about": "fixed commitments and past obstacle",
+        "reply": "Classes Monday, Wednesday and Friday 10 to 12. A campus job Tuesday and Thursday 5 to 9 pm. A chemistry midterm on 27 October. What went wrong before: I cram the night before and then blank in the exam.",
+        "sets": ["root.time.blocked", "claude_md.Learner notes"]
+      },
+      {
+        "n": 9, "q": "preview+Q10", "about": "three-week plan preview and calendar choice",
+        "reply": "Looks good. 3, the file. I use Apple Calendar on my iPhone.",
+        "sets": ["root.calendar.provider"]
+      },
+      {
+        "n": 10, "q": "readback", "about": "the only write gate",
+        "reply": "yes",
+        "sets": []
+      }
+    ]
+  },
+  "later_answers": {
+    "P1": "Keep two hours, with a firmer stop.",
+    "P6": "I was sick."
+  },
+  "later_phrases": {
+    "start": "start stats",
+    "due": "what's due",
+    "missed": "sick till Monday, fix the plan",
+    "close": "done, wrap up",
+    "status": "how am I doing this week"
+  },
+  "expected": {
+    "match_note": "Ids, enums, numbers, dates and times are compared exactly. Free-text values (goal, why, success, notes, what) are compared by meaning, not wording. Objects inside lists are compared on the keys given.",
+    "root": {
+      "timezone": "America/New_York",
+      "learner.age_band": "18+",
+      "learner.l1": "en",
+      "learner.instruction_lang": "en",
+      "learner.tone": "B",
+      "learner.vocab": "plain",
+      "time.schedule": "scheduled",
+      "time.weekly_target_min": 840,
+      "time.weekly_ceiling_min": 1176,
+      "time.sleep": {"bed": "00:30", "wake": "08:30"},
+      "time.rest_day": null,
+      "time.windows": [
+        {"days": ["Mon", "Wed", "Fri"], "from": "14:00", "to": "18:00"},
+        {"days": ["Tue", "Thu"], "from": "13:00", "to": "16:30"},
+        {"days": ["Sat", "Sun"], "from": "11:00", "to": "17:00"}
+      ],
+      "time.blocked": [
+        {"days": ["Mon", "Wed", "Fri"], "from": "10:00", "to": "12:00", "what": "classes"},
+        {"days": ["Tue", "Thu"], "from": "17:00", "to": "21:00", "what": "campus job"},
+        {"date": "2026-10-27", "what": "chemistry midterm"}
+      ],
+      "session.length_min": 120,
+      "session.max_min": 150,
+      "session.days_per_week": 7,
+      "policies.missed": "ask",
+      "calendar.provider": "ics",
+      "calendar.reminder_min": 15,
+      "subjects": [{"id": "stats", "dir": "stats", "state": "live", "priority": 1, "target_weekly_min": 840, "min_weekly_min": null}]
+    },
+    "subject": {
+      "id": "stats",
+      "title": "Statistics final",
+      "profile": "course",
+      "target.goal": "Pass the statistics final",
+      "target.why": "course requirement",
+      "target.success": "70% or more on the final",
+      "target.date": "2026-11-02",
+      "format.minutes": 120,
+      "format.answer_form": "short",
+      "format.tools": "calculator",
+      "format.reference_sheet": true,
+      "format.time_of_day": "09:00",
+      "format.ai_policy": "no AI on graded work"
+    },
+    "ledger": [],
+    "claude_md": {
+      "Do not calibrate on": ["homework done with the study group", "the midterm total on its own (the item-level marks may be looked at; the diagnostic decides)"],
+      "Learner notes": [
+        "Clearest late morning",
+        "Wants practice exams at 9:00, the real exam time",
+        "If I feel the urge to cram the night before, then I do the normal session and sleep instead"
+      ]
+    },
+    "readback_mentions": [
+      "Statistics final on Mon 2 Nov 2026, 70% or more",
+      "120 min × 7 days, about 14 h a week, ceiling about 19.6 h",
+      "calculator and the one-page formula sheet, as in the exam",
+      "an .ics file to import into Apple Calendar; later changes come as a short list",
+      "nothing handed in for a grade; the course's AI rule is recorded"
+    ],
+    "readback_mentions_if_permission_prompt": [
+      "the one permission rule, with the Windows launcher: Bash(py -3 *indelible.py *)"
+    ],
+    "checks": [
+      "No file exists in the workspace before the readback 'yes'.",
+      "Scripts are run with the py -3 launcher, and every file is read and written as UTF-8.",
+      "The past-paper solutions are registered as keys and stay sealed until the matching attempt is filed.",
+      "Past finals are used for measurement, at 9:00 where possible, and never within 3 hours after another measurement.",
+      "Each 120-minute session is budgeted with 3 minutes to open, 8 to close, a work fraction of 0.6 and one 10-minute break.",
+      "A daily 15-minute retrieval slot is proposed as an if-then plan (sessions of 120 minutes or more).",
+      "Nothing is planned in class or job hours, or within 30 minutes of the 00:30 bedtime; 2026-10-27 is kept clear.",
+      "Weekly planned minutes stay at or under 1176.",
+      "The calendar is delivered as an .ics file; no calendar connector is called.",
+      "Claude never writes work the learner will hand in for a grade.",
+      "Learner-facing text contains no E-, B-, S- or L- ids, no answers and no emojis."
+    ]
+  }
+}

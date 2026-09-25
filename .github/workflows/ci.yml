@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: tests (${{ matrix.os }}, Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.9", "3.13"]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Show Python
+        run: python --version
+
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Eval files are valid JSON
+        run: |
+          python - <<'EOF'
+          import json, pathlib
+          files = sorted(pathlib.Path("evals").rglob("*.json"))
+          for p in files:
+              json.loads(p.read_text(encoding="utf-8"))
+          print("%d eval files parsed" % len(files))
+          EOF
+
+      - name: Plugin and skill versions match
+        run: |
+          python - <<'EOF'
+          import json, pathlib, re, sys
+          plugin = json.loads(pathlib.Path(".claude-plugin/plugin.json").read_text(encoding="utf-8"))["version"]
+          skill = pathlib.Path("skills/indelible/SKILL.md").read_text(encoding="utf-8")
+          m = re.search(r'^\s*version:\s*"?([^"\s]+)"?\s*$', skill, re.M)
+          found = m.group(1) if m else None
+          print("plugin.json %s, SKILL.md %s" % (plugin, found))
+          sys.exit(0 if found == plugin else 1)
+          EOF
+
+      - name: Doctor (informational)
+        continue-on-error: true
+        run: python skills/indelible/scripts/indelible.py doctor

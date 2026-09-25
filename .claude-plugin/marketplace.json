@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "indelible",
+  "description": "indelible: a self-study tutor skill for Claude Code. Learning that survives the cold test.",
+  "owner": {
+    "name": "romanprigodskii",
+    "url": "https://github.com/romanprigodskii"
+  },
+  "plugins": [
+    {
+      "name": "indelible",
+      "source": "./",
+      "description": "A self-study tutor for any subject: learning that survives the cold test."
+    }
+  ]
+}

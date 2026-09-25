@@ -1,0 +1,174 @@
+{
+  "v": 1,
+  "persona": "A",
+  "synthetic": true,
+  "about": "An invented learner for tests and evals. Not based on any real person.",
+  "summary": "IELTS Academic 7.5 by 12 Dec 2026. Portuguese first language, lives in Lisbon, works 9 to 6. Google Calendar. 60-minute sessions on 4 days a week, before work and on Saturday mornings.",
+  "subject": {"id": "ielts", "title": "IELTS Academic", "profile": "exam"},
+  "timezone": "Europe/Lisbon",
+  "onboarding_at": "2026-10-11T18:00+01:00",
+  "surface": {
+    "host": "Claude Code (terminal)",
+    "os": "macOS",
+    "python": "3.12",
+    "renderers": ["typst", "chrome"],
+    "calendar_connector": "google",
+    "printer": false,
+    "screen": "wide",
+    "answers": "paper, sent as phone photos",
+    "message_language": "en"
+  },
+  "first_message": "I need a 7.5 in IELTS Academic by December for my master's offer. Can you set me up and keep me honest?",
+  "first_message_sets": ["subject.profile", "subject.target.goal", "subject.target.why", "subject.target.success", "subject.target.floor (default: one step lower, 7.0)"],
+  "onboarding": {
+    "path": "full",
+    "max_replies": 12,
+    "expected_replies": 9,
+    "replies": [
+      {
+        "n": 1, "q": "Q2", "about": "date and format",
+        "reply": "12 December, the paper-based test, starting at 9:00. I'm not registered yet; I have to register by 20 October. Listening, reading and writing are 2 h 45 min together, speaking is separate. No calculator, no reference sheet, no extra time.",
+        "sets": ["subject.target.date", "subject.format.minutes", "subject.format.answer_form", "subject.format.tools", "subject.format.reference_sheet", "subject.format.time_of_day", "subject.format.accommodations", "ledger.owed"]
+      },
+      {
+        "n": 2, "q": "Q3", "about": "current level and evidence",
+        "reply": "Around 6.0, I think. Reading is the weakest, especially matching headings. I did one practice test at home in September and reading came out around band 6, but I looked some words up during it. I have no official score and no item-level report.",
+        "sets": ["claude_md.Do not calibrate on", "claude_md.Learner notes"]
+      },
+      {
+        "n": 3, "q": "Q4", "about": "materials",
+        "reply": "Cambridge IELTS 18: I've done tests 1 and 2. Two official practice tests from the test provider that I haven't opened. No solutions booklet. For theory, use Cambridge IELTS 18's examples; I don't have a grammar book.",
+        "sets": ["subject.materials.sources", "subject.materials.ration"]
+      },
+      {
+        "n": 4, "q": "Q5", "about": "age band, first language, feedback tone",
+        "reply": "18+. Portuguese is my first language. B.",
+        "sets": ["root.learner.age_band", "root.learner.l1", "root.learner.gloss", "root.learner.tone"]
+      },
+      {
+        "n": 5, "q": "Q6", "about": "session length, days, maximum",
+        "reply": "60 minutes, 4 days a week. 90 at the very most.",
+        "sets": ["root.session.length_min", "root.session.days_per_week", "root.session.max_min", "root.time.weekly_target_min", "root.time.weekly_ceiling_min"]
+      },
+      {
+        "n": 6, "q": "Q7", "about": "windows, clearest time, sleep, fixed-time preferences",
+        "reply": "Before work on Monday, Tuesday and Thursday, 7:00 to 8:15, and Saturday 10 to 12. My head is clearest early in the morning. I sleep 23:30 to 6:30 on work nights, a bit later at weekends. I'd like Saturdays for the longer timed practice.",
+        "sets": ["root.time.windows", "root.time.sleep", "claude_md.Learner notes"]
+      },
+      {
+        "n": 7, "q": "Q8", "about": "fixed commitments and past obstacle",
+        "reply": "Work 9 to 6 on weekdays. A friend's wedding on Saturday 17 October, the whole day. Sunday is my day off. What stopped me before: a busy month at work, I skipped a week and never went back.",
+        "sets": ["root.time.blocked", "root.time.rest_day", "claude_md.Learner notes"]
+      },
+      {
+        "n": 8, "q": "preview+Q10", "about": "two-week plan preview and calendar choice",
+        "reply": "Looks good. 1, and put them in a separate calendar called Study.",
+        "sets": ["root.calendar.provider", "root.calendar.target", "root.policies.calendar_write"]
+      },
+      {
+        "n": 9, "q": "readback", "about": "the only write gate",
+        "reply": "yes",
+        "sets": []
+      }
+    ]
+  },
+  "later_answers": {
+    "P6": "Work ran late and I missed it.",
+    "P7": "No tutor."
+  },
+  "later_phrases": {
+    "start": "start ielts",
+    "due": "what's due today?",
+    "missed": "I missed Thursday, work ran over",
+    "close": "gotta go, wrap up",
+    "status": "where am I this week?"
+  },
+  "expected": {
+    "match_note": "Ids, enums, numbers, dates and times are compared exactly. Free-text values (goal, why, success, notes, what) are compared by meaning, not wording. Objects inside lists are compared on the keys given.",
+    "root": {
+      "timezone": "Europe/Lisbon",
+      "learner.age_band": "18+",
+      "learner.l1": "pt",
+      "learner.instruction_lang": "en",
+      "learner.gloss": "first_use",
+      "learner.tone": "B",
+      "learner.vocab": "plain",
+      "time.schedule": "scheduled",
+      "time.weekly_target_min": 240,
+      "time.weekly_ceiling_min": 336,
+      "time.sleep": {"bed": "23:30", "wake": "06:30"},
+      "time.rest_day": "Sun",
+      "time.windows": [
+        {"days": ["Mon", "Tue", "Thu"], "from": "07:00", "to": "08:15"},
+        {"days": ["Sat"], "from": "10:00", "to": "12:00"}
+      ],
+      "time.blocked": [
+        {"days": ["Mon", "Tue", "Wed", "Thu", "Fri"], "from": "09:00", "to": "18:00", "what": "work"},
+        {"date": "2026-10-17", "what": "wedding"}
+      ],
+      "session.length_min": 60,
+      "session.max_min": 90,
+      "session.days_per_week": 4,
+      "policies.missed": "ask",
+      "policies.calendar_write": "preview_confirm",
+      "calendar.provider": "google",
+      "calendar.reminder_min": 15,
+      "calendar.target": "Study",
+      "subjects": [{"id": "ielts", "dir": "ielts", "state": "live", "priority": 1, "target_weekly_min": 240, "min_weekly_min": null}]
+    },
+    "subject": {
+      "id": "ielts",
+      "title": "IELTS Academic",
+      "profile": "exam",
+      "target.goal": "IELTS Academic 7.5",
+      "target.why": "master's offer",
+      "target.success": "7.5 overall, no band under 7.0",
+      "target.date": "2026-12-12",
+      "target.floor": "7.0",
+      "format.minutes": 165,
+      "format.answer_form": "short",
+      "format.tools": "none",
+      "format.reference_sheet": false,
+      "format.time_of_day": "09:00",
+      "format.accommodations": null
+    },
+    "ledger": [
+      {"kind": "owed", "by": "learner", "what": "Register for the 12 Dec sitting", "due": "2026-10-20T20:00+01:00"}
+    ],
+    "claude_md": {
+      "Do not calibrate on": ["the September practice test (words were looked up during it)", "the self-estimate of about 6.0"],
+      "Learner notes": [
+        "Clearest early in the morning, before work",
+        "Wants Saturdays for longer timed practice",
+        "If work gets busy, then keep the 2-day rechecks and shorten the rest rather than skipping a week"
+      ]
+    },
+    "readback_mentions": [
+      "IELTS Academic 7.5 (floor 7.0) by 12 Dec 2026",
+      "60 min × 4 days, about 4 h a week, ceiling about 6 h",
+      "rest day Sunday",
+      "Google Calendar, a calendar called Study, ask before each batch",
+      "hard words explained in Portuguese the first time",
+      "answers on paper, sent as phone photos; no printer needed",
+      "the two unopened official tests: a checkpoint on 14 Nov and the final mock on 21 Nov",
+      "what's tested: the published format, with 'say if any is missing' (no separate question)"
+    ],
+    "readback_mentions_if_permission_prompt": [
+      "the one permission rule: Bash(python3 *indelible.py *)"
+    ],
+    "checks": [
+      "No file exists in the workspace before the readback 'yes'.",
+      "Session length, days per week and the calendar choice are all settled before any plan is written.",
+      "At most one question card per message; the reply count is at most max_replies.",
+      "Q1 is not asked: the opener echoes the first message (IELTS Academic 7.5, December, master's offer) and starts at Q2; the floor defaults to 7.0.",
+      "The plan preview carries one rough-fit line labelled [mine] (every topic counted at mastery 0 until the diagnostic).",
+      "A dated to-do records the registration deadline (20 Oct 2026).",
+      "Nothing is planned on 2026-10-17 (wedding), inside working hours, or within 30 minutes of bedtime; nothing goes on a Sunday without asking.",
+      "The diagnostic comes before any teaching and sits in the clear morning window.",
+      "Every 2-day recheck is planned 44 to 72 hours after its teach; when the wedding and the rest day make that impossible, Claude moves the teach or asks, and never serves the recheck outside its window.",
+      "The two unopened official practice tests are kept for measurement and never used as practice: materials.ration gives official test 1 to a checkpoint on 2026-11-14 and official test 2 to the final mock on 2026-11-21, so the diagnostic is Claude-built.",
+      "Calendar events are written only after the preview and option 1, and are read back afterwards.",
+      "Learner-facing text contains no E-, B-, S- or L- ids, no answers and no emojis."
+    ]
+  }
+}

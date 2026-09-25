@@ -1,0 +1,10 @@
+{
+  "name": "indelible",
+  "version": "0.1.0",
+  "description": "A self-study tutor for any subject: onboarding, diagnostic, closed-sheet sessions, 2-day cold rechecks, spaced mistake review and calendar planning.",
+  "author": { "name": "romanprigodskii", "url": "https://github.com/romanprigodskii" },
+  "homepage": "https://github.com/romanprigodskii/indelible",
+  "repository": "https://github.com/romanprigodskii/indelible",
+  "license": "MIT OR Apache-2.0",
+  "keywords": ["learning", "self-study", "spaced-repetition", "exam-prep", "tutor"]
+}
