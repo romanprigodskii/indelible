@@ -54,6 +54,25 @@ def _has_tz_database():
 # fallback path (the computer's own zone) is tested separately.
 HAS_TZDB = _has_tz_database()
 
+# Environment for child processes: only the variables a Python child process
+# needs, each named explicitly. The whole environment is never copied, so no
+# unrelated variable (a token, a key) is ever passed along.
+PASS_THROUGH_ENV = ("PATH", "PATHEXT", "SYSTEMROOT", "SYSTEMDRIVE", "WINDIR", "COMSPEC",
+                    "TEMP", "TMP", "TMPDIR", "LANG", "LC_ALL", "LC_CTYPE", "TZ", "PYTHONTZPATH",
+                    "PROGRAMFILES", "PROGRAMFILES(X86)", "LOCALAPPDATA",
+                    "INDELIBLE_NO_BROWSER", "INDELIBLE_TEST_BROWSER")
+
+
+def base_env():
+    """A minimal environment for a child process (see PASS_THROUGH_ENV)."""
+    out = {}
+    for name in PASS_THROUGH_ENV:
+        value = os.environ.get(name)
+        if value is not None:
+            out[name] = value
+    return out
+
+
 _SANDBOX = []
 
 
@@ -73,8 +92,7 @@ def run(args, ws=None, now=DEFAULT_NOW, stdin=None, env=None):
         cmd += ["--workspace", str(ws)]
     cmd += [str(a) for a in args]
     home = sandbox_dir()
-    e = dict(os.environ)
-    e.pop("INDELIBLE_WORKSPACE", None)
+    e = base_env()
     e.update({
         "INDELIBLE_NOW": now,
         "HOME": str(home),

@@ -2,6 +2,15 @@
 
 All notable changes to this project are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.3] - 2026-09-26
+
+Changes from the second directory validation.
+
+### Changed
+
+- Child processes started by `examples/build_sample.py` and the tests get only a short, explicit list of environment variables (such as `PATH`, and `SYSTEMROOT` on Windows), never a copy of the whole environment.
+- A new plugin icon: a check mark written in ink, with an ink dot.
+
 ## [0.1.2] - 2026-09-26
 
 Changes from the first directory validation.

@@ -5,7 +5,7 @@ license: MIT OR Apache-2.0
 compatibility: "Python 3.9+ (standard library only) and a folder that lasts between conversations: Claude Code (Cowork with a shared folder is untested). claude.ai chat and mobile: a limited manual mode. Optional: typst or a Chromium browser for PDF sheets; a calendar or task connector."
 argument-hint: "[teach|session|close|status|diagnose|mock|plan|reschedule|review|sync|migrate] [subject]"
 metadata:
-  version: "0.1.2"
+  version: "0.1.3"
   schema: "1"
 ---
 

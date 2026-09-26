@@ -1,7 +1,7 @@
 {
   "name": "indelible",
   "displayName": "indelible",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A self-study tutor for any subject: onboarding, diagnostic, closed-sheet sessions, 2-day cold rechecks, spaced mistake review and calendar planning. Built for Claude Code; in claude.ai chat and mobile, a limited manual mode.",
   "author": { "name": "romanprigodskii", "url": "https://github.com/romanprigodskii" },
   "homepage": "https://github.com/romanprigodskii/indelible",

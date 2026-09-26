@@ -34,9 +34,9 @@ from pathlib import Path
 from unittest import mock
 
 try:
-    from helpers import REPO_DIR, run
+    from helpers import REPO_DIR, base_env, run
 except ImportError:  # run as part of the tests package
-    from tests.helpers import REPO_DIR, run
+    from tests.helpers import REPO_DIR, base_env, run
 
 EXAMPLES = REPO_DIR / "examples"
 SAMPLE = EXAMPLES / "sample-workspace"
@@ -333,8 +333,7 @@ class SampleRebuild(unittest.TestCase):
         tmp = Path(tempfile.mkdtemp(prefix="indelible-sample-rebuild-"))
         try:
             out = tmp / "sample-workspace"
-            env = dict(os.environ)
-            env.pop("INDELIBLE_WORKSPACE", None)
+            env = base_env()
             env.update({"PYTHONDONTWRITEBYTECODE": "1", "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"})
             r = subprocess.run([sys.executable, str(BUILD_SCRIPT), "--out", str(out)], capture_output=True,
                                text=True, encoding="utf-8", errors="replace", env=env, cwd=str(tmp), timeout=600)

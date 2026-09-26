@@ -484,6 +484,25 @@ def write_text(path, text):
     return path
 
 
+# Environment for child processes: only the variables a Python child process
+# needs, each named explicitly. The whole environment is never copied, so no
+# unrelated variable (a token, a key) is ever passed along.
+PASS_THROUGH_ENV = ("PATH", "PATHEXT", "SYSTEMROOT", "SYSTEMDRIVE", "WINDIR", "COMSPEC",
+                    "TEMP", "TMP", "TMPDIR", "LANG", "LC_ALL", "LC_CTYPE", "TZ", "PYTHONTZPATH",
+                    "PROGRAMFILES", "PROGRAMFILES(X86)", "LOCALAPPDATA",
+                    "INDELIBLE_NO_BROWSER", "INDELIBLE_TEST_BROWSER")
+
+
+def base_env():
+    """A minimal environment for a child process (see PASS_THROUGH_ENV)."""
+    out = {}
+    for name in PASS_THROUGH_ENV:
+        value = os.environ.get(name)
+        if value is not None:
+            out[name] = value
+    return out
+
+
 class Builder(object):
     def __init__(self, root, verbose=False):
         self.root = root
@@ -496,9 +515,7 @@ class Builder(object):
         self.typed_dir.mkdir()
 
     def env(self, now):
-        e = dict(os.environ)
-        for k in ("INDELIBLE_WORKSPACE", "INDELIBLE_DEBUG"):
-            e.pop(k, None)
+        e = base_env()
         e.update({
             "INDELIBLE_NOW": now, "INDELIBLE_NO_BROWSER": "1",
             "HOME": str(self.home), "USERPROFILE": str(self.home),
