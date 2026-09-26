@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="indelible">
+  <title>indelible</title>
+  <rect width="256" height="256" rx="56" fill="#14213D"/>
+  <path d="M58 136 C 64 128, 74 128, 80 134 L 110 166 C 132 128, 160 94, 196 64 C 204 58, 214 62, 212 72 C 186 104, 150 150, 124 196 C 118 206, 104 208, 98 198 L 56 152 C 52 146, 52 140, 58 136 Z" fill="#F4F1E8"/>
+  <circle cx="206" cy="204" r="9" fill="#F4F1E8"/>
+</svg>

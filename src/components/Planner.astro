@@ -1,0 +1,803 @@
+---
+// "Your week, planned": an interactive preview of indelible's setup and calendar step.
+// Everything here runs in the browser. Nothing is sent anywhere or saved.
+const lengths = [20, 30, 45, 60, 90, 120];
+const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const defaultDays = [0, 1, 3, 5];
+const times = ['07:00', '12:30', '17:30', '19:00', '21:30'];
+const providers = [
+  { id: 'google', label: 'Google Calendar' },
+  { id: 'ticktick', label: 'TickTick' },
+  { id: 'apple', label: 'Apple Calendar' },
+  { id: 'outlook', label: 'Outlook' },
+  { id: 'none', label: 'No calendar' },
+];
+---
+<div class="planner" data-planner>
+    <div class="planner-grid">
+      <form class="controls" data-controls aria-label="Setup answers" onsubmit="return false">
+        <div class="q-block">
+          <label class="q-label" for="pl-subject">What are you learning?</label>
+          <input id="pl-subject" class="text-in" type="text" name="subject" value="Spanish" maxlength="24" autocomplete="off" spellcheck="false" />
+        </div>
+
+        <fieldset class="q-block">
+          <legend class="q-label">How long is a normal session?</legend>
+          <div class="chips">
+            {lengths.map((m) => (
+              <label class="chip"><input type="radio" name="length" value={m} checked={m === 60} /><span>{m} min</span></label>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset class="q-block">
+          <legend class="q-label">Which days?</legend>
+          <div class="chips chips--days">
+            {days.map((d, i) => (
+              <label class="chip"><input type="checkbox" name="days" value={i} checked={defaultDays.includes(i)} /><span>{d}</span></label>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset class="q-block">
+          <legend class="q-label">What time?</legend>
+          <div class="chips">
+            {times.map((t) => (
+              <label class="chip"><input type="radio" name="time" value={t} checked={t === '07:00'} /><span>{t}</span></label>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset class="q-block">
+          <legend class="q-label">Where should the blocks go?</legend>
+          <div class="chips">
+            {providers.map((p) => (
+              <label class="chip"><input type="radio" name="provider" value={p.id} checked={p.id === 'google'} /><span>{p.label}</span></label>
+            ))}
+          </div>
+        </fieldset>
+
+        <p class="load" data-load aria-live="polite"></p>
+      </form>
+
+      <div class="board">
+        <div class="cal" role="group" aria-label="The first two weeks">
+          <div class="cal-dow" aria-hidden="true">
+            {days.map((d) => <span>{d}</span>)}
+          </div>
+          <ol class="cal-days" data-days></ol>
+        </div>
+
+        <div class="notes" data-notes aria-live="polite"></div>
+
+        <div class="chat" aria-live="polite" data-chat hidden>
+          <p class="chat-who">Claude, at your next session</p>
+          <p class="chat-text" data-chat-text></p>
+          <button class="undo" type="button" data-undo>Undo missed sessions</button>
+        </div>
+
+        <div class="preview" data-preview></div>
+      </div>
+    </div>
+    <p class="planner-foot">A preview in your browser. Nothing here is saved or sent anywhere, and no real calendar is touched.</p>
+</div>
+
+<script>
+  type Kind = 'measure' | 'teach' | 'recheck' | 'fix' | 'late' | 'missed';
+  interface Slot { day: number; kind: Kind; title: string; short: string; protectedRecheck: boolean; }
+
+  const root = document.querySelector<HTMLElement>('[data-planner]');
+  if (root) {
+    const form = root.querySelector<HTMLFormElement>('[data-controls]')!;
+    const daysOut = root.querySelector<HTMLOListElement>('[data-days]')!;
+    const notesOut = root.querySelector<HTMLElement>('[data-notes]')!;
+    const loadOut = root.querySelector<HTMLElement>('[data-load]')!;
+    const chat = root.querySelector<HTMLElement>('[data-chat]')!;
+    const chatText = root.querySelector<HTMLElement>('[data-chat-text]')!;
+    const undo = root.querySelector<HTMLButtonElement>('[data-undo]')!;
+    const preview = root.querySelector<HTMLElement>('[data-preview]')!;
+
+    const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const LONG = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const missed = new Set<number>(); // day indexes (0..13) the visitor marked as missed
+
+    // Week 1 starts next Monday, in the visitor's own time zone.
+    const today = new Date();
+    const monday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    monday.setDate(monday.getDate() + ((8 - monday.getDay()) % 7 || 7));
+    const dateOf = (i: number) => { const d = new Date(monday); d.setDate(d.getDate() + i); return d; };
+    const dayLabel = (i: number) => { const d = dateOf(i); return `${DOW[i % 7]} ${d.getDate()} ${MONTHS[d.getMonth()]}`; };
+
+    const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+    const read = () => {
+      const fd = new FormData(form);
+      const subject = String(fd.get('subject') || '').trim().slice(0, 24) || 'Spanish';
+      const length = Number(fd.get('length') || 60);
+      const chosen = fd.getAll('days').map(Number).sort((a, b) => a - b);
+      const time = String(fd.get('time') || '07:00');
+      const provider = String(fd.get('provider') || 'google');
+      return { subject, length, chosen, time, provider };
+    };
+    const addMin = (hhmm: string, m: number) => {
+      const [h, mm] = hhmm.split(':').map(Number);
+      const t = h * 60 + mm + m;
+      return `${String(Math.floor(t / 60) % 24).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+    };
+
+    // The same order the skill uses: diagnose, teach, then every teach gets a 2-day recheck (44-72 h).
+    function plan(chosen: number[], length: number) {
+      const slots = new Map<number, Slot>();
+      const sessionDays: number[] = [];
+      for (let i = 0; i < 14; i++) if (chosen.includes(i % 7)) sessionDays.push(i);
+      let step = 0;
+      let lastTeach = -1;
+      let pending = false;
+      let late = 0;
+      let early = 0;
+      const short = length <= 30;
+      for (const d of sessionDays) {
+        if (missed.has(d)) {
+          slots.set(d, { day: d, kind: 'missed', title: 'Missed', short: 'missed', protectedRecheck: false });
+          continue;
+        }
+        let s: Slot;
+        if (step === 0) {
+          s = { day: d, kind: 'measure', title: short ? 'Placement probe (10 min) + results' : 'Diagnostic, part A', short: short ? 'probe' : 'diagnostic A', protectedRecheck: false };
+        } else if (step === 1 && !short) {
+          s = { day: d, kind: 'measure', title: 'Diagnostic, part B + results', short: 'diagnostic B', protectedRecheck: false };
+        } else if (lastTeach < 0) {
+          s = { day: d, kind: 'teach', title: short ? 'Theory card: read it, close it' : 'First skill: theory sheet, closed, then drills', short: short ? 'theory card' : 'first skill', protectedRecheck: false };
+          lastTeach = d; pending = true;
+        } else {
+          const gap = (d - lastTeach) * 24;
+          if (pending && gap >= 44 && gap <= 72) {
+            s = { day: d, kind: 'recheck', title: short ? '2-day recheck (short), then drills' : '2-day recheck, then a new skill', short: '2-day recheck', protectedRecheck: true };
+            lastTeach = d; pending = true;
+          } else if (pending && gap < 44) {
+            s = { day: d, kind: 'fix', title: short ? 'Drills for the new card' : 'Fixed mistakes + mixed practice', short: short ? 'drills' : 'fixed mistakes', protectedRecheck: false };
+            early++;
+          } else {
+            s = { day: d, kind: 'late', title: 'Recheck, late, then a new skill', short: 'late recheck', protectedRecheck: true };
+            lastTeach = d; pending = true; late++;
+          }
+        }
+        slots.set(d, s);
+        step++;
+      }
+      return { slots, sessionDays, late, early };
+    }
+
+    function titleFor(subject: string, s: Slot, length: number) {
+      // A recheck's title never names its topic: seeing the topic would warm you up for it.
+      const what = s.kind === 'recheck' ? '2-day recheck (mixed) + new skill'
+        : s.kind === 'late' ? 'recheck (mixed) + new skill'
+        : s.kind === 'measure' ? s.short
+        : s.kind === 'fix' ? (length <= 30 ? 'drills' : 'fixed mistakes + practice')
+        : 'new skill';
+      return `${subject} · ${what} · ${length}m`;
+    }
+
+    function render(message?: string) {
+      const { subject, length, chosen, time, provider } = read();
+      const { slots, sessionDays, late } = plan(chosen, length);
+      const end = addMin(time, length);
+      const endMin = (() => { const [h, m] = end.split(':').map(Number); return h * 60 + m + (h < 5 ? 1440 : 0); })();
+
+      // Load line
+      const hours = (length * chosen.length) / 60;
+      loadOut.textContent = chosen.length
+        ? `About ${hours % 1 ? hours.toFixed(1) : hours} h a week · ceiling ${Math.round(hours * 1.4 * 10) / 10} h · ${chosen.length} day${chosen.length === 1 ? '' : 's'}`
+        : 'Pick at least one day.';
+
+      // Calendar
+      daysOut.innerHTML = '';
+      for (let i = 0; i < 14; i++) {
+        const li = document.createElement('li');
+        li.className = 'cal-day' + (i % 7 === 0 ? ' cal-day--mon' : '');
+        const s = slots.get(i);
+        const head = `<span class="cal-date">${dayLabel(i)}</span>`;
+        if (!s) {
+          li.classList.add('cal-day--free');
+          li.innerHTML = head;
+        } else {
+          li.classList.add(`cal-day--${s.kind}`);
+          const badge = s.protectedRecheck ? '<span class="badge">protected</span>' : '';
+          const label = s.kind === 'missed' ? `${LONG[i % 7]}: missed` : `${LONG[i % 7]} ${time}: ${s.title}`;
+          li.innerHTML = `${head}<button type="button" class="block" data-day="${i}" aria-label="${esc(label)}${s.kind === 'missed' ? '' : '. Mark as missed'}"${s.kind === 'missed' ? ' disabled' : ''}>
+              <span class="block-time">${s.kind === 'missed' ? 'missed' : `${time}–${end}`}</span>
+              <span class="block-title">${esc(s.kind === 'missed' ? 'Skipped. Moved on.' : s.title)}</span>${badge}
+            </button>`;
+        }
+        daysOut.appendChild(li);
+      }
+
+      // Notes: the rules the skill would raise
+      const notes: string[] = [];
+      if (!chosen.length) notes.push('No days picked, so nothing to plan yet.');
+      if (chosen.length && sessionDays.length < 3) notes.push('One day a week is a slow start: the diagnostic alone takes two sessions.');
+      if (late) notes.push(`With these days, ${late === 1 ? 'a recheck lands' : `${late} rechecks land`} more than 72 hours after the lesson. indelible would suggest moving a lesson so the recheck fits 44–72 hours.`);
+      if (endMin > 22 * 60 + 30) notes.push(`Sessions end at ${end}. That is within 30 minutes of a 23:00 bedtime, so indelible would ask when you sleep before booking this.`);
+      if (length <= 30) notes.push('Short sessions split the theory and the drills across two days, and the recheck stays short.');
+      if (length >= 120) notes.push('Long sessions get a 10-minute break and a short retrieval slot on the days in between.');
+      notesOut.innerHTML = notes.map((n) => `<p class="note"><span aria-hidden="true">!</span> ${esc(n)}</p>`).join('');
+
+      // Chat
+      if (message) {
+        chatText.textContent = message;
+        chat.hidden = false;
+      } else if (!missed.size) {
+        chat.hidden = true;
+      }
+      undo.hidden = !missed.size;
+
+      // Calendar preview: the first recheck, or the first session
+      const all = [...slots.values()].filter((s) => s.kind !== 'missed');
+      const sample = all.find((s) => s.kind === 'recheck') || all.find((s) => s.kind === 'late') || all[0];
+      const count = all.length;
+      preview.innerHTML = sample ? previewHtml(provider, subject, sample, length, time, end, count) : '';
+    }
+
+    function steps(s: Slot) {
+      if (s.kind === 'recheck' || s.kind === 'late') return ['Recheck sheet first: book closed, clock on', 'Write a check beside each answer', 'Send photos; mistakes get your account first', 'Then the new skill: read the sheet, close it, drills'];
+      if (s.kind === 'measure') return ['Diagnostic on paper, no notes', 'Write the start and stop time', '“I don’t know” is an accepted answer'];
+      if (s.kind === 'fix') return ['Fixed mistakes come back first', 'Then mixed practice', 'Nothing from the last lesson in view'];
+      return ['Read the theory sheet, then close it', 'Drills in blocks of one question type', 'Least sure of: one line at the end'];
+    }
+
+    function previewHtml(provider: string, subject: string, s: Slot, length: number, time: string, end: string, count: number) {
+      const title = esc(titleFor(subject, s, length));
+      const when = `${dayLabel(s.day)}, ${time}–${end}`;
+      const list = steps(s).map((t) => `<li>${esc(t)}</li>`).join('');
+      const start = `Start: open Claude in ~/Study and say “start ${esc(subject.toLowerCase())}”`;
+      // Before any sync every session is new. After a miss, the ones already in the calendar move.
+      const firstMiss = missed.size ? Math.min(...missed) : -1;
+      const moved = firstMiss < 0 ? 0 : [...daysOut.querySelectorAll<HTMLButtonElement>('button[data-day]:not(:disabled)')].filter((b) => Number(b.dataset.day) > firstMiss).length;
+      const counts = firstMiss < 0 ? `Add ${count} · Move 0 · Unchanged 0` : `Add 0 · Move ${moved} · Unchanged ${count - moved}`;
+      const consent = `<p class="consent"><span class="consent-count">${counts}</span> Write these? <span class="pill">yes</span><span class="pill">change…</span><span class="pill">no</span></p>`;
+      if (provider === 'google') {
+        return `<p class="preview-label">How it lands in Google Calendar, on a “Study” calendar, after your yes</p>
+          ${consent}
+          <div class="gcal"><span class="gcal-bar" aria-hidden="true"></span><div>
+            <p class="gcal-title">${title}</p><p class="gcal-when">${esc(when)} · reminder 15 min before</p>
+            <ul class="card-steps">${list}</ul><p class="card-start">${start}</p></div></div>`;
+      }
+      if (provider === 'ticktick') {
+        return `<p class="preview-label">How it lands in TickTick, as a timed task in one list per subject, after your yes</p>
+          ${consent}
+          <div class="tick"><span class="tick-box" aria-hidden="true"></span><div>
+            <p class="tick-title">${title}</p><p class="tick-when">${esc(when)} · ⏰ 15 min before · list: ${esc(subject)}</p>
+            <ul class="card-steps">${list}</ul><p class="card-start">${start}</p></div></div>`;
+      }
+      if (provider === 'apple' || provider === 'outlook') {
+        const d = dateOf(s.day);
+        const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+        const uid = `B-${stamp}-${subject.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'study'}-1`;
+        return `<p class="preview-label">${provider === 'apple' ? 'Apple Calendar' : 'Outlook'} has no connector yet, so you get an .ics file to import once. Later changes come as a short list.</p>
+          <pre class="ics"><code>BEGIN:VEVENT
+UID:${esc(uid)}@indelible
+DTSTART:${stamp}T${time.replace(':', '')}00
+DTEND:${stamp}T${end.replace(':', '')}00
+SUMMARY:${title}
+DESCRIPTION:[ind:${esc(uid)}] ${esc(steps(s)[0])}…
+BEGIN:VALARM
+TRIGGER:-PT15M
+END:VALARM
+END:VEVENT</code></pre>`;
+      }
+      return `<p class="preview-label">No calendar: every session ends by telling you the next one.</p>
+        <div class="closing"><p><strong>Saved.</strong> 3 mistakes scheduled, calendar untouched.</p>
+        <p><strong>Next:</strong> ${esc(when)} · ${title.replace(/^.*? · /, '')}</p></div>`;
+    }
+
+    daysOut.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-day]');
+      if (!btn || btn.disabled) return;
+      const d = Number(btn.dataset.day);
+      const { chosen } = read();
+      const before = plan(chosen, read().length).slots.get(d);
+      missed.add(d);
+      const after = plan(chosen, read().length).slots;
+      const next = [...after.entries()].filter(([day, s]) => day > d && s.kind !== 'missed')[0];
+      const what = before ? before.short : 'the session';
+      const moved = next ? `Moved “${what}” to ${LONG[next[0] % 7]}${before && before.protectedRecheck ? ', and the 2-day recheck moved with it' : ''}.` : 'It is past the two weeks shown here, so it goes into the week after.';
+      render(`${LONG[d % 7]}’s ${read().time} block has no record. Did it happen without me, get moved, or get skipped? (Skipped.) Fine. ${moved} Nothing is written to your calendar until you say yes.`);
+    });
+
+    undo.addEventListener('click', () => { missed.clear(); render(); chat.hidden = true; });
+    form.addEventListener('input', () => { missed.clear(); render(); });
+    form.addEventListener('change', () => { missed.clear(); render(); });
+    render();
+  }
+</script>
+
+<style>
+  .planner-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.62fr);
+    gap: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+    align-items: start;
+  }
+
+  /* Answer-sheet bubbles */
+  .controls {
+    display: grid;
+    gap: var(--space-lg);
+  }
+
+  .q-block {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    display: grid;
+    gap: var(--space-xs);
+  }
+
+  .q-label {
+    padding: 0;
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: var(--text-sm);
+  }
+
+  .text-in {
+    width: 100%;
+    min-height: 2.6rem;
+    padding: 0 0.1rem;
+    border: 0;
+    border-bottom: 1.5px solid var(--print);
+    background: transparent;
+    color: var(--graphite);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.3rem;
+  }
+
+  .text-in:focus-visible {
+    outline: none;
+    box-shadow: 0 2px 0 var(--print);
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs) var(--space-sm);
+  }
+
+  .chip {
+    position: relative;
+  }
+
+  .chip input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .chip span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.3rem;
+    font-family: var(--sans);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  /* the bubble */
+  .chip span::before {
+    content: '';
+    flex: none;
+    width: 1.05rem;
+    height: 1.05rem;
+    border: 1.5px solid var(--print);
+    border-radius: 50%;
+    background: var(--paper);
+    transition: background var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+  }
+
+  .chip input:checked + span::before {
+    background: var(--graphite);
+    box-shadow: inset 0 0 0 2px var(--paper);
+  }
+
+  .chip:hover span::before {
+    box-shadow: 0 0 0 3px var(--paper-shade);
+  }
+
+  .chip input:checked:hover + span::before {
+    box-shadow: inset 0 0 0 2px var(--paper), 0 0 0 3px var(--paper-shade);
+  }
+
+  .chip input:focus-visible + span {
+    outline: 3px solid var(--marker);
+    outline-offset: 3px;
+  }
+
+  .chips--days .chip span {
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 2.4rem;
+    font-size: var(--text-xs);
+  }
+
+  .load {
+    font-family: var(--sans);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--print-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* A printed timetable */
+  .board {
+    display: grid;
+    gap: var(--space-md);
+  }
+
+  .cal {
+    border: 1.5px solid var(--print);
+  }
+
+  .cal-dow,
+  .cal :global(.cal-days) {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  .cal-dow {
+    border-bottom: 1.5px solid var(--print);
+    font-family: var(--sans);
+    font-size: var(--text-xs);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .cal-dow span {
+    padding: 0.4rem 0.45rem;
+  }
+
+  .cal-dow span + span {
+    border-left: 1px solid var(--rule);
+  }
+
+  .cal :global(.cal-days) {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cal :global(.cal-day) {
+    min-height: 7.5rem;
+    padding: 0.35rem;
+    border-left: 1px solid var(--rule);
+    display: grid;
+    align-content: start;
+    gap: 0.3rem;
+  }
+
+  .cal :global(.cal-day:nth-child(7n + 1)) {
+    border-left: 0;
+  }
+
+  .cal :global(.cal-day:nth-child(n + 8)) {
+    border-top: 1px solid var(--rule);
+  }
+
+  .cal :global(.cal-date) {
+    font-family: var(--sans);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--print-faint);
+  }
+
+  .cal :global(.block) {
+    display: grid;
+    gap: 0.15rem;
+    width: 100%;
+    padding: 0.4rem 0.4rem 0.45rem;
+    border: 1.5px solid var(--print);
+    border-radius: 0;
+    background: var(--paper);
+    color: var(--print);
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+    transition: background var(--dur-fast) var(--ease-out);
+  }
+
+  .cal :global(.block:hover:not(:disabled)) {
+    background: var(--paper-shade);
+  }
+
+  .cal :global(.block-time) {
+    font-family: var(--sans);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--print-soft);
+  }
+
+  .cal :global(.block-title) {
+    font-family: var(--sans);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .cal :global(.badge) {
+    justify-self: start;
+    margin-top: 0.15rem;
+    padding: 0 0.3rem;
+    border: 1.5px solid var(--marker);
+    border-radius: 999px;
+    color: var(--marker);
+    font-family: var(--sans);
+    font-size: 0.625rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    transform: rotate(-3deg);
+  }
+
+  .cal :global(.cal-day--teach .block),
+  .cal :global(.cal-day--recheck .block) {
+    background: var(--print);
+    color: var(--paper);
+  }
+
+  .cal :global(.cal-day--teach .block-time),
+  .cal :global(.cal-day--recheck .block-time) {
+    color: var(--rule);
+  }
+
+  .cal :global(.cal-day--recheck .badge) {
+    background: var(--paper);
+  }
+
+  .cal :global(.cal-day--teach .block:hover:not(:disabled)),
+  .cal :global(.cal-day--recheck .block:hover:not(:disabled)) {
+    background: var(--navy);
+  }
+
+  .cal :global(.cal-day--late .block) {
+    border-style: dashed;
+    border-color: var(--marker);
+  }
+
+  .cal :global(.cal-day--fix .block) {
+    border-color: var(--box);
+    background: var(--paper-shade);
+  }
+
+  .cal :global(.cal-day--missed .block) {
+    border: 1.5px dashed var(--print-faint);
+    color: var(--print-faint);
+    cursor: default;
+  }
+
+  .cal :global(.cal-day--missed .block-title) {
+    text-decoration: line-through;
+    text-decoration-color: var(--marker);
+    text-decoration-thickness: 2px;
+  }
+
+  .notes :global(.note) {
+    display: flex;
+    gap: var(--space-2xs);
+    font-family: var(--sans);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--print);
+  }
+
+  .notes :global(.note + .note) {
+    margin-top: var(--space-2xs);
+  }
+
+  .notes :global(.note span) {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 1.35rem;
+    height: 1.35rem;
+    border: 1.5px solid var(--marker);
+    border-radius: 50%;
+    color: var(--marker);
+    font-size: 0.75rem;
+    font-weight: 800;
+  }
+
+  /* Claude's reply, as it would appear at the next session */
+  .chat {
+    display: grid;
+    gap: var(--space-2xs);
+    justify-items: start;
+    padding: var(--space-sm) var(--space-md);
+    border-left: 0;
+    background: var(--paper-shade);
+    border: 1px solid var(--rule);
+  }
+
+  .chat-who {
+    font-family: var(--sans);
+    font-size: var(--text-xs);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--print-soft);
+  }
+
+  .chat-text {
+    font-size: var(--text-sm);
+    line-height: 1.6;
+  }
+
+  .undo {
+    margin-top: var(--space-2xs);
+    padding: 0.3rem 0.8rem;
+    border: 1.5px solid var(--print);
+    border-radius: 2px;
+    background: transparent;
+    color: var(--print);
+    font-family: var(--sans);
+    font-size: var(--text-xs);
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  /* Figures: how a block lands in each calendar */
+  .preview :global(.preview-label) {
+    font-family: var(--sans);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--print-soft);
+    margin-bottom: var(--space-xs);
+  }
+
+  .preview :global(.consent) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.5rem;
+    margin-bottom: var(--space-sm);
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+  }
+
+  .preview :global(.consent-count) {
+    margin-right: 0.35rem;
+    color: var(--print-soft);
+  }
+
+  .preview :global(.pill) {
+    padding: 0.05rem 0.5rem;
+    border: 1.5px solid var(--print);
+    font-weight: 700;
+  }
+
+  .preview :global(.pill:first-of-type) {
+    background: var(--print);
+    color: var(--paper);
+  }
+
+  .preview :global(.gcal),
+  .preview :global(.tick) {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md) var(--space-md) var(--space-sm);
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    font-family: var(--sans);
+  }
+
+  .preview :global(.gcal-bar) {
+    width: 5px;
+    background: var(--navy);
+  }
+
+  .preview :global(.tick-box) {
+    width: 1.05rem;
+    height: 1.05rem;
+    margin-top: 0.2rem;
+    border: 2px solid var(--print);
+    border-radius: 3px;
+  }
+
+  .preview :global(.gcal-title),
+  .preview :global(.tick-title) {
+    font-weight: 800;
+    line-height: 1.3;
+  }
+
+  .preview :global(.gcal-when),
+  .preview :global(.tick-when) {
+    margin-top: 0.15rem;
+    font-size: var(--text-sm);
+    color: var(--print-soft);
+  }
+
+  .preview :global(.card-steps) {
+    margin: var(--space-xs) 0 0;
+    padding-left: 1.1rem;
+    font-size: var(--text-sm);
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  .preview :global(.card-start) {
+    margin-top: var(--space-xs);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .preview :global(.ics) {
+    margin: 0;
+    padding: var(--space-sm) var(--space-md);
+    overflow-x: auto;
+    border: 1px solid var(--rule);
+    background: var(--paper-shade);
+    color: var(--print);
+    font-size: 0.75rem;
+    line-height: 1.7;
+  }
+
+  .preview :global(.closing) {
+    display: grid;
+    gap: 0.25rem;
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--rule);
+    background: var(--paper-shade);
+    font-family: var(--sans);
+    font-size: var(--text-sm);
+  }
+
+  .planner-foot {
+    margin-top: var(--space-md);
+    font-family: var(--sans);
+    font-size: var(--text-xs);
+    color: var(--print-faint);
+  }
+
+  @media (max-width: 56rem) {
+    .planner-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* Phones: a list of session days instead of a 7-column grid. */
+  @media (max-width: 36rem) {
+    .cal-dow {
+      display: none;
+    }
+
+    .cal :global(.cal-days) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cal :global(.cal-day--free) {
+      display: none;
+    }
+
+    .cal :global(.cal-day) {
+      min-height: 0;
+      grid-template-columns: 5.5rem 1fr;
+      align-items: center;
+      border-left: 0;
+      border-top: 1px solid var(--rule);
+    }
+
+    .cal :global(.cal-day:first-child) {
+      border-top: 0;
+    }
+
+    .cal :global(.block-title) {
+      font-size: var(--text-sm);
+    }
+  }
+</style>

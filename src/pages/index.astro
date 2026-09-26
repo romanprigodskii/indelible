@@ -1,0 +1,1326 @@
+---
+import '@fontsource-variable/public-sans';
+import '@fontsource-variable/source-serif-4';
+import '@fontsource-variable/source-serif-4/wght-italic.css';
+import '@fontsource-variable/jetbrains-mono';
+import '../styles/global.css';
+import Trial from '../components/Trial.astro';
+import Planner from '../components/Planner.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+const repo = 'https://github.com/romanprigodskii/indelible';
+const blob = `${repo}/blob/main`;
+const install = [
+  'claude plugin marketplace add romanprigodskii/indelible',
+  'claude plugin install indelible@indelible',
+];
+const PAGES = 7;
+
+// A decorative barcode, drawn from a fixed string so it never changes.
+const bars = [...'INDELIBLE-PAPER-1-V0.1'].flatMap((ch, i) => {
+  const c = ch.charCodeAt(0) + i * 7;
+  return [1 + (c % 3), 1 + ((c >> 2) % 2), 1 + ((c >> 1) % 3), 1 + ((c >> 3) % 2)];
+});
+let bx = 0;
+const barRects = bars.map((w, i) => { const r = { x: bx, w, on: i % 2 === 0 }; bx += w; return r; });
+
+// The recheck timeline: indelible's default intervals, not measured results.
+const stops = [
+  { when: 'Day 0', title: 'The lesson', text: 'You read the theory sheet, close it, and do the drills: 6 of 6.', verdict: 'Practice. It does not count yet.', counts: false },
+  { when: 'Day 2', title: 'The 2-day recheck', text: 'Fresh numbers, nothing looked at in the 24 hours before, book closed. 3 of 4.', verdict: 'This one counts. The miss goes on the ladder.', counts: true },
+  { when: 'Day 3', title: '+1 day', text: 'The miss comes back, after the idea behind it has been fixed.', verdict: 'Passed. Next in 3 days.', counts: true },
+  { when: 'Day 6', title: '+3 days', text: 'Again, cold, mixed in with other topics.', verdict: 'Passed. Next in a week.', counts: true },
+  { when: 'Day 13', title: '+1 week', text: 'Again, with no heading to say which topic it is.', verdict: 'Passed. Next in 3 weeks.', counts: true },
+  { when: 'Day 34', title: '+3 weeks', text: 'The last rung: four passes on four different days.', verdict: 'Retired. It stayed.', counts: true },
+];
+const pos = (i: number) => `${((i / (stops.length - 1)) * 100).toFixed(2)}%`;
+---
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>indelible · learning that survives the cold test</title>
+    <meta name="description" content="An open-source Claude skill that runs your self-study like an exam you set yourself: theory you read and close, drills checked backwards on paper, and a cold recheck two days later." />
+    <meta property="og:title" content="indelible · learning that survives the cold test" />
+    <meta property="og:description" content="An open-source Claude skill for self-study. Nothing counts until it survives 48 hours." />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#23293A" />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <script is:inline>document.documentElement.classList.remove('no-js');</script>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+      <filter id="ink" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n" />
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="1.6" />
+      </filter>
+    </svg>
+
+    <a class="skip-link" href="#main">Skip to the questions</a>
+
+    <header class="desk-top">
+      <a class="brand" href={base} aria-label="indelible, home">
+        <svg class="brand-mark" viewBox="0 0 256 256" aria-hidden="true">
+          <rect width="256" height="256" rx="56" fill="currentColor" />
+          <path d="M58 136 C 64 128, 74 128, 80 134 L 110 166 C 132 128, 160 94, 196 64 C 204 58, 214 62, 212 72 C 186 104, 150 150, 124 196 C 118 206, 104 208, 98 198 L 56 152 C 52 146, 52 140, 58 136 Z" fill="var(--desk)" />
+          <circle cx="206" cy="204" r="9" fill="var(--desk)" />
+        </svg>
+        <span>indelible</span>
+      </a>
+      <nav class="desk-nav" aria-label="Pages">
+        <a href="#try">Sit it</a>
+        <a href="#plan">Plan</a>
+        <a href="#info">Information</a>
+        <a class="star" href={repo} data-star>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z" fill="currentColor"/></svg>
+          <span>GitHub</span><span class="star-count" data-star-count hidden></span>
+        </a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <!-- ============================================================ PAGE 1: COVER -->
+      <article class="page cover" id="cover" data-page="1" aria-labelledby="cover-title">
+        <div class="cover-top">
+          <p class="cover-org">indelible</p>
+          <svg class="barcode" viewBox={`0 0 ${bx} 40`} preserveAspectRatio="none" aria-hidden="true">
+            {barRects.map((r) => r.on && <rect x={r.x} y="0" width={r.w} height="40" fill="currentColor" />)}
+          </svg>
+        </div>
+
+        <div class="cand" aria-hidden="true">
+          <div class="cand-field cand-field--name"><span class="label">Candidate name</span><span class="cand-line"></span></div>
+          <div class="cand-field"><span class="label">Centre number</span><span class="cand-boxes">{[0,1,2,3,4].map(() => <i></i>)}</span></div>
+          <div class="cand-field"><span class="label">Candidate number</span><span class="cand-boxes">{[0,1,2,3].map(() => <i></i>)}</span></div>
+        </div>
+
+        <div class="cover-title">
+          <p class="paper-code">Self-study · Paper 1 · v0.1</p>
+          <h1 id="cover-title">Learning that survives the cold&nbsp;test.</h1>
+          <svg class="pen-underline" viewBox="0 0 420 24" preserveAspectRatio="none" aria-hidden="true"><path class="pen" d="M6 14 C 90 6, 200 18, 300 9 S 400 10, 414 12" /></svg>
+          <p class="cover-sub">indelible is an open-source skill for Claude Code. It runs your self-study the way a good examiner would: it teaches from sheets you read and then close, marks your work from photos, and brings everything back cold two days later.</p>
+        </div>
+
+        <p class="recheck-ready" data-ready-note hidden>
+          <svg viewBox="0 0 40 40" aria-hidden="true"><circle class="pen" cx="20" cy="20" r="15" /></svg>
+          Your 2-day recheck is ready. <a href="#try">Question 3</a>
+        </p>
+
+        <section class="instr" aria-labelledby="instr-title">
+          <h2 id="instr-title" class="instr-title">Read these instructions first</h2>
+          <ol class="instr-list">
+            <li><strong>Read the theory, then close it.</strong> Answers written with the explanation in view are practice, not proof.</li>
+            <li><strong>Practise one question type at a time.</strong> You will be tested on all of them, mixed, with no headings.</li>
+            <li><strong>Nothing counts until it survives 48 hours.</strong> Every topic comes back cold two days after you learn it.</li>
+            <li><strong>Write a check beside every answer, working backwards.</strong> Solving it again in your head repeats the same slip.</li>
+            <li><strong>End each sheet with one line:</strong> <em>Least sure of: ___</em></li>
+            <li><strong>Every mistake returns</strong> after 1 day, 3 days, 1 week and 3 weeks, until it stays.</li>
+          </ol>
+        </section>
+
+        <section class="materials" aria-labelledby="mat-title">
+          <h2 id="mat-title" class="label">Materials: Claude Code, Python 3.9 or later. To begin, type:</h2>
+          <div class="cmd-box">
+            <pre><code>{install.map((line) => <span class="cmd"><span class="prompt" aria-hidden="true">$ </span>{line}{'\n'}</span>)}</code></pre>
+            <button class="copy" type="button" data-copy={install.join('\n')}><span class="c-idle">Copy</span><span class="c-done">Copied</span></button>
+          </div>
+          <p class="mat-note">Then open Claude Code in an empty folder and say <em>“set me up for…”</em>, naming what you are learning.</p>
+        </section>
+
+        <footer class="page-foot"><span class="pf-left">This paper has {PAGES} printed pages.</span><span class="pf-num">1</span><span class="pf-turn">[Turn over</span></footer>
+
+        <figure class="loose-sheet">
+          <img src={`${base}img/recheck-sheet.webp`} width="900" height="2198" alt="The top of a real 2-day recheck sheet printed by indelible: a rules box, a start time, and questions with an answer box and a Check line under each." />
+          <figcaption>A real recheck, printed by indelible</figcaption>
+        </figure>
+      </article>
+
+      <!-- ============================================================ PAGE 2: Q1, Q2 -->
+      <article class="page" data-page="2" aria-label="Questions 1 and 2">
+        <section class="q" aria-labelledby="q1-title">
+          <p class="q-num">1</p>
+          <div class="q-body">
+            <h2 id="q1-title" class="q-title">Why does indelible make you close the theory before the drills?</h2>
+            <div class="scheme">
+              <p class="scheme-label">Mark scheme</p>
+              <p><span class="mk">B1</span> With the explanation in view, every answer is a lookup. It feels like knowing, and it isn’t.</p>
+              <p><span class="mk">B1</span> So theory comes on its own sheet. You read it, close it, and only then get the drills. Reopening is allowed, but it is written down, and those answers count as practice.</p>
+            </div>
+
+            <div class="closer" data-closer data-state="open">
+              <div class="closer-stack">
+                <article class="loose theory" aria-labelledby="theory-h">
+                  <p class="label">Theory sheet</p>
+                  <h3 id="theory-h" class="loose-title">The middle number</h3>
+                  <p>Sort the list, then take the value in the middle: 3, 9, 4, 12, 7 sorts to 3, 4, <strong>7</strong>, 9, 12.</p>
+                  <p>Add 100 to that list and the average jumps from 7 to 22.5. The middle number only moves to 8.</p>
+                  <p class="rule-box">Even count: take the average of the two middle values.</p>
+                  <p class="close-line">Close this sheet now. The drills come separately.</p>
+                </article>
+                <article class="loose drills" aria-labelledby="drills-h" aria-hidden="true">
+                  <p class="label">Drills · block A · six in a row</p>
+                  <h3 id="drills-h" class="loose-title">Find the middle number</h3>
+                  <ol class="drill-list">
+                    <li><span>5, 1, 9</span><i></i></li>
+                    <li><span>2, 8, 4, 6</span><i></i></li>
+                    <li><span>10, 3, 3, 7, 1</span><i></i></li>
+                  </ol>
+                  <p class="gate">If your check failed on two of questions 1 to 3, stop and send a photo.</p>
+                </article>
+              </div>
+              <div class="closer-bar">
+                <button class="btn" type="button" data-closer-toggle><span class="w-open">Close the theory sheet</span><span class="w-closed">Open it again</span></button>
+                <p class="closer-status" aria-live="polite" data-closer-status>The theory is open. The drills wait until you close it.</p>
+              </div>
+            </div>
+          </div>
+          <p class="q-marks">[2]</p>
+        </section>
+
+        <section class="q" aria-labelledby="q2-title">
+          <p class="q-num">2</p>
+          <div class="q-body">
+            <h2 id="q2-title" class="q-title">Drills come in blocks of one kind. Tests are mixed, with no headings. Why both?</h2>
+            <div class="scheme">
+              <p class="scheme-label">Mark scheme</p>
+              <p><span class="mk">B1</span> Six in a row of one kind makes the step automatic.</p>
+              <p><span class="mk">B1</span> A real exam never says which topic a question is from, so anything that measures you is shuffled and unlabelled. You have to recognise the problem before you can solve it.</p>
+            </div>
+            <div class="pair">
+              <div class="pair-col">
+                <p class="label">Teaching block</p>
+                <p class="pair-head">Block A · the middle number</p>
+                <ol><li>5, 1, 9</li><li>2, 8, 4, 6</li><li>10, 3, 3, 7, 1</li><li>12, 15, 11, 90</li><li>0.5, 0.2, 0.9</li><li>6, 6, 1, 8, 2, 9</li></ol>
+              </div>
+              <div class="pair-col">
+                <p class="label">Recheck</p>
+                <p class="pair-head">Sheet 07</p>
+                <ol><li>Average of 2, 4, 9</li><li>Solve 2x − 3 = 11</li><li>Middle number of 4, 10, 6</li><li>20% of 45</li><li>For 1, 2, 3, 50: which is larger, the average or the middle number?</li><li>Solve x ÷ 4 = 2.5</li></ol>
+              </div>
+            </div>
+          </div>
+          <p class="q-marks">[2]</p>
+        </section>
+        <footer class="page-foot"><span class="pf-left">indelible · Paper 1</span><span class="pf-num">2</span><span class="pf-turn">[Turn over</span></footer>
+      </article>
+
+      <!-- ============================================================ PAGE 3: Q3, SIT IT -->
+      <article class="page" id="try" data-page="3" aria-labelledby="q3-title">
+        <section class="q">
+          <p class="q-num">3</p>
+          <div class="q-body">
+            <h2 id="q3-title" class="q-title">Answer the three questions below. Write a check beside each answer.</h2>
+            <p class="q-lead">This one is real. Sit it now, closed book. It is marked when you hand it in, and your score will not count yet. Come back in two days for the recheck.</p>
+            <Trial />
+          </div>
+          <p class="q-marks">[3]</p>
+        </section>
+        <footer class="page-foot"><span class="pf-left">indelible · Paper 1</span><span class="pf-num">3</span><span class="pf-turn">[Turn over</span></footer>
+      </article>
+
+      <!-- ============================================================ PAGE 4: Q4, 48 HOURS -->
+      <article class="page" data-page="4" aria-labelledby="q4-title">
+        <section class="q">
+          <p class="q-num">4</p>
+          <div class="q-body">
+            <h2 id="q4-title" class="q-title">You scored 6 of 6 on the day you learned something. When does that score count?</h2>
+            <div class="scheme">
+              <p class="scheme-label">Mark scheme</p>
+              <p><span class="mk">B1</span> Never. Same-day scores are practice.</p>
+              <p><span class="mk">B1</span> What counts is the 2-day recheck: fresh questions, 44 to 72 hours later, with nothing looked at in the 24 hours before. Every miss then returns after 1 day, 3 days, 1 week and 3 weeks.</p>
+            </div>
+
+            <figure class="chart" data-timeline>
+              <figcaption class="label">Figure 1 · one topic, from lesson to retired. Drag along the line, or use the arrow keys.</figcaption>
+              <div class="track">
+                <div class="axis" aria-hidden="true"></div>
+                <div class="axis-fill" data-fill aria-hidden="true"></div>
+                {stops.map((s, i) => (
+                  <span class={`node${s.counts ? ' node--counts' : ''}`} style={`left:${pos(i)}`} data-node={i} aria-hidden="true">
+                    <span class="node-dot"></span><span class="node-when">{s.when}</span>
+                  </span>
+                ))}
+                <label class="visually-hidden" for="tl-range">Move along the timeline</label>
+                <input id="tl-range" class="range" type="range" min="0" max={stops.length - 1} step="1" value="0" data-range aria-valuetext={`${stops[0].when}: ${stops[0].title}`} />
+              </div>
+              <div class="stop-card" aria-live="polite">
+                {stops.map((s, i) => (
+                  <div class="stop" data-stop={i} hidden={i !== 0}>
+                    <p class="stop-title"><span class="stop-when">{s.when}</span> {s.title}</p>
+                    <p>{s.text}</p>
+                    <p class={`stop-verdict${s.counts ? ' is-counts' : ''}`}>{s.verdict}</p>
+                  </div>
+                ))}
+              </div>
+              <p class="chart-note">These are indelible’s default intervals, not measured results. You can change them.</p>
+            </figure>
+          </div>
+          <p class="q-marks">[2]</p>
+        </section>
+        <footer class="page-foot"><span class="pf-left">indelible · Paper 1</span><span class="pf-num">4</span><span class="pf-turn">[Turn over</span></footer>
+      </article>
+
+      <!-- ============================================================ PAGE 5: Q5, PLAN -->
+      <article class="page page--wide" id="plan" data-page="5" aria-labelledby="q5-title">
+        <section class="q">
+          <p class="q-num">5</p>
+          <div class="q-body">
+            <h2 id="q5-title" class="q-title">Plan the first two weeks. Fill in the bubbles, then mark any session as missed.</h2>
+            <p class="q-lead">These are four of the eight questions indelible asks when you set it up. The plan follows its rules: a diagnostic before any teaching, and a protected recheck 44 to 72 hours after every lesson. Nothing reaches your calendar until you have seen the changes and said yes.</p>
+            <Planner />
+          </div>
+          <p class="q-marks">[4]</p>
+        </section>
+        <footer class="page-foot"><span class="pf-left">indelible · Paper 1</span><span class="pf-num">5</span><span class="pf-turn">[Turn over</span></footer>
+      </article>
+
+      <!-- ============================================================ PAGE 6: Q6, SESSION -->
+      <article class="page" data-page="6" aria-labelledby="q6-title">
+        <section class="q">
+          <p class="q-num">6</p>
+          <div class="q-body">
+            <h2 id="q6-title" class="q-title">Describe the first eight minutes.</h2>
+            <div class="scheme">
+              <p class="scheme-label">Mark scheme</p>
+              <p><span class="mk">B1</span> A short interview, one question at a time, each with a default: the goal and the date, where you are now, your materials, session length and days, when your head is clearest, when you sleep.</p>
+              <p><span class="mk">B1</span> A two-week plan comes first, the calendar question second, and nothing is written until you say yes to a one-screen summary. Then a diagnostic, before any teaching.</p>
+            </div>
+            <figure class="transcript">
+              <figcaption class="label">Figure 2 · part of the setup, as it appears in Claude Code (a made-up learner)</figcaption>
+              <div class="tr-body">
+                <p class="tr-c">(6 of 8) How long should a normal session be (15–20, 30, 45, 60, 90, or 120–150 min), and on how many days a week?</p>
+                <p class="tr-y">&gt; 60 minutes, four days, never more than 90</p>
+                <p class="tr-c">Your first two weeks: IELTS · ~4 h/week · 60-min sessions · exam 12 Dec</p>
+                <pre class="tr-plan">          Week 1                           Week 2
+Mon 07:00 Diagnostic, part A               New skill + 2-day recheck
+Tue 07:00 Diagnostic, part B + results     rest
+Thu 07:00 First skill: sheet, closed       2-day recheck + fixed mistakes
+Sat 10:00 2-day recheck + second skill     Timed section</pre>
+                <p class="tr-c">Want these in your calendar? I found Google Calendar.</p>
+                <ol class="tr-opts"><li>Yes, and ask me before each batch of changes (recommended)</li><li>Yes, and you may move a missed block within 24 h</li><li>Give me a file to import (.ics)</li><li>No calendar: just tell me what’s next</li></ol>
+              </div>
+            </figure>
+          </div>
+          <p class="q-marks">[2]</p>
+        </section>
+        <footer class="page-foot"><span class="pf-left">indelible · Paper 1</span><span class="pf-num">6</span><span class="pf-turn">[Turn over</span></footer>
+      </article>
+
+      <!-- ============================================================ PAGE 7: INFORMATION -->
+      <article class="page back" id="info" data-page="7" aria-labelledby="info-title">
+        <h2 id="info-title" class="back-title">Information for candidates</h2>
+
+        <div class="back-grid">
+          <section aria-labelledby="where-h">
+            <h3 id="where-h" class="back-h">Where it works</h3>
+            <table class="where">
+              <caption class="visually-hidden">Where indelible works in version 0.1</caption>
+              <tbody>
+                <tr><th scope="row">Claude Code</th><td>Supported. Terminal, desktop app and IDE extensions.</td></tr>
+                <tr><th scope="row">Cowork</th><td>Should work with a shared folder. Untested in v0.1.</td></tr>
+                <tr><th scope="row">claude.ai chat, mobile</th><td>A limited manual mode for now: files don’t persist between chats there.</td></tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section aria-labelledby="data-h">
+            <h3 id="data-h" class="back-h">Your data</h3>
+            <ul class="plain">
+              <li>Plain files in a folder you choose, on your own computer.</li>
+              <li>The scripts make no network requests. Nothing is sent to the author.</li>
+              <li>Calendar entries only through your own connector, after a preview and your yes.</li>
+              <li>Answer keys stay sealed until your attempt is filed.</li>
+            </ul>
+            <p class="small"><a href={`${blob}/PRIVACY.md`}>Privacy policy</a> · <a href={`${blob}/README.md#what-it-runs-writes-and-sends`}>What it runs, writes and sends</a></p>
+          </section>
+
+          <section class="back-wide" aria-labelledby="limits-h">
+            <h3 id="limits-h" class="back-h">Honest limits</h3>
+            <p>A skill cannot physically stop the model from breaking its own rules, so the rules that matter most do not rely on instructions alone. The only route to a printable sheet runs a sheet checker. The only route to an answer key needs your attempt filed first. The next session finds anything the last one skipped, and does it first.</p>
+            <p>The method was developed with one learner over about four weeks. That is not a controlled study. The principles come from well-studied effects: retrieval practice (Roediger &amp; Karpicke, 2006), spacing (Cepeda et al., 2006) and interleaving (Rohrer &amp; Taylor, 2007). The numbers, like 48 hours and six questions a block, are defaults you can change.</p>
+          </section>
+        </div>
+
+        <div class="back-install">
+          <p class="label">To begin, type</p>
+          <div class="cmd-box">
+            <pre><code>{install.map((line) => <span class="cmd"><span class="prompt" aria-hidden="true">$ </span>{line}{'\n'}</span>)}</code></pre>
+            <button class="copy" type="button" data-copy={install.join('\n')}><span class="c-idle">Copy</span><span class="c-done">Copied</span></button>
+          </div>
+          <p class="small">Or copy <code>skills/indelible</code> into <code>~/.claude/skills/</code>. <a href={repo}>Source on GitHub</a> · <a href={`${blob}/CHANGELOG.md`}>Changelog</a> · <a href={`${blob}/SECURITY.md`}>Security</a> · <a href={`${repo}/issues`}>Issues</a></p>
+        </div>
+
+        <p class="end">End of paper</p>
+        <footer class="page-foot back-foot">
+          <span class="pf-left">Designed and field-tested by <a href="https://github.com/romanprigodskii">@romanprigodskii</a>. Written with Claude.</span>
+          <span class="pf-num">7</span>
+          <span class="pf-fine">MIT or Apache-2.0. Independent; not made, endorsed or supported by Anthropic. This page loads nothing from other sites except the star count, from GitHub.</span>
+        </footer>
+      </article>
+    </main>
+
+    <p class="page-meter" aria-hidden="true" data-meter>Page 1 of {PAGES}</p>
+
+    <script>
+      // Reveals
+      const revealed = document.querySelectorAll('.reveal');
+      if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); } }), { threshold: 0.1 });
+        revealed.forEach((el) => io.observe(el));
+      } else revealed.forEach((el) => el.classList.add('is-in'));
+
+      // Page meter
+      const meter = document.querySelector<HTMLElement>('[data-meter]');
+      const pages = [...document.querySelectorAll<HTMLElement>('[data-page]')];
+      if (meter && 'IntersectionObserver' in window) {
+        const seen = new Map<Element, number>();
+        const po = new IntersectionObserver((es) => {
+          es.forEach((e) => seen.set(e.target, e.intersectionRatio));
+          let best = pages[0], r = -1;
+          pages.forEach((p) => { const v = seen.get(p) ?? 0; if (v > r) { r = v; best = p; } });
+          meter.textContent = `Page ${best.dataset.page} of ${pages.length}`;
+        }, { threshold: [0, 0.25, 0.5, 0.75, 1] });
+        pages.forEach((p) => po.observe(p));
+      }
+
+      // Copy
+      document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) => b.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(b.dataset.copy ?? ''); b.classList.add('is-done'); setTimeout(() => b.classList.remove('is-done'), 1600); } catch { /* stays selectable */ }
+      }));
+
+      // Q1: close the theory
+      const closer = document.querySelector<HTMLElement>('[data-closer]');
+      if (closer) {
+        const btn = closer.querySelector<HTMLButtonElement>('[data-closer-toggle]')!;
+        const status = closer.querySelector<HTMLElement>('[data-closer-status]')!;
+        const theory = closer.querySelector<HTMLElement>('.theory')!;
+        const drills = closer.querySelector<HTMLElement>('.drills')!;
+        let reopened = false;
+        btn.addEventListener('click', () => {
+          const closing = closer.dataset.state === 'open';
+          closer.dataset.state = closing ? 'closed' : 'open';
+          theory.setAttribute('aria-hidden', String(closing));
+          drills.setAttribute('aria-hidden', String(!closing));
+          if (!closing) reopened = true;
+          status.textContent = closing
+            ? (reopened ? 'Closed again. These answers still count as practice: you looked.' : 'Closed. Now the drills: one kind of question, six in a row.')
+            : 'Opened again. Allowed, and written down as “looked”.';
+        });
+      }
+
+      // Q4: timeline
+      const tl = document.querySelector<HTMLElement>('[data-timeline]');
+      if (tl) {
+        const range = tl.querySelector<HTMLInputElement>('[data-range]')!;
+        const nodes = [...tl.querySelectorAll<HTMLElement>('[data-node]')];
+        const cards = [...tl.querySelectorAll<HTMLElement>('[data-stop]')];
+        const fill = tl.querySelector<HTMLElement>('[data-fill]')!;
+        const show = (i: number) => {
+          nodes.forEach((n, k) => { n.classList.toggle('is-past', k < i); n.classList.toggle('is-now', k === i); });
+          cards.forEach((c, k) => { c.hidden = k !== i; });
+          fill.style.transform = `scaleX(${parseFloat(nodes[i].style.left) / 100})`;
+          range.setAttribute('aria-valuetext', cards[i].querySelector('.stop-title')?.textContent?.trim() ?? '');
+        };
+        range.addEventListener('input', () => show(Number(range.value)));
+        show(0);
+      }
+
+      // A waiting recheck (set by the Q3 sheet)
+      if (document.documentElement.dataset.recheckReady === 'true') {
+        document.querySelector<HTMLElement>('[data-ready-note]')?.removeAttribute('hidden');
+      }
+
+      // Real star count
+      const star = document.querySelector<HTMLElement>('[data-star]');
+      if (star) {
+        fetch('https://api.github.com/repos/romanprigodskii/indelible', { headers: { Accept: 'application/vnd.github+json' } })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d) => {
+            const n = d && typeof d.stargazers_count === 'number' ? d.stargazers_count : 0;
+            if (n > 0) {
+              const out = star.querySelector<HTMLElement>('[data-star-count]')!;
+              out.textContent = `★ ${n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : n}`;
+              out.hidden = false;
+              star.setAttribute('aria-label', `GitHub, ${n} stars`);
+            }
+          })
+          .catch(() => {});
+      }
+    </script>
+
+    <style>
+      /* ------------------------------------------------ desk furniture */
+      .desk-top {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-md);
+        padding: 0.85rem clamp(0.9rem, 0.4rem + 2vw, 2rem);
+        background: var(--desk);
+        color: var(--desk-ink);
+        font-family: var(--sans);
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        text-decoration: none;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+      }
+
+      .brand-mark {
+        width: 1.6rem;
+        height: 1.6rem;
+        color: var(--paper);
+      }
+
+      .desk-nav {
+        display: flex;
+        align-items: center;
+        gap: clamp(0.8rem, 0.4rem + 1.5vw, 1.8rem);
+        font-size: var(--text-sm);
+        font-weight: 600;
+      }
+
+      .desk-nav > a:not(.star) {
+        text-decoration: none;
+        color: var(--desk-soft);
+        padding-block: 0.4rem;
+      }
+
+      .desk-nav > a:not(.star):hover {
+        color: var(--paper);
+      }
+
+      .star {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.4rem 0.75rem;
+        border: 1.5px solid var(--desk-soft);
+        border-radius: 3px;
+        text-decoration: none;
+        font-weight: 700;
+      }
+
+      .star svg {
+        width: 0.95rem;
+        height: 0.95rem;
+      }
+
+      .star:hover {
+        border-color: var(--paper);
+        color: var(--paper);
+      }
+
+      .star-count {
+        padding-left: 0.45rem;
+        border-left: 1px solid var(--desk-soft);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .page-meter {
+        position: fixed;
+        right: clamp(0.8rem, 0.4rem + 1.5vw, 1.6rem);
+        bottom: clamp(0.8rem, 0.4rem + 1.5vw, 1.4rem);
+        z-index: 15;
+        padding: 0.35rem 0.7rem;
+        background: var(--desk);
+        color: var(--desk-soft);
+        font-family: var(--sans);
+        font-size: var(--text-xs);
+        font-weight: 700;
+        border-radius: 3px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      main {
+        padding-top: clamp(1rem, 0.5rem + 2vw, 2.5rem);
+        padding-bottom: 4rem;
+      }
+
+      @media (max-width: 40rem) {
+        .desk-nav > a:not(.star) {
+          display: none;
+        }
+
+        .page-meter {
+          display: none;
+        }
+      }
+
+      /* ------------------------------------------------ cover */
+      .cover-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--space-md);
+        padding-bottom: var(--space-sm);
+      }
+
+      .cover-org {
+        font-family: var(--sans);
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-size: var(--text-sm);
+      }
+
+      .barcode {
+        width: min(13rem, 40%);
+        height: 2.2rem;
+        color: var(--print);
+      }
+
+      .cand {
+        display: grid;
+        grid-template-columns: minmax(0, 1.6fr) auto auto;
+        gap: var(--space-sm) var(--space-lg);
+        align-items: end;
+        padding: var(--space-sm) 0 var(--space-md);
+        border-top: 2px solid var(--print);
+        border-bottom: 1px solid var(--rule);
+      }
+
+      .cand-field {
+        display: grid;
+        gap: 0.35rem;
+      }
+
+      .cand-line {
+        height: 1.9rem;
+        border-bottom: 1.5px solid var(--print);
+      }
+
+      .cand-boxes {
+        display: flex;
+      }
+
+      .cand-boxes i {
+        width: 1.7rem;
+        height: 1.9rem;
+        border: 1.5px solid var(--print);
+      }
+
+      .cand-boxes i + i {
+        border-left-width: 0;
+      }
+
+      .cover-title {
+        position: relative;
+        padding: clamp(2rem, 1rem + 4vw, 4.5rem) 0 clamp(1.5rem, 1rem + 2vw, 3rem);
+        max-width: 38rem;
+      }
+
+      .paper-code {
+        font-family: var(--sans);
+        font-size: var(--text-sm);
+        font-weight: 700;
+        color: var(--print-soft);
+      }
+
+      .cover h1 {
+        margin-top: var(--space-sm);
+        font-family: var(--serif);
+        font-weight: 700;
+        font-size: var(--text-hero);
+        line-height: 0.98;
+        letter-spacing: -0.035em;
+      }
+
+      .pen-underline {
+        width: min(24rem, 70%);
+        height: 1.1rem;
+        margin: 0.35rem 0 0 0.2rem;
+      }
+
+      .pen-underline .pen {
+        stroke-width: 3.6;
+      }
+
+      .cover-sub {
+        margin-top: var(--space-md);
+        max-width: 34rem;
+        font-size: var(--text-lg);
+        line-height: 1.5;
+        color: var(--print-soft);
+      }
+
+      .recheck-ready {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+        margin-bottom: var(--space-lg);
+        font-family: var(--sans);
+        font-weight: 800;
+        color: var(--marker);
+      }
+
+      .recheck-ready svg {
+        width: 1.6rem;
+        height: 1.6rem;
+      }
+
+      .instr {
+        max-width: 40rem;
+        padding: var(--space-md) 0 0;
+        border-top: 2px solid var(--print);
+      }
+
+      .instr-title {
+        font-size: var(--text-sm);
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .instr-list {
+        margin: var(--space-sm) 0 0;
+        padding-left: 1.3rem;
+        display: grid;
+        gap: var(--space-xs);
+        font-size: var(--text-base);
+      }
+
+      .instr-list li::marker {
+        font-family: var(--sans);
+        font-weight: 800;
+      }
+
+      .materials {
+        max-width: 40rem;
+        margin-top: var(--space-xl);
+      }
+
+      .cmd-box {
+        display: flex;
+        align-items: stretch;
+        margin-top: var(--space-xs);
+        border: 1.5px solid var(--print);
+      }
+
+      .cmd-box pre {
+        flex: 1;
+        margin: 0;
+        padding: var(--space-sm) var(--space-md);
+        overflow-x: auto;
+        font-size: clamp(0.72rem, 0.66rem + 0.25vw, 0.875rem);
+        line-height: 1.8;
+      }
+
+      .cmd {
+        white-space: pre;
+      }
+
+      .cmd-box,
+      .cmd-box pre {
+        min-width: 0;
+      }
+
+      @media (max-width: 30rem) {
+        .cmd {
+          display: block;
+          white-space: pre-wrap;
+          overflow-wrap: anywhere;
+          padding-left: 1.2em;
+          text-indent: -1.2em;
+        }
+      }
+
+      .prompt {
+        color: var(--print-faint);
+        user-select: none;
+      }
+
+      .copy {
+        flex: none;
+        min-width: 5.5rem;
+        border: 0;
+        border-left: 1.5px solid var(--print);
+        background: var(--print);
+        color: var(--paper);
+        font-family: var(--sans);
+        font-size: var(--text-xs);
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .copy:hover {
+        background: var(--navy);
+      }
+
+      .c-done {
+        display: none;
+      }
+
+      .copy.is-done .c-idle {
+        display: none;
+      }
+
+      .copy.is-done .c-done {
+        display: inline;
+      }
+
+      .mat-note {
+        margin-top: var(--space-sm);
+        font-size: var(--text-sm);
+        color: var(--print-soft);
+      }
+
+      /* the real sheet, lying on the desk */
+      .loose-sheet {
+        margin: var(--space-xl) 0 0;
+      }
+
+      .loose-sheet img {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 900 / 1150;
+        object-fit: cover;
+        object-position: top;
+        box-shadow: 0 1px 1px oklch(0.15 0.02 255 / 0.3), 0 16px 34px -14px oklch(0.12 0.02 255 / 0.5);
+      }
+
+      .loose-sheet figcaption {
+        margin-top: var(--space-xs);
+        font-family: var(--sans);
+        font-size: var(--text-xs);
+        font-weight: 700;
+        color: var(--print-soft);
+      }
+
+      @media (min-width: 88rem) {
+        .cover {
+          min-height: 60rem;
+        }
+
+        .loose-sheet {
+          position: absolute;
+          top: 17rem;
+          right: -15rem;
+          width: 26rem;
+          margin: 0;
+          transform: rotate(3deg);
+          backface-visibility: hidden;
+        }
+
+        .loose-sheet figcaption {
+          color: var(--desk-soft);
+          transform: rotate(-4deg);
+        }
+      }
+
+      @media (max-width: 40rem) {
+        .cand {
+          grid-template-columns: 1fr;
+        }
+
+        .cand-field:not(.cand-field--name) {
+          display: none;
+        }
+      }
+
+      /* ------------------------------------------------ questions */
+      .q-lead {
+        color: var(--print-soft);
+      }
+
+      .scheme {
+        margin-top: var(--space-md);
+        padding: var(--space-sm) 0 var(--space-sm);
+        border-top: 1px solid var(--rule);
+        border-bottom: 1px solid var(--rule);
+        display: grid;
+        gap: var(--space-2xs);
+      }
+
+      .scheme-label {
+        font-family: var(--sans);
+        font-size: var(--text-xs);
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--marker);
+      }
+
+      .scheme p:not(.scheme-label) {
+        position: relative;
+        padding-left: 2.6rem;
+      }
+
+      .mk {
+        position: absolute;
+        left: 0;
+        top: 0.1rem;
+        font-family: var(--sans);
+        font-size: var(--text-xs);
+        font-weight: 800;
+        color: var(--marker);
+      }
+
+      /* Q1 */
+      .closer {
+        margin-top: var(--space-lg);
+        display: grid;
+        gap: var(--space-md);
+      }
+
+      .closer-stack {
+        display: grid;
+      }
+
+      .loose {
+        grid-area: 1 / 1;
+        align-self: start;
+        padding: var(--space-md) var(--space-lg);
+        background: var(--paper);
+        border: 1px solid var(--rule);
+        box-shadow: 0 10px 24px -16px oklch(0.2 0.02 255 / 0.5);
+        transition: transform var(--dur-slow) var(--ease-out), opacity var(--dur) var(--ease-out), visibility 0s linear var(--dur-slow);
+      }
+
+      .loose > * + * {
+        margin-top: var(--space-xs);
+      }
+
+      .loose-title {
+        font-size: var(--text-lg);
+      }
+
+      .theory {
+        z-index: 2;
+        transform: rotate(-0.6deg);
+      }
+
+      .rule-box {
+        padding: var(--space-xs) var(--space-sm);
+        border: 1.5px solid var(--print);
+        font-family: var(--sans);
+        font-weight: 700;
+        font-size: var(--text-sm);
+      }
+
+      .close-line {
+        font-style: italic;
+        color: var(--print-soft);
+      }
+
+      .drills {
+        visibility: hidden;
+        opacity: 0;
+        transform: translateY(20px) rotate(0.8deg);
+      }
+
+      .drill-list {
+        margin: var(--space-sm) 0 0;
+        padding-left: 1.4rem;
+        display: grid;
+        gap: var(--space-xs);
+      }
+
+      .drill-list li {
+        display: flex;
+        gap: var(--space-md);
+      }
+
+      .drill-list i {
+        flex: 1;
+        border-bottom: 1.5px solid var(--rule);
+      }
+
+      .gate {
+        font-family: var(--sans);
+        font-size: var(--text-sm);
+        font-weight: 700;
+        color: var(--marker);
+      }
+
+      .closer[data-state='closed'] .theory {
+        visibility: hidden;
+        opacity: 0;
+        transform: translate(-4%, 12%) rotate(-6deg);
+      }
+
+      .closer[data-state='closed'] .drills {
+        visibility: visible;
+        opacity: 1;
+        transform: rotate(0.4deg);
+        transition: transform var(--dur-slow) var(--ease-out) 100ms, opacity var(--dur) var(--ease-out) 100ms, visibility 0s;
+      }
+
+      .closer[data-state='open'] .theory {
+        transition: transform var(--dur-slow) var(--ease-out), opacity var(--dur) var(--ease-out), visibility 0s;
+      }
+
+      .closer-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-sm) var(--space-md);
+      }
+
+      .closer-status {
+        font-size: var(--text-sm);
+        color: var(--print-soft);
+        font-style: italic;
+      }
+
+      .w-closed {
+        display: none;
+      }
+
+      .closer[data-state='closed'] .w-open {
+        display: none;
+      }
+
+      .closer[data-state='closed'] .w-closed {
+        display: inline;
+      }
+
+      /* Q2 */
+      .pair {
+        margin-top: var(--space-lg);
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        border-top: 1.5px solid var(--print);
+        border-bottom: 1.5px solid var(--print);
+      }
+
+      .pair-col {
+        padding: var(--space-sm) var(--space-md) var(--space-md) 0;
+      }
+
+      .pair-col + .pair-col {
+        padding-left: var(--space-md);
+        border-left: 1px solid var(--rule);
+      }
+
+      .pair-head {
+        margin-top: 0.2rem;
+        font-family: var(--sans);
+        font-weight: 800;
+      }
+
+      .pair ol {
+        margin: var(--space-xs) 0 0;
+        padding-left: 1.4rem;
+        display: grid;
+        gap: 0.35rem;
+        font-size: var(--text-sm);
+      }
+
+      @media (max-width: 40rem) {
+        .pair {
+          grid-template-columns: 1fr;
+        }
+
+        .pair-col + .pair-col {
+          padding-left: 0;
+          border-left: 0;
+          border-top: 1px solid var(--rule);
+        }
+      }
+
+      /* Q4 */
+      .chart {
+        margin: var(--space-lg) 0 0;
+        display: grid;
+        gap: var(--space-lg);
+      }
+
+      .track {
+        position: relative;
+        height: 4.5rem;
+        margin: var(--space-sm) 1.2rem 0;
+      }
+
+      .axis,
+      .axis-fill {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0.95rem;
+        height: 2px;
+        background: var(--rule);
+      }
+
+      .axis-fill {
+        background: var(--print);
+        transform-origin: left center;
+        transform: scaleX(0);
+        transition: transform var(--dur-slow) var(--ease-out);
+      }
+
+      .node {
+        position: absolute;
+        top: 0;
+        transform: translateX(-50%);
+        display: grid;
+        justify-items: center;
+        gap: 0.5rem;
+      }
+
+      .node-dot {
+        width: 1.15rem;
+        height: 1.15rem;
+        margin-top: 0.4rem;
+        border: 1.5px solid var(--print);
+        border-radius: 50%;
+        background: var(--paper);
+        transition: background var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
+      }
+
+      .node-when {
+        font-family: var(--sans);
+        font-size: var(--text-xs);
+        font-weight: 700;
+        color: var(--print-soft);
+        white-space: nowrap;
+      }
+
+      .node.is-past .node-dot {
+        background: var(--print);
+      }
+
+      .node.is-now .node-dot {
+        background: var(--marker);
+        border-color: var(--marker);
+        transform: scale(1.3);
+      }
+
+      .node.is-now .node-when {
+        color: var(--print);
+      }
+
+      .range {
+        position: absolute;
+        left: -0.6rem;
+        right: -0.6rem;
+        top: 0;
+        width: calc(100% + 1.2rem);
+        height: 2.4rem;
+        margin: 0;
+        opacity: 0;
+        cursor: grab;
+        z-index: 2;
+      }
+
+      .track:has(.range:focus-visible) .axis {
+        outline: 3px solid var(--marker);
+        outline-offset: 10px;
+      }
+
+      .stop-card {
+        min-height: 8.5rem;
+        padding: var(--space-md) 0 0;
+        border-top: 1px solid var(--rule);
+      }
+
+      .stop > * + * {
+        margin-top: var(--space-2xs);
+      }
+
+      .stop-title {
+        font-family: var(--sans);
+        font-weight: 800;
+        font-size: var(--text-lg);
+      }
+
+      .stop-when {
+        color: var(--print-faint);
+        margin-right: 0.35rem;
+      }
+
+      .stop-verdict {
+        font-family: var(--sans);
+        font-weight: 800;
+        font-size: var(--text-sm);
+      }
+
+      .stop-verdict.is-counts {
+        color: var(--marker);
+      }
+
+      .chart-note {
+        font-size: var(--text-sm);
+        color: var(--print-faint);
+        font-style: italic;
+      }
+
+      @media (max-width: 40rem) {
+        .node-when {
+          font-size: 0.6875rem;
+          writing-mode: vertical-rl;
+          transform: rotate(180deg);
+        }
+
+        .track {
+          height: 6rem;
+        }
+      }
+
+      /* Q5 */
+      .page--wide {
+        width: min(100% - 2 * clamp(0.75rem, 0.2rem + 2.5vw, 2rem), 72rem);
+      }
+
+      /* Q6 */
+      .transcript {
+        margin: var(--space-lg) 0 0;
+        display: grid;
+        gap: var(--space-xs);
+      }
+
+      .tr-body {
+        padding: var(--space-md);
+        border: 1.5px solid var(--print);
+        display: grid;
+        gap: var(--space-sm);
+        font-family: var(--mono);
+        font-size: 0.8125rem;
+        line-height: 1.65;
+      }
+
+      .tr-y {
+        color: var(--marker);
+      }
+
+      .tr-plan {
+        margin: 0;
+        padding: var(--space-sm);
+        overflow-x: auto;
+        background: var(--paper-shade);
+        font-size: 0.75rem;
+        line-height: 1.7;
+      }
+
+      .tr-opts {
+        margin: 0;
+        padding-left: 1.4rem;
+      }
+
+      /* ------------------------------------------------ back page */
+      .back-title {
+        font-size: var(--text-2xl);
+        font-family: var(--serif);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        padding-bottom: var(--space-md);
+        border-bottom: 2px solid var(--print);
+      }
+
+      .back-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-xl) var(--space-xl);
+        margin-top: var(--space-lg);
+      }
+
+      .back-wide {
+        grid-column: 1 / -1;
+        display: grid;
+        gap: var(--space-sm);
+      }
+
+      .back-h {
+        font-size: var(--text-sm);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: var(--space-xs);
+      }
+
+      .back-wide p {
+        max-width: 70ch;
+      }
+
+      .where {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: var(--text-sm);
+      }
+
+      .where th,
+      .where td {
+        padding: var(--space-xs) 0;
+        border-bottom: 1px solid var(--rule);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .where th {
+        width: 38%;
+        padding-right: var(--space-sm);
+        font-family: var(--sans);
+        font-weight: 700;
+      }
+
+      .plain {
+        margin: 0 0 var(--space-sm);
+        padding-left: 1.2rem;
+        display: grid;
+        gap: 0.35rem;
+        font-size: var(--text-sm);
+      }
+
+      .small {
+        font-size: var(--text-sm);
+        color: var(--print-soft);
+      }
+
+      .back-install {
+        margin-top: var(--space-xl);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--space-xs);
+        max-width: 44rem;
+      }
+
+      .end {
+        margin-top: var(--space-2xl);
+        text-align: center;
+        font-family: var(--sans);
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        font-size: var(--text-sm);
+      }
+
+      .back-foot {
+        grid-template-columns: 1fr auto 1fr;
+      }
+
+      .pf-fine {
+        text-align: right;
+        font-size: 0.6875rem;
+        line-height: 1.5;
+      }
+
+      @media (max-width: 48rem) {
+        .back-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .back-foot {
+          grid-template-columns: 1fr;
+          text-align: left;
+        }
+
+        .back-foot .pf-left {
+          display: block;
+        }
+
+        .pf-fine {
+          text-align: left;
+        }
+      }
+    </style>
+  </body>
+</html>
