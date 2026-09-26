@@ -57,20 +57,21 @@ HAS_TZDB = _has_tz_database()
 # Environment for child processes: only the variables a Python child process
 # needs, each named explicitly. The whole environment is never copied, so no
 # unrelated variable (a token, a key) is ever passed along.
-PASS_THROUGH_ENV = ("PATH", "PATHEXT", "SYSTEMROOT", "SYSTEMDRIVE", "WINDIR", "COMSPEC",
-                    "TEMP", "TMP", "TMPDIR", "LANG", "LC_ALL", "LC_CTYPE", "TZ", "PYTHONTZPATH",
-                    "PROGRAMFILES", "PROGRAMFILES(X86)", "LOCALAPPDATA",
-                    "INDELIBLE_NO_BROWSER", "INDELIBLE_TEST_BROWSER")
-
-
 def base_env():
-    """A minimal environment for a child process (see PASS_THROUGH_ENV)."""
-    out = {}
-    for name in PASS_THROUGH_ENV:
-        value = os.environ.get(name)
-        if value is not None:
-            out[name] = value
-    return out
+    """A minimal environment for a child process: each variable is named explicitly."""
+    pairs = (
+        ("PATH", os.environ.get("PATH")), ("PATHEXT", os.environ.get("PATHEXT")),
+        ("SYSTEMROOT", os.environ.get("SYSTEMROOT")), ("SYSTEMDRIVE", os.environ.get("SYSTEMDRIVE")),
+        ("WINDIR", os.environ.get("WINDIR")), ("COMSPEC", os.environ.get("COMSPEC")),
+        ("TEMP", os.environ.get("TEMP")), ("TMP", os.environ.get("TMP")), ("TMPDIR", os.environ.get("TMPDIR")),
+        ("LANG", os.environ.get("LANG")), ("LC_ALL", os.environ.get("LC_ALL")), ("LC_CTYPE", os.environ.get("LC_CTYPE")),
+        ("TZ", os.environ.get("TZ")), ("PYTHONTZPATH", os.environ.get("PYTHONTZPATH")),
+        ("PROGRAMFILES", os.environ.get("PROGRAMFILES")), ("PROGRAMFILES(X86)", os.environ.get("PROGRAMFILES(X86)")),
+        ("LOCALAPPDATA", os.environ.get("LOCALAPPDATA")),
+        ("INDELIBLE_NO_BROWSER", os.environ.get("INDELIBLE_NO_BROWSER")),
+        ("INDELIBLE_TEST_BROWSER", os.environ.get("INDELIBLE_TEST_BROWSER")),
+    )
+    return {name: value for name, value in pairs if value is not None}
 
 
 _SANDBOX = []

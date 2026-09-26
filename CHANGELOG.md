@@ -2,6 +2,12 @@
 
 All notable changes to this project are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.4] - 2026-09-26
+
+### Changed
+
+- Every environment variable is read by its literal name. The workspace lookup no longer keeps a reference to the whole environment, and the Windows browser search names `PROGRAMFILES`, `PROGRAMFILES(X86)` and `LOCALAPPDATA` one by one.
+
 ## [0.1.3] - 2026-09-26
 
 Changes from the second directory validation.

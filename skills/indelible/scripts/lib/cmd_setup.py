@@ -202,8 +202,8 @@ def _chrome_candidates():
             for base in (Path("/Applications"), home / "Applications"):
                 names.append(str(base / (app + ".app") / "Contents" / "MacOS" / exe))
     if os.name == "nt":
-        for env in ("PROGRAMFILES", "PROGRAMFILES(X86)", "LOCALAPPDATA"):
-            base = os.environ.get(env)
+        for base in (os.environ.get("PROGRAMFILES"), os.environ.get("PROGRAMFILES(X86)"),
+                     os.environ.get("LOCALAPPDATA")):
             if base:
                 names.append(str(Path(base) / "Google" / "Chrome" / "Application" / "chrome.exe"))
                 names.append(str(Path(base) / "Microsoft" / "Edge" / "Application" / "msedge.exe"))

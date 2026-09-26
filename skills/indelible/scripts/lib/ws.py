@@ -92,13 +92,15 @@ def discover(flag=None, environ=None, cwd=None, pointer=None):
     An explicit flag or environment path that holds no workspace is not
     passed over: it returns ``(None, "flag"|"env", detail)``.
     """
-    env = os.environ if environ is None else environ
     if flag:
         root = _root_at_or_above(flag, max_up=0)
         if root:
             return root, "flag", str(flag)
         return None, "flag", "--workspace %s holds no indelible.json" % flag
-    env_path = env.get(ENV_WORKSPACE)
+    if environ is None:
+        env_path = os.environ.get("INDELIBLE_WORKSPACE")
+    else:
+        env_path = environ.get(ENV_WORKSPACE)
     if env_path:
         root = _root_at_or_above(env_path, max_up=0)
         if root:
