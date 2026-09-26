@@ -18,7 +18,7 @@ Anything that breaks the promises in the README's [What it runs, writes and send
 - **Writing outside the workspace:** the scripts creating, changing or deleting files outside the learner's study folder, beyond what the README lists. Examples are path traversal through a subject id, sheet id or file name, or following a symbolic link.
 - **Command injection:** a file name, id, sheet text or calendar text that makes the scripts, or the programs they start, run a command.
 - **Data leaving the computer:** anything that sends data off the machine, or makes the plugin fetch anything from the network, beyond what the README lists.
-- **Settings and permissions:** anything that changes Claude's settings or permission rules. The skill's `allowed-tools` patterns are text patterns that match more than `indelible.py`, as the README's [Install](README.md#install) section says; a way to steer Claude into using them to run other code (for example through text in a sheet or an imported file) is in scope.
+- **Settings and permissions:** anything that changes Claude's settings or permission rules. The skill pre-approves no commands. The permission rule the README suggests is a text pattern that matches more than `indelible.py`, as its [Install](README.md#install) section says; a way to steer Claude into using it to run other code (for example through text in a sheet or an imported file) is in scope.
 - **Prompt injection that works:** text inside a sheet, photo, calendar item or imported file that gets Claude to break one of the points above.
 - **Learner data inside the skill's own folder.**
 

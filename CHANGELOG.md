@@ -2,6 +2,18 @@
 
 All notable changes to this project are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.2] - 2026-09-26
+
+Changes from the first directory validation.
+
+### Changed
+
+- The skill no longer declares `allowed-tools`, so it pre-approves no commands. Claude Code asks before each script call until the learner adds the permission rule the README describes.
+
+### Added
+
+- A plugin icon (`.claude-plugin/icon.svg`).
+
 ## [0.1.1] - 2026-09-25
 
 Documentation and packaging for the plugin directory, and the fixes found while preparing it.

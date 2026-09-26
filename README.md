@@ -49,7 +49,7 @@ Bash(python3 *indelible.py*)
 
 On Windows, the launcher is `py -3`, so the rule is `Bash(py -3 *indelible.py*)`.
 
-- **What the rule allows.** It is a text pattern, not a check on which file runs: it allows any `python3` command that mentions `indelible.py` followed by a space, including one that runs other code first. The skill's own front matter lists the same two patterns under `allowed-tools`, so Claude Code may run matching commands without asking while the skill is in use.
+- **What the rule allows.** It is a text pattern, not a check on which file runs: it allows any `python3` command that mentions `indelible.py`, including one that runs other code first. The skill itself pre-approves nothing: until you add a rule, Claude Code asks before each script call.
 - **A stricter rule,** if you prefer one: in place of `python3 *indelible.py`, write the start of the command exactly as Claude Code's permission prompt shows it, with the script's full path (and quotes, if the prompt has them), for example `Bash(python3 /full/path/to/skills/indelible/scripts/indelible.py*)`. If prompts still appear, compare the rule with the prompt. A plugin install keeps the script in a folder that can change when the plugin updates, so you may need to update the rule then.
 - **You stay in charge.** The skill only suggests the rule: you add it yourself, and nothing changes your settings for you. What the script reads and writes is listed under [What it runs, writes and sends](#what-it-runs-writes-and-sends).
 
@@ -160,7 +160,7 @@ Everything the plugin's scripts do is readable source in this repository, and th
 
 **What it never does**
 
-- It never edits Claude's settings or permissions. The skill's front matter lists its script commands under `allowed-tools`, a standard skill field; these are text patterns and are broader than the one script, as [Install](#install) explains. If Claude Code still asks before each call, the skill suggests the permission rule under [Install](#install), for you to add yourself.
+- It never edits Claude's settings or permissions, and it pre-approves no commands (it declares no `allowed-tools`). If Claude Code asks before each script call, the skill suggests the permission rule under [Install](#install), for you to add yourself.
 
 ## Honest limits
 
