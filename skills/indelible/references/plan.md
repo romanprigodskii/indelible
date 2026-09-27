@@ -111,7 +111,7 @@ Why: spaced retrieval beats massed practice, and the best gap grows with the tim
 
 ## 7. Missed sessions (scheduled mode only)
 
-**Detection.** A block is "missed?" when its end has passed, it was planned or synced, no session overlaps it, and it isn't soft. `ind plan list` shows these and the brief flags them. Ask at the next open, once, as a question, never an accusation: "Thursday's 07:00 session isn't on record. Did it happen, or should I find it a new time?"
+**Detection.** A block is "missed?" when its end has passed, it was planned or synced, no session overlaps it, and it isn't soft. `ind plan list` shows these and the brief flags them. A recheck whose window passed without a sitting (skipped in a session, or never placed) is flagged as a late recheck in either mode: LATE RECHECK below the brief's line names it, and `ind due <s> --list` lists it as tier 0. Ask at the next open, once, as a question, never an accusation: "Thursday's 07:00 session isn't on record. Did it happen, or should I find it a new time?"
 - **It happened:** file the evidence ([sheets.md](sheets.md)), then run `ind plan done <block-id>`.
 - **It didn't:** run `ind plan miss <block-id> --reason "<their words, or 'no reason given'>"`. Never ask why a second time.
 
@@ -124,7 +124,7 @@ Why: spaced retrieval beats massed practice, and the best gap grows with the tim
 - **Move rather than delete.** Rebook with `ind plan move` on the same block, which keeps its ID and records `moved_from`.
 - **A missed recheck** is rebooked inside its window with `ind plan move`. If no valid time is left, the **late-recheck rule** applies (here, at re-entry, and for an issued recheck sat late):
   1. It runs first at the next session, never swapped for a review of the topic: the issued `cold` sheet if there is one, otherwise a `probe` on the same topics (lint L7 refuses a `cold` sheet outside its window). It is `[measured]`, labelled with its real interval ("late recheck, 80 h"), and can't raise mastery: level 3 needs an in-window recheck.
-  2. Grade it before booking anything. Grading logs a review exposure and closes the expired obligation. If the obligation is still open (its topic wasn't on the sheet), `ind plan cancel <obligation> --reason "window passed"`.
+  2. Grade it before booking anything, and log the feedback given at marking as a review exposure (`ind session expose <s> <T> --kind review`): a measuring sheet logs none, and the fresh window counts from it. Grading closes the expired recheck block only when the sheet has its `cold:<topic>` items and was issued with `--block <B>`; if it is still open, `ind plan cancel <B> --reason "window passed"`.
   3. Book a fresh recheck from the grading time: `ind plan add <subject> --kind cold --protected --content "cold:<topic-id>" --window-from <ISO, grading + 44 h> --window-to <ISO, grading + 72 h>` (the subject's `cold_window_h`). Scheduled: place it (section 1). On demand: leave it unplaced; the close names the window. Booked before the grading, it would be closed by it.
 - **A missed teach:** moving it moves its paired recheck, and `ind plan check` confirms the window.
 - **Slack** goes in one line: "Slack left this week: 35 min."

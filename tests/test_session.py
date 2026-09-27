@@ -1,4 +1,4 @@
-"""Session commands: open, status, expose, taught, override and the close checklist (C1-C8)."""
+"""Session commands: open, status, expose, taught, override and the close checklist (C1-C9)."""
 
 import json
 import os

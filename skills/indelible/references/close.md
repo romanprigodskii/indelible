@@ -124,6 +124,7 @@ ind session close <subject> --note "recheck 11/14; taught matching headings; dri
 | C6 promises | `ind ledger add owed …` for each real promise, with a due time |
 | C7 views | A view was hand-edited. Say: "Your edit to the progress page will be replaced; I'll keep a backup copy." On a yes, `ind render <subject> --force`, then close again |
 | C8 next sheets | INFO only. Build after the message (§9) |
+| C9 recheck sat | A 2-day recheck booked in this session's time wasn't sat (skipped, or the time ran out). Move it to the next slot inside its window with the command the line prints, then `ind plan check`, and preview it for the calendar ([calendar.md](calendar.md)). No time left in the window, or on demand: INFO only. Name the window in the close message; past its window it is a late recheck, which the next brief flags ([plan.md](plan.md) §7) |
 
 **`--defer "<reason>"`** is for a fix that can't happen now: the photo isn't available, the learner has to leave, or the fix would overrun.
 - Run `ind session close <subject> --note "…" --defer "photo of block B not available"`.

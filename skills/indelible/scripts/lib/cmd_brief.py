@@ -10,7 +10,8 @@ the line ``-- for Claude, do not read aloud --`` may be read to the learner,
 so with ``learner.vocab = plain`` it uses plain words and never shows an
 ``E-``, ``B-``, ``S-`` or ``L-`` id; ids and mistake details go below the line.
 In either vocabulary a 2-day recheck is only counted above the line, never
-named: its topics go below the line (RECHECK NOW).
+named: its topics go below the line (RECHECK NOW; LATE RECHECK for one whose
+window passed before it was sat).
 
 A plain ``brief`` writes nothing, so a status look or a plan read changes no
 record. ``brief <subject> --open``, run only at session open, counts a session
@@ -365,6 +366,83 @@ def missed_blocks(ws, subj, blocks, sessions, now, lock=None):
     return out
 
 
+def topic_close(block, topic, now, exposures, ts_all, window):
+    """When the 2-day window of ``topic`` on a recheck block closes (local time), or None.
+
+    For a topic still waiting for its first recheck, the later of the block's
+    stored window end and the topic's own window (last warm exposure +
+    cold_window_h[1]), since a later warm exposure opens the window again. For
+    any other topic, the stored window end only (None when there is none).
+    """
+    tz = now.tzinfo
+    w = block.get("window") if isinstance(block.get("window"), dict) else {}
+    stored = to_local(w.get("to"), tz)
+    if learning.is_first_serve(ts_all.get(topic)):
+        own = learning.window_closes(topic, now, exposures, window)
+        if own is not None:
+            own = own.astimezone(tz)
+            return own if stored is None else max(stored, own)
+    return stored
+
+
+def recheck_close(block, subj, now, exposures=None, ts_all=None):
+    """When a recheck block's window closes: the earliest of its topics' closes
+    (its stored window end when it names no topic). None when unknown."""
+    exposures = subj.load_exposures() if exposures is None else exposures
+    ts_all = subj.load_topics_state() if ts_all is None else ts_all
+    window = subj.cold_window()
+    closes = [topic_close(block, t, now, exposures, ts_all, window) for t in block_topics(block)]
+    closes = [c for c in closes if c is not None]
+    if closes:
+        return min(closes)
+    if block_topics(block):
+        return None
+    w = block.get("window") if isinstance(block.get("window"), dict) else {}
+    return to_local(w.get("to"), now.tzinfo)
+
+
+def late_rechecks(ws, subj, now, blocks=None, skip_ids=()):
+    """Open 2-day rechecks of this subject whose window has passed (no writes).
+
+    A recheck block (kind cold, planned or synced, placed or not) is late when
+    the window of at least one of its ``cold:<T>`` topics closed before now
+    (topic_close). A topic served cold or taught again after the block's window
+    or time is left out: a newer recheck carries it. Blocks in ``skip_ids`` are
+    left out (the brief's missed? blocks: session-open step 2 asks about them).
+    Returns [{"block", "topics": [(id, name, hours since last seen)], "closed"}],
+    the oldest first. The late-recheck rule (plan.md section 7) applies to each.
+    """
+    tz = now.tzinfo
+    blocks = ws.load_blocks() if blocks is None else blocks
+    rows = [b for b in blocks if b.get("subject") == subj.id and b.get("kind") == "cold"
+            and b.get("status") in OPEN_BLOCK_STATUSES and b.get("id") not in skip_ids]
+    if not rows:
+        return []
+    exposures = subj.load_exposures()
+    ts_all = subj.load_topics_state()
+    window = subj.cold_window()
+    names = topic_names(subj)
+    out = []
+    for b in rows:
+        w = b.get("window") if isinstance(b.get("window"), dict) else {}
+        ref = to_local(w.get("to"), tz) or to_local(b.get("start"), tz)
+        late, closed = [], None
+        for t in block_topics(b):
+            st = ts_all.get(t) or {}
+            if ref is not None and any(x is not None and x > ref
+                                       for x in (to_local(st.get("last_cold"), tz), to_local(st.get("taught_at"), tz))):
+                continue
+            close = topic_close(b, t, now, exposures, ts_all, window)
+            if close is None or close >= now:
+                continue
+            late.append((t, names.get(t, t), learning.hours_since_exposure(t, exposures, now)))
+            closed = close if closed is None else max(closed, close)
+        if late:
+            out.append({"block": b, "topics": late, "closed": closed})
+    out.sort(key=lambda x: x["closed"])
+    return out
+
+
 # ==========================================================================
 # Due
 # ==========================================================================
@@ -376,6 +454,9 @@ def _err_order(e):
 def due_state(subj, now):
     """What is due now, by tier (a dict; no writes).
 
+    tier 0 ``late``: open 2-day rechecks whose window has passed
+    (late_rechecks, leaving out the missed? blocks), each owed as a late
+    recheck (plan.md section 7);
     tier 1 ``cold``: topics whose first 2-day recheck is eligible now (only
     topics with teaching on record: ``taught_at``, a ``teach`` exposure, or the
     ``review`` set that confirms a 3p topic; a topic that was only measured or
@@ -419,11 +500,15 @@ def due_state(subj, now):
     untreated = sorted([e for e in live if e.get("status") == "untreated"],
                        key=lambda e: (e.get("opened") or "", e.get("id") or ""))
     slips = [e for e in oldest if e.get("kind") == "slip"]
+    ws = subj.ws
+    blocks = ws.load_blocks()
+    missed = missed_blocks(ws, subj, blocks, subj.load_sessions(), now, session_lock_state(subj, now))
+    late = late_rechecks(ws, subj, now, blocks=blocks, skip_ids=set(b.get("id") for b in missed))
     return {
-        "cold": cold, "beliefs": beliefs, "shaky": shaky, "oldest": oldest, "untreated": untreated,
+        "late": late, "cold": cold, "beliefs": beliefs, "shaky": shaky, "oldest": oldest, "untreated": untreated,
         "names": names,
-        "counts": {"cold": len(cold), "beliefs": len(beliefs), "slips": len(slips), "shaky": len(shaky),
-                   "other": len(oldest) - len(slips), "untreated": len(untreated),
+        "counts": {"late": len(late), "cold": len(cold), "beliefs": len(beliefs), "slips": len(slips),
+                   "shaky": len(shaky), "other": len(oldest) - len(slips), "untreated": len(untreated),
                    "errors_due": len(beliefs) + len(shaky) + len(oldest)},
     }
 
@@ -492,6 +577,14 @@ def _recheck_line(c, now):
     if closes:
         inner.append(closes)
     return "%s %s (%s)" % (c["topic"], c["name"], ", ".join(inner))
+
+
+def _late_line(x, now, hours=False):
+    """``B-20261015-ielts-2 T01 Matching headings (window closed Fri 16 Oct 07:29)``."""
+    topics = []
+    for t, name, h in x["topics"]:
+        topics.append("%s %s" % (t, name) + ((" · %d h since last seen" % int(h)) if hours and h is not None else ""))
+    return "%s %s (window closed %s)" % (x["block"].get("id") or "?", "; ".join(topics), fmt_when(x["closed"], now))
 
 
 def _err_line(e, names, with_reason=False):
@@ -776,6 +869,18 @@ def brief_sections(ws, subj, now, sheets=None):
             flags.append("missed? " + "; ".join(shown[:4]) + (" +%d more" % (len(shown) - 4) if len(shown) > 4 else ""))
             cflags.append(Section("MISSED?:", [b.get("id") or "?" for b in missed],
                                   more="plan list --subject %s" % sid))
+        # A recheck whose window passed unsat (skipped in a session, or never
+        # placed): counted above the line, named only below it.
+        late = late_rechecks(ws, subj, now, blocks=blocks, skip_ids=set(b.get("id") for b in missed))
+        if late:
+            n = len(late)
+            if plain:
+                flags.append("a 2-day recheck's window has passed" if n == 1
+                             else "%d 2-day recheck windows have passed" % n)
+            else:
+                flags.append("late recheck (window passed): %d" % n)
+            cflags.append(Section("LATE RECHECK (plan.md §7):", [_late_line(x, now) for x in late],
+                                  more="due %s --list" % sid))
         unsat = [s for s in sheets if s.get("status") == "issued" and int(s.get("opens_unsat") or 0) >= OPENS_FORCE]
         for s in unsat:
             issued = to_local(s.get("issued_at"), tz)
@@ -1039,7 +1144,7 @@ def build_overview(ws, subjects, now):
             if s.text is not None:
                 if s.text.startswith(("UNCLOSED", "OTHER", "SAFEGUARD")):
                     claude.append(s)
-            elif s.head in ("MISSED?:", "TO-DO IDS:") or s.head.startswith("NOT TAKEN"):
+            elif s.head in ("MISSED?:", "TO-DO IDS:") or s.head.startswith(("NOT TAKEN", "LATE RECHECK")):
                 s.head = "%s %s" % (subj.id, s.head)
                 claude.append(s)
     claude.insert(0, Section("", text="SUBJECTS: " + " · ".join(s.id for s in subjects)))
@@ -1156,7 +1261,12 @@ def cmd_due(args):
                     "next_due": e.get("next_due"), "named_least_sure": bool(e.get("named_least_sure")),
                     "eligible_now": e.get("_eligible", False), "reason": e.get("_reason")}
         out = {"subject": subj.id, "now": dates.fmt_iso(now), "counts": st["counts"],
-               "tiers": {"1_cold": [{"topic": c["topic"], "name": c["name"], "hours": round(c["hours"] or 0, 1),
+               "tiers": {"0_late": [{"block": x["block"].get("id"), "closed_at": dates.fmt_iso(x["closed"]),
+                                     "topics": [{"topic": t, "name": name,
+                                                 "hours": round(h, 1) if h is not None else None}
+                                                for t, name, h in x["topics"]]}
+                                    for x in st["late"]],
+                         "1_cold": [{"topic": c["topic"], "name": c["name"], "hours": round(c["hours"] or 0, 1),
                                      "closes_at": dates.fmt_iso(c["closes"]) if c.get("closes") else None}
                                     for c in st["cold"]],
                          "2_repaired_beliefs": [err(e) for e in st["beliefs"]],
@@ -1168,11 +1278,19 @@ def cmd_due(args):
     head = "%s · due at %s" % (subj.title(), fmt_when(now))
     if not args.list:
         items = due_counts_items(st, plain)
+        if st["counts"]["late"]:
+            items.insert(0, "2-day rechecks whose window has passed: %d" % st["counts"]["late"])
         _out(head)
         _out(" · ".join(items) if items else "Nothing due now.")
         return 0
     _out(head + " (for Claude: do not read this list aloud)")
     names = st["names"]
+    if st["late"]:
+        # Only when there is one: a late recheck runs first, as a probe (plan.md section 7).
+        _out("0. late rechecks, window passed (first at this session: a probe, [measured] with its real "
+             "interval, can't raise mastery; plan.md §7):")
+        for x in st["late"]:
+            _out("   " + _late_line(x, now, hours=True))
     _out("1. 2-day rechecks in their window (%d–%d h after the last exposure):" % (window[0], window[1]))
     for c in st["cold"] or []:
         closes = _closes_text(c, now)

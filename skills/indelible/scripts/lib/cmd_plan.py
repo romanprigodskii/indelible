@@ -1332,8 +1332,9 @@ def run_checks(ctx, blocks):
                 if w[2] == "pair":
                     fix += " (or move its teach block; the recheck follows)"
             else:
-                fix = ("the window has passed: run it at the next session as a late recheck [practice], then "
-                       "plan cancel %s --reason \"window passed\" and book a fresh recheck" % b["id"])
+                fix = ("the window has passed: run it first at the next session as a late recheck [measured], "
+                       "labelled with its real interval (plan.md §7), then plan cancel %s --reason \"window passed\" "
+                       "and book a fresh recheck" % b["id"])
             f.add("FAIL", "cold_window", b, "Recheck %s %s." % (b["id"], what), fix, when=iso(s))
         known = ctx.topic_ids(b.get("subject"))
         cutoff = plus(s, hours=-NO_EXPOSURE_H)
@@ -1414,8 +1415,9 @@ def run_checks(ctx, blocks):
             continue
         if left <= 0:
             msg = "Recheck %s was never placed and its window closed %s." % (b["id"], when_label(w[1]))
-            fix = ("run it at the next session as a late recheck [practice], then plan cancel %s "
-                   "--reason \"window passed\" and book a fresh recheck" % b["id"])
+            fix = ("run it first at the next session as a late recheck [measured], labelled with its real "
+                   "interval (plan.md §7), then plan cancel %s --reason \"window passed\" and book a fresh recheck"
+                   % b["id"])
         else:
             msg = "Recheck %s is not placed and its window closes %s (in %s h)." % (
                 b["id"], when_label(w[1]), fmt_hours(left))

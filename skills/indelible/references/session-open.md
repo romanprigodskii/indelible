@@ -42,12 +42,13 @@ Ask one question at a time (Law 9). The learner may answer "skip" at steps 2, 3 
 - **FLAGS,** in this order:
   - An unclosed session: close it first ([close.md](close.md)). This takes at most 10 minutes and is logged as late.
   - `missed?` blocks: step 2.
+  - A 2-day recheck whose window has passed ("late recheck" in technical words): the late-recheck rule ([plan.md](plan.md) §7) at this session. LATE RECHECK below the line names the block and topics; tier 0 of `ind due <s> --list` lists them for the builder.
   - A sheet issued and not taken after 2 session opens: step 3.
   - Quarantined lines: tell the learner in one line ("A few lines in your record couldn't be read. They're kept aside and nothing is lost.") and edit nothing.
   - An armed safeguard that is due: one line, then handle it in the weekly review ([review.md](review.md)).
 - **NOW/NEXT** gives today's plan. **DUE** gives the size of the recheck. **TO-DO:** anything due today or overdue gets one line in the opener.
 - **LEVELS (headed MASTERY in plain mode), LAST SESSIONS, PACE and NOTES** are for you. NOTES carries the learner's notes, the "do not calibrate on" list and their overrides; follow them.
-- **Everything below `-- for Claude, do not read aloud --`** stays with you: the ids behind the flags (MISSED? block ids for `plan done|move|miss`, NOT TAKEN sheet ids for `sheet void`, TO-DO IDS for `ledger close`), RECHECK NOW (the topics due), BELIEFS DUE, OTHER DUE, NEEDS REPAIR and OVERRIDES. Naming a mistake before the recheck is marked tells the learner what to avoid, and the recheck stops measuring anything.
+- **Everything below `-- for Claude, do not read aloud --`** stays with you: the ids behind the flags (MISSED? block ids for `plan done|move|miss`, NOT TAKEN sheet ids for `sheet void`, TO-DO IDS for `ledger close`), RECHECK NOW (the topics due), LATE RECHECK (a recheck whose window passed), BELIEFS DUE, OTHER DUE, NEEDS REPAIR and OVERRIDES. Naming a mistake before the recheck is marked tells the learner what to avoid, and the recheck stops measuring anything.
 - **If LAST SESSIONS shows a gap of 5 days or more,** run the re-entry session instead ([session-teach.md](session-teach.md), section 6).
 - **Without Python:** SKILL.md, "Without Python" (no brief; read the learner's own record and mark everything `[unverified]`).
 
@@ -113,6 +114,7 @@ Say "go".
 Make the call in the opener; the learner can change any part of it (skip the recheck, skip the theory because "I know this", swap topics, or call something easy).
 
 1. **Accept the change,** unless it breaks an integrity rule: answers before the attempt, keys, consent, honesty or wellbeing. Those are not negotiable; give the reason in one line.
+   - **"Skip the recheck"** moves it, never drops it. Scheduled: `ind plan move <recheck block> --start <ISO>` to the next slot inside its window, then `ind plan check`. On demand: say in one line "Its window closes <time>; after that it becomes a late check that can't raise mastery." The prediction in step 3 is about that recheck, scored when it is sat. Check C9 at the close catches a recheck left where it was.
 2. **A validity rule can be overridden:** the 24-hour rule, the cold window, the gap between measurements. The result then carries its label, such as "not counted (seen too recently)".
 3. **Ask for a one-line prediction about specific questions,** never a total: "Fine by me. Which questions in the first block will you get right? For example '1 to 6' or '1 to 4'."
 4. **Log it:** `ind session override <s> "<their words>" --predict "<their line>"`. The prediction is scored at marking. It tests the plan as much as it tests the learner.
@@ -159,7 +161,7 @@ Rough figures at the default paces (estimates): 20 minutes verbal gives about 12
 
 The recheck takes at most a quarter of the planned minutes in sessions of 30 minutes or less (5 minutes of a 20-minute session), and 10–15 minutes otherwise. Its questions come out of the same question budget.
 
-1. **Choose the content with `ind due <s> --list`.** Fill it in tier order until the recheck's share is used:
+1. **Choose the content with `ind due <s> --list`.** A tier 0 (late rechecks, window passed) comes first, as [plan.md](plan.md) §7 says: the issued `cold` sheet if there is one, otherwise a `probe` on those topics (lint L7 refuses a `cold` sheet outside its window). Then fill the recheck in tier order until its share is used:
    1. 2-day rechecks inside their window;
    2. fixed mistakes that are due;
    3. shaky answers (right, but named on a Least-sure line);

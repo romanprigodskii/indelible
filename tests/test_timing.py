@@ -276,5 +276,102 @@ class MovedWindowTests(TimingCase):
         self.assertEqual(self.obligation()["window"], before)
 
 
+# ==========================================================================
+# A recheck that lapses is owed as a late recheck (persona-journeys-1)
+# ==========================================================================
+
+class LateRecheckTests(TimingCase):
+    """T01's recheck is booked Thu 15 Oct 07:00–07:15, inside its window (it closes Fri 16 Oct 07:29)."""
+
+    NOW = "2026-10-15T07:00+01:00"
+    BID = "B-20261015-ielts-2"
+    WINDOW = {"from": "2026-10-15T03:29+01:00", "to": "2026-10-16T07:29+01:00"}
+    NEXT_DAY = "2026-10-16T12:00+01:00"
+
+    def setUp(self):
+        TimingCase.setUp(self)
+        self.teach()
+        self.save_blocks([self.cold_block(self.BID, "2026-10-15T07:00+01:00", "2026-10-15T07:15+01:00",
+                                          window=self.WINDOW)])
+
+    def skip_in_session(self, block=None):
+        """A session runs over the recheck's time and the learner skips it; the close defers C9."""
+        args = ["session", "open", self.sid, "--planned", "60"] + (["--block", block] if block else [])
+        self.cli(args)
+        return self.cli(["session", "close", self.sid, "--defer", "learner skipped the recheck"],
+                        now="2026-10-15T07:50+01:00")
+
+    def test_the_close_catches_a_recheck_skipped_in_the_session(self):
+        self.cli(["session", "open", self.sid, "--planned", "60"])
+        r = self.cli(["session", "close", self.sid], now="2026-10-15T07:50+01:00", code=1)
+        self.assertIn("FAIL C9 recheck sat: the 2-day recheck %s (today 07:00) was not sat: move it inside its "
+                      "window (plan move %s --start 2026-10-15T08:00+01:00), then plan check; the window closes "
+                      "Fri 16 Oct 07:29, and after that it is a late recheck (plan.md §7)" % (self.BID, self.BID),
+                      r.stdout)
+        self.cli(["plan", "move", self.BID, "--start", "2026-10-15T18:00+01:00"], now="2026-10-15T07:51+01:00")
+        r = self.cli(["session", "close", self.sid], now="2026-10-15T07:52+01:00")
+        self.assertIn("PASS C9 recheck sat", r.stdout)
+
+    def test_a_session_run_on_the_recheck_block_leaves_it_open(self):
+        r = self.skip_in_session(block=self.BID)
+        self.assertIn("FAIL C9", r.stdout)
+        self.assertEqual(self.blocks()[self.BID]["status"], "synced")
+        todos = [x for x in fio.read_jsonl(self.ws / "ledger.jsonl") if x.get("kind") == "owed"]
+        self.assertEqual([x.get("refs") for x in todos], [[self.BID]])
+
+    def test_after_its_window_the_brief_and_due_flag_a_late_recheck(self):
+        self.skip_in_session()
+        learner, claude = self.parts(self.cli(["brief", self.sid], now=self.NEXT_DAY).stdout)
+        self.assertIn("FLAGS: a 2-day recheck's window has passed", learner)
+        for word in ("T01", "Matching headings", self.BID):
+            self.assertNotIn(word, learner.split("MASTERY")[0])
+        self.assertIn("LATE RECHECK (plan.md §7): %s T01 Matching headings (window closed today 07:29)" % self.BID,
+                      claude)
+        r = self.cli(["due", self.sid, "--list"], now=self.NEXT_DAY)
+        self.assertIn("0. late rechecks, window passed", r.stdout)
+        self.assertIn("   %s T01 Matching headings · 76 h since last seen (window closed today 07:29)" % self.BID,
+                      r.stdout)
+        self.assertLess(r.stdout.index("0. late"), r.stdout.index("1. 2-day"))
+        data = json.loads(self.cli(["due", self.sid, "--json"], now=self.NEXT_DAY).stdout)
+        self.assertEqual(data["tiers"]["0_late"][0]["block"], self.BID)
+        self.assertEqual(data["counts"]["late"], 1)
+        self.cli(["set", "root", "learner.vocab", '"technical"'], now=self.NEXT_DAY)
+        learner, _ = self.parts(self.cli(["brief", self.sid], now=self.NEXT_DAY).stdout)
+        self.assertIn("FLAGS: late recheck (window passed): 1", learner)
+
+    def test_the_flag_clears_once_the_topic_is_served_or_seen_again(self):
+        self.skip_in_session()
+        # a warm exposure opens the window again: the recheck is not late any more
+        self.expose("T01", "2026-10-16T10:00+01:00", kind="chat")
+        self.assertNotIn("window has passed", self.cli(["brief", self.sid], now=self.NEXT_DAY).stdout)
+        # served cold after its window (a late recheck on file)
+        path = self.sdir / "data" / "topics.json"
+        state = fio.read_json(path)
+        state["T01"]["last_cold"] = "2026-10-19T07:00+01:00"
+        fio.write_json(path, state)
+        self.assertNotIn("LATE RECHECK", self.cli(["brief", self.sid], now="2026-10-22T12:00+01:00").stdout)
+
+    def test_a_recheck_nobody_turned_up_for_stays_a_missed_block(self):
+        learner, claude = self.parts(self.cli(["brief", self.sid], now=self.NEXT_DAY).stdout)
+        self.assertIn("missed?", learner)
+        self.assertNotIn("window has passed", learner)
+        self.assertNotIn("LATE RECHECK", claude)
+
+    def test_c9_is_info_once_the_window_has_closed(self):
+        rows = [self.cold_block(self.BID, "2026-10-16T07:00+01:00", "2026-10-16T07:15+01:00", window=self.WINDOW)]
+        self.save_blocks(rows)
+        self.cli(["session", "open", self.sid, "--planned", "60"], now="2026-10-16T07:00+01:00")
+        r = self.cli(["session", "close", self.sid], now="2026-10-16T07:50+01:00")
+        self.assertIn("INFO C9 recheck sat: the 2-day recheck %s (today 07:00) was not sat and its window closed "
+                      "today 07:29: it is a late recheck at the next session" % self.BID, r.stdout)
+
+    def test_plan_check_labels_the_late_recheck_measured(self):
+        self.save_blocks([self.cold_block(self.BID, window=self.WINDOW, status="planned")])
+        r = self.cli(["plan", "check"], now=self.NEXT_DAY, code=1)
+        self.assertIn("run it first at the next session as a late recheck [measured], labelled with its real "
+                      "interval (plan.md §7)", r.stdout)
+        self.assertNotIn("[practice]", r.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -11,7 +11,7 @@ The lock is ``<subject>/.indelible/session.lock``. A lock is *unclosed* when
 now is more than 2 h past its planned end, or ``.indelible/unclosed`` exists
 (written when the learner parks the subject to study another one).
 
-``session close`` runs checks C1-C8 about the session since the lock start
+``session close`` runs checks C1-C9 about the session since the lock start
 and prints one PASS, FAIL or INFO line per check. C2 does not ask for the
 grading of read-then-close sheets (theory, external, example, triage): their
 pencil items are done with the page open and are never mastery evidence.
@@ -450,7 +450,7 @@ def _mentions(text, ident):
 
 
 def run_checks(ws, subj, lk, now, note):
-    """Checks C1-C8 about the session since the lock start. Returns [Check]."""
+    """Checks C1-C9 about the session since the lock start. Returns [Check]."""
     tz = now.tzinfo
     start = lk["_start"]
     day0 = start.date()
@@ -654,6 +654,57 @@ def run_checks(ws, subj, lk, now, note):
             out.append(Check("C8", "next sheets", "INFO",
                              "the next block (%s, %s) has no sheet issued yet: build after the close message"
                              % (brief.fmt_when(s, now), nxt.get("id"))))
+
+    # C9 recheck sat: a 2-day recheck booked in this session's time (or the
+    # block it runs) and still open was not sat. Grading closes a recheck; the
+    # close never does, so without this it would lapse unseen.
+    in_hand, in_hand_topics = set(), set()   # issued or sat, not graded yet: C2 or the next open handles it
+    for sh in sheets:
+        if sh.get("status") in ("issued", "sat"):
+            if sh.get("block"):
+                in_hand.add(sh["block"])
+            if sh.get("type") == "cold":
+                in_hand_topics.update(sh.get("topics") or [])
+    unsat = []
+    for b in blocks:
+        if (b.get("subject") != subj.id or b.get("kind") != "cold" or b.get("status") not in OPEN
+                or not b.get("start") or b.get("id") in in_hand or set(brief.block_topics(b)) & in_hand_topics):
+            continue
+        s, e = brief.block_times(b, tz)
+        if s is None:
+            continue
+        if b.get("id") != lk.get("block") and not (s <= now and (e or s) >= start):
+            continue   # not booked in this session's time
+        unsat.append((b, s, brief.recheck_close(b, subj, now, exposures=exposures)))
+    fixes, notes = [], []
+    on_demand = ws.schedule_mode() == "on_demand"
+    for b, s, close in unsat:
+        what = "the 2-day recheck %s (%s) was not sat" % (b.get("id"), brief.fmt_when(s, now))
+        if close is not None and close <= now:
+            notes.append("%s and its window closed %s: it is a late recheck at the next session (plan.md §7; "
+                         "the brief flags it)" % (what, brief.fmt_when(close, now)))
+        elif on_demand:
+            notes.append("%s%s: name it in the close message" % (
+                what, "; its window closes %s" % brief.fmt_when(close, now) if close is not None else ""))
+        else:
+            w = b.get("window") if isinstance(b.get("window"), dict) else {}
+            wf = brief.to_local(w.get("from"), tz)
+            earliest = max(now, wf) if wf is not None else now
+            target = _next_quarter(earliest)
+            if close is not None and target > close:
+                target = earliest
+            fixes.append("%s: move it inside its window (plan move %s --start %s), then plan check%s" % (
+                what, b.get("id"), _fmt(target),
+                "; the window closes %s, and after that it is a late recheck (plan.md §7)" % brief.fmt_when(close, now)
+                if close is not None else ""))
+    if fixes:
+        out.append(Check("C9", "recheck sat", "FAIL", "; ".join(fixes + notes),
+                         todo="Move the 2-day recheck that was not sat inside its window",
+                         refs=[b.get("id") for b, _, _ in unsat]))
+    elif notes:
+        out.append(Check("C9", "recheck sat", "INFO", "; ".join(notes)))
+    else:
+        out.append(Check("C9", "recheck sat", "PASS", "no 2-day recheck booked in this session was left unsat"))
     return out
 
 
@@ -735,11 +786,21 @@ def _session_row(ws, subj, lk, now, note, status, todos, sheets):
     return row
 
 
+def _next_quarter(dt):
+    """The next quarter hour at or after dt (07:50 -> 08:00, 08:00 -> 08:00)."""
+    dt = dt.replace(second=0, microsecond=0)
+    return dt + timedelta(minutes=(15 - dt.minute % 15) % 15)
+
+
 def _mark_block_done(ws, block_id):
+    """Mark the session's block done. A 2-day recheck block is left as it is: grading
+    its sheet closes it, and C9 catches one that was not sat."""
     if not block_id:
         return False
     blocks = ws.load_blocks()
     for b in blocks:
+        if b.get("id") == block_id and b.get("kind") == "cold":
+            return False
         if b.get("id") == block_id and b.get("status") not in ("cancelled", "done"):
             b["status"] = "done"
             ws.save_blocks(blocks)

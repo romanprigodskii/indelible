@@ -373,10 +373,14 @@ class PersonaDOnDemand(E2EBase):
         self.assertRegex(r.stdout, r"2-day rechecks? ready now: 1")
         self.assert_plain_brief(r.stdout)
 
-        # 9 days away: no missed-block flags, no execution questions.
+        # 9 days away: no missed-block flags, no execution questions. The recheck whose
+        # window passed is owed as a late recheck, flagged without its topic.
         later = "2026-10-21T21:00+02:00"
         r = self.cli(["brief"], later)
-        self.assertNotIn("FLAGS", r.stdout)
+        learner, claude = r.stdout.split("-- for Claude, do not read aloud --")
+        self.assertIn("FLAGS: a 2-day recheck's window has passed\n", learner)
+        self.assertNotIn("Ownership", learner.split("MASTERY")[0])
+        self.assertIn("LATE RECHECK (plan.md §7): B-20261014-rust-1 T01 Ownership and borrowing", claude)
         self.assertNotIn("missed", r.stdout.lower())
         self.assert_plain_brief(r.stdout)
         rows = json.loads(self.cli(["plan", "list", "--json"], later).stdout)
