@@ -503,14 +503,14 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
   - Output goes to `sheets/YYYY-MM/<id>.<ext>`, and the source `.typ` or `.html` is kept beside it.
   - Sets `status=rendered` and `files`. Prints the path.
 - **`sheet issue <subject> <id> [--block ID]`:** sets `status=issued` and `issued_at`, and links the block. For a `cold` sheet it prints, for each first-serve `cold:` topic, the latest start that still counts: `Start by <time>: the 44–72 h window of T01 closes then …` (the level rules judge a sitting by its start).
-- **`sheet sat <subject> <id> [--start HH:MM] [--stop HH:MM] [--date YYYY-MM-DD]`:** sets `status=sat` and `sat.*` (the date defaults to today).
+- **`sheet sat <subject> <id> [--start HH:MM] [--stop HH:MM] [--date YYYY-MM-DD]`:** sets `status=sat` and `sat.*` (the date defaults to today). With no `--date` and no date on record, a sheet issued on an earlier day is refused (exit 1) when its sitting time matters (a `cold` sheet, or any `cold:`, `error:` or `sentinel:` item); any other sheet keeps today with a note.
 - **`sheet void <subject> <id> --reason TEXT`**
 - **`sheet show <subject> [--status S]`:** lists the sheets.
 - **`scan ingest <subject> <id> [PATHS...] [--typed FILE] [--transcript -] [--date YYYY-MM-DD]`**
   - Copies files to `scans/<date>-<id>-answers[-pN].<ext>`. For HEIC it tries `sips` (macOS) or `heif-convert` to JPG and keeps the original.
   - `--typed` copies to `answers/<id>.txt`.
   - `--transcript -` reads stdin and saves `scans/<date>-<id>-answers.txt` with evidence kind `chat-image+transcript`.
-  - Appends to `scans/index.jsonl` and to the sheet's `evidence`. Sets `status=sat` if the sheet was `issued`.
+  - Appends to `scans/index.jsonl` and to the sheet's `evidence`. Sets `status=sat` if the sheet was `issued`, with the taken date from `--date`, else today; without `--date`, it refuses (exit 1, nothing filed) a sheet issued on an earlier day whose sitting time matters, as `sheet sat` does.
 - **`key open <subject> <id>`**
   - Refuses (exit 1) unless the status is `sat` or `graded` and `evidence` is non-empty.
   - Otherwise prints the key JSON (this is the only command that prints answers) and appends `{"at","sheet"}` to `.indelible/keys/opened.jsonl`.
@@ -546,6 +546,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
 ```
 
 - **Requires** `status` `sat` (sets it if evidence exists and the status is `issued`) and evidence on file.
+- **The sitting time** is `start` (else `stop`) on `date`, from the grades file, then `sat.*`. With neither time it is now (a sitting today) or 12:00 (an earlier day). For a `cold` sheet, or one with a graded `cold:`, `error:` or `sentinel:` item, that guess is made only when the sheet was issued today and is graded within max(3 h, 3 × `est_min`) of its issue; otherwise it refuses (exit 2) and asks for `date` and `start`.
 - **Appends one attempt per ask:**
   - `topic` and `layer` come from the spec;
   - `instrument` comes from the sheet type (`drills`, `mixed`, `repair`, `review` and `example` → `practice`);

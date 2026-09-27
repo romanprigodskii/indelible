@@ -64,6 +64,7 @@ LEAST_SURE_MODE = "least-sure"
 # Sheet types whose error:/sentinel: questions move the ladder (a measuring serve).
 LADDER_TYPES = ("cold", "mixed") + tuple(schema.MEASURING_TYPES)
 SERVED_SLACK_H = 2.0      # a sitting this close to a recheck block's time or window serves it
+JUST_SAT_H = 3.0          # with no start or stop, a sheet graded this soon after its issue was sat just now
 
 
 def register(subparsers):
@@ -95,8 +96,30 @@ def _load_grades(path):
     return data
 
 
-def sitting_time(ws, sheet, grades, now):
-    """(aware datetime of the sitting, sitting fields, end of the sitting) from the grades file, then the sheet row."""
+def _sat_just_now(sheet, day, now):
+    """True when a sheet with no start or stop was plainly sat in this session: issued
+    today, and graded within max(3 h, 3 x its minutes) of the issue. A sheet with no
+    issue time on record (an older row) keeps the old fallback."""
+    issued = dates.try_parse_iso(sheet.get("issued_at"))
+    if issued is None:
+        return True
+    try:
+        est = float(sheet.get("est_min") or 0)
+    except (TypeError, ValueError):
+        est = 0.0
+    limit_h = max(JUST_SAT_H, 3 * est / 60.0)
+    return (day == now.date() and issued.astimezone(now.tzinfo).date() == now.date()
+            and dates.hours_from(issued, now) <= limit_h)
+
+
+def sitting_time(ws, sheet, grades, now, needs_time=False):
+    """(aware datetime of the sitting, sitting fields, end of the sitting) from the grades file, then the sheet row.
+
+    With no start or stop time, the sitting is taken as now (today) or 12:00 (an
+    earlier day). When ``needs_time`` (a recheck, or a re-served mistake: the
+    time decides the 2-day window and the 24-hour rule), that guess is made only
+    for a sheet plainly sat in this session; otherwise it refuses (exit 2).
+    """
     taken = sheet.get("sat") or {}
     day_s = grades.get("date") or taken.get("date")
     try:
@@ -117,6 +140,15 @@ def sitting_time(ws, sheet, grades, now):
         stop_dt += timedelta(days=1)
     at = start_dt or stop_dt
     if at is None:
+        if needs_time and not _sat_just_now(sheet, day, now):
+            issued = dates.try_parse_iso(sheet.get("issued_at"))
+            sid = sheet.get("id") or "?"
+            raise UsageError(
+                "Not recorded: %s was issued %s and has no start or stop time. The sitting time decides the "
+                "2-day window and the 24-hour rule. Ask the learner when they started it, then add \"date\" and "
+                "\"start\" to the grades file (or run: sheet sat %s %s --date YYYY-MM-DD --start HH:MM)."
+                % (sid, dates.fmt_iso(issued.astimezone(tz)) if issued else "earlier",
+                   sheet.get("subject") or "<subject>", sid))
         at = now if day == now.date() else dates.at_time(day, "12:00", tz)
     if at > dates.plus(now, minutes=FUTURE_SLACK_MIN):
         raise UsageError("The sitting time %s is later than now (%s)." % (dates.fmt_iso(at), dates.fmt_iso(now)))
@@ -239,7 +271,9 @@ def cmd_grade_record(args):
                 if a.get("id"):
                     ask_index[a["id"]] = (it, a)
         key = read_key(subj, sid)
-        sit_at, sat_fields, sit_end = sitting_time(ws, sheet, grades, now)
+        origins = [str(ask_index[g["ask"]][0].get("origin") or "") for g in grades["asks"] if g["ask"] in ask_index]
+        needs_time = is_cold_sheet or any(COLD_ORIGIN_RE.match(o) or ORIGIN_ERROR_RE.match(o) for o in origins)
+        sit_at, sat_fields, sit_end = sitting_time(ws, sheet, grades, now, needs_time=needs_time)
         exposures = subj.load_exposures()
         topics_state = subj.load_topics_state()
         deadline = subj.target_date()

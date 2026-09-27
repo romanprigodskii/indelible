@@ -599,14 +599,15 @@ def cmd_sat(args):
             raise CheckFailed("%s is %s, not issued. Run: indelible.py sheet issue %s %s"
                               % (args.id, st, subj.id, args.id))
         sitting = dict(row.get("sat") or {})
+        note = None
+        if day is None and not sitting.get("date"):
+            day, note = _default_taken_date(ws, subj, row, "recorded")
         if args.start is not None:
             sitting["start"] = dates.parse_hhmm(args.start).strftime("%H:%M")
         if args.stop is not None:
             sitting["stop"] = dates.parse_hhmm(args.stop).strftime("%H:%M")
         if day is not None:
             sitting["date"] = day.isoformat()
-        elif not sitting.get("date"):
-            sitting["date"] = ws.today().isoformat()
         for k in ("start", "stop", "date"):
             sitting.setdefault(k, None)
         row["sat"] = sitting
@@ -616,18 +617,64 @@ def cmd_sat(args):
     if sitting.get("start") or sitting.get("stop"):
         span = " (%s–%s)" % (sitting.get("start") or "?", sitting.get("stop") or "?")
     _out("%s taken on %s%s" % (args.id, sitting["date"], span))
+    if note:
+        _out("Note: " + note)
     for line in _contamination_notes(ws, subj, row, sitting):
         _out(line)
     return 0
 
 
+def _needs_sitting_time(row, spec):
+    """True when the sitting's date and time decide something: a recheck (the 2-day
+    window and the 24-hour rule), or a re-served mistake (the ladder's 24-hour rule)."""
+    if row.get("type") == "cold":
+        return True
+    for it in (spec or {}).get("items") or []:
+        origin = str(it.get("origin") or "") if isinstance(it, dict) else ""
+        if origin.startswith(("cold:", "error:", "sentinel:")):
+            return True
+    return False
+
+
+def _default_taken_date(ws, subj, row, done):
+    """(today, note or None) for a sheet taken with no --date and no date on record.
+
+    A sheet issued on an earlier day may have been sat on that day. When its
+    sitting time matters (_needs_sitting_time), this refuses (exit 1) and asks
+    for --date; otherwise it keeps today and returns a note saying so.
+    """
+    today = ws.today()
+    issued = dates.try_parse_iso(row.get("issued_at"))
+    if issued is None or issued.astimezone(ws.tzinfo()).date() >= today:
+        return today, None
+    issued_day = issued.astimezone(ws.tzinfo()).date()
+    try:
+        spec = _load_spec(subj, row.get("id"))
+    except UsageError:
+        spec = None
+    if _needs_sitting_time(row, spec):
+        raise CheckFailed("Refused: %s was issued %s. When was it sat? Add --date YYYY-MM-DD (today's date if it "
+                          "was sat today): the sitting date decides the 2-day window and the 24-hour rule. Nothing "
+                          "was %s." % (row.get("id"), fmt_when(issued.astimezone(ws.tzinfo())), done))
+    return today, ("the taken date is set to today (%s), but %s was issued %s. If it was sat on another day, run: "
+                   "sheet sat %s %s --date YYYY-MM-DD" % (today.isoformat(), row.get("id"), issued_day.isoformat(),
+                                                           subj.id, row.get("id")))
+
+
 def _contamination_notes(ws, subj, row, sitting):
     """A recheck sat within 24 h of an exposure to one of its topics: say so at once
-    (grade record will record those questions as not counted)."""
+    (grade record will record those questions as not counted). With no start or
+    stop, the sitting is taken as now (today) or 12:00, as grade record does."""
     if row.get("type") != "cold" or not sitting.get("date"):
         return []
     try:
-        at = dates.at_time(sitting["date"], sitting.get("start") or sitting.get("stop") or "12:00", ws.tzinfo())
+        clock = sitting.get("start") or sitting.get("stop")
+        if clock:
+            at = dates.at_time(sitting["date"], clock, ws.tzinfo())
+        elif dates.to_date(sitting["date"]) == ws.today():
+            at = ws.now()
+        else:
+            at = dates.at_time(sitting["date"], "12:00", ws.tzinfo())
         spec = _load_spec(subj, row.get("id"))
     except (ValueError, UsageError):
         return []
@@ -816,7 +863,12 @@ def cmd_scan_ingest(args):
                               % (args.id, st, "Run: indelible.py sheet issue %s %s" % (subj.id, args.id)
                                  if st in EDITABLE else ""))
         sitting = dict(row.get("sat") or {})
-        day = arg_day or (dates.to_date(sitting["date"]) if sitting.get("date") and dates.is_date(sitting["date"]) else ws.today())
+        day = arg_day or (dates.to_date(sitting["date"]) if sitting.get("date") and dates.is_date(sitting["date"]) else None)
+        if day is None and st == "issued":   # this evidence marks it taken: on which day?
+            day, note = _default_taken_date(ws, subj, row, "filed")
+            if note:
+                notes.append(note)
+        day = day or ws.today()
         base = "%s-%s-answers" % (day.isoformat(), args.id)
         scans = fio.ensure_dir(subj.scans_dir)
         now = _now_iso(ws)

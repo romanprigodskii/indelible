@@ -147,5 +147,85 @@ class ClosingWindowTests(TimingCase):
         self.assertNotIn("Not counted toward level 3", r.stdout)
 
 
+# ==========================================================================
+# The sitting time is asked for, never guessed (cli-bugs-2)
+# ==========================================================================
+
+class SittingTimeTests(TimingCase):
+    """A recheck issued Thu 15 Oct at 20:50 and sat at 21:00, 61.5 h after the teach."""
+
+    NOW = "2026-10-16T09:00+01:00"
+    ISSUED = "2026-10-15T20:50+01:00"
+    ASKS = [{"ask": "1a", "verdict": "right", "check": "filled", "least_sure": False},
+            {"ask": "2a", "verdict": "right", "check": "filled", "least_sure": False}]
+
+    def setUp(self):
+        TimingCase.setUp(self)
+        self.teach()
+        self.typed = self.tmp / "answers.txt"
+        self.typed.write_text("1a: first answer\n2a: second answer\n", encoding="utf-8")
+
+    def sheet(self, sheet_id="ielts-cold-01", stype="cold", origin="cold:T01", issued=ISSUED, evidence=False,
+              sitting=None):
+        items = [make_item(1, "T01", ["1a"], origin=origin, layer="reading"),
+                 make_item(2, "T01", ["2a"], origin=origin, layer="reading")]
+        write_sheet(self.ws, self.sid, sheet_id, stype, items, evidence=evidence, sitting=sitting)
+        path = self.sdir / "data" / "sheets.jsonl"
+        rows = fio.read_jsonl(path)
+        for row in rows:
+            if row["id"] == sheet_id:
+                row["issued_at"] = issued
+        fio.write_jsonl(path, rows)
+
+    def grade(self, sheet_id, grades, now=None, code=0):
+        path = self.grades_file("%s.json" % sheet_id, grades)
+        return self.cli(["grade", "record", self.sid, sheet_id, "--from", path], now=now, code=code)
+
+    def test_a_recheck_sent_the_next_morning_needs_its_date(self):
+        self.sheet()
+        r = self.cli(["scan", "ingest", self.sid, "ielts-cold-01", "--typed", self.typed], code=1)
+        self.assertIn("was issued Thu 15 Oct 20:50. When was it sat? Add --date", r.stdout + r.stderr)
+        row = sheet_row(self.ws, "ielts-cold-01")
+        self.assertEqual((row["status"], row["evidence"]), ("issued", []))
+        r = self.cli(["sheet", "sat", self.sid, "ielts-cold-01", "--start", "21:00"], code=1)
+        self.assertIn("When was it sat?", r.stdout + r.stderr)
+        r = self.cli(["scan", "ingest", self.sid, "ielts-cold-01", "--typed", self.typed, "--date", "2026-10-15"])
+        self.assertIn("marked as taken (2026-10-15)", r.stdout)
+
+    def test_grading_refuses_to_guess_the_time_of_a_recheck_sat_earlier(self):
+        self.sheet(evidence=True, sitting={"start": None, "stop": None, "date": "2026-10-15"})
+        r = self.grade("ielts-cold-01", {"asks": self.ASKS}, code=2)
+        self.assertIn("Not recorded: ielts-cold-01 was issued 2026-10-15T20:50+01:00 and has no start or stop time",
+                      r.stdout + r.stderr)
+        self.assertEqual(sheet_row(self.ws, "ielts-cold-01")["status"], "issued")
+        r = self.grade("ielts-cold-01", {"date": "2026-10-15", "start": "21:00", "stop": "21:08", "asks": self.ASKS})
+        self.assertIn("T01 0 → 3", r.stdout)
+        attempt = fio.read_jsonl(self.sdir / "data" / "attempts.jsonl")[0]
+        self.assertEqual(attempt["interval_h"], 61.5)
+
+    def test_a_recheck_marked_in_its_own_session_still_needs_no_times(self):
+        self.sheet(issued="2026-10-15T20:50+01:00")
+        now = "2026-10-15T21:10+01:00"
+        r = self.cli(["scan", "ingest", self.sid, "ielts-cold-01", "--typed", self.typed], now=now)
+        self.assertIn("marked as taken (2026-10-15)", r.stdout)
+        r = self.grade("ielts-cold-01", {"asks": self.ASKS}, now="2026-10-15T21:15+01:00")
+        self.assertIn("T01 0 → 3", r.stdout)
+
+    def test_practice_sent_the_next_day_keeps_today_with_a_note(self):
+        self.sheet("ielts-drills-01", stype="drills", origin="new")
+        r = self.cli(["scan", "ingest", self.sid, "ielts-drills-01", "--typed", self.typed])
+        self.assertIn("marked as taken (2026-10-16)", r.stdout)
+        self.assertIn("note: the taken date is set to today (2026-10-16), but ielts-drills-01 was issued "
+                      "2026-10-15. If it was sat on another day, run: sheet sat ielts ielts-drills-01 --date",
+                      r.stdout)
+
+    def test_a_mistake_re_served_on_a_sheet_sent_later_needs_its_date(self):
+        self.sheet("ielts-mixed-01", stype="mixed", origin="error:E-ielts-0001")
+        r = self.cli(["sheet", "sat", self.sid, "ielts-mixed-01"], code=1)
+        self.assertIn("When was it sat?", r.stdout + r.stderr)
+        self.cli(["sheet", "sat", self.sid, "ielts-mixed-01", "--date", "2026-10-15", "--start", "21:00"])
+        self.assertEqual(sheet_row(self.ws, "ielts-mixed-01")["sat"]["date"], "2026-10-15")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -37,7 +37,7 @@ No part of the key reaches chat for a question until its account is in (step 5).
 | Photos in `<ws>/inbox/` or at a path | `ind scan ingest stats stats-cold-04 <ws>/inbox/IMG_0412.jpg <ws>/inbox/IMG_0413.jpg` (one path per page) |
 | A typed-answers file | `ind scan ingest stats stats-cold-04 --typed <file>` |
 | A photo pasted into chat | Transcribe it, then pipe the text in: `ind scan ingest stats stats-cold-04 --transcript - <<'EOF'` … `EOF` |
-| A sheet sat on an earlier day (solo block) | Add `--date YYYY-MM-DD` |
+| A sheet sat on an earlier day (solo block), or a photo sent on a later day than the sheet was issued | Add `--date YYYY-MM-DD`. Without it, ingest refuses a recheck, or a sheet with mistakes re-served, issued on an earlier day: their sitting date decides the 2-day window and the 24-hour rule |
 
 Transcribing a chat photo:
 - Transcribe before the key is open, one line per question: the answer, then the check line, exactly as written. Keep crossed-out answers (`[crossed out: -4] 4`), because they show a check that caught something. Add the start and stop times and the Least-sure line.
@@ -59,7 +59,7 @@ For each question, record the following.
 | `check` | `filled` · `missing` · `caught` (the answer changed after a failed check) · `n/a` (no check line on this sheet type, or no answer to check) |
 | `least_sure` | `true` for every question of an item named on the "Least sure of" line |
 
-Take `start` and `stop` from items 0 and N.
+Take `start` and `stop` from items 0 and N. If both are blank on a recheck or a sheet with mistakes re-served, and it wasn't sat in this session, ask once: "What day and time did you start it?", and put `date` and `start` in `grades.json`. `ind grade record` won't guess them.
 
 Say "wrong" when the answer fails an objective test: a number that fails substitution, code that fails a test, or an official key. For a Claude-written item where another answer could be defensible (verbal, reading, language, or wording in a concept), say "doesn't match my answer" (see §9).
 
