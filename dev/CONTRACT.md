@@ -407,9 +407,9 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
 ### 7.3 Session (`cmd_session.py`)
 
 - **`session open <subject> --planned MIN [--block ID] [--kind K]`**
-  - Refuses (exit 1) if that subject is locked and not stale. If another subject is locked, it prints a warning with the other lock and proceeds only with `--park-other`, which writes that subject's `.indelible/unclosed`.
+  - Refuses (exit 1) if that subject is locked and not stale, and says to carry that session on after reading `session status` and the open `owed` rows (it may be running in another chat). If another subject is locked, it prints a warning with the other lock and proceeds only with `--park-other`, which writes that subject's `.indelible/unclosed`.
   - Writes the lock and prints the budget (§6.3).
-- **`session status <subject>`:** one line, e.g. `[indelible] 47/60 min · close starts 07:55 · questions so far 38`. Questions so far are the asks graded since the start.
+- **`session status <subject>`:** one line, e.g. `[indelible] 47/60 min · close starts 07:55 · questions so far 38`. Questions so far are the asks graded since the start. When sheets are out (status `issued` or `sat`), a second line lists them, oldest issue first, by id, type and issue time: `[indelible] sheets out: ielts-cold-02 (cold, issued today 07:04) · ielts-headings-01-drills (drills, taken, not graded)`. It never names a recheck's topics.
 - **`session expose <subject> <topic> [--kind chat]`:** appends an exposure. Used whenever something is taught or discussed outside a sheet. For a topic still waiting for its first recheck, the window counts from the last warm exposure (§6.4), so it moves every open cold block of that topic alone (not placed, or placed later) to [now + `cold_window_h[0]`, now + `cold_window_h[1]`] (`basis: exposure`), prints the new window, and WARNs for a placed recheck now outside it.
 - **`session taught <subject> <topic> [--by sheet|external|chat|tutor] [--block ID]`**
   - Appends a `teach` exposure.
@@ -506,7 +506,7 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
   - Renders through the chain: typst, then Chrome/Edge headless on the HTML (PDF), then HTML, then Markdown. It uses the backend recorded by `doctor`, or tries in order.
   - Output goes to `sheets/YYYY-MM/<id>.<ext>`, and the source `.typ` or `.html` is kept beside it.
   - Sets `status=rendered` and `files`. Prints the path.
-- **`sheet issue <subject> <id> [--block ID]`:** sets `status=issued` and `issued_at`, and links the block. For a `cold` sheet it prints, for each first-serve `cold:` topic, the latest start that still counts: `Start by <time>: the 44–72 h window of T01 closes then …` (the level rules judge a sitting by its start).
+- **`sheet issue <subject> <id> [--block ID]`:** sets `status=issued` and `issued_at`, and links the block. It refuses (exit 1) a `cold` or `mixed` sheet with a `cold:`, `error:` or `sentinel:` origin that another `cold` or `mixed` sheet with status `issued` or `sat` also has, naming that sheet (sit and grade it, or `sheet void` it first). For a `cold` sheet it prints, for each first-serve `cold:` topic, the latest start that still counts: `Start by <time>: the 44–72 h window of T01 closes then …` (the level rules judge a sitting by its start).
 - **`sheet sat <subject> <id> [--start HH:MM] [--stop HH:MM] [--date YYYY-MM-DD]`:** sets `status=sat` and `sat.*` (the date defaults to today). With no `--date` and no date on record, a sheet issued on an earlier day is refused (exit 1) when its sitting time matters (a `cold` sheet, or any `cold:`, `error:` or `sentinel:` item); any other sheet keeps today with a note.
 - **`sheet void <subject> <id> --reason TEXT`**
 - **`sheet show <subject> [--status S]`:** lists the sheets.

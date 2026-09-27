@@ -147,6 +147,26 @@ class OpenStatusTests(SessionBase):
         r = self.ind("session", "status", "ielts", now="2026-10-12T12:30+01:00")
         self.assertIn("not closed", r.stdout)
 
+    def test_status_lists_the_sheets_out(self):
+        # A second chat learns what the first one handed out: sheets issued or taken, not graded yet.
+        self.open_session(60)
+        cold = dict(self.sheet("ielts-cold-02", "cold", status="issued", sat_date=None, evidence=False),
+                    issued_at="2026-10-12T09:04+01:00")
+        drills = dict(self.sheet("ielts-paraphrase-01-drills", status="sat"), issued_at="2026-10-12T09:20+01:00")
+        self.put("ielts/data/sheets.jsonl", [drills, cold, self.sheet("ielts-cold-01", "cold"),
+                                             dict(self.sheet("ielts-cold-03", "cold", status="void"))])
+        r = self.ind("session", "status", "ielts", now="2026-10-12T09:30+01:00")
+        self.assertEqual(r.returncode, 0)
+        lines = r.stdout.strip().splitlines()
+        self.assertEqual(len(lines), 2, r.stdout)
+        self.assertEqual(lines[1], "[indelible] sheets out: ielts-cold-02 (cold, issued today 09:04) · "
+                                   "ielts-paraphrase-01-drills (drills, taken, not graded)")
+        self.assertNotIn("T04", r.stdout)
+        # nothing out: the one line only
+        self.put("ielts/data/sheets.jsonl", [self.sheet("ielts-cold-01", "cold")])
+        r = self.ind("session", "status", "ielts", now="2026-10-12T09:30+01:00")
+        self.assertEqual(len(r.stdout.strip().splitlines()), 1, r.stdout)
+
     def test_open_refuses_over_an_unclosed_lock(self):
         self.open_session(60)
         r = self.ind("session", "open", "ielts", "--planned", "60", now="2026-10-12T13:00+01:00")

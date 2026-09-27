@@ -25,7 +25,7 @@ When time runs short, cut in this order: new theory, then the second drill block
 - **Practice sheets are built ahead.** At the previous close, after the "you can go" message, the builder subagent (`assets/prompts/builder.md`) built the next block's theory, drills and repair sheets: linted, rendered, keys sealed. They wait as `rendered` and are issued at hand-over ([sheets.md](sheets.md) §6).
 - **The recheck is built now, at the open.** Lint L7 checks the 2-day timing at the moment it runs, so a recheck can't be built the day its topic was taught. Building it here, inside its window, is the normal order (always so for on-demand learners), not a late build: no defect. Start the builder as soon as the lock is set, from `ind due <s> --list` (section 5); give the opener while it runs.
 - **A window that closes soon comes first.** RECHECK NOW and `ind due <s> --list` give each window's closing time; `CLOSING` means within 30 minutes. Build and issue that recheck before anything else, and have the learner start before the time `ind sheet issue` prints ("Start by …"). The level rules judge a recheck by its start time: a later start is a late recheck ([plan.md](plan.md) §7).
-- **At the open, list the rest** with `ind sheet show <s> --status rendered`. Apart from the brief, only this listing and `ind due <s> --list` are read. Never open data files, views, notes or anything under `.indelible/`.
+- **At the open, list the rest** with `ind sheet show <s> --status rendered`. Apart from the brief, only this listing and `ind due <s> --list` are read, plus the two reads of step 4 when a session is already open. Never open data files, views, notes or anything under `.indelible/`.
 - **If a practice sheet for today is missing:**
   1. Log the gap as your own mistake: `ind ledger add defect --subject <s> --category late_build --what "no new-material sheet ready for the <time> block" --fix-type rule --fix "builder runs right after the close message"`. If the CLI refuses `rule` because late_build has been logged before, pick a structural fix instead, such as `--fix-type planner --fix "at least 2 h between a close and the next block"`.
   2. Run the builder for it while the learner works on the recheck. Never make the learner wait for a build that could run in parallel.
@@ -82,7 +82,7 @@ Run `ind session open <s> --planned <MIN> --block <B> --kind <the block's kind>`
 
 - **MIN** is the block's length, or the time the learner says they have. "I have 15 minutes" becomes `--planned 15` with no block.
 - **A slot split into a recheck block and a session block** ([plan.md](plan.md) §1): pass the session block as `--block`, and the whole slot's minutes as `--planned`. Grading the recheck closes the recheck block.
-- **Exit 1 because this subject is already locked and not stale:** the session is already running. Carry on, and run `ind session status <s>`.
+- **Exit 1 because this subject is already locked and not stale:** a session is already running, probably in another chat, and this conversation has no record of what was said or handed out there. Build and issue nothing until you have read `ind session status <s>` (the time, and the sheets out) and `ind ledger list --kind owed --open --subject <s>` (the to-dos). Then tell the learner in one line: "A session that started at 07:00 is still open, probably in another chat. I'll carry it on here, so send photos of any sheet here from now on. Did you already send photos of a sheet there?" If they did, ask for those photos again: a photo the other chat didn't file isn't on record. `ind sheet issue` refuses a second recheck on a topic already out.
 - **A warning that another subject is locked:** ask "Close <other subject> first, or park it?" For park, re-run with `--park-other`. Never switch subjects silently.
 - **Read the printed budget** (section 4).
 
@@ -129,7 +129,7 @@ Make the call in the opener; the learner can change any part of it (skip the rec
 ### Step 8: timers
 
 - **Where the host has a one-shot timer tool** (CronCreate in Claude Code), set one timer at T−10, where T is the planned end, and one at the close start `session open` printed. The T−10 warning and the question at the end are in [close.md](close.md) §2.
-- **Otherwise,** run `ind session status <s>` every time a photo comes back and before each block, and act on what it shows. Its one line can be shown to the learner as is.
+- **Otherwise,** run `ind session status <s>` every time a photo comes back and before each block, and act on what it shows. Its first line can be shown to the learner as is; the "sheets out" line is for you.
 - **Breaks** fall at the times `session open` printed. Nothing about a sealed sheet is discussed during a break.
 
 ## 4. The budget

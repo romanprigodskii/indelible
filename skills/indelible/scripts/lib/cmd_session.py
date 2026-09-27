@@ -63,7 +63,7 @@ def register(subparsers):
                    help="park another subject's open session (it will close late)")
     o.set_defaults(func=cmd_open)
 
-    s = sp.add_parser("status", help="one line: minutes used, close start, questions so far")
+    s = sp.add_parser("status", help="minutes used, close start, questions so far, and the sheets out")
     s.add_argument("subject", nargs="?", default=None)
     s.set_defaults(func=cmd_status)
 
@@ -139,9 +139,11 @@ def cmd_open(args):
                     "(it is logged as late), then open a new one." % (subj.title(), brief.fmt_when(lk["_start"], now),
                                                                        subj.id))
             raise CheckFailed(
-                "Refused: a session for %s is already open (started %s, planned end %s). Carry on; run: "
-                "session status %s"
-                % (subj.title(), brief.fmt_when(lk["_start"], now), lk["_planned_end"].strftime("%H:%M"), subj.id))
+                "Refused: a session for %s is already open (started %s, planned end %s), perhaps in another chat. "
+                "Carry it on here: before building or issuing anything, run session status %s (the sheets out) "
+                "and ledger list --kind owed --open --subject %s (the to-dos)."
+                % (subj.title(), brief.fmt_when(lk["_start"], now), lk["_planned_end"].strftime("%H:%M"), subj.id,
+                   subj.id))
         others = []
         for other in ws.subjects():
             if other.id == subj.id:
@@ -242,7 +244,24 @@ def cmd_status(args):
     if cs is not None and now >= cs:
         line += " · closing time"
     _out(line)
+    out = _sheets_out(subj, now)
+    if out:
+        _out("[indelible] sheets out: " + " · ".join(out))
     return 0
+
+
+def _sheets_out(subj, now):
+    """One phrase per sheet issued or sat and not graded yet, oldest issue first: its id,
+    type and issue time. A recheck shows its id only, never its topics."""
+    rows = [s for s in subj.load_sheets() if s.get("status") in ("issued", "sat")]
+    rows.sort(key=lambda s: str(s.get("issued_at") or ""))
+    out = []
+    for s in rows:
+        issued = brief.to_local(s.get("issued_at"), now.tzinfo)
+        when = "issued %s" % brief.fmt_when(issued, now) if issued is not None else "issued"
+        out.append("%s (%s, %s)" % (s.get("id"), s.get("type") or "?",
+                                    "taken, not graded" if s.get("status") == "sat" else when))
+    return out
 
 
 # ==========================================================================

@@ -348,6 +348,28 @@ class SheetFlowTests(SheetBase):
         self.assertIn("B-20261012-ielts-1", r.stdout)
         self.assertEqual(sheet_row(self.ws, spec["id"])["block"], "B-20261012-ielts-1")
 
+    def test_issue_refuses_a_second_recheck_on_one_in_hand(self):
+        # A second chat must not hand out the same recheck again while the first is out.
+        for t in ("T01", "T02", "T04"):
+            add_exposure(self.ws, t, "2026-10-10T08:00+01:00")
+        self.to_issued(cold_spec("ielts-cold-01"))
+        self.to_rendered(cold_spec("ielts-cold-02"))
+        r = self.cli("sheet", "issue", SUBJECT, "ielts-cold-02")
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("ielts-cold-01 is issued and not graded yet", r.stdout)
+        self.assertIn("cold:T04, cold:T01", r.stdout)
+        self.assertIn("sheet void ielts ielts-cold-01", r.stdout)
+        self.assertEqual(sheet_row(self.ws, "ielts-cold-02")["status"], "rendered")
+        # a recheck on another topic is fine
+        other = cold_spec("ielts-cold-03")
+        other["items"] = [dict(other["items"][0], topic="T02", layer="reading", origin="cold:T02")]
+        self.to_issued(other)
+        # taken but not graded still counts as in hand; dropped does not
+        self.ok(self.cli("sheet", "sat", SUBJECT, "ielts-cold-01", "--start", "09:00"))
+        self.assertEqual(self.cli("sheet", "issue", SUBJECT, "ielts-cold-02").returncode, 1)
+        self.ok(self.cli("sheet", "void", SUBJECT, "ielts-cold-01", "--reason", "sat in another chat, photo lost"))
+        self.ok(self.cli("sheet", "issue", SUBJECT, "ielts-cold-02"))
+
     def test_void_and_show(self):
         a, b = drills_spec("ielts-drills-01"), drills_spec("ielts-drills-02")
         self.ok(new_sheet(self.ws, a))

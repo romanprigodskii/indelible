@@ -26,7 +26,10 @@ A sheet built ahead for a block is linked to it early (``sheet new`` or
 ``sheet lint`` with ``--block``): lint then sizes it against that block (L5)
 and judges a recheck at the block's start (L7). ``sheet issue`` checks both
 again, so a sheet over its block's budget, or a recheck that is no longer
-eligible, is never issued.
+eligible, is never issued. Nor is a cold or mixed sheet that serves a
+recheck or mistake (a ``cold:``, ``error:`` or ``sentinel:`` origin) that
+another cold or mixed sheet, issued or sat and not graded, already serves:
+a second conversation must not hand out the same recheck twice.
 
 Every date and time here comes from the workspace clock (its time zone), the
 same clock as ``session open`` and ``session close``.
@@ -48,6 +51,7 @@ from lib.cmd_brief import fmt_when
 EDITABLE = ("built", "linted", "rendered")
 SEALED = ("issued", "sat", "graded", "void")
 KEY_OPTIONAL_TYPES = ("theory", "external", "example", "triage")
+RESERVE_TYPES = ("cold", "mixed")   # sheets that serve rechecks and mistakes: one in hand per origin
 IMAGE_EXTS = (".jpg", ".jpeg", ".png", ".heic", ".heif", ".webp", ".gif", ".tif", ".tiff")
 HEIC_EXTS = (".heic", ".heif")
 CONVERT_TIMEOUT_S = 60
@@ -596,10 +600,45 @@ def _start_by_lines(ws, subj, spec):
             "raise mastery)." % (fmt_when(closes, now), _num(lo), _num(hi), topic) for topic, closes in found]
 
 
+def _reserve_origins(spec):
+    """The item origins that serve a recheck or a mistake: ``cold:``, ``error:`` and ``sentinel:``."""
+    out = []
+    for it in spec.get("items") or []:
+        origin = str(it.get("origin") or "") if isinstance(it, dict) else ""
+        if origin.startswith(("cold:", "error:", "sentinel:")) and origin not in out:
+            out.append(origin)
+    return out
+
+
+def _in_hand_clashes(subj, spec, row):
+    """Other cold or mixed sheets, issued or sat and not graded, that serve one of this
+    sheet's origins: a second chat must not serve the same recheck or mistake twice."""
+    mine = _reserve_origins(spec)
+    if not mine:
+        return []
+    probs = []
+    for other in subj.load_sheets():
+        if (other.get("id") == row.get("id") or other.get("type") not in RESERVE_TYPES
+                or other.get("status") not in ("issued", "sat")):
+            continue
+        try:
+            shared = [o for o in _reserve_origins(_load_spec(subj, other.get("id"))) if o in mine]
+        except UsageError:
+            continue
+        if shared:
+            probs.append("%s is %s and not graded yet, and it serves %s too: finish it (sit it, then grade it), "
+                         "or drop it first: sheet void %s %s --reason TEXT"
+                         % (other.get("id"), other.get("status"), ", ".join(shared), subj.id, other.get("id")))
+    return probs
+
+
 def _issue_checks(ws, subj, spec, row, block_id):
     """Law 4 and Law 3 at the moment of issue: never over the block's budget, never
-    a recheck that is not eligible at the time it will be sat. Refuses (exit 1)."""
+    a recheck that is not eligible at the time it will be sat, and never a second
+    cold or mixed sheet for a recheck or mistake already in hand. Refuses (exit 1)."""
     probs = []
+    if spec.get("type") in RESERVE_TYPES:
+        probs += _in_hand_clashes(subj, spec, row)
     if block_id and spec.get("type") not in BUDGET_EXEMPT:
         budget, basis = lint.budget_for(ws, subj, spec, row, block=block_id)
         try:
