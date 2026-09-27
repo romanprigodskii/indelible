@@ -484,7 +484,7 @@ Opening a brief also increments `opens_unsat` for every issued sheet that isn't 
   | L4 terms | Every token or 2-gram in item text, labels and titles that appears in `sense_seed.txt`, `subject.sense_list` or `subject.lexicon` (case-insensitive, whole word) must appear in `spec.terms` with a resolution. On `theory` sheets the resolution must be `defined_here`, and the term must also appear in `theory.words` |
   | L5 budget | Unless the type is `diagnostic`, `mock` or `checkpoint`: `est_min ≤ --budget-min`, or ≤ the linked block's minutes × 0.8 when `--budget-min` is absent |
   | L6 drill blocks | On `drills`, blocks cover every item exactly once, each block has between `block_size.min` and `block_size.max` items, and all items in a block share `op` |
-  | L7 cold validity | On `cold`: every `cold:<topic>` item is cold-eligible now (§6.4), and every `error:<E>` item's error is not `untreated` |
+  | L7 cold validity | On `cold` and `mixed`, judged at the linked block's start (else now): every `cold:<topic>` item is cold-eligible (§6.4); every `error:<E>` item's error is on file, not `untreated`, due, and its topic has no exposure in the 24 h before; a `sentinel:<E>` item the same without the due date. On `mixed`, a `cold:<topic>` item fails: only a `cold` sheet serves the 2-day recheck. A `words` recheck's timing is not checked |
   | L8 key leak | No accepted answer string of 3 or more characters from the key appears (case-insensitive) in the visible text. The key is read in-process and nothing from it is printed; the FAIL line names the ask id only |
   | L9 least-sure | `least_sure` is true on every type except `theory`, `external`, `example` and `triage` |
   | L10 check hints | No `check_hint` on an ask with `check: true` sends the learner to find their own mistake ("find the mistake", "check your work for mistakes", "where did you go wrong?", "is there a mistake?"), asks for a re-solve ("redo", "rework", "do it again", "double-check") or a confidence rating ("are you sure?"), or is only "check your answer". "Error" counts only when the phrase ends there or points at the learner's own work, so subject words pass: "the standard error", "the error term", "error bars", "the error message", "a confidence interval". Detection matches English wording only |
@@ -548,7 +548,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
   - `instrument` comes from the sheet type (`drills`, `mixed`, `repair`, `review` and `example` → `practice`);
   - `cold` is true for type `cold`;
   - `interval_h` is the time since the topic's last warm exposure.
-- **For asks whose item origin is `error:<E>` or `sentinel:<E>`:** `right` → `pass_`, anything else → `fail`.
+- **For asks whose item origin is `error:<E>` or `sentinel:<E>`:** `right` → `pass_`, anything else → `fail`. Only on a `cold`, `mixed` or measuring sheet, and only when the topic had no exposure in the 24 h before the sitting; otherwise a note says "not counted" and nothing moves. Only a `cold` sheet marks such rows `contaminated`, which drops them from levels.
 - **For `wrong`, `half` or `dont_know` asks with `kind` given:** creates an error. It copies that ask's key entry to `.indelible/keys/errors/<E>.json`, and sets `named_least_sure` from `least_sure`.
 - **An ask with `verdict: right` and `least_sure: true`** creates a `shaky` error when `--shaky` is passed. It is off by default.
 - **Afterwards:** sets `status=graded` and `graded_at`, recomputes the levels, and prints:
@@ -557,7 +557,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
   - the errors created (ids only);
   - the level changes;
   - the cold obligations passed.
-- **For a `cold:<topic>` item:** closes the topic's cold obligation block (`status=done`) if one is open.
+- **For a `cold:<topic>` item on a measuring sheet** (a `cold` sheet, or a `words` recheck): closes the topic's cold obligation block (`status=done`) if one is open, and sets `last_cold`. On a practice sheet it closes nothing and sets nothing, and a note says the booked recheck stays open.
 
 **Other commands:**
 - `error list <subject> [--status S] [--due]` · `error repair <subject> <E> [--sheet ID]` · `error pass <subject> <E>` · `error fail <subject> <E>` · `error add <subject> --topic T --kind K --mode M --belief TEXT --account TEXT [--sheet ID --item N]`. The ladder rules are in §6.1.

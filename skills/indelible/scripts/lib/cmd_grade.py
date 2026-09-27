@@ -17,20 +17,23 @@ What it does, in order:
      in the 24 h before the sitting is marked ``contaminated``: recorded, but
      not counted (seen too recently).
   4. Moves re-served mistakes (origin ``error:`` or ``sentinel:``) on the
-     ladder: all questions right -> pass, anything else -> fail. Only a
-     measuring serve moves the ladder: a cold, mixed or measuring sheet, not
-     contaminated. A repair, theory, example or drills sheet never does, and
-     an untreated wrong idea is never moved (repair it first).
+     ladder: all questions right -> pass, anything else -> fail. Only a cold,
+     mixed or measuring sheet moves the ladder, and only when the mistake's
+     topic was not seen in the 24 h before the sitting (the note says "not
+     counted"). A repair, theory, example or drills sheet never does, and an
+     untreated wrong idea is never moved (repair it first).
   5. Opens a mistake for each wrong, half or "don't know" question with a
      ``kind`` (and, with ``--shaky``, for right answers on the Least-sure
      line). The question's key entry is copied, unread, to
      ``.indelible/keys/errors/<E-id>.json``.
   6. Closes the 2-day recheck block this sheet served (the sheet's linked
      block, else the open recheck whose window or time holds the sitting);
-     later rechecks stay open. A practice sheet logs a ``drill`` exposure per
-     topic, timed at the sitting; a measuring sheet logs none (feedback given
-     afterwards is logged with ``session expose``). Then the sheet is marked
-     graded and the levels are recomputed.
+     later rechecks stay open. Only a measuring sheet serves one (a cold
+     sheet, or a words recheck): a ``cold:`` item on a practice sheet leaves
+     the recheck open and the topic's ``last_cold`` unset. A practice sheet
+     logs a ``drill`` exposure per topic, timed at the sitting; a measuring
+     sheet logs none (feedback given afterwards is logged with ``session
+     expose``). Then the sheet is marked graded and the levels are recomputed.
 
 Output: the score with its label, the unnamed-wrong count, check lines, the
 mistakes opened (ids only), ladder moves, level changes and the rechecks
@@ -248,6 +251,7 @@ def cmd_grade_record(args):
         reserve = {}          # E-id -> [verdicts] for re-served mistakes
         reserve_dirty = set()  # E-ids with a contaminated question: not counted
         cold_topics = []
+        practised_cold = []    # cold: items on a practice sheet: they serve no recheck
         contaminated_topics = []
         interval_cache = {}
         taken_ids = []
@@ -276,21 +280,25 @@ def cmd_grade_record(args):
 
             m_err = ORIGIN_ERROR_RE.match(origin)
             m_cold = COLD_ORIGIN_RE.match(origin)
-            if m_cold and m_cold.group(1) not in cold_topics:
-                cold_topics.append(m_cold.group(1))
+            if m_cold:
+                found = cold_topics if measured else practised_cold
+                if m_cold.group(1) not in found:
+                    found.append(m_cold.group(1))
 
             if topic not in interval_cache:
                 ih = learning.hours_since_exposure(topic, exposures, sit_at) if topic else None
                 interval_cache[topic] = round(ih, 1) if ih is not None else None
-            dirty = bool(is_cold_sheet and interval_cache[topic] is not None
-                         and interval_cache[topic] < learning.NO_EXPOSURE_H)
+            warm = interval_cache[topic] is not None and interval_cache[topic] < learning.NO_EXPOSURE_H
+            # Only a cold sheet's rows are marked contaminated (dropped from levels);
+            # the 24-hour rule for the ladder holds on every sheet type below.
+            dirty = bool(is_cold_sheet and warm)
             if dirty and topic not in contaminated_topics:
                 contaminated_topics.append(topic)
 
             if m_err:
                 error_id = m_err.group(2)
                 reserve.setdefault(error_id, []).append(verdict)
-                if dirty:
+                if warm:
                     reserve_dirty.add(error_id)
                 if kind:
                     notes.append("%s re-served %s, so no new mistake was opened for it." % (aid, error_id))
@@ -343,6 +351,9 @@ def cmd_grade_record(args):
                 row["session"] = lock["session_id"]
             attempts.append(row)
 
+        if practised_cold:
+            notes.append("%s: a 2-day recheck item on a %s sheet is practice, so it serves no recheck; the "
+                         "booked recheck stays open." % (", ".join(practised_cold), stype))
         if leaks:
             raise CheckFailed("Not recorded: the belief line of %s contains an accepted answer from the key. "
                               "Describe the wrong idea without the answer." % ", ".join(leaks))

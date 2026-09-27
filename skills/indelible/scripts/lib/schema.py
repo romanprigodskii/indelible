@@ -957,9 +957,11 @@ RECORDS = {
                     "theory": None, "least_sure": True},
         "notes": [
             ("type", " | ".join(SHEET_TYPES)),
-            ("origin", "new | cold:<topic> | error:<E-id> | sentinel:<E-id> | official:<source>; error:/sentinel: "
-                       "move the ladder only on cold, mixed and measuring sheets, so repair, theory and drill "
-                       "pencils use new (name the E-id in op or text if useful)"),
+            ("origin", "new | cold:<topic> | error:<E-id> | sentinel:<E-id> | official:<source>; cold: serves "
+                       "the 2-day recheck only on a cold sheet (or a words recheck); error:/sentinel: move the "
+                       "ladder only on cold, mixed and measuring sheets, and lint L7 checks their timing on cold "
+                       "and mixed, so repair, theory and drill pencils use new (name the E-id in op or text if "
+                       "useful)"),
             ("asks[]", "{id, label, check, check_hint}: one labelled blank per required answer; optional topic "
                        "(a question on another topic than its item, e.g. one hidden-test group), answer_form "
                        "(letter, number, word, test-line, short, sentence, long, code, none: sizes the box), "

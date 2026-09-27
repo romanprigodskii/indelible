@@ -10,6 +10,9 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ### Fixed
 
+- **Practice no longer uses up a 2-day recheck.** A `cold:<topic>` item on a mixed or other practice sheet closed the topic's recheck at marking and set it as served cold, so the real recheck was never offered again. Now only a measuring sheet (a `cold` sheet, or a `words` recheck) closes a booking; on practice, a note says the recheck stays open.
+- **A mistake re-served on a warm topic makes no ladder move on any sheet.** On a mixed or measuring sheet, a mistake whose topic was seen in the 24 hours before the sitting now gets the "not counted" note, as on a cold sheet. The rows still count as practice or measurement toward levels.
+- **Lint L7 checks mixed sheets too.** Their `error:` and `sentinel:` items must be due (for `error:`) and not seen in the last 24 hours, and a `cold:` item on a mixed sheet fails: the 2-day recheck is a `cold` sheet.
 - **`cal ics` writes only `plan/ics/<name>.ics`.** Before, any path inside the workspace was accepted, so a wrong path could overwrite `data/attempts.jsonl` or a sealed key with no backup. Any other place, or a name without `.ics`, is now refused (exit 2) and nothing is written, as the README says.
 
 ## [0.1.5] - 2026-09-28

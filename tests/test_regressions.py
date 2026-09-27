@@ -136,6 +136,38 @@ class LintRuleRegressions(unittest.TestCase):
         old = dict(recent, at="2026-10-17T20:00+01:00")
         self.assertEqual(result(spec, "L7", now=at, exposures=[teach, old], errors=[retired])["status"], "PASS")
 
+    def test_l7_checks_a_mixed_sheet_whose_items_move_the_ladder(self):
+        # A mixed sheet is practice, but grading moves the ladder for its error: and
+        # sentinel: items, so they keep the 24-hour rule and the due date there too.
+        at = dates.parse_iso("2026-10-19T07:58+01:00")
+        teach = {"topic": "T04", "at": "2026-10-17T07:58+01:00", "kind": "teach"}
+        drilled = {"topic": "T01", "at": "2026-10-19T06:58+01:00", "kind": "drill"}
+        slip = {"v": 1, "id": "E-ielts-0002", "topic": "T01", "kind": "slip", "status": "spacing",
+                "next_due": "2026-10-18"}
+        retired = dict(slip, id="E-ielts-0003", status="retired", next_due=None)
+        for origin, err in (("error:E-ielts-0002", slip), ("sentinel:E-ielts-0003", retired)):
+            spec = self.two_item_cold(origin)
+            spec.update(type="mixed", title="Part A")
+            spec["items"][0]["origin"] = "new"
+            r = result(spec, "L7", now=at, exposures=[teach, drilled], errors=[err])
+            self.assertEqual(r["status"], "FAIL", origin)
+            self.assertIn("less than 24 h", r["detail"])
+            old = dict(drilled, at="2026-10-18T01:00+01:00")
+            self.assertEqual(result(spec, "L7", now=at, exposures=[teach, old], errors=[err])["status"], "PASS")
+        spec = self.two_item_cold("error:E-ielts-0002")
+        spec.update(type="mixed", title="Part A")
+        spec["items"][0]["origin"] = "new"
+        r = result(spec, "L7", now=at, exposures=[teach], errors=[dict(slip, next_due="2026-10-20")])
+        self.assertIn("not due until 2026-10-20", r["detail"])
+        # A 2-day recheck item belongs on a cold sheet: on a mixed sheet it fails, whatever the timing.
+        spec = cold_spec(type="mixed", title="Part A")
+        r = result(spec, "L7")
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("belongs on a cold sheet", r["detail"])
+        self.assertEqual(result(cold_spec(), "L7")["status"], "PASS")
+        # Other practice types serve no recheck and move no ladder: nothing to check.
+        self.assertEqual(result(cold_spec(type="drills"), "L7", exposures=[drilled])["status"], "PASS")
+
     def test_l7_a_topic_never_taught_is_not_recheck_material(self):
         spec = cold_spec()
         spec["items"] = [spec["items"][0]]

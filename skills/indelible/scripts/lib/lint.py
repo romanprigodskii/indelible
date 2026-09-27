@@ -58,6 +58,9 @@ BUDGET_EXEMPT = ("diagnostic", "mock", "checkpoint")
 MEASURING = ("cold", "diagnostic", "mock", "checkpoint", "probe", "words")
 RESOLUTIONS = ("defined_here", "defined_on:<sheet-id>", "glossary", "everyday", "measured_here")
 LEAST_SURE_EXEMPT = ("theory", "external", "example", "triage")
+# L7: the types whose re-served mistakes move the ladder at grading, so they get
+# the recheck timing checks. A words recheck is not checked here (profiles.md).
+RECHECK_TYPES = ("cold", "mixed")
 VERBAL_LAYERS = ("verbal", "reading")
 MIN_LEAK_LEN = 3
 BUDGET_FRACTION = 0.8
@@ -505,10 +508,13 @@ def _l7(spec, ctx):
     on the topic. error:<E>: not untreated, due (next_due <= that day), no
     exposure in the 24 h before, no untreated mistake on the topic.
     sentinel:<E> (a retired mistake, possibly archived): the same without the
-    due date.
+    due date. A mixed sheet is practice, but grading moves the ladder for its
+    error: and sentinel: items, so they get the same checks; a cold:<topic>
+    item there fails, since only a cold sheet serves the 2-day recheck.
     """
-    if spec.get("type") != "cold":
-        return "PASS", "not a cold sheet"
+    stype = spec.get("type")
+    if stype not in RECHECK_TYPES:
+        return "PASS", "no recheck items on a %s sheet" % (stype or "untyped")
     at = ctx.get("at") or ctx.get("now") or dates.now()
     when = ctx.get("at_label") or "now"
     exposures = ctx.get("exposures") or []
@@ -523,6 +529,10 @@ def _l7(spec, ctx):
         if origin.startswith("cold:"):
             checked += 1
             topic = origin[len("cold:"):]
+            if stype != "cold":
+                probs.append("item %s (%s): a 2-day recheck item belongs on a cold sheet, not on %s practice; "
+                             "build the recheck as type cold" % (n, topic, stype))
+                continue
             state = topics_state.get(topic)
             first = learning.is_first_serve(state)
             if first and not learning.has_first_serve_basis(topic, exposures, state):

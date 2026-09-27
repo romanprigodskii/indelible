@@ -572,6 +572,54 @@ class GradingRegressionTests(GradeBase):
         self.assertEqual(blocks["B-20261021-ielts-1"]["status"], "planned")   # booked for later: left open
         self.assert_no_secrets()
 
+    def test_a_mixed_sheet_serves_no_recheck_and_moves_no_warm_mistake(self):
+        # T01 taught Mon; its 2-day recheck is open. Two slips are due; T04 was drilled
+        # an hour before a mixed practice sheet that carries a cold:T01 item anyway.
+        add_exposure(self.ws, self.sid, "T01", "2026-10-12T07:40+01:00")
+        add_exposure(self.ws, self.sid, "T04", "2026-10-14T06:00+01:00", kind="drill")
+        add_blocks(self.ws, [cold_obligation("B-20261014-ielts-2", self.sid, "T01",
+                                             "2026-10-14T03:40+01:00", "2026-10-15T07:40+01:00")])
+        for topic in ("T04", "T02"):
+            self.cli(["error", "add", self.sid, "--topic", topic, "--kind", "slip", "--mode", "C",
+                      "--belief", "copied the wrong line", "--account", "slip"], now="2026-10-12T09:00+01:00")
+        items = [make_item(1, "T01", ["1a"], origin="cold:T01", layer="reading"),
+                 make_item(2, "T04", ["2a"], origin="error:E-ielts-0001"),
+                 make_item(3, "T02", ["3a"], origin="error:E-ielts-0002", layer="reading")]
+        key = write_sheet(self.ws, self.sid, "ielts-mixed-01", "mixed", items)
+        self.remember_key(key)
+        r = self.grade("ielts-mixed-01", {"date": "2026-10-14", "start": "07:05", "stop": "07:15", "asks": [
+            {"ask": a, "verdict": "right", "check": "filled"} for a in ("1a", "2a", "3a")]})
+        self.assertIn("[practice]", r.stdout)
+        self.assertNotIn("2-day recheck done", r.stdout)
+        self.assertIn("T01: a 2-day recheck item on a mixed sheet is practice", r.stdout)
+        self.assertIn("E-ielts-0001: not counted (its topic was seen in the 24 h before the sitting)", r.stdout)
+        self.assertIn("E-ielts-0002 passed, rung 1", r.stdout)   # not seen in 24 h: the ladder still moves
+        blocks = dict((b["id"], b) for b in read_rows(self.ws / "plan" / "blocks.jsonl"))
+        self.assertEqual(blocks["B-20261014-ielts-2"]["status"], "planned")   # the recheck stays booked
+        self.assertIsNone(self.topics().get("T01", {}).get("last_cold"))
+        errs = dict((e["id"], e) for e in self.errors())
+        self.assertEqual((errs["E-ielts-0001"]["rung"], errs["E-ielts-0001"]["passes"]), (0, []))
+        # Practice rows are not marked contaminated: they still count as practice toward a level.
+        self.assertFalse(any(a.get("contaminated") for a in self.attempts()))
+        # Still a first serve: once the sheet's drill is 44 h old, T01 is offered as a 2-day recheck.
+        r = self.cli(["due", self.sid, "--list"], now="2026-10-16T08:00+01:00")
+        self.assertIn("T01", r.stdout.split("1. 2-day rechecks", 1)[1].split("2. ", 1)[0])
+        self.assert_no_secrets()
+
+    def test_a_words_recheck_still_closes_its_booking(self):
+        add_exposure(self.ws, self.sid, "T01", "2026-10-12T07:40+01:00")
+        add_blocks(self.ws, [cold_obligation("B-20261014-ielts-2", self.sid, "T01",
+                                             "2026-10-14T03:40+01:00", "2026-10-15T07:40+01:00")])
+        items = [make_item(n, "T01", ["%da" % n], origin="cold:T01") for n in (1, 2, 3)]
+        key = write_sheet(self.ws, self.sid, "ielts-words-01", "words", items)
+        self.remember_key(key)
+        r = self.grade("ielts-words-01", {"date": "2026-10-14", "start": "08:00", "stop": "08:06", "asks": [
+            {"ask": "%da" % n, "verdict": "right", "check": "n/a"} for n in (1, 2, 3)]})
+        self.assertIn("[measured n=3]", r.stdout)
+        self.assertIn("2-day recheck done: T01 (B-20261014-ielts-2)", r.stdout)
+        self.assertEqual(self.topics()["T01"]["last_cold"], "2026-10-14T08:00+01:00")
+        self.assert_no_secrets()
+
     def test_a_question_can_carry_its_own_topic(self):
         items = [make_item(1, "T01", ["1a", "1b"], layer="reading")]
         items[0]["asks"][1]["topic"] = "T02"
