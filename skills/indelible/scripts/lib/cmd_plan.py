@@ -22,7 +22,8 @@ future ones. There is no solver in v0.1.
 
 Recheck (``kind: cold``) windows come from, in order:
   1. the block's own ``window`` (an obligation made by ``session taught``,
-     or one placed with ``plan place``);
+     or one placed with ``plan place``; ``session expose`` moves it to follow
+     a later warm exposure of a topic still waiting for its first recheck);
   2. its ``pair`` block, while that block is not done: from the pair's end
      + cold_window_h[0] to the pair's start + cold_window_h[1], so the
      recheck is valid whenever inside the pair the teaching happens;

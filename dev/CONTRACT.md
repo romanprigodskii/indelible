@@ -407,7 +407,7 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
   - Refuses (exit 1) if that subject is locked and not stale. If another subject is locked, it prints a warning with the other lock and proceeds only with `--park-other`, which writes that subject's `.indelible/unclosed`.
   - Writes the lock and prints the budget (§6.3).
 - **`session status <subject>`:** one line, e.g. `[indelible] 47/60 min · close starts 07:55 · questions so far 38`. Questions so far are the asks graded since the start.
-- **`session expose <subject> <topic> [--kind chat]`:** appends an exposure. Used whenever something is taught or discussed outside a sheet.
+- **`session expose <subject> <topic> [--kind chat]`:** appends an exposure. Used whenever something is taught or discussed outside a sheet. For a topic still waiting for its first recheck, the window counts from the last warm exposure (§6.4), so it moves every open cold block of that topic alone (not placed, or placed later) to [now + `cold_window_h[0]`, now + `cold_window_h[1]`] (`basis: exposure`), prints the new window, and WARNs for a placed recheck now outside it.
 - **`session taught <subject> <topic> [--by sheet|external|chat|tutor] [--block ID]`**
   - Appends a `teach` exposure.
   - Sets `topics.json[topic].taught_at` and `taught_by`.

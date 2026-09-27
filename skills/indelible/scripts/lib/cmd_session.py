@@ -267,16 +267,66 @@ def cmd_expose(args):
         raise UsageError("; ".join(problems))
     with ws.lock():
         subj.append_exposure(row)
+        rebooked = rebook_first_recheck(ws, subj, t["id"], now)
     until = dates.plus(now, hours=learning.NO_EXPOSURE_H)  # elapsed hours: right across a clock change
-    _out("Noted: %s %s seen (%s) at %s. It cannot be on a 2-day recheck before %s." % (
-        t["id"], t.get("name") or "", args.kind, now.strftime("%H:%M"), brief.fmt_when(until, now)))
+    if rebooked is None:
+        _out("Noted: %s %s seen (%s) at %s. It cannot be on a 2-day recheck before %s." % (
+            t["id"], t.get("name") or "", args.kind, now.strftime("%H:%M"), brief.fmt_when(until, now)))
+        moved, outside = [], []
+    else:
+        (wf, wt), moved, outside = rebooked
+        _out("Noted: %s %s seen (%s) at %s. Its first 2-day recheck now falls between %s and %s (%s–%s h after "
+             "this)." % (t["id"], t.get("name") or "", args.kind, now.strftime("%H:%M"), brief.fmt_when(wf, now),
+                         brief.fmt_when(wt, now), _num(subj.cold_window()[0]), _num(subj.cold_window()[1])))
+        for b in moved:
+            _out("Recheck %s: window moved to %s – %s." % (b.get("id"), brief.fmt_when(wf, now), brief.fmt_when(wt, now)))
+        for b in outside:
+            s, _ = brief.block_times(b, now.tzinfo)
+            _out("WARN: the 2-day recheck booked %s (%s) is outside its new window: move it inside "
+                 "(plan move %s --start %s), or it will not count." % (
+                     brief.fmt_when(s, now), b.get("id"), b.get("id"), _fmt(wf)))
+    shown = set(b.get("id") for b in outside)
     for b in _cold_blocks_for(ws, subj, t["id"]):
         s, _ = brief.block_times(b, now.tzinfo)
+        if b.get("id") in shown:
+            continue
         if b.get("start") and s is not None and now <= s < until:
             _out("WARN: the 2-day recheck booked %s (%s) includes %s and is now within 24 h of this exposure: "
                  "move it (plan move %s --start ISO), or it will not count." % (
                      brief.fmt_when(s, now), b.get("id"), t["id"], b.get("id")))
     return 0
+
+
+def rebook_first_recheck(ws, subj, tid, at):
+    """Move the open 2-day recheck windows of ``tid`` to follow a warm exposure at ``at``.
+
+    The window is measured from the last warm exposure (CONTRACT 6.4), so drills
+    sat on a later day than the teaching move it: to at + cold_window_h. Only a
+    topic still waiting for its first recheck is moved, and only a recheck of
+    that topic alone that is not placed, or placed after ``at``; one with other
+    topics keeps its window. Call it inside ws.lock(). Returns None when nothing
+    applies, else ((from, to), moved blocks, placed blocks now outside the window).
+    """
+    exposures = subj.load_exposures()
+    state = subj.load_topics_state().get(tid)
+    if not learning.is_first_serve(state) or not learning.has_first_serve_basis(tid, exposures, state):
+        return None
+    lo, hi = subj.cold_window()
+    wf, wt = dates.plus(at, hours=lo), dates.plus(at, hours=hi)
+    blocks = ws.load_blocks()
+    moved, outside = [], []
+    for b in _cold_blocks_for(ws, subj, tid, blocks):
+        s = brief.to_local(b.get("start"), at.tzinfo)
+        if s is not None and s < at:
+            continue  # already past: the brief reports it if it was not sat
+        if brief.block_topics(b) == [tid]:
+            b["window"] = {"from": _fmt(wf), "to": _fmt(wt), "basis": "exposure"}
+            moved.append(b)
+            if s is not None and not (wf <= s <= wt):
+                outside.append(b)
+    if moved:
+        ws.save_blocks(blocks)
+    return (wf, wt), moved, outside
 
 
 def cmd_taught(args):

@@ -227,5 +227,54 @@ class SittingTimeTests(TimingCase):
         self.assertEqual(sheet_row(self.ws, "ielts-mixed-01")["sat"]["date"], "2026-10-15")
 
 
+# ==========================================================================
+# Drills on a later day move the window (instructions-for-claude-9)
+# ==========================================================================
+
+class MovedWindowTests(TimingCase):
+    """T03 taught Thu 15 Oct 07:00; its drills are sat Fri 16 Oct 13:00, 30 h later."""
+
+    NOW = "2026-10-15T07:00+01:00"
+    DRILLS = "2026-10-16T13:00+01:00"
+
+    def obligation(self):
+        return [b for b in self.blocks().values() if b["kind"] == "cold"][0]
+
+    def test_drills_on_a_later_day_move_the_window_so_place_and_check_agree(self):
+        self.cli(["session", "taught", self.sid, "T03"])
+        bid = self.obligation()["id"]
+        self.assertEqual(self.obligation()["window"]["to"], "2026-10-18T07:00+01:00")
+        r = self.cli(["session", "expose", self.sid, "T03", "--kind", "drill"], now=self.DRILLS)
+        self.assertIn("Its first 2-day recheck now falls between Sun 18 Oct 09:00 and Mon 19 Oct 13:00", r.stdout)
+        self.assertIn("Recheck %s: window moved" % bid, r.stdout)
+        self.assertEqual(self.obligation()["window"], {"from": "2026-10-18T09:00+01:00",
+                                                       "to": "2026-10-19T13:00+01:00", "basis": "exposure"})
+        # 72 h after the teach is outside the old window, 66 h after the drills inside the new one
+        self.cli(["plan", "place", bid, "--start", "2026-10-19T07:00+01:00", "--min", "15"], now=self.DRILLS)
+        r = self.cli(["plan", "check"], now=self.DRILLS)
+        self.assertIn("plan check: PASS", r.stdout)
+
+    def test_a_placed_recheck_left_outside_the_new_window_is_named(self):
+        self.cli(["session", "taught", self.sid, "T03"])
+        bid = self.obligation()["id"]
+        self.cli(["plan", "place", bid, "--start", "2026-10-17T10:00+01:00", "--min", "15"])
+        r = self.cli(["session", "expose", self.sid, "T03", "--kind", "drill"], now=self.DRILLS)
+        self.assertIn("WARN: the 2-day recheck booked Sat 17 Oct 10:00 (%s) is outside its new window: move it "
+                      "inside (plan move %s --start 2026-10-18T09:00+01:00)" % (bid, bid), r.stdout)
+        self.assertEqual(r.stdout.count("WARN"), 1)
+        self.cli(["plan", "move", bid, "--start", "2026-10-19T07:00+01:00"], now=self.DRILLS)
+
+    def test_a_topic_already_rechecked_keeps_its_windows(self):
+        self.cli(["session", "taught", self.sid, "T03"])
+        path = self.sdir / "data" / "topics.json"
+        state = fio.read_json(path)
+        state["T03"]["last_cold"] = "2026-10-17T07:00+01:00"
+        fio.write_json(path, state)
+        before = self.obligation()["window"]
+        r = self.cli(["session", "expose", self.sid, "T03", "--kind", "chat"], now="2026-10-17T09:00+01:00")
+        self.assertIn("It cannot be on a 2-day recheck before", r.stdout)
+        self.assertEqual(self.obligation()["window"], before)
+
+
 if __name__ == "__main__":
     unittest.main()

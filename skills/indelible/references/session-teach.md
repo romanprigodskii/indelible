@@ -51,7 +51,7 @@ A wrong idea (an error of kind `belief`) is never served cold until it has been 
 4. **At mastery 0–1, the worked example comes first and fades across the drills.** Item 1 is fully worked, ending with its check (a step labelled "Check:"), and asks one "why does this step follow?" question. Item 2 has its last steps blank. From item 3 on, the questions are independent.
 5. **Mark the pencils by asking.** File the photo or typed answers (`ind scan ingest`) before opening the key; pencils are practice. For a wrong pencil, point, then ask: "Look at step 2 of the worked case. What did it do there that you didn't?" Name the step; never ask the learner to find their own mistake. If two questions don't get there, fall back to a fill-in from the sheet itself: name the line of the worked case that holds the step, and have the learner copy it into the pencil box. Don't write the step in chat, because the drills would then sit right below it. If you do explain in chat, run `ind session expose <s> <T> --kind chat`.
 6. **When the learner says "closed"** (the sheet is put away, out of sight):
-   - Run `ind session taught <s> <T> --by sheet --block <B>`, or `--by external` for textbook pages. This books the 2-day recheck window and prints it. The window is placed at the close ([close.md](close.md), [plan.md](plan.md)).
+   - Run `ind session taught <s> <T> --by sheet --block <B>`, or `--by external` for textbook pages. This books the 2-day recheck window and prints it (drills on a later day move it). The window is placed at the close ([close.md](close.md), [plan.md](plan.md)).
    - Tell the learner: "Your 2-day recheck on this is due in about two days; I'll put it in the plan at the close. Please don't review it before then; that's what makes the recheck count."
    - Only then hand over the drills, in a new message. They were built ahead and wait as `rendered`; issuing is the hand-over: `ind sheet issue <s> <drills-id> --block <B>`, then give the path. Never send drills in the same message as the theory.
    - If the learner reopens the theory after a real attempt, that's allowed, but ask them to say so. That answer counts as looked up, not recalled; add a line to the session note with `ind note append <s> session`.
@@ -91,7 +91,7 @@ When the learner is stuck, climb one rung per message:
 - **Sizing:** aim for about 80% right in guided practice. If the gate fires, the next block opens with more completion steps. After two blocks in a row at 100%, fade faster: fewer worked steps and a harder first question. Lint refuses a sheet over the remaining work minutes (`--budget-min`).
 - **The end of the sheet** has the stop time and a single line: "Least sure of (question numbers): ___". There are no confidence marks on individual answers.
 - **Marking** follows [session-grade.md](session-grade.md). Scores are `[practice]` and never count as mastery.
-- **Drills in a later session than their theory** (common in short sessions): run `ind session expose <s> <T> --kind drill`, then `ind plan check` to confirm the recheck still sits 24 hours clear of the drills.
+- **Drills in a later session than their theory** (common in short sessions): run `ind session expose <s> <T> --kind drill`. The 2-day window counts from the last warm exposure, so this moves the recheck window to 44–72 h after the drills and prints it. Place or move the recheck inside the new window, then run `ind plan check`.
 
 ## 5. Profile blocks
 
