@@ -959,11 +959,11 @@ def brief_sections(ws, subj, now, sheets=None):
             claude.append(Section("RECHECK NOW:", ["%s %s (%.0f h)" % (c["topic"], c["name"], c["hours"] or 0)
                                                    for c in st["cold"]], more="due %s --list" % sid))
         if st["beliefs"]:
-            claude.append(Section("BELIEFS DUE:", [_err_line(e, st["names"]) for e in st["beliefs"]],
+            claude.append(Section("BELIEFS DUE:", [_err_line(e, st["names"], with_reason=True) for e in st["beliefs"]],
                                   more="due %s --list" % sid))
         other = st["shaky"] + st["oldest"]
         if other:
-            claude.append(Section("OTHER DUE:", [_err_line(e, st["names"]) for e in other],
+            claude.append(Section("OTHER DUE:", [_err_line(e, st["names"], with_reason=True) for e in other],
                                   more="due %s --list" % sid))
         if st["untreated"]:
             claude.append(Section("NEEDS REPAIR:", [_err_line(e, st["names"]) for e in st["untreated"]],

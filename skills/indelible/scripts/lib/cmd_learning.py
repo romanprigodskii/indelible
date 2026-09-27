@@ -408,10 +408,13 @@ def cmd_error_repair(args):
         if e.get("topic"):
             subj.append_exposure({"v": 1, "topic": e["topic"], "at": dates.fmt_iso(now), "kind": "repair"})
         changes = refresh_levels(subj)
-    out("%s repaired: back on the ladder at rung 0; its recheck is due %s (%s), at least 12 h after the fix."
+    out("%s repaired: back on the ladder at rung 0; its recheck is due %s (%s)."
         % (new["id"], new.get("next_due"), fmt_day(new.get("next_due"))))
     if e.get("topic"):
-        out("Exposure logged: %s (repair), so no cold serve on it for 24 h." % e["topic"])
+        # The repair is an exposure: the 24-hour rule, not the due date, sets the earliest serve.
+        free = dates.plus(now, hours=learning.NO_EXPOSURE_H)
+        out("Exposure logged: %s (repair), so it can't come back cold before %s %s (24-hour rule)."
+            % (e["topic"], fmt_day(free.date()), free.strftime("%H:%M")))
     if changes:
         out("Levels: " + fmt_changes(changes, subj))
     if note:

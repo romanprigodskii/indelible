@@ -384,6 +384,8 @@ NOTES: the subject CLAUDE.md sections "Learner notes", "Do not calibrate on" and
 BELIEFS DUE: E-ielts-0031 T04 "reads 'albeit' as 'because'" (rung 1) …
 ```
 
+BELIEFS DUE and OTHER DUE list every mistake due by date. One that can't be served yet (its topic seen in the last 24 h, or an untreated mistake on the topic) ends with `not now: <reason>`, as in `due --list`. `error repair` logs a repair exposure, so a repaired mistake is served no earlier than 24 h after the repair, even when its due date comes first.
+
 Opening a brief also increments `opens_unsat` for every issued sheet that isn't sat.
 
 **`due [subject] [--list] [--json]`:** counts by default. `--list` lists cold-eligible topics and due errors by tier:

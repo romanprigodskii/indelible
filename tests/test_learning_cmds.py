@@ -85,6 +85,22 @@ class ErrorCommandTests(GradeBase):
         e = self.errors()[0]
         self.assertEqual((e["status"], e["rung"], e["next_due"], e["fails"]), ("untreated", 0, None, ["2026-10-25"]))
 
+    def test_an_evening_repair_names_the_24_hour_rule_and_the_brief_says_not_now(self):
+        self.cli(["error", "add", self.sid, "--topic", "T04", "--kind", "belief", "--mode", "D",
+                  "--belief", "reads 'unless' as 'if'", "--account", "thought unless meant if"])
+        r = self.cli(["error", "repair", self.sid, "E-ielts-0001"], now="2026-10-14T19:30+01:00")
+        self.assertIn("its recheck is due 2026-10-15 (Thu 15 Oct).", r.stdout)
+        self.assertIn("can't come back cold before Thu 15 Oct 19:30 (24-hour rule)", r.stdout)
+        self.assertNotIn("12 h", r.stdout)
+        # Next morning it is due by date but the repair was 12 h ago: the Claude lines say why not now.
+        r = self.cli(["brief", self.sid], now="2026-10-15T07:30+01:00")
+        line = [l for l in r.stdout.splitlines() if l.startswith("BELIEFS DUE:")][0]
+        self.assertIn("E-ielts-0001", line)
+        self.assertIn("not now: seen 12 h ago (less than 24 h)", line)
+        r = self.cli(["brief", self.sid], now="2026-10-15T20:00+01:00")
+        line = [l for l in r.stdout.splitlines() if l.startswith("BELIEFS DUE:")][0]
+        self.assertNotIn("not now", line)
+
     def test_slip_fail_goes_back_to_rung_zero(self):
         self.add()
         self.cli(["error", "pass", self.sid, "E-ielts-0001"], now="2026-10-15T09:00+01:00")
