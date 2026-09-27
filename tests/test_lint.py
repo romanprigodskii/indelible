@@ -161,6 +161,32 @@ class RuleTests(Base):
         self.assertEqual(self.status(spec, "L4", sense=sense), "FAIL")
         self.assertIn("cohesive device", sense)
 
+    def test_l4_defined_on_names_a_sheet_that_defines_the_word(self):
+        reading = lint.sense_words({"sense_list": ["gist"]})
+        spec = drills_spec()
+        spec["items"][0]["text"] = "What is the gist of the second paragraph?"
+        spec["terms"] = [{"term": "gist", "resolution": "defined_on:never-built-sheet"}]
+        # With no sheet list in the context (a pure check), the id is not looked up.
+        self.assertEqual(self.status(spec, "L4", sense=reading), "PASS")
+        sheets = {"ielts-headings-01-theory": {"gist", "heading"}}
+        r = result(spec, "L4", sense=reading, sheet_words=sheets)
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("'gist' (never-built-sheet)", r["detail"])
+        spec["terms"][0]["resolution"] = "defined_on:ielts-headings-01-theory"
+        self.assertEqual(self.status(spec, "L4", sense=reading, sheet_words=sheets), "PASS")
+        r = result(spec, "L4", sense=reading, sheet_words={"ielts-headings-01-theory": {"heading"}})
+        self.assertEqual(r["status"], "FAIL", "the sheet exists but never defines the word")
+        self.assertIn("'gist' (ielts-headings-01-theory)", r["detail"])
+
+    def test_l4_reads_check_hints(self):
+        spec = drills_spec()
+        spec["items"][1]["asks"][0]["check_hint"] = "Write the meaning of 'paraphrase' you used."
+        r = result(spec, "L4")
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("'paraphrase'", r["detail"])
+        spec["terms"] = [{"term": "paraphrase", "resolution": "defined_on:ielts-theory-01"}]
+        self.assertEqual(self.status(spec, "L4", sheet_words={"ielts-theory-01": {"paraphrase"}}), "PASS")
+
     def test_l4_theory_terms_must_be_defined_here(self):
         self.assertEqual(self.status(theory_spec(), "L4"), "PASS")
         spec = theory_spec(terms=[{"term": "paraphrase", "resolution": "defined_on:other-sheet"}])
@@ -459,6 +485,27 @@ class CliLintTests(Base):
         self.assertEqual(sheet_row(self.ws, spec["id"])["lint"], "FAIL")
         b = run(["sheet", "build", SUBJECT, spec["id"], "--format", "md"], ws=self.ws, now=NOW)
         self.assertEqual(b.returncode, 1)
+
+    def test_defined_on_needs_the_sheet_on_file_and_issued_first(self):
+        theory = theory_spec()                     # defines 'paraphrase'
+        spec = drills_spec(title="Paraphrase practice",
+                           terms=[{"term": "paraphrase", "resolution": "defined_on:ielts-theory-01"}])
+        self.assertEqual(new_sheet(self.ws, spec).returncode, 0)
+        r = self.lint(spec["id"])
+        self.assertEqual(r.returncode, 1, "no sheet ielts-theory-01 yet")
+        self.assertIn("'paraphrase' (ielts-theory-01)", self.line(r, "L4"))
+        # Built ahead with its theory (rendered, not issued yet): lint passes ...
+        self.assertEqual(new_sheet(self.ws, theory).returncode, 0)
+        self.assertEqual(self.lint(theory["id"]).returncode, 0)
+        self.assertEqual(run(["sheet", "build", SUBJECT, theory["id"], "--format", "md"], ws=self.ws, now=NOW).returncode, 0)
+        self.assertEqual(self.lint(spec["id"]).returncode, 0)
+        self.assertEqual(run(["sheet", "build", SUBJECT, spec["id"], "--format", "md"], ws=self.ws, now=NOW).returncode, 0)
+        # ... but the drills go out only after the theory.
+        r = run(["sheet", "issue", SUBJECT, spec["id"]], ws=self.ws, now=NOW)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("defined on ielts-theory-01, which is rendered: issue that sheet first", r.stdout + r.stderr)
+        self.assertEqual(run(["sheet", "issue", SUBJECT, theory["id"]], ws=self.ws, now=NOW).returncode, 0)
+        self.assertEqual(run(["sheet", "issue", SUBJECT, spec["id"]], ws=self.ws, now=NOW).returncode, 0)
 
     def test_subject_sense_list_is_read(self):
         from lib import ws as wsmod

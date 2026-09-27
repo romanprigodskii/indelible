@@ -972,8 +972,8 @@ RECORDS = {
             ("check", "a written backwards check beside the answer (put the answer back in, rebuild the total, or test the definition used); required on drills, cold, mixed, diagnostic, mock, checkpoint, review"),
             ("least_sure", "true on every type except theory, external, example, triage: one closing line 'Least sure of: ___'. There are no per-answer confidence marks"),
             ("terms[]", "every sense-list word used on the sheet (code spans and fenced code are not scanned; "
-                        "theory bodies are), with its resolution: defined_here (in theory.words), "
-                        "defined_on:<sheet-id>, glossary (the learner owns it: glossary add), everyday (its plain "
+                        "check hints and theory bodies are), with its resolution: defined_here (in theory.words), "
+                        "defined_on:<sheet-id> (a sheet on file that defines it), glossary (the learner owns it: glossary add), everyday (its plain "
                         "sense; not for a lexicon word) or measured_here (a measuring sheet that tests the word)"),
             ("theory", "{floor[], words[{term, gloss, def}], sections[{kind, title, body}], pages} on theory, external, example, repair"),
             ("unlabelled", "measuring sheets name no topic in titles or labels and, when they hold 2 or more "

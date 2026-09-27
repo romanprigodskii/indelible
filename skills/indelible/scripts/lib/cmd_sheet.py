@@ -632,6 +632,30 @@ def _in_hand_clashes(subj, spec, row):
     return probs
 
 
+def _definitions_not_out(subj, spec):
+    """A word resolved ``defined_on:<id>`` is defined for the learner only once <id> is in
+    their hands: that sheet must be issued (or sat, or graded) first."""
+    status = dict((r.get("id"), r.get("status")) for r in subj.load_sheets())
+    waiting = []
+    for t in spec.get("terms") or []:
+        res = str(t.get("resolution") or "").strip() if isinstance(t, dict) else ""
+        if not res.startswith("defined_on:"):
+            continue
+        target = res[len("defined_on:"):]
+        if target != spec.get("id") and status.get(target) not in ("issued", "sat", "graded") \
+                and target not in waiting:
+            waiting.append(target)
+    out = []
+    for target in waiting:
+        st = status.get(target)
+        if st in EDITABLE:
+            out.append("a word on it is defined on %s, which is %s: issue that sheet first" % (target, st))
+        else:
+            out.append("a word on it is defined on %s, which is %s: resolve the word another way and rebuild "
+                       "this sheet" % (target, st or "not on file"))
+    return out
+
+
 def _issue_checks(ws, subj, spec, row, block_id):
     """Law 4 and Law 3 at the moment of issue: never over the block's budget, never
     a recheck that is not eligible at the time it will be sat, and never a second
@@ -639,6 +663,7 @@ def _issue_checks(ws, subj, spec, row, block_id):
     probs = []
     if spec.get("type") in RESERVE_TYPES:
         probs += _in_hand_clashes(subj, spec, row)
+    probs += _definitions_not_out(subj, spec)
     if block_id:
         budget, basis = lint.budget_for(ws, subj, spec, row, block=block_id)
         try:

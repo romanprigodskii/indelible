@@ -17,9 +17,11 @@ the party whose sizing it checks. A measurement (diagnostic, mock, checkpoint)
 is exempt from the session's question budget, not from its own minutes: its
 block's minutes less the 10 kept for recording (``budget_for``).
 
-L4 terms: code (inline `spans` and fenced blocks) is never scanned; theory
-section bodies are. Resolutions: ``defined_here`` (the word is in
-``theory.words`` on this sheet), ``defined_on:<sheet-id>``, ``glossary`` (the
+L4 terms: code (inline `spans` and fenced blocks) is never scanned; check
+hints and theory section bodies are. Resolutions: ``defined_here`` (the word is
+in ``theory.words`` on this sheet), ``defined_on:<sheet-id>`` (a sheet of this
+subject, not void, that defines the word; ``sheet issue`` waits until that
+sheet is issued), ``glossary`` (the
 word is in data/glossary.jsonl: ``glossary add``), ``everyday`` (used in its
 plain everyday sense; never for a word in the subject lexicon, and never on a
 theory sheet for a word it defines), and ``measured_here`` (a measuring sheet
@@ -361,12 +363,14 @@ def _l3(spec, ctx):
 
 
 def _term_texts(spec):
-    """The texts L4 scans: titles, item text, labels, theory section titles and bodies; code removed."""
+    """The texts L4 scans: titles, item text, labels, check hints, theory section titles and
+    bodies; code removed. A hint is printed under its question, so a word in it is read too."""
     texts = [spec.get("title")]
     texts += [b.get("title") for b in spec.get("blocks") or [] if isinstance(b, dict)]
     for it in _items(spec):
         texts.append(it.get("text"))
         texts += [a.get("label") for a in _asks(it)]
+        texts += [a.get("check_hint") for a in _asks(it)]
     th = spec.get("theory")
     if isinstance(th, dict):
         for sec in th.get("sections") or []:
@@ -397,9 +401,10 @@ def _l4(spec, ctx):
     defined = set(" ".join(_s(w.get("term")).lower().split())
                   for w in th.get("words") or [] if isinstance(w, dict))
     glossary = ctx.get("glossary")
+    sheet_words = ctx.get("sheet_words")
     lexicon = set(ctx.get("lexicon") or [])
     missing = [w for w in used if not resolved.get(w)]
-    unknown, wrong, bad_everyday, bad_measured, not_owned = [], [], [], [], []
+    unknown, wrong, bad_everyday, bad_measured, not_owned, not_there = [], [], [], [], [], []
     for w in used:
         res = resolved.get(w)
         if not res:
@@ -419,6 +424,10 @@ def _l4(spec, ctx):
             wrong.append(w)
         elif res == "glossary" and glossary is not None and w not in glossary:
             not_owned.append(w)
+        elif res.startswith("defined_on:") and sheet_words is not None:
+            target = res[len("defined_on:"):]
+            if w not in (sheet_words.get(target) or ()):
+                not_there.append("'%s' (%s)" % (w, target))
     probs = []
     if missing:
         probs.append("used without a resolution: %s" % _listed(["'%s'" % w for w in missing]))
@@ -440,6 +449,10 @@ def _l4(spec, ctx):
     if not_owned:
         probs.append("marked glossary but not in the learner's glossary (glossary add <subject> <term>): %s"
                      % _listed(["'%s'" % w for w in not_owned]))
+    if not_there:
+        probs.append("defined_on names no sheet of this subject that defines the word (in its theory.words, "
+                     "or a term resolved defined_here); build that sheet first, or resolve it another way: %s"
+                     % _listed(not_there))
     if probs:
         return "FAIL", "; ".join(probs)
     if not used:
@@ -892,6 +905,50 @@ def sitting_time(ws, block_id, now, at=None):
     return now, "now"
 
 
+def _term_key(value):
+    return " ".join(_s(value).lower().split())
+
+
+def _sealed_specs(subject):
+    """[(row, spec)] for this subject's sheets that are not void, read from their sealed specs.
+
+    None when the sheet rows can't be read; a spec that can't be read is left out.
+    """
+    try:
+        rows = subject.load_sheets()
+    except Exception:
+        return None
+    out = []
+    for r in rows:
+        if not isinstance(r, dict) or r.get("status") == "void" or not r.get("id"):
+            continue
+        try:
+            spec = fio.read_json(subject.spec_path(r["id"]))
+        except Exception:
+            continue
+        if isinstance(spec, dict):
+            out.append((r, spec))
+    return out
+
+
+def defined_words(spec):
+    """The words a sheet defines: its ``theory.words`` plus its terms resolved ``defined_here``."""
+    th = spec.get("theory") if isinstance(spec.get("theory"), dict) else {}
+    out = set(_term_key(w.get("term")) for w in th.get("words") or [] if isinstance(w, dict))
+    for t in spec.get("terms") or []:
+        if isinstance(t, dict) and _s(t.get("resolution")).strip() == "defined_here":
+            out.add(_term_key(t.get("term")))
+    out.discard("")
+    return out
+
+
+def _sheet_words(specs):
+    """{sheet id: the words it defines} for L4's ``defined_on:<id>``; None when unknown."""
+    if specs is None:
+        return None
+    return dict((r["id"], defined_words(spec)) for r, spec in specs)
+
+
 def _glossary_terms(subject):
     try:
         rows = subject.load_glossary()
@@ -910,11 +967,13 @@ def gather(ws, subject, spec, row=None, budget_min=None, now=None, block=None, a
     now = now or ws.now()
     block_id = block or (row or {}).get("block") or spec.get("block")
     sit_at, sit_label = sitting_time(ws, block_id, now, at)
+    specs = _sealed_specs(subject)
     return {
         "topics": dict((t["id"], _s(t.get("name")).strip()) for t in subject.topics()),
         "sense": sense_words(cfg),
         "lexicon": set(" ".join(_s(w).lower().split()) for w in _lexicon_terms(cfg.get("lexicon"))),
         "glossary": _glossary_terms(subject),
+        "sheet_words": _sheet_words(specs),
         "block_size": block_size,
         "pace_s": cfg.get("pace_s") if isinstance(cfg.get("pace_s"), dict) else {},
         "budget": budget_for(ws, subject, spec, row, budget_min, block=block_id),
