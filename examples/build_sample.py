@@ -701,7 +701,7 @@ class Builder(object):
             raise SystemExit("build_sample: the script path was not found in CLAUDE.md")
 
     def check_at_sample_clock(self):
-        """brief and plan check at the sample's clock, on a throwaway copy (brief counts opens)."""
+        """brief and plan check at the sample's clock, on a throwaway copy."""
         copy = self.root / "check" / "Study"
         shutil.copytree(str(self.ws), str(copy))
         saved, self.ws = self.ws, copy

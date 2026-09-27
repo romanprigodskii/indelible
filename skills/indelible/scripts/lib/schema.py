@@ -824,7 +824,8 @@ RECORDS = {
             ("status", "built -> linted -> rendered -> issued -> sat -> graded; or void"),
             ("sat", "{start HH:MM, stop HH:MM, date YYYY-MM-DD} from items 0 and N"),
             ("evidence", "filed by scan ingest; required before key open and grading"),
-            ("opens_unsat", "brief opens while the sheet is issued but not yet taken; 2 force a decision"),
+            ("opens_unsat", "session opens (brief --open) while the sheet is issued but not yet taken; 2 force a "
+                            "decision"),
             ("sealed", "a sealed instrument is never edited after issue"),
         ],
     },

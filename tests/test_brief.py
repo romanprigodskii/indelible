@@ -205,22 +205,36 @@ class BriefTests(BriefBase):
         def opens():
             return {s["id"]: s["opens_unsat"] for s in self.jsonl("ielts/data/sheets.jsonl")}
 
-        self.brief()
+        self.brief(NOW, "--open")
         self.assertEqual(opens(), {"ielts-headings-01-drills": 1, "ielts-cold-01": 1, "ielts-old-01": 0})
-        self.brief(now="2026-10-12T09:05+01:00")          # the session-open brief right after the setup brief
+        self.brief("2026-10-12T09:05+01:00", "--open")    # a second session open within 3 h
         self.assertEqual(opens()["ielts-headings-01-drills"], 1)
-        text = self.brief(now="2026-10-14T07:00+01:00")    # the next open
+        text = self.brief("2026-10-14T07:00+01:00", "--open")    # the next open
         self.assertEqual(opens()["ielts-headings-01-drills"], 2)
         learner, claude = self.parts(text)
         self.assertIn("sheet ielts-headings-01-drills (drills) issued", learner)
-        self.assertIn("not taken after 2 opens", learner)
+        self.assertIn("not taken after 2 sessions", learner)
         self.assertIn("a 2-day recheck issued", learner)
         self.assertNotIn("ielts-cold-01", learner)
         self.assertIn("ielts-cold-01", claude)
         # not counted while a session is running
         self.lock("2026-10-16T07:00+01:00", 60, "2026-10-16T08:00+01:00")
-        self.brief(now="2026-10-16T07:10+01:00")
+        self.brief("2026-10-16T07:10+01:00", "--open")
         self.assertEqual(opens()["ielts-headings-01-drills"], 2)
+
+    def test_a_brief_without_open_writes_nothing(self):
+        # Status looks and plan reads run a plain brief: hours apart, they count no open.
+        self.put("ielts/data/sheets.jsonl", [self.sheet("ielts-headings-01-drills")])
+        sheets = self.ws / "ielts" / "data" / "sheets.jsonl"
+        before = sheets.read_bytes()
+        for now in (NOW, "2026-10-12T13:00+01:00", "2026-10-12T20:00+01:00", "2026-10-13T07:00+01:00"):
+            learner, claude = self.parts(self.brief(now))
+            self.assertNotIn("not taken", learner)
+            self.assertNotIn("NOT TAKEN", claude)
+        data = json.loads(self.ind("brief", "ielts", "--json", now="2026-10-14T07:00+01:00").stdout)
+        self.assertEqual(data["opens_counted"], 0)
+        self.assertEqual(sheets.read_bytes(), before)
+        self.assertFalse((self.s / ".indelible" / "opens.json").exists())
 
     def test_missed_blocks_are_computed_read_only(self):
         rows = [
@@ -274,7 +288,7 @@ class BriefTests(BriefBase):
         self.put("ielts/data/sheets.jsonl", [self.sheet("ielts-headings-01-drills")])
         self.set_cfg("subjects", [{"id": "ielts", "dir": "ielts", "state": "shadow", "priority": 1,
                                    "target_weekly_min": 240, "min_weekly_min": None}])
-        text = self.brief()
+        text = self.brief(NOW, "--open")
         self.assertTrue(text.startswith("SHADOW (read-only)"))
         self.assertEqual(self.jsonl("ielts/data/sheets.jsonl")[0]["opens_unsat"], 0)
         self.assertEqual(self.ind("session", "open", "ielts", "--planned", "60").returncode, 1)
@@ -440,11 +454,11 @@ class IntegrationTests(BriefBase):
         def opens():
             return self.jsonl("ielts/data/sheets.jsonl")[0]["opens_unsat"]
 
-        self.brief()
-        self.brief(now="2026-10-14T07:00+01:00")
+        self.brief(NOW, "--open")
+        self.brief("2026-10-14T07:00+01:00", "--open")
         self.assertEqual(opens(), 0)
-        self.assertNotIn("not taken", self.brief(now="2026-10-14T20:00+01:00"))
-        self.brief(now="2026-10-15T07:05+01:00")
+        self.assertNotIn("not taken", self.brief("2026-10-14T20:00+01:00", "--open"))
+        self.brief("2026-10-15T07:05+01:00", "--open")
         self.assertEqual(opens(), 1)
 
     def test_plan_tokens_never_reach_a_plain_learner_raw(self):

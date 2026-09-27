@@ -34,14 +34,14 @@ When time runs short, cut in this order: new theory, then the second drill block
 
 Ask one question at a time (Law 9). The learner may answer "skip" at steps 2, 3 and 7.
 
-### Step 1: `ind brief <s>`, the only read
+### Step 1: `ind brief <s> --open`, the only read
 
-The brief is at most 4,500 characters. Handle each section like this:
+`--open` counts this as a session open for step 3. Every other brief (status, planning, a review) runs without it and changes nothing. The brief is at most 4,500 characters. Handle each section like this:
 
 - **FLAGS,** in this order:
   - An unclosed session: close it first ([close.md](close.md)). This takes at most 10 minutes and is logged as late.
   - `missed?` blocks: step 2.
-  - A sheet issued and not taken after 2 opens: step 3.
+  - A sheet issued and not taken after 2 session opens: step 3.
   - Quarantined lines: tell the learner in one line ("A few lines in your record couldn't be read. They're kept aside and nothing is lost.") and edit nothing.
   - An armed safeguard that is due: one line, then handle it in the weekly review ([review.md](review.md)).
 - **NOW/NEXT** gives today's plan. **DUE** gives the size of the recheck. **TO-DO:** anything due today or overdue gets one line in the opener.
@@ -66,7 +66,7 @@ Only if the answer is "skipped", ask in the next message: "What got in the way: 
 - **Never ask** about soft blocks, and never ask anything in on-demand mode.
 - **Two planned blocks missed in a row:** offer the three choices once: re-plan, pause this subject until a date, or "I know, ask me later" ([plan.md](plan.md)).
 
-### Step 3: a sheet issued and not taken after two opens
+### Step 3: a sheet issued and not taken after two session opens
 
 > Tuesday's paraphrase drills haven't been done yet. Sit them now, or drop that sheet?
 

@@ -368,11 +368,11 @@ Invoke as `python3 <skill>/scripts/indelible.py <command> ...`. Every command ac
 
 ### 7.2 Brief, due, views (`cmd_brief.py`)
 
-**`brief [subject] [--json]`** is the ONLY thing read at session open. It is at most 4,500 characters and truncates with `+N more (run: due <subject> --list)`. Sections, in order, each omitted when empty:
+**`brief [subject] [--open] [--json]`** is the ONLY thing read at session open. It is at most 4,500 characters and truncates with `+N more (run: due <subject> --list)`. Sections, in order, each omitted when empty:
 
 ```
 <Title> · <profile> · <date or "no date"> (<N days left>)
-FLAGS: unclosed session S-… (started …) | missed? blocks … | sheet … issued, not sat after 2 opens | quarantine lines | armed safeguard due …
+FLAGS: unclosed session S-… (started …) | missed? blocks … | sheet … issued, not taken after 2 sessions | quarantine lines | armed safeguard due …
 NOW/NEXT: today's blocks and the next block (kind, time, content)
 DUE: cold serves eligible now: 1 · errors due: 3 beliefs repaired, 2 slips, 1 shaky · untreated beliefs needing repair: 2
 TO-DO (≤3 days): L-0004 Register for … (due Tue 20:00)
@@ -386,7 +386,7 @@ BELIEFS DUE: E-ielts-0031 T04 "reads 'albeit' as 'because'" (rung 1) …
 
 In either vocabulary, a 2-day recheck above the line is counted or named by its time, never by its topics: the topics ready now are in RECHECK NOW below the line, and a recheck still to book shows its block id only (`plan list` has its topics). BELIEFS DUE and OTHER DUE list every mistake due by date. One that can't be served yet (its topic seen in the last 24 h, or an untreated mistake on the topic) ends with `not now: <reason>`, as in `due --list`. `error repair` logs a repair exposure, so a repaired mistake is served no earlier than 24 h after the repair, even when its due date comes first.
 
-Opening a brief also increments `opens_unsat` for every issued sheet that isn't sat.
+A brief without `--open` writes nothing. `brief <subject> --open`, run only at session open (session-open step 1), counts a session open: it increments `opens_unsat` for every issued sheet that isn't sat (at most once per subject in 3 hours, never while its session runs, and not for a sheet whose block hasn't started). At 2, FLAGS asks for a decision.
 
 **`due [subject] [--list] [--json]`:** counts by default. `--list` lists cold-eligible topics and due errors by tier:
 1. cold re-serves in their window;

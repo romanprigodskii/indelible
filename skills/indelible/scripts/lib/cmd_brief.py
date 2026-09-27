@@ -1,6 +1,6 @@
 """Brief, due and the generated views.
 
-    brief [subject] [--json]
+    brief [subject] [--open] [--json]
     due [subject] [--list] [--json]
     render [subject|all] [--force]
 
@@ -12,11 +12,12 @@ so with ``learner.vocab = plain`` it uses plain words and never shows an
 In either vocabulary a 2-day recheck is only counted above the line, never
 named: its topics go below the line (RECHECK NOW).
 
-Opening a brief increments ``opens_unsat`` on every issued sheet that is not
-yet taken. One open is counted per subject in any 3-hour span, and never
-while that subject's session is running, so the skill's setup brief and the
-session-open brief count once. A sheet issued ahead for a block that has not
-started yet is not counted until that block starts.
+A plain ``brief`` writes nothing, so a status look or a plan read changes no
+record. ``brief <subject> --open``, run only at session open, counts a session
+open: it increments ``opens_unsat`` on every issued sheet that is not yet
+taken. One open is counted per subject in any 3-hour span, and never while
+that subject's session is running. A sheet issued ahead for a block that has
+not started yet is not counted until that block starts.
 
 ``render`` regenerates ``<subject>/views/{brief,progress,errors,log}.md``,
 ``views/week.md`` and the generated section of each CLAUDE.md. A file edited
@@ -91,6 +92,8 @@ OPEN_BLOCK_STATUSES = ("planned", "synced")
 def register(subparsers):
     p = subparsers.add_parser("brief", help="the session-open summary (the only thing read at open)")
     p.add_argument("subject", nargs="?", default=None, help="subject id (default: the current or only subject)")
+    p.add_argument("--open", action="store_true",
+                   help="count this as a session open (session-open step 1 only); without it, brief writes nothing")
     p.add_argument("--json", action="store_true", help="machine-readable output")
     p.set_defaults(func=cmd_brief)
 
@@ -751,7 +754,7 @@ def brief_sections(ws, subj, now, sheets=None):
                 name = "a 2-day recheck"
             else:
                 name = "sheet %s (%s)" % (s.get("id"), s.get("type") or "?")
-            flags.append("%s%s, not taken after %d opens" % (name, ago, int(s.get("opens_unsat") or 0)))
+            flags.append("%s%s, not taken after %d sessions" % (name, ago, int(s.get("opens_unsat") or 0)))
         if unsat:
             cflags.append(Section("NOT TAKEN (sit now, or sheet void):", [s.get("id") or "?" for s in unsat],
                                   more="sheet show %s --status issued" % sid))
@@ -1091,7 +1094,7 @@ def cmd_brief(args):
              if args.json else text)
         return 0
     counted = 0
-    if state != "shadow":
+    if args.open and state != "shadow":
         try:
             with ws.lock():
                 counted = count_open(ws, subj, now)
