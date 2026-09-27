@@ -370,6 +370,19 @@ def is_cold_eligible(topic, t, exposures, errors, window=None, first_serve=True)
     return cold_eligibility(topic, t, exposures, errors, window, first_serve)["eligible"]
 
 
+def window_closes(topic, t, exposures, window=None):
+    """When the first 2-day recheck window of ``topic`` closes, seen at time t.
+
+    It is the last warm exposure at or before t, plus window[1] elapsed hours
+    (the same rule as cold_eligibility and the level rules). None when the
+    topic has no exposure on record.
+    """
+    last = last_exposure(topic, exposures, before=t)
+    if last is None:
+        return None
+    return dates.plus(last, hours=_window(window)[1])
+
+
 FIRST_SERVE_KINDS = ("teach", "review")
 
 

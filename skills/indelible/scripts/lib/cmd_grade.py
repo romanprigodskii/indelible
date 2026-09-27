@@ -464,6 +464,19 @@ def cmd_grade_record(args):
         subj.save_topics_state(merged)
         changes = learning.level_changes(topics_state, levels)
 
+        # A first recheck sat outside its window is a late recheck: the level
+        # rules ignore it for level 3, but it still uses up the first serve.
+        late = []
+        if is_cold_sheet:
+            lo, hi = subj.cold_window()
+            for t in served:
+                ih = interval_cache.get(t)
+                if ih is None or lo <= ih <= hi or not learning.is_first_serve(topics_state.get(t)):
+                    continue
+                if learning.level_rank((levels.get(t) or {}).get("level")) >= 3:
+                    continue  # the pass confirmed a 3p level, which needs no window
+                late.append((t, ih))
+
     # ---- report (never anything from the key)
     n = len(attempts)
     pts = sum(a["score"] for a in attempts)
@@ -500,6 +513,10 @@ def cmd_grade_record(args):
         dirty = [a["ask"] for a in attempts if a.get("contaminated")]
         out("Not counted (seen too recently, in the 24 h before the sitting): %s on %s. Its 2-day recheck "
             "stays open." % (", ".join(dirty), ", ".join(contaminated_topics)))
+    for t, ih in late:
+        out("Not counted toward level 3: %s was sat at %s h, outside its %s–%s h window. Treat it as a late "
+            "recheck [measured] and book a fresh one from now (plan.md §7)." % (t, fmt_num(ih), fmt_num(lo),
+                                                                               fmt_num(hi)))
     for note in notes:
         out("Note: " + note)
     return 0

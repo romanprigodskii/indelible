@@ -36,6 +36,7 @@ from pathlib import Path
 from lib import CheckFailed, UsageError, dates, learning, lint, render, schema
 from lib import io as fio
 from lib import ws as wsmod
+from lib.cmd_brief import fmt_when
 
 EDITABLE = ("built", "linted", "rendered")
 SEALED = ("issued", "sat", "graded", "void")
@@ -527,7 +528,38 @@ def cmd_issue(args):
         row["issued_at"] = _now_iso(ws)
         _save_row(subj, rows, i, row)
     _out("%s issued%s" % (args.id, (" for block %s" % block_id) if block_id else ""))
+    if spec.get("type") == "cold":
+        for line in _start_by_lines(ws, subj, spec):
+            _out(line)
     return 0
+
+
+def _start_by_lines(ws, subj, spec):
+    """For each first-serve ``cold:`` topic of a recheck, the latest start that still
+    counts: its window closes 44–72 h (cold_window_h) after its last warm exposure,
+    and the level rules judge the sitting by its start time."""
+    now = ws.now()
+    exposures = subj.load_exposures()
+    topics_state = subj.load_topics_state()
+    window = subj.cold_window()
+    found = []
+    for it in spec.get("items") or []:
+        origin = str((it or {}).get("origin") or "") if isinstance(it, dict) else ""
+        if not origin.startswith("cold:"):
+            continue
+        topic = origin[len("cold:"):]
+        if topic in [t for t, _ in found]:
+            continue
+        state = topics_state.get(topic)
+        if not learning.is_first_serve(state) or not learning.has_first_serve_basis(topic, exposures, state):
+            continue
+        closes = learning.window_closes(topic, now, exposures, window)
+        if closes is not None:
+            found.append((topic, closes.astimezone(now.tzinfo)))
+    found.sort(key=lambda x: x[1])
+    lo, hi = window
+    return ["Start by %s: the %s–%s h window of %s closes then (a later start is a late recheck and can't "
+            "raise mastery)." % (fmt_when(closes, now), _num(lo), _num(hi), topic) for topic, closes in found]
 
 
 def _issue_checks(ws, subj, spec, row, block_id):

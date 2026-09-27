@@ -381,15 +381,16 @@ LAST SESSIONS: 3 lines from sessions.jsonl
 PACE: seconds per question by layer (if measured)
 NOTES: the subject CLAUDE.md sections "Learner notes", "Do not calibrate on" and "Overrides" (≤25 lines)
 -- for Claude, do not read aloud --
+RECHECK NOW: T01 Matching headings (71 h, window closes today 07:29, CLOSING)
 BELIEFS DUE: E-ielts-0031 T04 "reads 'albeit' as 'because'" (rung 1) …
 ```
 
-In either vocabulary, a 2-day recheck above the line is counted or named by its time, never by its topics: the topics ready now are in RECHECK NOW below the line, and a recheck still to book shows its block id only (`plan list` has its topics). BELIEFS DUE and OTHER DUE list every mistake due by date. One that can't be served yet (its topic seen in the last 24 h, or an untreated mistake on the topic) ends with `not now: <reason>`, as in `due --list`. `error repair` logs a repair exposure, so a repaired mistake is served no earlier than 24 h after the repair, even when its due date comes first.
+In either vocabulary, a 2-day recheck above the line is counted or named by its time, never by its topics: the topics ready now are in RECHECK NOW below the line, and a recheck still to book shows its block id only (`plan list` has its topics). RECHECK NOW gives each topic's hours since its last warm exposure, cut rather than rounded (71.5 h reads 71 h), and the time its window closes (last warm exposure + `cold_window_h[1]`); a window closing within 30 minutes adds `CLOSING`. BELIEFS DUE and OTHER DUE list every mistake due by date. One that can't be served yet (its topic seen in the last 24 h, or an untreated mistake on the topic) ends with `not now: <reason>`, as in `due --list`. `error repair` logs a repair exposure, so a repaired mistake is served no earlier than 24 h after the repair, even when its due date comes first.
 
 A brief without `--open` writes nothing. `brief <subject> --open`, run only at session open (session-open step 1), counts a session open: it increments `opens_unsat` for every issued sheet that isn't sat (at most once per subject in 3 hours, never while its session runs, and not for a sheet whose block hasn't started). At 2, FLAGS asks for a decision.
 
 **`due [subject] [--list] [--json]`:** counts by default. `--list` lists cold-eligible topics and due errors by tier:
-1. cold re-serves in their window;
+1. cold re-serves in their window, each with its hours since the last warm exposure and the time its window closes (`CLOSING` within 30 minutes; `--json` gives `closes_at`);
 2. repaired beliefs that are due;
 3. shaky items;
 4. the oldest due;
@@ -501,7 +502,7 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
   - Renders through the chain: typst, then Chrome/Edge headless on the HTML (PDF), then HTML, then Markdown. It uses the backend recorded by `doctor`, or tries in order.
   - Output goes to `sheets/YYYY-MM/<id>.<ext>`, and the source `.typ` or `.html` is kept beside it.
   - Sets `status=rendered` and `files`. Prints the path.
-- **`sheet issue <subject> <id> [--block ID]`:** sets `status=issued` and `issued_at`, and links the block.
+- **`sheet issue <subject> <id> [--block ID]`:** sets `status=issued` and `issued_at`, and links the block. For a `cold` sheet it prints, for each first-serve `cold:` topic, the latest start that still counts: `Start by <time>: the 44–72 h window of T01 closes then …` (the level rules judge a sitting by its start).
 - **`sheet sat <subject> <id> [--start HH:MM] [--stop HH:MM] [--date YYYY-MM-DD]`:** sets `status=sat` and `sat.*` (the date defaults to today).
 - **`sheet void <subject> <id> --reason TEXT`**
 - **`sheet show <subject> [--status S]`:** lists the sheets.
@@ -558,7 +559,8 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
   - the unnamed-wrong count;
   - the errors created (ids only);
   - the level changes;
-  - the cold obligations passed.
+  - the cold obligations passed;
+  - on a `cold` sheet, for each first-serve topic sat outside its window (and not confirming a 3p level): `Not counted toward level 3: T01 was sat at 72.1 h, outside its 44–72 h window. Treat it as a late recheck …`.
 - **For a `cold:<topic>` item on a measuring sheet** (a `cold` sheet, or a `words` recheck): closes the topic's cold obligation block (`status=done`) if one is open, and sets `last_cold`. On a practice sheet it closes nothing and sets nothing, and a note says the booked recheck stays open.
 
 **Other commands:**

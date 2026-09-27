@@ -57,6 +57,7 @@ OPEN_DEDUPE_H = 3.0
 UNCLOSED_AFTER_H = 2.0
 REENTRY_GAP_DAYS = 5
 OPENS_FORCE = 2
+CLOSING_MIN = 30          # a recheck window closing this soon is marked CLOSING
 
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -378,7 +379,8 @@ def due_state(subj, now):
     tier 1 ``cold``: topics whose first 2-day recheck is eligible now (only
     topics with teaching on record: ``taught_at``, a ``teach`` exposure, or the
     ``review`` set that confirms a 3p topic; a topic that was only measured or
-    only repaired is never recheck material);
+    only repaired is never recheck material), each with ``closes``, the time
+    its window closes (a sitting that starts later is a late recheck);
     tier 2 ``beliefs``: repaired beliefs due; tier 3 ``shaky``; tier 4
     ``oldest``: every other due error, oldest first; tier 5 ``untreated``:
     beliefs that need repair (never cold material). Within a tier, errors the
@@ -400,7 +402,9 @@ def due_state(subj, now):
             continue
         res = learning.cold_eligibility(t["id"], now, exposures, errors, window, first_serve=True)
         if res["eligible"]:
-            cold.append({"topic": t["id"], "name": names[t["id"]], "hours": res["hours"]})
+            closes = learning.window_closes(t["id"], now, exposures, window)
+            cold.append({"topic": t["id"], "name": names[t["id"]], "hours": res["hours"],
+                         "closes": closes.astimezone(now.tzinfo) if closes is not None else None})
     cold.sort(key=lambda c: -(c["hours"] or 0.0))
     today = now.date()
     live = [dict(e) for e in errors if e.get("status") in ("untreated", "spacing", "reopened")]
@@ -462,6 +466,32 @@ def due_counts_items(st, plain):
         if c["untreated"]:
             items.append("untreated beliefs needing repair: %d" % c["untreated"])
     return items
+
+
+def _closes_text(c, now):
+    """``window closes today 07:29`` for a recheck ready now (empty when unknown).
+
+    A window closing within 30 minutes adds CLOSING: build and issue that
+    recheck first, and have the learner start before that time, or it becomes
+    a late recheck.
+    """
+    closes = c.get("closes")
+    if closes is None:
+        return ""
+    text = "window closes %s" % fmt_when(closes, now)
+    if closes - now <= timedelta(minutes=CLOSING_MIN):
+        text += ", CLOSING"
+    return text
+
+
+def _recheck_line(c, now):
+    """``T01 Matching headings (71 h, window closes today 07:29)``: hours are cut, never
+    rounded up, so 71.5 h reads 71 h."""
+    inner = ["%d h" % int(c["hours"] or 0)]
+    closes = _closes_text(c, now)
+    if closes:
+        inner.append(closes)
+    return "%s %s (%s)" % (c["topic"], c["name"], ", ".join(inner))
 
 
 def _err_line(e, names, with_reason=False):
@@ -960,8 +990,8 @@ def brief_sections(ws, subj, now, sheets=None):
         claude.insert(1, Section("", text=clip("TIME ZONE: " + tz_warn, 300)))
     if st:
         if st["cold"]:
-            claude.append(Section("RECHECK NOW:", ["%s %s (%.0f h)" % (c["topic"], c["name"], c["hours"] or 0)
-                                                   for c in st["cold"]], more="due %s --list" % sid))
+            claude.append(Section("RECHECK NOW:", [_recheck_line(c, now) for c in st["cold"]],
+                                  more="due %s --list" % sid))
         if st["beliefs"]:
             claude.append(Section("BELIEFS DUE:", [_err_line(e, st["names"], with_reason=True) for e in st["beliefs"]],
                                   more="due %s --list" % sid))
@@ -1126,7 +1156,8 @@ def cmd_due(args):
                     "next_due": e.get("next_due"), "named_least_sure": bool(e.get("named_least_sure")),
                     "eligible_now": e.get("_eligible", False), "reason": e.get("_reason")}
         out = {"subject": subj.id, "now": dates.fmt_iso(now), "counts": st["counts"],
-               "tiers": {"1_cold": [{"topic": c["topic"], "name": c["name"], "hours": round(c["hours"] or 0, 1)}
+               "tiers": {"1_cold": [{"topic": c["topic"], "name": c["name"], "hours": round(c["hours"] or 0, 1),
+                                     "closes_at": dates.fmt_iso(c["closes"]) if c.get("closes") else None}
                                     for c in st["cold"]],
                          "2_repaired_beliefs": [err(e) for e in st["beliefs"]],
                          "3_shaky": [err(e) for e in st["shaky"]],
@@ -1144,7 +1175,9 @@ def cmd_due(args):
     names = st["names"]
     _out("1. 2-day rechecks in their window (%d–%d h after the last exposure):" % (window[0], window[1]))
     for c in st["cold"] or []:
-        _out("   %s %s · %.0f h since last seen" % (c["topic"], c["name"], c["hours"] or 0))
+        closes = _closes_text(c, now)
+        _out("   %s %s · %d h since last seen%s" % (c["topic"], c["name"], int(c["hours"] or 0),
+                                                    (" · " + closes) if closes else ""))
     if not st["cold"]:
         _out("   none")
     for n, key, title in ((2, "beliefs", "fixed mistakes due"), (3, "shaky", "shaky answers due"),
