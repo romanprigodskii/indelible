@@ -12,7 +12,9 @@ the block's start: a recheck built at the previous close is judged at the time
 it will be sat, not at build time. ``sheet issue`` checks both again. L5 also
 recomputes the builder's own estimate from the subject's ``pace_s``
 (``pace_floor``) and fails a lower ``est_min``, since the estimate is written by
-the party whose sizing it checks.
+the party whose sizing it checks. A measurement (diagnostic, mock, checkpoint)
+is exempt from the session's question budget, not from its own minutes: its
+block's minutes less the 10 kept for recording (``budget_for``).
 
 L4 terms: code (inline `spans` and fenced blocks) is never scanned; theory
 section bodies are. Resolutions: ``defined_here`` (the word is in
@@ -69,6 +71,7 @@ RECHECK_TYPES = ("cold", "mixed")
 VERBAL_LAYERS = ("verbal", "reading")
 MIN_LEAK_LEN = 3
 BUDGET_FRACTION = 0.8
+RECORD_MIN = 10     # a measurement block holds the exam clock plus 10–15 minutes to record (measure.md §4)
 MAX_LISTED = 6
 
 # L10: a hint that sends the learner to search for their own mistake, re-solve
@@ -451,10 +454,16 @@ def pace_floor(spec, pace_s=None):
     return secs / 60.0 + 1
 
 
+def over_budget_fix(stype):
+    """What to do about a sheet over its budget: a measurement is split or given a longer block, never cut."""
+    if stype in BUDGET_EXEMPT:
+        return ("a measurement is not cut to fit: split a part Claude wrote into sittings (measure.md §3), "
+                "or book an official paper a block of its length plus 10–15 min")
+    return "cut questions"
+
+
 def _l5(spec, ctx):
     t = spec.get("type")
-    if t in BUDGET_EXEMPT:
-        return "PASS", "measurement: sized by the exam clock"
     budget, basis = ctx.get("budget") or (None, None)
     try:
         est_f = float(spec.get("est_min"))
@@ -470,7 +479,8 @@ def _l5(spec, ctx):
         return "PASS", "no budget known (pass --budget-min)"
     if est_f <= budget + 1e-9:
         return "PASS", "~%s min within %s min (%s)" % (_num(est_f), _num(round(budget, 1)), basis)
-    return "FAIL", "~%s min is over the budget of %s min (%s)" % (_num(est_f), _num(round(budget, 1)), basis)
+    return "FAIL", "~%s min is over the budget of %s min (%s): %s" % (_num(est_f), _num(round(budget, 1)), basis,
+                                                                     over_budget_fix(t))
 
 
 def _l6(spec, ctx):
@@ -761,18 +771,39 @@ def format_line(r):
 # ==========================================================================
 
 def budget_for(ws, subject, spec, row=None, budget_min=None, block=None):
-    """(minutes or None, basis) for L5."""
+    """(minutes or None, basis) for L5 and the issue check.
+
+    ``--budget-min`` wins. Else the linked block: 0.8 × its minutes, or, for a
+    measurement (diagnostic, mock, checkpoint), its minutes less the RECORD_MIN
+    it keeps for recording (measure.md §4: the exam clock plus 10–15 minutes).
+    Else 0.8 × the default session; a measurement never uses that, and a mock or
+    checkpoint falls back to the exam's own minutes (``format.minutes``).
+    """
     if budget_min is not None:
         return float(budget_min), "--budget-min %s" % _num(budget_min)
+    measuring = spec.get("type") in BUDGET_EXEMPT
     block_id = block or (row or {}).get("block") or spec.get("block")
     if block_id:
         b = ws.get_block(block_id)
         if b and b.get("start") and b.get("end"):
             try:
                 minutes = dates.minutes_between(b["start"], b["end"])
-                return BUDGET_FRACTION * minutes, "0.8 × block %s of %s min" % (block_id, _num(round(minutes)))
             except ValueError:
-                pass
+                minutes = None
+            if minutes is not None and measuring:
+                return max(minutes - RECORD_MIN, 0.0), "block %s of %s min, less %d to record" % (
+                    block_id, _num(round(minutes)), RECORD_MIN)
+            if minutes is not None:
+                return BUDGET_FRACTION * minutes, "0.8 × block %s of %s min" % (block_id, _num(round(minutes)))
+    if measuring:
+        if spec.get("type") in ("mock", "checkpoint"):
+            try:
+                exam = (subject.load().get("format") or {}).get("minutes")
+            except Exception:
+                exam = None
+            if isinstance(exam, (int, float)) and not isinstance(exam, bool) and exam > 0:
+                return float(exam), "the exam's %s min (format.minutes)" % _num(exam)
+        return None, None
     try:
         length = (ws.load_config().get("session") or {}).get("length_min")
     except Exception:

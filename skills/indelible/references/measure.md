@@ -51,7 +51,7 @@ Item rules (lint L2, L3 and L9 enforce the first three):
 
 - **When:** the learner's clear window, first block of the day, the exam's time of day where possible, never within 3 hours after another measurement. Book it with `ind plan add <subject> --kind diagnostic --start ISO --min N --protected --measurement` (or `--kind mock`, `--kind checkpoint`); `ind plan check` fails a 3-hour clash.
 - **How:** paper, closed book, no notes, only the exam's tools. Accommodations apply; extra time scales the clock.
-- **Size:** the exam clock (or the part's minutes) plus 10–15 minutes to record. Exempt from the question budget; no breaks the exam doesn't have.
+- **Size:** the exam clock (or the part's minutes) plus 10–15 minutes to record. Exempt from the question budget, not from its own minutes: lint L5 and `ind sheet issue` refuse a sheet whose estimate is over its block's minutes less 10 (or `--budget-min`). Then split a part Claude wrote into sittings (§3); an official paper is never cut, so book it a longer block. No breaks the exam doesn't have.
 - **Open:** `ind session open <subject> --planned N --block <B> --kind diagnostic`, then hand the sheet over and issue it: `ind sheet issue <subject> <id> --block <B>`. No teaching, and no hints before evidence is filed.
 - **Say once:** "This is triage, not a verdict. A few questions per topic give a rough picture, and we'll measure again. 'I don't know' is always an accepted answer." To a question mid-sitting: "Write your best try or 'I don't know'; we'll look after marking."
 - **Overrides** (late, tired, soon after another test): `ind session override <subject> "<their words>" --predict "<items>"`, and state the confound beside the result ("taken 1 h after another test").

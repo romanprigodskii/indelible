@@ -177,8 +177,19 @@ class RuleTests(Base):
         r = result(drills_spec(est_min=87), "L5")
         self.assertEqual(r["status"], "FAIL")
         self.assertIn("over the budget", r["detail"])
-        self.assertEqual(self.status(drills_spec(est_min=87, type="mock"), "L5"), "PASS")
         self.assertEqual(self.status(drills_spec(est_min=20), "L5", budget=(16.0, "block")), "FAIL")
+
+    def test_l5_a_measurement_keeps_to_its_own_minutes(self):
+        mock = drills_spec(est_min=87, type="mock")
+        self.assertEqual(self.status(mock, "L5", budget=(165.0, "the exam's 165 min (format.minutes)")), "PASS")
+        r = result(mock, "L5", budget=(55.0, "--budget-min 55"))
+        self.assertEqual(r["status"], "FAIL", "an explicit budget binds a measurement too")
+        self.assertIn("over the budget of 55 min", r["detail"])
+        self.assertIn("split a part Claude wrote into sittings", r["detail"])
+        self.assertNotIn("cut questions", r["detail"])
+        self.assertEqual(self.status(drills_spec(est_min=87, type="diagnostic"), "L5", budget=None), "PASS")
+        # The pace floor holds on a measurement: 6 verbal questions are 8.5 minutes, not 3.
+        self.assertEqual(self.status(drills_spec(est_min=3, type="diagnostic"), "L5", budget=None), "FAIL")
 
     def test_l5_the_estimate_is_checked_against_the_pace(self):
         spec = drills_spec(est_min=1)
@@ -549,6 +560,36 @@ class CliLintTests(Base):
         r = self.lint(spec2["id"])
         self.assertEqual(r.returncode, 1)
         self.assertIn("B-20261012-ielts-1", self.line(r, "L5"))
+
+    def plan_block(self, kind, start, minutes):
+        r = run(["plan", "add", SUBJECT, "--kind", kind, "--start", start, "--min", str(minutes)],
+                ws=self.ws, now=NOW)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        return r.stdout.split()[0]
+
+    def test_a_measurement_keeps_to_its_blocks_minutes_at_lint_and_issue(self):
+        bid = self.plan_block("diagnostic", "2026-10-13T07:00+01:00", 60)
+        spec = drills_spec("ielts-diagnostic-02", est_min=90, type="diagnostic", blocks=[])
+        self.assertEqual(new_sheet(self.ws, spec, extra=["--block", bid]).returncode, 0)
+        r = self.lint(spec["id"])
+        self.assertEqual(r.returncode, 1)
+        l5 = self.line(r, "L5")
+        self.assertIn("over the budget of 50 min (block %s of 60 min, less 10 to record)" % bid, l5)
+        self.assertIn("split a part Claude wrote into sittings", l5)
+        r = self.lint(spec["id"], "--budget-min", "55")
+        self.assertIn("over the budget of 55 min", self.line(r, "L5"))
+        # Linted against a longer part, it is still refused at issue into the 60-minute block.
+        self.assertEqual(self.lint(spec["id"], "--budget-min", "100").returncode, 0)
+        self.assertEqual(run(["sheet", "build", SUBJECT, spec["id"], "--format", "md"], ws=self.ws, now=NOW).returncode, 0)
+        r = run(["sheet", "issue", SUBJECT, spec["id"], "--block", bid], ws=self.ws, now=NOW)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("over the budget of 50 min", r.stdout + r.stderr)
+        self.assertNotIn("cut questions", r.stdout + r.stderr)
+        self.assertEqual(sheet_row(self.ws, spec["id"])["status"], "rendered")
+        # A mock with no block keeps to the exam's own minutes (persona A: 165).
+        mock = drills_spec("ielts-mock-01", est_min=170, type="mock", blocks=[])
+        self.assertEqual(new_sheet(self.ws, mock).returncode, 0)
+        self.assertIn("over the budget of 165 min (the exam's 165 min", self.line(self.lint(mock["id"]), "L5"))
 
     def test_the_pace_floor_reads_the_subjects_pace(self):
         from lib import ws as wsmod

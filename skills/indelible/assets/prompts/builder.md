@@ -94,7 +94,7 @@ Never print, echo, `cat` or summarise the answers file. Never put an answer in a
 
 0. `IND sheet show <SUBJECT>`. If SHEET exists as `built`, `linted` or `rendered` (an earlier failed build), reuse it with `--replace` in step 1. If it is `issued` or later, take the next free NN (the number before the type, for a theory and its drills) and use it everywhere.
 1. `IND sheet new <SUBJECT> <SHEET> --spec <tmp>/<SHEET>.spec.json --answers <tmp>/<SHEET>.answers.json`. It prints `<SHEET> built: N questions, ~M min, key sealed sha256:…` and deletes the answers file.
-2. `IND sheet lint <SUBJECT> <SHEET> --budget-min <BUDGET_MIN>`. On any FAIL: fix the spec, write the answers file again, re-run step 1 with `--replace`, and lint again. At most 3 fix rounds. Fix WARN lines too where you can. If L7 refuses an item, drop it and take the next SERVE entry that fits; if L5 fails, cut from the end of SERVE.
+2. `IND sheet lint <SUBJECT> <SHEET> --budget-min <BUDGET_MIN>`. On any FAIL: fix the spec, write the answers file again, re-run step 1 with `--replace`, and lint again. At most 3 fix rounds. Fix WARN lines too where you can. If L7 refuses an item, drop it and take the next SERVE entry that fits; if L5 fails, cut from the end of SERVE. On a diagnostic, mock or checkpoint, cut nothing: return FAILED with the L5 line, so the part is split into sittings or given a longer block.
 3. `IND sheet build <SUBJECT> <SHEET>`, adding `--format <FORMAT>` unless FORMAT is default. It prints the path.
 
 Never run `sheet issue`: the main conversation issues the sheet when it hands it over (BLOCK is for the budget only).

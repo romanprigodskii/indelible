@@ -639,15 +639,17 @@ def _issue_checks(ws, subj, spec, row, block_id):
     probs = []
     if spec.get("type") in RESERVE_TYPES:
         probs += _in_hand_clashes(subj, spec, row)
-    if block_id and spec.get("type") not in BUDGET_EXEMPT:
+    if block_id:
         budget, basis = lint.budget_for(ws, subj, spec, row, block=block_id)
         try:
             est = float(spec.get("est_min"))
         except (TypeError, ValueError):
             est = None
         if budget is not None and est is not None and est > budget + 1e-9:
-            probs.append("~%s min is over the budget of %s min (%s): cut questions and rebuild it"
-                         % (_num(est), _num(round(budget, 1)), basis))
+            fix = lint.over_budget_fix(spec.get("type")) if spec.get("type") in BUDGET_EXEMPT else \
+                "cut questions and rebuild it"
+            probs.append("~%s min is over the budget of %s min (%s): %s"
+                         % (_num(est), _num(round(budget, 1)), basis, fix))
     if spec.get("type") == "cold":
         results = lint.run(ws, subj, spec, row, block=block_id)
         for r in results:
