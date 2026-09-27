@@ -597,7 +597,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
   - **title:** `<Subject title> · <kind in plain words> · <min>m`. A cold block's title never names a topic: it reads `2-day recheck (mixed)`.
   - **notes** (≤600 characters): 3–6 steps, what stays closed, a fallback, and `Start: open Claude in <ws> and say "start <subject>"`, plus the marker `[ind:<block-id>]` on the first line.
 - **`cal ack --from results.json`:** takes a list of `{"block","provider","id","etag","start"}` rows, sets `cal`, and sets `status=synced` (or `cancelled` stays).
-- **`cal ics <out.ics> [--from DATE] [--to DATE] [--subject S]`** writes an RFC 5545 VCALENDAR (the output path must be inside the workspace; any other path is refused with exit 1):
+- **`cal ics <out.ics> [--from DATE] [--to DATE] [--subject S]`** writes an RFC 5545 VCALENDAR (the output path must be `<ws>/plan/ics/<name>.ics`; any other path is refused with exit 2 and nothing is written):
   - one VEVENT per timed, non-cancelled block;
   - `UID=<block-id>@indelible`, `DTSTAMP` and `DTSTART`/`DTEND` in UTC (`Z`);
   - `SUMMARY` = the title, `DESCRIPTION` = the notes (escaped), `SEQUENCE` = the move count;

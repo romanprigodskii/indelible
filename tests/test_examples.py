@@ -14,7 +14,7 @@ sure it keeps working with the current CLI:
       python3 examples/build_sample.py --force
 
 Two README promises a reviewer checks are tested here too, on the sample: the
-scripts write nothing outside the workspace (`cal ics` refuses another place,
+scripts write nothing outside the workspace (`cal ics` refuses any place but plan/ics/,
 and `sheet new` deletes an answers file only inside the subject's tmp folder),
 and a browser started for PDFs is kept off the network by its flags.
 
@@ -222,6 +222,19 @@ class ScriptsStayInTheWorkspace(SampleBase):
         inside = self.ws / "plan" / "ics" / "inside.ics"
         self.cli("cal", "ics", inside)
         self.assertTrue(inside.is_file())
+
+    def test_cal_ics_refuses_any_place_but_plan_ics(self):
+        """README: "a calendar .ics file goes in its plan/ics/ folder, and the scripts refuse any other place"."""
+        attempts = self.ws / SUBJECT / "data" / "attempts.jsonl"
+        key = sorted((self.ws / SUBJECT / ".indelible" / "keys").glob("*.json"))[0]
+        before = {attempts: attempts.read_bytes(), key: key.read_bytes()}
+        for target in (attempts, key, self.ws / "views" / "x.ics", self.ws / "plan" / "ics" / "study.txt"):
+            r = self.cli("cal", "ics", target, code=2)
+            self.assertIn("plan/ics/", r.stderr + r.stdout)
+            if target in before:
+                self.assertEqual(target.read_bytes(), before[target], "a refused path is left byte for byte")
+            else:
+                self.assertFalse(target.exists())
 
     def test_sheet_new_leaves_an_answers_file_outside_tmp(self):
         spec = json.loads((self.ws / SUBJECT / ".indelible" / "specs" / "ielts-headings-01-drills.json")

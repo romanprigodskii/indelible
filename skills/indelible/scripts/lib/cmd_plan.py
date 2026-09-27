@@ -227,7 +227,7 @@ def register(subparsers):
     a.add_argument("--from", dest="from_file", required=True, metavar="FILE", help="JSON file, or - for stdin")
     a.set_defaults(func=cmd_cal_ack)
     a = csp.add_parser("ics", help="write an RFC 5545 .ics file of the timed blocks")
-    a.add_argument("out", help="output .ics path")
+    a.add_argument("out", help="output path: <ws>/plan/ics/<name>.ics (any other place is refused)")
     a.add_argument("--from", dest="from_date", default=None, metavar="DATE", help="first day (default: today)")
     a.add_argument("--to", dest="to_date", default=None, metavar="DATE", help="last day (default: no limit)")
     a.add_argument("--subject", default=None)
@@ -1760,6 +1760,10 @@ def cmd_cal_ics(args):
     if not _inside(out, ws.root):
         raise UsageError("Refused: the scripts write only inside the workspace. Write the .ics there "
                          "(e.g. %s); the learner imports it from that folder" % ws.rel(ws.ics_dir / out.name))
+    # Inside the workspace, only plan/ics/*.ics: a wrong path must never overwrite a record or a key.
+    if out.suffix.lower() != ".ics" or out.resolve().parent != ws.ics_dir.resolve():
+        raise UsageError("Refused: an .ics file goes only in the workspace's plan/ics/ folder. Write it as %s; "
+                         "the learner imports it from that folder" % ws.rel(ws.ics_dir / ((out.stem or "study") + ".ics")))
     if args.subject:
         ws.subject(args.subject)
     d0 = parse_day(args.from_date, "--from") if args.from_date else ctx.now.date()

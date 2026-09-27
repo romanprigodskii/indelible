@@ -2,6 +2,12 @@
 
 All notable changes to this project are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- **`cal ics` writes only `plan/ics/<name>.ics`.** Before, any path inside the workspace was accepted, so a wrong path could overwrite `data/attempts.jsonl` or a sealed key with no backup. Any other place, or a name without `.ics`, is now refused (exit 2) and nothing is written, as the README says.
+
 ## [0.1.5] - 2026-09-28
 
 The learner is never sent to find their own mistake.
