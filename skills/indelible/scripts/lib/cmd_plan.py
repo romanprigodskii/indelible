@@ -1199,6 +1199,21 @@ def _blocked_spans(ctx, d0, d1):
     return out
 
 
+def _window_blocked(ctx, w):
+    """True when no moment of a recheck window (from now on) is free of time.blocked."""
+    t, end = max(w[0], ctx.now), w[1]
+    if end <= t:
+        return True
+    for a, z, _ in sorted(_blocked_spans(ctx, t.date() - timedelta(days=1), end.date()), key=lambda x: x[0]):
+        if a > t:
+            return False      # a gap before this span
+        if z > t:
+            t = z
+        if t >= end:
+            return True
+    return t >= end
+
+
 def _window_spans(ctx, d):
     out = []
     wd = dates.WEEKDAYS[d.weekday()]
@@ -1272,7 +1287,15 @@ def run_checks(ctx, blocks):
     for s, e, b in future:
         for a, z, what in _blocked_spans(ctx, s.date() - timedelta(days=1), e.date()):
             if overlaps(s, e, a, z):
-                if z - a >= timedelta(hours=23):
+                w = cold_window_for(ctx, b, by_id) if b.get("kind") == "cold" else None
+                if w is not None and _window_blocked(ctx, w):
+                    # A recheck moves only inside its window, and none of it is left.
+                    fix = ("no time is left in its window (%s): plan cancel %s --reason \"window lost\", add a to-do "
+                           "for a late recheck first at the next session, and apply the late-recheck rule then "
+                           "(plan.md §7 and §11)" % (window_text(w), b["id"]))
+                elif w is not None:
+                    fix = "move it inside its window (%s): plan move %s --start ISO" % (window_text(w), b["id"])
+                elif z - a >= timedelta(hours=23):
                     fix = "move it to another day: plan move %s --start ISO" % b["id"]
                 else:
                     fix = "plan move %s --start %s (after %s)" % (b["id"], iso(z), what)

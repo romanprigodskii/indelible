@@ -373,5 +373,49 @@ class LateRecheckTests(TimingCase):
         self.assertNotIn("[practice]", r.stdout)
 
 
+# ==========================================================================
+# Sick days over a recheck window (persona-journeys-4)
+# ==========================================================================
+
+class SickDaysTests(TimingCase):
+    """Wed 14 Oct 20:00: the learner is sick on Thu 15 (and maybe Fri 16). T01's recheck is booked Thu 07:00."""
+
+    NOW = "2026-10-14T20:00+01:00"
+    BID = "B-20261015-ielts-2"
+
+    def setUp(self):
+        TimingCase.setUp(self)
+        self.teach()
+        window = {"from": "2026-10-15T03:29+01:00", "to": "2026-10-16T07:29+01:00"}
+        self.save_blocks([
+            self.cold_block(self.BID, "2026-10-15T07:00+01:00", "2026-10-15T07:15+01:00", window=window),
+            dict(self.cold_block("B-20261015-ielts-1", "2026-10-15T07:15+01:00", "2026-10-15T08:00+01:00"),
+                 kind="repair", content="fix mistakes", protected=False),
+        ])
+
+    def sick(self, day):
+        self.cli(["set", "root", "time.blocked.+", json.dumps({"date": day, "what": "sick"})])
+
+    def fixes(self):
+        data = json.loads(self.cli(["plan", "check", "--json"], code=1).stdout)
+        return dict((r["block"], r["fix"]) for r in data["findings"] if r["rule"] == "blocked")
+
+    def test_a_recheck_whose_whole_window_is_sick_days_is_cancelled_not_moved(self):
+        self.sick("2026-10-15")
+        self.sick("2026-10-16")
+        fixes = self.fixes()
+        self.assertEqual(fixes[self.BID],
+                         "no time is left in its window (Thu 15 Oct 03:29 – Fri 16 Oct 07:29): plan cancel %s "
+                         "--reason \"window lost\", add a to-do for a late recheck first at the next session, and apply "
+                         "the late-recheck rule then (plan.md §7 and §11)" % self.BID)
+        self.assertEqual(fixes["B-20261015-ielts-1"], "move it to another day: plan move B-20261015-ielts-1 --start ISO")
+
+    def test_a_recheck_with_time_left_in_its_window_is_moved_inside_it(self):
+        self.sick("2026-10-15")
+        self.assertEqual(self.fixes()[self.BID], "move it inside its window (Thu 15 Oct 03:29 – Fri 16 Oct 07:29): "
+                                                 "plan move %s --start ISO" % self.BID)
+        self.cli(["plan", "move", self.BID, "--start", "2026-10-16T07:00+01:00"])
+
+
 if __name__ == "__main__":
     unittest.main()

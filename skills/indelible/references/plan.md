@@ -175,6 +175,8 @@ The brief flags the safeguard on Mon 26 Oct, a week before the final, and [revie
 ## 11. Quick recipes
 
 - **"I missed Thursday":** section 7.
-- **"Sick till Monday":** add each day (`ind set root time.blocked.+ '{"date":"2026-10-14","what":"sick"}'`), move (don't cancel) the affected blocks, rechecks first, then check and preview.
+- **"Sick till Monday":** add each day (`ind set root time.blocked.+ '{"date":"2026-10-14","what":"sick"}'`), then move the affected blocks (don't cancel them), rechecks first and inside their windows.
+  - **A recheck whose whole window falls on the sick days** can't move, and `ind plan check` says so. Cancel it and put the late recheck on the to-do list: `ind plan cancel <B> --reason "sick: window lost"`, then `ind ledger add owed --subject <s> --by claude --what "Late 2-day recheck first at the next session (plan.md §7): cancelled recheck <B>" --due <first session back>`. The to-do names the block, never its topic, since the TO-DO line may be read aloud; `ind plan list --subject <s>` shows that block's topics. At that session apply §7's late-recheck rule, then `ind ledger close` the to-do.
+  - **Preview line:** "Thursday's 2-day recheck can't happen in time; it becomes a short check on your first day back." Then check and preview. If slack drops below zero, re-baseline (section 8).
 - **A new weekly commitment:** add `{"days":["Wed"],"from":"18:00","to":"20:00","what":"class"}` to `time.blocked` the same way, move what clashes, and re-baseline if slack drops below zero.
 - **"Fewer hours this week":** apply the drop order, say what goes, keep the protected pairs.
