@@ -167,6 +167,56 @@ class OpenStatusTests(SessionBase):
         r = self.ind("session", "status", "ielts", now="2026-10-12T09:30+01:00")
         self.assertEqual(len(r.stdout.strip().splitlines()), 1, r.stdout)
 
+    def test_extend_records_the_one_extension(self):
+        r = self.ind("session", "extend", "ielts", "--min", "10")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("nothing to extend", r.stdout)
+        self.open_session(60)                                   # 09:00-10:00, close starts 09:55
+        r = self.ind("session", "extend", "ielts", "--min", "16", now="2026-10-12T09:55+01:00")
+        self.assertEqual(r.returncode, 1, "over min(15, a quarter of 60)")
+        self.assertIn("cap of 15 min", r.stdout)
+        self.assertNotIn("extension_min", self.lock())
+        self.assertEqual(self.ind("session", "extend", "ielts", "--min", "0").returncode, 2)
+
+        r = self.ind("session", "extend", "ielts", "--min", "15", now="2026-10-12T09:55+01:00")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("until 10:15", r.stdout)
+        lock = self.lock()
+        self.assertEqual(lock["extension_min"], 15)
+        self.assertEqual(lock["extended_end"], "2026-10-12T10:15+01:00")
+        self.assertEqual(lock["close_start"], "2026-10-12T10:10+01:00")
+        self.assertEqual(lock["planned_min"], 60, "the overrun still counts the extension")
+        self.assertEqual(lock["planned_end"], "2026-10-12T10:00+01:00")
+
+        # no "closing time" during the extension, only at its close start
+        r = self.ind("session", "status", "ielts", now="2026-10-12T10:02+01:00")
+        self.assertEqual(r.stdout.strip(), "[indelible] 62/60 min · extension until 10:15 · close starts 10:10 · "
+                                           "questions so far 0")
+        r = self.ind("session", "status", "ielts", now="2026-10-12T10:11+01:00")
+        self.assertIn("closing time", r.stdout)
+
+        r = self.ind("session", "extend", "ielts", "--min", "5", now="2026-10-12T10:12+01:00")
+        self.assertEqual(r.returncode, 1, "one extension per session, at most")
+        self.assertIn("already extended once", r.stdout)
+        self.assertEqual(self.lock()["extension_min"], 15)
+
+        # unclosed counts from the extended end: 12:10 is within 2 h of 10:15
+        r = self.ind("session", "status", "ielts", now="2026-10-12T12:10+01:00")
+        self.assertNotIn("not closed", r.stdout)
+        r = self.ind("session", "status", "ielts", now="2026-10-12T12:20+01:00")
+        self.assertIn("not closed", r.stdout)
+        r = self.close(now="2026-10-12T10:14+01:00")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        row = self.jsonl("ielts/data/sessions.jsonl")[-1]
+        self.assertEqual(row["overrun_min"], 14)
+
+    def test_extension_cap_follows_the_config(self):
+        r = self.ind("set", "root", "session.extension_max_min", "5")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.open_session(60)
+        self.assertEqual(self.ind("session", "extend", "ielts", "--min", "6").returncode, 1)
+        self.assertEqual(self.ind("session", "extend", "ielts", "--min", "5").returncode, 0)
+
     def test_open_refuses_over_an_unclosed_lock(self):
         self.open_session(60)
         r = self.ind("session", "open", "ielts", "--planned", "60", now="2026-10-12T13:00+01:00")

@@ -40,9 +40,10 @@ Law 4 has two moments: a warning 10 minutes before the planned end, and one ques
 ```
 
 - No answer within about a minute: close. For a learner who prefers few questions (Learner notes), skip the question and close; they can still say "extend" after the warning.
-- **At the planned end** (a timer may fire): if an extension is running, say when it ends ("Extension until 08:15, then closing"). Otherwise the close should already be under way; if it isn't, start it now.
+- **At the planned end** (a timer may fire): if an extension is running (`ind session status` shows "extension until"), say when it ends ("Extension until 08:15, then closing"). Otherwise the close should already be under way; if it isn't, start it now.
 - **One extension per session, at most.** When it runs out, close; never offer a second one.
-- **Extension length** = min(`session.extension_max_min` from `indelible.json` (default 15, never over 30), 0.25 × planned minutes, next fixed start − 15 − planned end).
+- **Record it at once.** On a yes (or under the `extend` standing choice), run `ind session extend <subject> --min <N>`. It moves the close start by N minutes, makes `ind session status` show "extension until 08:15", and refuses a second extension or one over the first two caps below. Where a timer tool is in use, set one at the new close start it prints.
+- **Extension length** = min(`session.extension_max_min` from `indelible.json` (default 15, never over 30), 0.25 × planned minutes, next fixed start − 15 − planned end). `ind session extend` enforces the first two; the next fixed start is yours to check.
   - The next fixed start is the earliest of: the next block of any subject (`ind plan list --from <today> --to <today>`); a `time.blocked` entry; 30 minutes before bedtime.
   - Persona A: min(15, 15, 09:00 work − 15 − 08:00 = 45) = 15 minutes.
 - **If the extension comes to 0 or less,** the options are "close now" or "shift the next block". Shifting needs a yes: then `ind plan move <block-id> --start <ISO>`. If that block is in the learner's calendar, follow [calendar.md](calendar.md) before writing anything there.
@@ -97,7 +98,7 @@ Start at the close start from the lock (after the extension, if one was taken). 
 2. **Every topic taught today** has had `ind session taught <subject> <topic>`.
    - For a scheduled learner, place each new recheck in the first session inside its window, as [plan.md](plan.md) describes (`ind plan place`), then run `ind plan check`.
    - For an on-demand learner, leave it unplaced; the close message names the window.
-3. **Every promise made today** ("I'll…", "we'll do it next time") has `ind ledger add owed --subject <s> --what "<text>" --due <ISO>`.
+3. **Every promise made today** ("I'll…", "we'll do it next time") already has its to-do, written when it was made. Check with `ind ledger list --kind owed --open --subject <s>`, and add any that is missing: `ind ledger add owed --subject <s> --what "<text>" --due <ISO>`.
 4. **An overrun over 20%** is logged (§2).
 
 Then run:

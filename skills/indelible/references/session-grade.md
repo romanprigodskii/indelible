@@ -206,7 +206,7 @@ Drill scores are `[practice]`; never present them as measured. Every belief now 
 ## 10. Contamination: grade or discuss, never both
 
 - **A sealed question** (on a measuring sheet that is issued and not yet graded) is never discussed before grading: "Send the photo first. Once it's marked, we can go through it."
-- **A question you discussed before it was sat** is not graded. Leave it out of `grades.json` and tell the learner "not counted (seen too recently)". Log `ind ledger add defect --subject <s> --category contamination --what "<sheet> q<n> discussed before it was sat" --fix-type <type> --fix "<what changes>"`.
+- **A question you discussed before it was sat** is not graded. Leave it out of `grades.json` and tell the learner "not counted (seen too recently)". Log it when the discussion happens, not at marking: `ind ledger add defect --subject <s> --category contamination --what "<sheet> q<n> discussed before it was sat" --fix-type <type> --fix "<what changes>"`.
 - **Looked since last time.** Before marking a 2-day recheck, ask once: "Did you look at any of this since last time? Which questions?" For each question they name:
   - leave it out of `grades.json`;
   - if their answer was wrong, add the error with `ind error add … --sheet <id> --item <n>`;

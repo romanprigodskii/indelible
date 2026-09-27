@@ -1020,8 +1020,12 @@ RECORDS = {
                     "planned_end": "2026-10-15T08:00+01:00", "close_start": "2026-10-15T07:55+01:00",
                     "block": "B-20261015-ielts-1", "kind": "teach"},
         "notes": [
-            ("close_start", "planned_end - close minutes (2 if planned <= 30, 5 if <= 75, else 8)"),
-            ("unclosed", "the lock exists and now > planned_end + 2 h, or .indelible/unclosed exists"),
+            ("close_start", "planned_end - close minutes (2 if planned <= 30, 5 if <= 75, else 8); an extension "
+                            "moves it by its minutes"),
+            ("extension_min", "written by session extend, the one extension (Law 4), with extended_end = planned_end "
+                              "+ extension_min; planned_min stays, so the overrun counts it"),
+            ("unclosed", "the lock exists and now > planned_end (extended_end after an extension) + 2 h, or "
+                         ".indelible/unclosed exists"),
         ],
     },
 }

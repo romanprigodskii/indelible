@@ -2,14 +2,22 @@
 
     session open [subject] --planned MIN [--block ID] [--kind K] [--park-other]
     session status [subject]
+    session extend [subject] --min N
     session expose <subject> <topic> [--kind chat|teach|repair|drill|review]
     session taught <subject> <topic> [--by sheet|external|chat|tutor] [--block ID]
     session override <subject> "<said>" --predict "<items>"
     session close [subject] [--note TEXT] [--defer REASON]
 
 The lock is ``<subject>/.indelible/session.lock``. A lock is *unclosed* when
-now is more than 2 h past its planned end, or ``.indelible/unclosed`` exists
-(written when the learner parks the subject to study another one).
+now is more than 2 h past its planned end (its extended end after ``session
+extend``), or ``.indelible/unclosed`` exists (written when the learner parks
+the subject to study another one).
+
+``session extend`` records the session's one extension (Law 4) in the lock:
+``extension_min`` and ``extended_end``, with the close start moved by the same
+minutes. ``planned_min`` stays, so the overrun still counts the extension. A
+second extension, or one over min(``session.extension_max_min`` (default 15,
+at most 30), a quarter of the planned minutes), is refused.
 
 ``session close`` runs checks C1-C9 about the session since the lock start
 and prints one PASS, FAIL or INFO line per check. C2 does not ask for the
@@ -45,6 +53,7 @@ DEFER_DUE_H = 24
 C2_OWED_H = 24
 C5_HORIZON_H = 12
 PLANNED_MIN, PLANNED_MAX = 5, 720
+EXTENSION_DEFAULT_MIN, EXTENSION_MAX_MIN = 15, 30   # close.md §2: session.extension_max_min, never over 30
 OPEN = brief.OPEN_BLOCK_STATUSES
 VERDICT_WORDS = (("right", "right"), ("half", "half"), ("wrong", "wrong"), ("dont_know", "don't know"),
                  ("skip", "skipped"))
@@ -52,7 +61,7 @@ VERDICT_WORDS = (("right", "right"), ("half", "half"), ("wrong", "wrong"), ("don
 
 def register(subparsers):
     p = subparsers.add_parser("session", help="the session lock, exposures and the close checklist")
-    sp = p.add_subparsers(dest="session_cmd", metavar="<open|status|expose|taught|override|close>")
+    sp = p.add_subparsers(dest="session_cmd", metavar="<open|status|extend|expose|taught|override|close>")
 
     o = sp.add_parser("open", help="write the session lock and print the budget")
     o.add_argument("subject", nargs="?", default=None)
@@ -66,6 +75,11 @@ def register(subparsers):
     s = sp.add_parser("status", help="minutes used, close start, questions so far, and the sheets out")
     s.add_argument("subject", nargs="?", default=None)
     s.set_defaults(func=cmd_status)
+
+    x = sp.add_parser("extend", help="record the session's one extension: moves the close start and the end")
+    x.add_argument("subject", nargs="?", default=None)
+    x.add_argument("--min", dest="minutes", type=int, required=True, metavar="N", help="minutes of extension")
+    x.set_defaults(func=cmd_extend)
 
     e = sp.add_parser("expose", help="record that a topic was taught or discussed outside a sheet")
     e.add_argument("subject")
@@ -238,15 +252,60 @@ def cmd_status(args):
         return 0
     elapsed = max(0, int((now - lk["_start"]).total_seconds() // 60))
     q = len(_attempts_since(subj, lk["_start"], now, lk.get("session_id")))
-    cs = lk["_close_start"]
-    line = "[indelible] %d/%d min · close starts %s · questions so far %d" % (
-        elapsed, int(lk["_planned_min"]), cs.strftime("%H:%M") if cs else "?", q)
+    cs = lk["_close_start"]   # moved by an extension, so "closing time" waits for it
+    ext = (" · extension until %s" % lk["_end"].strftime("%H:%M")) if lk["_end"] > lk["_planned_end"] else ""
+    line = "[indelible] %d/%d min%s · close starts %s · questions so far %d" % (
+        elapsed, int(lk["_planned_min"]), ext, cs.strftime("%H:%M") if cs else "?", q)
     if cs is not None and now >= cs:
         line += " · closing time"
     _out(line)
     out = _sheets_out(subj, now)
     if out:
         _out("[indelible] sheets out: " + " · ".join(out))
+    return 0
+
+
+def _extension_cap(cfg, planned_min):
+    """The longest extension allowed: min(session.extension_max_min (default 15, at most 30),
+    a quarter of the planned minutes). close.md §2 adds the next fixed start, which Claude checks."""
+    mx = (cfg.get("session") or {}).get("extension_max_min")
+    if not isinstance(mx, int) or isinstance(mx, bool):
+        mx = EXTENSION_DEFAULT_MIN
+    return max(0, min(mx, EXTENSION_MAX_MIN, int(float(planned_min or 0) * 0.25)))
+
+
+def cmd_extend(args):
+    ws = wsmod.from_args(args)
+    subj = ws.resolve_subject(args.subject)
+    _require_writable(ws, subj)
+    n = args.minutes
+    if n < 1:
+        raise UsageError("--min must be at least 1 minute (got %d)" % n)
+    now = brief.now_in(ws)
+    cfg = ws.load_config()
+    with ws.lock():
+        lk = brief.session_lock_state(subj, now)
+        if lk is None:
+            raise CheckFailed("No session is open for %s, so there is nothing to extend." % subj.id)
+        if lk["_unclosed"]:
+            raise CheckFailed("Refused: the session for %s that started %s was not closed. Close it now: "
+                              "session close %s" % (subj.title(), brief.fmt_when(lk["_start"], now), subj.id))
+        if lk.get("extension_min"):
+            raise CheckFailed("Refused: this session was already extended once (%s min, until %s). One extension "
+                              "per session, at most: close when it runs out. Nothing was changed."
+                              % (lk.get("extension_min"), lk["_end"].strftime("%H:%M")))
+        cap = _extension_cap(cfg, lk["_planned_min"])
+        if n > cap:
+            raise CheckFailed("Refused: %d min is over this session's cap of %d min: min(session.extension_max_min, "
+                              "%d, a quarter of the planned %d min). Nothing was changed."
+                              % (n, cap, EXTENSION_MAX_MIN, int(lk["_planned_min"])))
+        end = dates.plus(lk["_planned_end"], minutes=n)
+        cstart = dates.plus(lk["_close_start"] or lk["_planned_end"], minutes=n)
+        lock = subj.read_session_lock() or {}
+        lock.update({"extension_min": n, "extended_end": _fmt(end), "close_start": _fmt(cstart)})
+        subj.write_session_lock(lock)
+    _out("Extension: %d min, until %s · close starts %s. It is this session's only extension." % (
+        n, end.strftime("%H:%M"), cstart.strftime("%H:%M")))
     return 0
 
 
@@ -789,7 +848,7 @@ def _session_row(ws, subj, lk, now, note, status, todos, sheets):
         if acts:
             end, source = max(acts).astimezone(tz), "last_activity"
         else:
-            end, source = min(lk["_planned_end"], now), "planned"
+            end, source = min(lk["_end"], now), "planned"
     elapsed = max(0, int(round((end - start).total_seconds() / 60.0)))
     P = int(lk["_planned_min"] or 0)
     block = ws.get_block(lk.get("block")) if lk.get("block") else None
@@ -868,7 +927,7 @@ def cmd_close(args):
                 "every 'tomorrow' or 'later' gets ledger add owed with a due time before the close",
                 "script", "session close turns the promise into a to-do due in 24 h (check C6 with --defer)", now))
         if late:
-            hours = max(0.0, (now - lk["_planned_end"]).total_seconds() / 3600.0)
+            hours = max(0.0, (now - lk["_end"]).total_seconds() / 3600.0)
             defects.append(_log_defect(
                 ws, subj, "late_close", "the session of %s was closed %.0f h after its planned end"
                 % (brief.fmt_when(lk["_start"]), hours),

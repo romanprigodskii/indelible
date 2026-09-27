@@ -279,11 +279,13 @@ A topic's cold passes are not stored: the level rules find them in `attempts.jso
 ### 6.2 Session lock (`<subject>/.indelible/session.lock`)
 
 ```json
-{"session_id":"S-ielts-0012","start":"...","planned_min":60,"planned_end":"...","close_start":"...","block":"B-...","kind":"teach"}
+{"session_id":"S-ielts-0012","start":"...","planned_min":60,"planned_end":"...","close_start":"...","block":"B-...","kind":"teach",
+ "extension_min":15,"extended_end":"..."}
 ```
 
 - `close_start = planned_end − close_minutes`, where close_minutes is 2 if planned ≤30, 5 if ≤75, otherwise 8.
-- **Unclosed** means the lock exists and now > planned_end + 2h, or the file `.indelible/unclosed` exists.
+- **The one extension** (Law 4): `session extend` adds `extension_min` and `extended_end = planned_end + extension_min`, and moves `close_start` later by the same minutes. `planned_min` and `planned_end` stay, so `overrun_min` still counts the extension. Both fields are absent until then.
+- **Unclosed** means the lock exists and now > planned_end (or `extended_end`, when set) + 2h, or the file `.indelible/unclosed` exists.
 
 ### 6.3 Budget (session open)
 
@@ -410,6 +412,7 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
   - Refuses (exit 1) if that subject is locked and not stale, and says to carry that session on after reading `session status` and the open `owed` rows (it may be running in another chat). If another subject is locked, it prints a warning with the other lock and proceeds only with `--park-other`, which writes that subject's `.indelible/unclosed`.
   - Writes the lock and prints the budget (§6.3).
 - **`session status <subject>`:** one line, e.g. `[indelible] 47/60 min · close starts 07:55 · questions so far 38`. Questions so far are the asks graded since the start. When sheets are out (status `issued` or `sat`), a second line lists them, oldest issue first, by id, type and issue time: `[indelible] sheets out: ielts-cold-02 (cold, issued today 07:04) · ielts-headings-01-drills (drills, taken, not graded)`. It never names a recheck's topics.
+- **`session extend <subject> --min N`:** records the session's one extension in the lock (§6.2) and prints the new end and close start. Refuses (exit 1) with no open session, an unclosed one, a second extension, or N over min(`session.extension_max_min` (default 15, at most 30), ⌊0.25 × planned_min⌋); N < 1 is a usage error (exit 2). The third cap in close.md §2 (the next fixed start) is Claude's to check. While an extension runs, `session status` adds `· extension until HH:MM`, and "closing time" waits for the moved close start.
 - **`session expose <subject> <topic> [--kind chat]`:** appends an exposure. Used whenever something is taught or discussed outside a sheet. For a topic still waiting for its first recheck, the window counts from the last warm exposure (§6.4), so it moves every open cold block of that topic alone (not placed, or placed later) to [now + `cold_window_h[0]`, now + `cold_window_h[1]`] (`basis: exposure`), prints the new window, and WARNs for a placed recheck now outside it.
 - **`session taught <subject> <topic> [--by sheet|external|chat|tutor] [--block ID]`**
   - Appends a `teach` exposure.

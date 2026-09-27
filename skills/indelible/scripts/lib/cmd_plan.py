@@ -935,7 +935,7 @@ def missed_ids(ctx, blocks):
         lock = ctx.session_lock(sid)
         if lock:
             ls = _local(lock.get("start"), tz)
-            le = _local(lock.get("planned_end"), tz)
+            le = _local(lock.get("extended_end") or lock.get("planned_end"), tz)
             if ls is not None:
                 rows.append((ls, max(now, le) if le is not None else now))
             if lock.get("block"):

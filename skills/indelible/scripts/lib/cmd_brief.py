@@ -291,9 +291,10 @@ def session_span(row, tz):
 def session_lock_state(subj, now):
     """The subject's session lock with parsed times, or None.
 
-    Adds ``_start``, ``_planned_end``, ``_close_start``, ``_planned_min``,
-    ``_parked`` and ``_unclosed`` (lock older than planned end + 2 h, or the
-    ``.indelible/unclosed`` flag).
+    Adds ``_start``, ``_planned_end``, ``_end`` (the extended end after
+    ``session extend``, else the planned end), ``_close_start``,
+    ``_planned_min``, ``_parked`` and ``_unclosed`` (lock older than its end
+    + 2 h, or the ``.indelible/unclosed`` flag).
     """
     lock = subj.read_session_lock()
     if lock is None:
@@ -314,11 +315,13 @@ def session_lock_state(subj, now):
     cstart = to_local(lock.get("close_start"), tz)
     if cstart is None and pmin:
         cstart = learning.close_start(start, pmin).astimezone(tz)
+    end = to_local(lock.get("extended_end"), tz) if lock.get("extension_min") else None
+    end = end if end is not None and end > pend else pend
     parked = subj.unclosed_path.exists()
     info.update({
-        "_start": start, "_planned_end": pend, "_close_start": cstart, "_planned_min": pmin,
+        "_start": start, "_planned_end": pend, "_end": end, "_close_start": cstart, "_planned_min": pmin,
         "_parked": parked,
-        "_unclosed": parked or now > pend + timedelta(hours=UNCLOSED_AFTER_H),
+        "_unclosed": parked or now > end + timedelta(hours=UNCLOSED_AFTER_H),
     })
     return info
 
@@ -343,7 +346,7 @@ def missed_blocks(ws, subj, blocks, sessions, now, lock=None):
             sess_blocks.add(r["block"])
         spans.append(session_span(r, tz))
     if lock is not None:
-        spans.append((lock["_start"], lock["_planned_end"] if lock["_unclosed"] else now))
+        spans.append((lock["_start"], lock["_end"] if lock["_unclosed"] else now))
         if lock.get("block"):
             sess_blocks.add(lock["block"])
     out = []

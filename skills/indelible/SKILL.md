@@ -105,7 +105,8 @@ Sheets, check lines, the checker (lint), keys and evidence are covered in [sheet
 - **Keys live in `<subject>/.indelible/keys/`.** Never read, grep or list that folder yourself. `ind key open` is the only way in.
 - **Notes (`notes/`) are append-only** and are never read at session open.
 - **Size caps** keep every session cheap: the brief is at most 4,500 characters, a subject's `CLAUDE.md` at most 80 lines, and one log line at most 200 characters. `ind compact` runs at close.
-- **After a context compaction,** re-read the current command's reference before continuing.
+- **Write session facts when they happen, not at the close.** A promise goes to `ind ledger add owed` as it is made (law 5); an agreed extension to `ind session extend`; anything explained in chat to `ind session expose <s> <T> --kind chat` at once; a sealed question that got discussed gets its contamination defect at once ([session-grade.md](references/session-grade.md) §10). What is only in the chat is lost at a context compaction.
+- **After a context compaction,** re-read the current command's reference, then rebuild the state with `ind session status <s>` (the time, any extension and the sheets out) and `ind ledger list --kind owed --open --subject <s>`.
 
 ## Surfaces
 
