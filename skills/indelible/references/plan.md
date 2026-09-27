@@ -40,7 +40,7 @@ In v0.1 you propose the blocks and the CLI stores and validates them. There is n
    - **No:** cancel the blocks you added (`--reason "learner said no"`) and ask what would work.
 
 **Placing a recheck.** Blocks may not overlap and the recheck opens the session, so it is its own block at the start of the slot: `ind plan place <obligation> --start <slot start> --min <m>`, then `ind plan move <session block> --start <slot start + m> --min <N − m>`. If the slot carries nothing else, place the recheck for the whole slot. v0.1 can't attach a recheck to an existing block.
-- **The session** opens on the session block: `ind session open <s> --block <session block> --planned <whole slot>`. Grading the recheck closes the recheck block.
+- **The session** opens on the session block: `ind session open <s> --block <session block> --planned <whole slot>`. Every sheet of the session, the recheck included, is issued against the session block; grading the recheck closes the recheck block.
 - **Calendar:** show the pair as one preview line ("Thu 07:00: the session now opens with a 15-min 2-day recheck"). A connector gets one new item and one move. With an `.ics` file, ask for no hand edit: the imported item still covers the slot, and the recheck opens every session anyway. Acknowledge both blocks against that item, so the diff stops offering them: `ind cal ack` rows `{"block":"<recheck id>","provider":"ics","id":"<session block id>@indelible","etag":null,"start":"<recheck start>"}` and the same `id` for the session block with its new start.
 
 ## 2. Schedule modes (`time.schedule`)

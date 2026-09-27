@@ -7,7 +7,8 @@ budget, exposures, errors, the sealed key, and the time the sheet will be
 sat). ``run(...)`` does both.
 
 When the sheet is linked to a block (``sheet new/lint --block``, or the
-sheet row's block), L5 uses that block's minutes and L7 judges the recheck at
+sheet row's block), L5 uses that block's minutes, less the other sheets on it,
+and L7 judges the recheck at
 the block's start: a recheck built at the previous close is judged at the time
 it will be sat, not at build time. ``sheet issue`` checks both again. L5 also
 recomputes the builder's own estimate from the subject's ``pace_s``
@@ -770,12 +771,49 @@ def format_line(r):
 # Context from the workspace
 # ==========================================================================
 
+def _block_siblings(subject, block_id, sheet_id):
+    """(minutes, ids) of the other sheets linked to a block and not void: graded ones
+    too, since a sheet already marked in the block used its minutes."""
+    try:
+        rows = subject.load_sheets()
+    except Exception:
+        return 0.0, []
+    total, ids = 0.0, []
+    for r in rows:
+        if r.get("block") != block_id or r.get("id") == sheet_id or r.get("status") == "void":
+            continue
+        est = r.get("est_min")
+        if isinstance(est, bool) or not isinstance(est, (int, float)):
+            continue
+        total += float(est)
+        ids.append(r.get("id"))
+    return total, ids
+
+
+def _session_minutes(subject, block_id):
+    """The open session's planned minutes plus its extension, when it runs on this block."""
+    try:
+        lock = subject.read_session_lock()
+    except Exception:
+        return None
+    if not isinstance(lock, dict) or not block_id or lock.get("block") != block_id:
+        return None
+    try:
+        return float(lock.get("planned_min") or 0) + float(lock.get("extension_min") or 0)
+    except (TypeError, ValueError):
+        return None
+
+
 def budget_for(ws, subject, spec, row=None, budget_min=None, block=None):
     """(minutes or None, basis) for L5 and the issue check.
 
     ``--budget-min`` wins. Else the linked block: 0.8 × its minutes, or, for a
     measurement (diagnostic, mock, checkpoint), its minutes less the RECORD_MIN
     it keeps for recording (measure.md §4: the exam clock plus 10–15 minutes).
+    A practice sheet on the block of the open session uses the session's planned
+    minutes (with its extension) when they are longer: a slot split into a
+    recheck block and a session block is one session. Every other sheet on the
+    block, not void, is taken off, so sheets are sized together, not one by one.
     Else 0.8 × the default session; a measurement never uses that, and a mock or
     checkpoint falls back to the exam's own minutes (``format.minutes``).
     """
@@ -790,11 +828,21 @@ def budget_for(ws, subject, spec, row=None, budget_min=None, block=None):
                 minutes = dates.minutes_between(b["start"], b["end"])
             except ValueError:
                 minutes = None
-            if minutes is not None and measuring:
-                return max(minutes - RECORD_MIN, 0.0), "block %s of %s min, less %d to record" % (
-                    block_id, _num(round(minutes)), RECORD_MIN)
             if minutes is not None:
-                return BUDGET_FRACTION * minutes, "0.8 × block %s of %s min" % (block_id, _num(round(minutes)))
+                session = None if measuring else _session_minutes(subject, block_id)
+                if measuring:
+                    total, basis = max(minutes - RECORD_MIN, 0.0), "block %s of %s min, less %d to record" % (
+                        block_id, _num(round(minutes)), RECORD_MIN)
+                elif session is not None and session > minutes:
+                    total, basis = BUDGET_FRACTION * session, "0.8 × the session's %s min on block %s" % (
+                        _num(round(session)), block_id)
+                else:
+                    total, basis = BUDGET_FRACTION * minutes, "0.8 × block %s of %s min" % (
+                        block_id, _num(round(minutes)))
+                others, ids = _block_siblings(subject, block_id, spec.get("id") or (row or {}).get("id"))
+                if ids:
+                    basis += ", less %s min on %s" % (_num(round(others, 1)), _listed(ids, 3))
+                return max(total - others, 0.0), basis
     if measuring:
         if spec.get("type") in ("mock", "checkpoint"):
             try:

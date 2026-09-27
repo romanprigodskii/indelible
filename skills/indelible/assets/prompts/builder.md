@@ -97,7 +97,7 @@ Never print, echo, `cat` or summarise the answers file. Never put an answer in a
 2. `IND sheet lint <SUBJECT> <SHEET> --budget-min <BUDGET_MIN>`. On any FAIL: fix the spec, write the answers file again, re-run step 1 with `--replace`, and lint again. At most 3 fix rounds. Fix WARN lines too where you can. If L7 refuses an item, drop it and take the next SERVE entry that fits; if L5 fails, cut from the end of SERVE. On a diagnostic, mock or checkpoint, cut nothing: return FAILED with the L5 line, so the part is split into sittings or given a longer block.
 3. `IND sheet build <SUBJECT> <SHEET>`, adding `--format <FORMAT>` unless FORMAT is default. It prints the path.
 
-Never run `sheet issue`: the main conversation issues the sheet when it hands it over (BLOCK is for the budget only).
+Never run `sheet issue`: the main conversation issues the sheet when it hands it over, against BLOCK (the session's block). Lint uses BUDGET_MIN, not BLOCK.
 
 An exit code of 2 is a usage or unexpected error: read the message, fix, and retry once.
 
