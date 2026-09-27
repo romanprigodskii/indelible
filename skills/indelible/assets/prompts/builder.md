@@ -63,7 +63,7 @@ Never print, echo, `cat` or summarise the answers file. Never put an answer in a
 - **terms[]:** `{term, resolution}`.
 - **theory:** `null`, except on theory, external, example and repair: `{floor, words: [{term, gloss, def}], sections: [{kind, title, body}], pages}`, with `kind` one of `worked`, `rule`, `contrast`, `both_hold`, `warning`, `where`, `text`.
 - **least_sure:** true, except on theory, external, example and triage.
-- **est_min:** honest: the sum of `pace_s[layer]` over the questions, divided by 60, plus 1 minute for the start and stop lines, rounded up. If that exceeds BUDGET_MIN, cut questions from the end of SERVE; never lower the estimate alone.
+- **est_min:** honest: the sum of `pace_s[layer]` over the questions, divided by 60, plus 1 minute for the start and stop lines, rounded up. Lint L5 works this out again and fails a lower `est_min` (triage excepted). If that exceeds BUDGET_MIN, cut questions from the end of SERVE; never lower the estimate alone. Count the work, not the items: a question that needs several results written down (each step of an iteration, each part of a four-part update) gives each result its own box (3a, 3b …), so the estimate counts it.
 
 ### The answers file
 

@@ -9,7 +9,10 @@ sat). ``run(...)`` does both.
 When the sheet is linked to a block (``sheet new/lint --block``, or the
 sheet row's block), L5 uses that block's minutes and L7 judges the recheck at
 the block's start: a recheck built at the previous close is judged at the time
-it will be sat, not at build time. ``sheet issue`` checks both again.
+it will be sat, not at build time. ``sheet issue`` checks both again. L5 also
+recomputes the builder's own estimate from the subject's ``pace_s``
+(``pace_floor``) and fails a lower ``est_min``, since the estimate is written by
+the party whose sizing it checks.
 
 L4 terms: code (inline `spans` and fenced blocks) is never scanned; theory
 section bodies are. Resolutions: ``defined_here`` (the word is in
@@ -34,6 +37,7 @@ printed: an L8 FAIL names the question (ask) ids, never the text.
 Result rows: ``{"rule": "L4", "status": "PASS"|"FAIL"|"WARN", "title": "terms", "detail": "..."}``.
 """
 
+import math
 import re
 import unicodedata
 
@@ -55,6 +59,7 @@ TITLES = {
 CHECK_REQUIRED = ("drills", "cold", "mixed", "diagnostic", "mock", "checkpoint", "review")
 UNLABELLED_TYPES = ("cold", "diagnostic", "mock", "checkpoint", "probe", "mixed")
 BUDGET_EXEMPT = ("diagnostic", "mock", "checkpoint")
+FLOOR_EXEMPT = ("triage",)
 MEASURING = ("cold", "diagnostic", "mock", "checkpoint", "probe", "words")
 RESOLUTIONS = ("defined_here", "defined_on:<sheet-id>", "glossary", "everyday", "measured_here")
 LEAST_SURE_EXEMPT = ("theory", "external", "example", "triage")
@@ -438,18 +443,31 @@ def _l4(spec, ctx):
     return "PASS", "%d listed word%s resolved" % (len(used), "" if len(used) == 1 else "s")
 
 
+def pace_floor(spec, pace_s=None):
+    """The builder's honest estimate (builder.md): pace_s[layer] for each question, over 60, plus 1 minute."""
+    secs = 0.0
+    for it in _items(spec):
+        secs += learning.pace_for(it.get("layer"), pace_s) * len(_asks(it))
+    return secs / 60.0 + 1
+
+
 def _l5(spec, ctx):
     t = spec.get("type")
     if t in BUDGET_EXEMPT:
         return "PASS", "measurement: sized by the exam clock"
     budget, basis = ctx.get("budget") or (None, None)
-    est = spec.get("est_min")
-    if budget is None:
-        return "PASS", "no budget known (pass --budget-min)"
     try:
-        est_f = float(est)
+        est_f = float(spec.get("est_min"))
     except (TypeError, ValueError):
         return "FAIL", "est_min is not a number"
+    # The estimate is the builder's own number, so it is checked against the pace it
+    # must come from. A triage sheet is a mark per word, not a question at pace.
+    floor = pace_floor(spec, ctx.get("pace_s"))
+    if t not in FLOOR_EXEMPT and est_f + 1e-9 < floor:
+        return "FAIL", ("est_min %s is under the pace floor of %s min (pace_s of each question's layer, "
+                        "over 60, plus 1): recount it, or cut questions" % (_num(est_f), _num(math.ceil(floor - 1e-9))))
+    if budget is None:
+        return "PASS", "no budget known (pass --budget-min)"
     if est_f <= budget + 1e-9:
         return "PASS", "~%s min within %s min (%s)" % (_num(est_f), _num(round(budget, 1)), basis)
     return "FAIL", "~%s min is over the budget of %s min (%s)" % (_num(est_f), _num(round(budget, 1)), basis)
@@ -819,6 +837,7 @@ def gather(ws, subject, spec, row=None, budget_min=None, now=None, block=None, a
         "lexicon": set(" ".join(_s(w).lower().split()) for w in _lexicon_terms(cfg.get("lexicon"))),
         "glossary": _glossary_terms(subject),
         "block_size": block_size,
+        "pace_s": cfg.get("pace_s") if isinstance(cfg.get("pace_s"), dict) else {},
         "budget": budget_for(ws, subject, spec, row, budget_min, block=block_id),
         "now": now,
         "at": sit_at,

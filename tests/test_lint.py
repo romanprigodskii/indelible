@@ -180,6 +180,26 @@ class RuleTests(Base):
         self.assertEqual(self.status(drills_spec(est_min=87, type="mock"), "L5"), "PASS")
         self.assertEqual(self.status(drills_spec(est_min=20), "L5", budget=(16.0, "block")), "FAIL")
 
+    def test_l5_the_estimate_is_checked_against_the_pace(self):
+        spec = drills_spec(est_min=1)
+        for it in spec["items"]:
+            it["layer"] = "reading"          # 70 s each: 6 × 70 s / 60 + 1 = 8 min
+        r = result(spec, "L5", budget=(2.0, "--budget-min 2"))
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("est_min 1 is under the pace floor of 8 min", r["detail"])
+        r = result(spec, "L5", budget=None)
+        self.assertEqual(r["status"], "FAIL", "the floor holds when no budget is known")
+        spec["est_min"] = 8
+        self.assertEqual(self.status(spec, "L5", budget=None), "PASS")
+        self.assertEqual(self.status(spec, "L5", budget=(8.0, "b")), "PASS")
+        # The subject's own pace counts, and each question of an item counts.
+        self.assertEqual(self.status(spec, "L5", budget=None, pace_s={"reading": 100}), "FAIL")
+        spec["items"][0]["asks"].append({"id": "1b", "label": "The verb you changed:", "check": True,
+                                         "check_hint": "Read the new sentence aloud with your answer in it"})
+        self.assertEqual(self.status(spec, "L5", budget=None), "FAIL")   # 7 × 70 s / 60 + 1 = 9.2
+        self.assertEqual(self.status(drills_spec(est_min=1, type="triage"), "L5", budget=None), "PASS",
+                         "a triage sheet is not sized by pace")
+
     def test_l6_drill_blocks(self):
         self.assertEqual(self.status(drills_spec(), "L6"), "PASS")
         spec = drills_spec()
@@ -529,6 +549,19 @@ class CliLintTests(Base):
         r = self.lint(spec2["id"])
         self.assertEqual(r.returncode, 1)
         self.assertIn("B-20261012-ielts-1", self.line(r, "L5"))
+
+    def test_the_pace_floor_reads_the_subjects_pace(self):
+        from lib import ws as wsmod
+        spec = drills_spec(est_min=2)          # 6 verbal questions at 75 s: 8.5 min
+        self.assertEqual(new_sheet(self.ws, spec).returncode, 0)
+        r = self.lint(spec["id"], "--budget-min", "40")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("under the pace floor of 9 min", self.line(r, "L5"))
+        subj = wsmod.Workspace(self.ws).subject(SUBJECT)
+        cfg = subj.load()
+        cfg["pace_s"] = dict(cfg.get("pace_s") or {}, verbal=10)   # 6 × 10 s / 60 + 1 = 2 min
+        subj.save(cfg)
+        self.assertEqual(self.lint(spec["id"], "--budget-min", "40").returncode, 0)
 
     def test_a_failing_relint_sends_a_rendered_sheet_back_to_built(self):
         add_exposure(self.ws, "T01", "2026-10-10T08:00+01:00")
