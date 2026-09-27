@@ -544,7 +544,7 @@ def _start_by_lines(ws, subj, spec):
     window = subj.cold_window()
     found = []
     for it in spec.get("items") or []:
-        origin = str((it or {}).get("origin") or "") if isinstance(it, dict) else ""
+        origin = str(it.get("origin") or "") if isinstance(it, dict) else ""
         if not origin.startswith("cold:"):
             continue
         topic = origin[len("cold:"):]

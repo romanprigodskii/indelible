@@ -275,9 +275,10 @@ def cmd_expose(args):
         moved, outside = [], []
     else:
         (wf, wt), moved, outside = rebooked
+        lo, hi = subj.cold_window()
         _out("Noted: %s %s seen (%s) at %s. Its first 2-day recheck now falls between %s and %s (%s–%s h after "
              "this)." % (t["id"], t.get("name") or "", args.kind, now.strftime("%H:%M"), brief.fmt_when(wf, now),
-                         brief.fmt_when(wt, now), _num(subj.cold_window()[0]), _num(subj.cold_window()[1])))
+                         brief.fmt_when(wt, now), _num(lo), _num(hi)))
         for b in moved:
             _out("Recheck %s: window moved to %s – %s." % (b.get("id"), brief.fmt_when(wf, now), brief.fmt_when(wt, now)))
         for b in outside:
