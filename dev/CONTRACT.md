@@ -374,7 +374,7 @@ Invoke as `python3 <skill>/scripts/indelible.py <command> ...`. Every command ac
 <Title> · <profile> · <date or "no date"> (<N days left>)
 FLAGS: unclosed session S-… (started …) | missed? blocks … | sheet … issued, not sat after 2 opens | quarantine lines | armed safeguard due …
 NOW/NEXT: today's blocks and the next block (kind, time, content)
-DUE: cold serves eligible now: T04 (49 h) … · errors due: 3 beliefs repaired, 2 slips, 1 shaky · untreated beliefs needing repair: 2
+DUE: cold serves eligible now: 1 · errors due: 3 beliefs repaired, 2 slips, 1 shaky · untreated beliefs needing repair: 2
 TO-DO (≤3 days): L-0004 Register for … (due Tue 20:00)
 LEVELS: T01 Matching headings 2 · T04 Paraphrase 3p · …
 LAST SESSIONS: 3 lines from sessions.jsonl
@@ -384,7 +384,7 @@ NOTES: the subject CLAUDE.md sections "Learner notes", "Do not calibrate on" and
 BELIEFS DUE: E-ielts-0031 T04 "reads 'albeit' as 'because'" (rung 1) …
 ```
 
-BELIEFS DUE and OTHER DUE list every mistake due by date. One that can't be served yet (its topic seen in the last 24 h, or an untreated mistake on the topic) ends with `not now: <reason>`, as in `due --list`. `error repair` logs a repair exposure, so a repaired mistake is served no earlier than 24 h after the repair, even when its due date comes first.
+In either vocabulary, a 2-day recheck above the line is counted or named by its time, never by its topics: the topics ready now are in RECHECK NOW below the line, and a recheck still to book shows its block id only (`plan list` has its topics). BELIEFS DUE and OTHER DUE list every mistake due by date. One that can't be served yet (its topic seen in the last 24 h, or an untreated mistake on the topic) ends with `not now: <reason>`, as in `due --list`. `error repair` logs a repair exposure, so a repaired mistake is served no earlier than 24 h after the repair, even when its due date comes first.
 
 Opening a brief also increments `opens_unsat` for every issued sheet that isn't sat.
 

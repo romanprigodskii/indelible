@@ -168,6 +168,25 @@ class BriefTests(BriefBase):
         self.assertIn("unclosed session S-ielts-0001", learner)
         self.assertIn("LEVELS: T01 Matching headings 0", learner)
 
+    def test_technical_vocabulary_never_names_a_recheck_above_the_line(self):
+        # T02 was taught 49 h ago (ready now); T04's 2-day recheck is still to book.
+        self.put("ielts/data/exposures.jsonl", [{"v": 1, "topic": "T02", "at": "2026-10-10T08:00+01:00",
+                                                 "kind": "teach"}])
+        obligation = self.block("B-20261014-ielts-1", None, None, kind="cold", content="cold:T04")
+        obligation["window"] = {"from": "2026-10-14T05:20+01:00", "to": "2026-10-15T09:20+01:00"}
+        self.put("plan/blocks.jsonl", [obligation])
+        self.set_cfg("learner.vocab", "technical")
+        learner, claude = self.parts(self.brief())
+        due = [l for l in learner.splitlines() if l.startswith("DUE:")][0]
+        now_next = [l for l in learner.splitlines() if l.startswith("NOW/NEXT:")][0]
+        self.assertIn("cold serves eligible now: 1", due)
+        self.assertIn("B-20261014-ielts-1 2-day recheck to book", now_next)
+        for line in (due, now_next):
+            for tid, name in (("T02", "True, false or not given"), ("T04", "Paraphrase")):
+                self.assertNotIn(tid, line)
+                self.assertNotIn(name, line)
+        self.assertIn("RECHECK NOW: T02", claude)
+
     def test_unclosed_is_lock_older_than_planned_end_plus_2_h(self):
         self.lock("2026-10-12T05:59+01:00", 60, "2026-10-12T06:59+01:00")
         self.assertIn("unclosed session", self.brief().split(SEP)[0])

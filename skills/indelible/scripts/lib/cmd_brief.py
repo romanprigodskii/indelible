@@ -9,6 +9,8 @@ characters: long lists are cut with ``+N more (run: ...)``. Everything above
 the line ``-- for Claude, do not read aloud --`` may be read to the learner,
 so with ``learner.vocab = plain`` it uses plain words and never shows an
 ``E-``, ``B-``, ``S-`` or ``L-`` id; ids and mistake details go below the line.
+In either vocabulary a 2-day recheck is only counted above the line, never
+named: its topics go below the line (RECHECK NOW).
 
 Opening a brief increments ``opens_unsat`` on every issued sheet that is not
 yet taken. One open is counted per subject in any 3-hour span, and never
@@ -439,11 +441,10 @@ def due_counts_items(st, plain):
         if c["untreated"]:
             items.append("mistakes to fix before they come back: %d" % c["untreated"])
     else:
+        # Counts only, as in plain words: the topics of a recheck stay below the
+        # line (RECHECK NOW), so the learner can't look them over first.
         if c["cold"]:
-            shown = ["%s (%.0f h)" % (x["topic"], x["hours"] or 0) for x in st["cold"][:6]]
-            if len(st["cold"]) > 6:
-                shown.append("+%d" % (len(st["cold"]) - 6))
-            items.append("cold serves eligible now: " + ", ".join(shown))
+            items.append("cold serves eligible now: %d" % c["cold"])
         parts = []
         if c["beliefs"]:
             parts.append("%d beliefs repaired" % c["beliefs"])
@@ -832,7 +833,7 @@ def brief_sections(ws, subj, now, sheets=None):
             else:
                 item = "2-day recheck to book: between %s and %s" % (fmt_when(f, now), fmt_when(t, now))
             if not plain:
-                item = "%s %s (%s)" % (b.get("id"), item, ",".join(block_topics(b)))
+                item = "%s %s" % (b.get("id"), item)   # never its topics: see plan list
             nn.append(item)
 
     guard(build_now)
