@@ -3,9 +3,10 @@
     grade record <subject> <sheet-id> --from grades.json [--shaky]
 
 What it does, in order:
-  1. Checks the sheet: evidence must be on file, and the status must be
-     taken (an ``issued`` sheet with evidence counts as taken). A sheet
-     is graded once; a verdict is never amended afterwards.
+  1. Checks the sheet: evidence of the whole sheet must be on file (a
+     failure-gate photo alone is not enough), and the status must be taken
+     (an ``issued`` sheet with evidence counts as taken). A sheet is graded
+     once; a verdict is never amended afterwards.
   2. Checks the grades file against the sealed spec: every graded question
      exists, a miss that opens a mistake has a mode (and an account), and a
      belief line never contains an accepted answer from the key.
@@ -49,6 +50,7 @@ from lib import dates, learning, schema
 from lib import io as fio
 from lib import ws as wsmod
 from lib.cmd_brief import block_topics
+from lib.cmd_sheet import filed_asks
 from lib.cmd_learning import (
     add_parser_once, error_status_phrase, fmt_changes, fmt_num, leaks_answer, new_error, out,
     read_key, recompute_levels, require_writable, seal_error_key,
@@ -248,6 +250,11 @@ def cmd_grade_record(args):
         if not sheet.get("evidence"):
             raise CheckFailed("No evidence is filed for %s. File it first: indelible.py scan ingest %s %s "
                               "<photos> (or --typed FILE, or --transcript -)." % (sid, subj.id, sid))
+        whole, gate = filed_asks(sheet)
+        if not whole:
+            raise CheckFailed("Only a failure-gate photo (%s) is filed for %s. A sheet is graded once, when the "
+                              "whole sheet is back: file it first: indelible.py scan ingest %s %s <photos>."
+                              % (", ".join(gate), sid, subj.id, sid))
         if status not in ("sat", "issued"):
             raise CheckFailed("%s is %s: only an issued sheet that was taken can be graded." % (sid, status))
         recorded = [a for a in subj.load_attempts(include_archive=True) if a.get("sheet") == sid]

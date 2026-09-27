@@ -8,12 +8,19 @@
     sheet void   <subject> <id> --reason TEXT
     sheet show   [subject] [--status S] [--json]
     scan ingest  <subject> <id> [PATHS...] [--typed FILE] [--transcript -] [--dir PROJECT] [--date YYYY-MM-DD]
+                 [--asks 1a,2a,3a]
     key open     <subject> <id>
 
 Keys and accepted answers are never printed, except by ``key open``, which
 works only once evidence of the attempt is filed.
 Status flow: built -> linted -> rendered -> issued -> sat -> graded (or void).
 A sealed instrument (issued or later) is never edited.
+
+A failure-gate photo of drills (items 1-3 of a block) is filed with
+``--asks``: its evidence names the questions it covers and the sheet stays
+issued. Until the finished sheet is filed, ``key open`` prints only the
+questions that gate evidence covers, so the answers to the questions still
+being worked never enter the conversation.
 
 A sheet built ahead for a block is linked to it early (``sheet new`` or
 ``sheet lint`` with ``--block``): lint then sizes it against that block (L5)
@@ -129,11 +136,14 @@ def register(subparsers):
     a.add_argument("--dir", dest="project", default=None, metavar="PROJECT",
                    help="a code project: its files are copied, with their folder layout, to answers/<id>/")
     a.add_argument("--date", default=None, metavar="YYYY-MM-DD", help="the date the sheet was taken")
+    a.add_argument("--asks", default=None, metavar="1a,2a,3a",
+                   help="a failure-gate photo of drills: the questions it covers (the sheet stays issued)")
     a.set_defaults(func=cmd_scan_ingest)
 
     p = subparsers.add_parser("key", help="open a sealed key (only after the attempt is filed)")
     sp = p.add_subparsers(dest="key_cmd", metavar="<action>")
-    a = sp.add_parser("open", help="print the key; refused until evidence of the attempt is filed")
+    a = sp.add_parser("open", help="print the key; refused until evidence of the attempt is filed "
+                                   "(after a failure-gate photo, only the questions it covers)")
     a.add_argument("subject")
     a.add_argument("id")
     a.set_defaults(func=cmd_key_open)
@@ -230,6 +240,30 @@ def _sha256(path):
 def _ask_ids(spec):
     return [a.get("id") for it in (spec.get("items") or []) if isinstance(it, dict)
             for a in (it.get("asks") or []) if isinstance(a, dict)]
+
+
+def filed_asks(row):
+    """(whole, asks) from a sheet's evidence: whether the finished sheet is filed (an
+    entry with no ``asks``), and the questions failure-gate photos cover (``--asks``)."""
+    whole, asks = False, []
+    for e in row.get("evidence") or []:
+        if isinstance(e, dict) and e.get("asks"):
+            asks.extend(a for a in e["asks"] if a not in asks)
+        else:
+            whole = True
+    return whole, asks
+
+
+def _parse_asks(value, spec, sheet_id):
+    """The question ids of ``--asks`` (comma-separated), checked against the sealed spec, in sheet order."""
+    wanted = [x.strip() for x in str(value).split(",") if x.strip()]
+    if not wanted:
+        raise UsageError("--asks needs the questions the photo covers, e.g. --asks 1a,2a,3a")
+    known = [a for a in _ask_ids(spec) if a]
+    unknown = [a for a in wanted if a not in known]
+    if unknown:
+        raise UsageError("%s has no question %s (its questions: %s)" % (sheet_id, ", ".join(unknown), ", ".join(known)))
+    return [a for a in known if a in wanted]
 
 
 def _topics_in(spec):
@@ -808,6 +842,16 @@ def _read_source(value, what):
     return text.replace("\r\n", "\n")
 
 
+def _free_typed_path(subj, sheet_id):
+    """``answers/<id>.txt``, or ``answers/<id>-N.txt`` once taken: a later typed file never replaces an earlier one."""
+    dest = subj.typed_answers_path(sheet_id)
+    n = 1
+    while dest.exists():
+        n += 1
+        dest = subj.answers_dir / ("%s-%d.txt" % (sheet_id, n))
+    return dest
+
+
 def _project_files(root):
     """(relative path, source path) of a code project's files, skipping build output and hidden folders."""
     root = Path(root)
@@ -862,9 +906,19 @@ def cmd_scan_ingest(args):
             raise CheckFailed("%s is %s: evidence is filed only for a sheet that has been issued. %s"
                               % (args.id, st, "Run: indelible.py sheet issue %s %s" % (subj.id, args.id)
                                  if st in EDITABLE else ""))
+        gate = None   # a failure-gate photo: the questions it covers
+        if args.asks is not None:
+            if row.get("type") != "drills":
+                raise CheckFailed("Refused: --asks is for a failure-gate photo, and only drills have a failure gate "
+                                  "(%s is %s). File the sheet without --asks. Nothing was filed."
+                                  % (args.id, row.get("type")))
+            if st != "issued":
+                raise CheckFailed("Refused: %s is %s, so it is past the failure gate. File it without --asks. "
+                                  "Nothing was filed." % (args.id, st))
+            gate = _parse_asks(args.asks, _load_spec(subj, args.id), args.id)
         sitting = dict(row.get("sat") or {})
         day = arg_day or (dates.to_date(sitting["date"]) if sitting.get("date") and dates.is_date(sitting["date"]) else None)
-        if day is None and st == "issued":   # this evidence marks it taken: on which day?
+        if day is None and st == "issued" and not gate:   # this evidence marks it taken: on which day?
             day, note = _default_taken_date(ws, subj, row, "filed")
             if note:
                 notes.append(note)
@@ -895,8 +949,8 @@ def cmd_scan_ingest(args):
             entry["sha256"] = _sha256(subj.root / entry["file"])
             entries.append(entry)
         if typed_text is not None:
-            dest = subj.typed_answers_path(args.id)
-            fio.write_text(dest, typed_text)
+            dest = _free_typed_path(subj, args.id)
+            fio.write_text(dest, typed_text, backup=False)
             entries.append({"kind": "typed", "file": _subject_rel(subj, dest), "original": None,
                             "sha256": _sha256(dest)})
         if transcript is not None:
@@ -931,6 +985,8 @@ def cmd_scan_ingest(args):
                    "kind": e["kind"], "file": e["file"], "original": e["original"], "sha256": e["sha256"]}
             if e.get("source"):
                 idx["source"], idx["files"] = e["source"], e["files"]
+            if gate:
+                idx["asks"] = gate
             subj.append_scan_index(idx)
         evidence = list(row.get("evidence") or [])
         for e in entries:
@@ -939,10 +995,12 @@ def cmd_scan_ingest(args):
                 ev["original"] = e["original"]
             if e.get("source"):
                 ev["source"], ev["files"] = e["source"], e["files"]
+            if gate:
+                ev["asks"] = gate
             evidence.append(ev)
         row["evidence"] = evidence
         marked = False
-        if st == "issued":
+        if st == "issued" and not gate:   # a failure-gate photo leaves it issued: the sheet is still being worked
             row["status"] = "sat"
             if not sitting.get("date"):
                 sitting["date"] = day.isoformat()
@@ -955,6 +1013,9 @@ def cmd_scan_ingest(args):
                                                   ", ".join(e["file"] for e in entries)))
     if marked:
         _out("%s marked as taken (%s)" % (args.id, row["sat"]["date"]))
+    if gate:
+        _out("Failure-gate photo of %s: %s stays issued. key open shows only these questions until the finished "
+             "sheet is filed (scan ingest without --asks)." % (", ".join(gate), args.id))
     for n in notes:
         _out("note: " + n)
     return 0
@@ -970,15 +1031,28 @@ def cmd_key_open(args):
         rows, i, row = _require_row(subj, args.id)
         st = row.get("status")
         evidence = row.get("evidence") or []
-        if st not in ("sat", "graded") or not evidence:
+        whole, gate = filed_asks(row)
+        # The whole key once the finished sheet is filed; before that, only the
+        # questions a failure-gate photo covers: the rest are still being worked.
+        full = bool((st == "graded" and evidence) or (st == "sat" and whole))
+        if not full and not (st in ("issued", "sat") and gate):
             raise CheckFailed(
                 "Refused: the key for %s opens only after the attempt is filed (status %s, evidence %d). "
-                "File it first: indelible.py scan ingest %s %s <photos> (or --typed FILE, or --transcript -)"
+                "File it first: indelible.py scan ingest %s %s <photos> (or --typed FILE, or --transcript -; "
+                "a failure-gate photo adds --asks with its questions)"
                 % (args.id, st, len(evidence), subj.id, args.id))
         key_path = subj.key_path(args.id)
         if not key_path.is_file():
             raise CheckFailed("No sealed key on file for %s." % args.id)
         key = fio.read_json(key_path)
-        subj.append_key_opened({"v": 1, "at": _now_iso(ws), "sheet": args.id})
+        if not full:
+            key = dict((k, v) for k, v in key.items() if k in gate) if isinstance(key, dict) else {}
+        shown = list(key) if isinstance(key, dict) else []
+        subj.append_key_opened({"v": 1, "at": _now_iso(ws), "sheet": args.id, "asks": shown})
     _out(json.dumps(key, ensure_ascii=False, indent=2))
+    if not full:
+        sys.stderr.write("indelible: only %s %s filed (a failure-gate photo), so only %s shown. The rest open "
+                         "once the finished sheet is filed: scan ingest %s %s <photos> (without --asks).\n"
+                         % (", ".join(gate), "is" if len(gate) == 1 else "are",
+                            "its answer is" if len(gate) == 1 else "their answers are", subj.id, args.id))
     return 0

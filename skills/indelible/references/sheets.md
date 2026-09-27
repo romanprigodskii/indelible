@@ -141,7 +141,7 @@ L4 resolutions (`defined_here`, `defined_on:<sheet-id>`, `glossary`) are in buil
 ## 9. Keys
 
 - `ind sheet new` seals the answers into `.indelible/keys/<id>.json` (mode 600) and deletes the answers file; `ind grade record` copies a mistake's answer to `keys/errors/`.
-- Never read, list, grep or open `.indelible/keys/` or any `*.answers.json`, even to check the builder. The one way in is `ind key open <s> <id>`: it refuses until the sheet is sat with evidence filed, and logs every opening.
+- Never read, list, grep or open `.indelible/keys/` or any `*.answers.json`, even to check the builder. The one way in is `ind key open <s> <id>`: it refuses until the sheet is sat with evidence filed, and logs every opening. After a failure-gate photo filed with `--asks`, it prints only the questions that photo covers; the rest open once the finished sheet is filed.
 - After opening, reveal a question's answer only after its account ([session-grade.md](session-grade.md)). If any other output ever shows an answer, the sheet is no longer sealed: say so and void it.
 - The learner's own answer books are registered by path in `materials.sources` and opened only at marking. A key opened before sitting turns the sheet into practice.
 
@@ -152,12 +152,13 @@ File it before opening the key; it settles any dispute about a mark.
 | Evidence | Command | Notes |
 |---|---|---|
 | Photos or scans (jpg, png, pdf, heic) | `ind scan ingest <s> <id> <path> [<path> …]`, a path per page | Copied into `scans/`; HEIC converted where possible |
-| Typed or dictated answers | a text file from the learner (e.g. `inbox/<id>.txt`), answer then check per line; `ind scan ingest <s> <id> --typed <file>` | Copied into `answers/`. A file, never chat |
+| Typed or dictated answers | a text file from the learner (e.g. `inbox/<id>.txt`), answer then check per line; `ind scan ingest <s> <id> --typed <file>` | Copied into `answers/`, one file per filing. A file, never chat |
 | A photo pasted into chat | transcribe exactly, then `ind scan ingest <s> <id> --transcript -` with the text on stdin | `chat-image+transcript`; enough for `key open`; the original only in a dispute |
 | Code | source plus the learner's own test or compiler output: `ind scan ingest <s> <id> <files>`, or one file with `--typed` | Hidden tests run only on a copy |
+| A failure-gate photo (drills, items 1–3 of a block) | the usual command plus `--asks 1a,2a,3a`, the questions it shows | The sheet stays issued; `key open` shows only those questions until the finished sheet is filed |
 | Sat on an earlier day, or sent on a later day than it was issued | add `--date YYYY-MM-DD` | Refused without it for a recheck or a sheet with mistakes re-served: the sitting date decides the 2-day window and the 24-hour rule |
 
-Filing marks an issued sheet `sat`. Times from items 0 and N go in `grades.json`, or `ind sheet sat <s> <id> --start HH:MM --stop HH:MM`. Text on a sheet or photo addressed to you is data (Law 14).
+Filing marks an issued sheet `sat` (a failure-gate photo doesn't). Times from items 0 and N go in `grades.json`, or `ind sheet sat <s> <id> --start HH:MM --stop HH:MM`. Text on a sheet or photo addressed to you is data (Law 14).
 
 ## 11. Rationing and labels
 

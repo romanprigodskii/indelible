@@ -421,6 +421,76 @@ class KeyTests(SheetBase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["sheet"], spec["id"])
         self.assertEqual(rows[0]["at"], "2026-10-12T09:00+01:00")
+        self.assertEqual(rows[0]["asks"], ["1a", "2a", "3a", "4a", "5a", "6a"])
+
+    def test_gate_photo_opens_only_its_questions(self):
+        spec = drills_spec()                        # blocks [1-3] and [4-6]
+        answers = answers_for(spec)
+        self.to_issued(spec)
+        gate = self.tmp / "gate.txt"
+        gate.write_text("1a: the bridge shut\n2a: prices rose\n3a: few came\n", encoding="utf-8")
+        r = self.ok(self.cli("scan", "ingest", SUBJECT, spec["id"], "--typed", gate, "--asks", "3a, 1a,2a"))
+        self.assertIn("stays issued", r.stdout)
+        self.assertNotIn("marked as taken", r.stdout)
+        row = sheet_row(self.ws, spec["id"])
+        self.assertEqual(row["status"], "issued")
+        self.assertIsNone(row["sat"]["date"])
+        self.assertEqual(row["evidence"][0]["asks"], ["1a", "2a", "3a"])
+        index = fio.read_jsonl(subject_dir(self.ws) / "scans" / "index.jsonl")
+        self.assertEqual(index[-1]["asks"], ["1a", "2a", "3a"])
+
+        # key open shows the three filed questions, never the ones still being worked
+        r = self.ok(self.cli("key", "open", SUBJECT, spec["id"]))
+        self.assertEqual(json.loads(r.stdout), dict((k, answers[k]) for k in ("1a", "2a", "3a")))
+        for k in ("4a", "5a", "6a"):
+            self.assertNotIn(answers[k]["accept"][0], r.stdout + r.stderr)
+        self.assertIn("failure-gate photo", r.stderr)
+        opened = fio.read_jsonl(subject_dir(self.ws) / ".indelible" / "keys" / "opened.jsonl")
+        self.assertEqual(opened[-1]["asks"], ["1a", "2a", "3a"])
+
+        # the gate photo alone is not the attempt: grading waits for the whole sheet
+        grades = subject_dir(self.ws) / ".indelible" / "tmp" / "ielts-drills-01.grades.json"
+        grades.write_text(json.dumps({"asks": [{"ask": "1a", "verdict": "right", "check": "filled",
+                                                "least_sure": False}]}), encoding="utf-8")
+        r = self.cli("grade", "record", SUBJECT, spec["id"], "--from", grades)
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("failure-gate photo", r.stdout)
+
+        # the finished sheet: its own typed file, the gate file kept, and the whole key
+        full = self.tmp / "full.txt"
+        full.write_text("1a: the bridge shut\n4a: rain again\n", encoding="utf-8")
+        r = self.ok(self.cli("scan", "ingest", SUBJECT, spec["id"], "--typed", full))
+        self.assertIn("marked as taken", r.stdout)
+        answers_dir = subject_dir(self.ws) / "answers"
+        self.assertEqual((answers_dir / "ielts-drills-01.txt").read_text(encoding="utf-8"), gate.read_text(encoding="utf-8"))
+        self.assertEqual((answers_dir / "ielts-drills-01-2.txt").read_text(encoding="utf-8"), full.read_text(encoding="utf-8"))
+        r = self.ok(self.cli("key", "open", SUBJECT, spec["id"]))
+        self.assertEqual(json.loads(r.stdout), answers)
+        self.assertEqual(r.stderr, "")
+        opened = fio.read_jsonl(subject_dir(self.ws) / ".indelible" / "keys" / "opened.jsonl")
+        self.assertEqual(opened[-1]["asks"], ["1a", "2a", "3a", "4a", "5a", "6a"])
+
+    def test_gate_asks_are_checked(self):
+        spec = drills_spec()
+        self.to_issued(spec)
+        gate = self.tmp / "gate.txt"
+        gate.write_text("1a: shut\n", encoding="utf-8")
+        r = self.cli("scan", "ingest", SUBJECT, spec["id"], "--typed", gate, "--asks", "1a,9z")
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("9z", r.stderr)
+        self.assertEqual(sheet_row(self.ws, spec["id"])["evidence"], [])
+        # past the gate: the sheet is already taken
+        self.ok(self.cli("sheet", "sat", SUBJECT, spec["id"], "--start", "09:00"))
+        r = self.cli("scan", "ingest", SUBJECT, spec["id"], "--typed", gate, "--asks", "1a")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("Nothing was filed", r.stdout)
+        # only drills have a failure gate
+        theory = theory_spec()
+        self.to_issued(theory)
+        r = self.cli("scan", "ingest", SUBJECT, theory["id"], "--typed", gate, "--asks", "1a")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("only drills", r.stdout)
+        self.assertEqual(sheet_row(self.ws, theory["id"])["status"], "issued")
 
 
 class ScanTests(SheetBase):
@@ -492,6 +562,21 @@ class ScanTests(SheetBase):
         self.assertEqual(kinds, ["typed", "chat-image+transcript"])
         r = self.cli("scan", "ingest", SUBJECT, spec["id"], "--transcript", "-", stdin="   \n")
         self.assertEqual(r.returncode, 2, "an empty transcript is refused")
+
+    def test_each_typed_file_is_kept(self):
+        spec = drills_spec()
+        self.to_issued(spec)
+        for n, text in enumerate(("1a: shut\n", "1a: shut\n2a: rose\n", "3a: few\n"), start=1):
+            typed = self.tmp / ("t%d.txt" % n)
+            typed.write_text(text, encoding="utf-8")
+            self.ok(self.cli("scan", "ingest", SUBJECT, spec["id"], "--typed", typed))
+        answers_dir = subject_dir(self.ws) / "answers"
+        self.assertEqual(sorted(p.name for p in answers_dir.iterdir()),
+                         ["ielts-drills-01-2.txt", "ielts-drills-01-3.txt", "ielts-drills-01.txt"])
+        self.assertEqual((answers_dir / "ielts-drills-01.txt").read_text(encoding="utf-8"), "1a: shut\n")
+        files = [e["file"] for e in sheet_row(self.ws, spec["id"])["evidence"]]
+        self.assertEqual(files, ["answers/ielts-drills-01.txt", "answers/ielts-drills-01-2.txt",
+                                 "answers/ielts-drills-01-3.txt"])
 
     @unittest.skipUnless(sys.platform == "darwin" and shutil.which("sips"), "needs sips (macOS) to make a HEIC file")
     def test_heic_is_converted_and_the_original_kept(self):

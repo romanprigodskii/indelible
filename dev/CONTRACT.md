@@ -101,7 +101,7 @@ dev/CONTRACT.md  dev/privacy_grep.py
     notes/                    append-only free text (explanations, session detail); never read at session open
     sheets/YYYY-MM/<id>.pdf|.html|.md (+ source .typ)
     scans/                    evidence files; scans/index.jsonl (append)
-    answers/                  typed answers: answers/<sheet>.txt
+    answers/                  typed answers: answers/<sheet>.txt, then <sheet>-2.txt, … (one file per typed ingest)
     archive/                  errors-YYYY-MM.jsonl, attempts-YYYY-MM.jsonl
     .indelible/session.lock   JSON (see §6.2)
     .indelible/specs/<id>.json    visible sheet spec (no answers)
@@ -181,6 +181,7 @@ A topic's cold passes are not stored: the level rules find them in `attempts.jso
 
 - **`status` flow:** `built` → `linted` → `rendered` → `issued` → `sat` → `graded`. `void` is also possible.
 - **`measures`** is true for types `cold`, `diagnostic`, `mock`, `checkpoint`, `probe` and `words`.
+- **`evidence[]`:** `{"kind","file","at"}` per filed file (plus `original` for a converted HEIC, `source` and `files` for a code project). A failure-gate photo (`scan ingest --asks`) adds `"asks":["1a","2a","3a"]`, the questions it covers; an entry without `asks` is the finished sheet.
 
 ### 5.5 `data/attempts.jsonl` (append; one row per graded ask)
 
@@ -509,14 +510,17 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
 - **`sheet sat <subject> <id> [--start HH:MM] [--stop HH:MM] [--date YYYY-MM-DD]`:** sets `status=sat` and `sat.*` (the date defaults to today). With no `--date` and no date on record, a sheet issued on an earlier day is refused (exit 1) when its sitting time matters (a `cold` sheet, or any `cold:`, `error:` or `sentinel:` item); any other sheet keeps today with a note.
 - **`sheet void <subject> <id> --reason TEXT`**
 - **`sheet show <subject> [--status S]`:** lists the sheets.
-- **`scan ingest <subject> <id> [PATHS...] [--typed FILE] [--transcript -] [--date YYYY-MM-DD]`**
+- **`scan ingest <subject> <id> [PATHS...] [--typed FILE] [--transcript -] [--date YYYY-MM-DD] [--asks 1a,2a,3a]`**
   - Copies files to `scans/<date>-<id>-answers[-pN].<ext>`. For HEIC it tries `sips` (macOS) or `heif-convert` to JPG and keeps the original.
-  - `--typed` copies to `answers/<id>.txt`.
+  - `--typed` copies to `answers/<id>.txt`, or to `answers/<id>-N.txt` (the next free N from 2) when that is taken: a later typed file never replaces an earlier one.
   - `--transcript -` reads stdin and saves `scans/<date>-<id>-answers.txt` with evidence kind `chat-image+transcript`.
   - Appends to `scans/index.jsonl` and to the sheet's `evidence`. Sets `status=sat` if the sheet was `issued`, with the taken date from `--date`, else today; without `--date`, it refuses (exit 1, nothing filed) a sheet issued on an earlier day whose sitting time matters, as `sheet sat` does.
+  - **`--asks`** files a failure-gate photo: only on an `issued` `drills` sheet (otherwise exit 1, nothing filed), with ask ids that are on the sheet (otherwise exit 2). Each evidence entry and index row carries `asks`, and the sheet stays `issued` with no taken date.
 - **`key open <subject> <id>`**
-  - Refuses (exit 1) unless the status is `sat` or `graded` and `evidence` is non-empty.
-  - Otherwise prints the key JSON (this is the only command that prints answers) and appends `{"at","sheet"}` to `.indelible/keys/opened.jsonl`.
+  - Prints the whole key when the status is `sat` and the finished sheet is filed (an evidence entry without `asks`), or when it is `graded` with evidence.
+  - Before that, a sheet (`issued` or `sat`) with failure-gate evidence prints only the key entries of the questions that evidence covers, and says so on stderr.
+  - Otherwise it refuses (exit 1).
+  - It is the only command that prints answers. Each opening appends `{"at","sheet","asks"}` to `.indelible/keys/opened.jsonl`, `asks` being the questions printed.
 
 **Templates** (`assets/templates/typ/sheet.typ`, `html/sheet.html`, `md/sheet.md`): Python fills them with `string.Template`-style `$placeholders`, or builds the body in code. Every rendered sheet has:
 - **header:** title, date and weekday, estimated minutes, number of questions, and the provenance line `Practice — written by Claude`, `Measurement — written by Claude`, or `Measurement — official`;
@@ -548,7 +552,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
          {"ask":"3a","verdict":"wrong","check":"filled","least_sure":false,"mode":"V","account":"didn't know 'albeit'; guessed 'because'","kind":"belief","belief":"reads 'albeit' as 'because'"}]}
 ```
 
-- **Requires** `status` `sat` (sets it if evidence exists and the status is `issued`) and evidence on file.
+- **Requires** `status` `sat` (sets it if evidence exists and the status is `issued`) and evidence of the finished sheet on file: a failure-gate photo alone (`scan ingest --asks`) is refused (exit 1).
 - **The sitting time** is `start` (else `stop`) on `date`, from the grades file, then `sat.*`. With neither time it is now (a sitting today) or 12:00 (an earlier day). For a `cold` sheet, or one with a graded `cold:`, `error:` or `sentinel:` item, that guess is made only when the sheet was issued today and is graded within max(3 h, 3 × `est_min`) of its issue; otherwise it refuses (exit 2) and asks for `date` and `start`.
 - **Appends one attempt per ask:**
   - `topic` and `layer` come from the spec;

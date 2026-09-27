@@ -85,7 +85,7 @@ When the learner is stuck, climb one rung per message:
 
   A failed check the learner can't resolve within a minute is a flag, not a hunt: they keep the answer, put its number on the Least-sure line and go on (the rules box says so), and at marking you point to the step. When a failed check leads the learner to change an answer, that is a catch. Name it at marking: "Your check caught question 4."
 - **The failure gate** is printed after item 3 of each block: *If your check failed on 2 of items 1–3, or you left 2 blank: stop and send a photo of 1–3.* When that photo comes:
-  1. File it with `ind scan ingest`, then open the key. The photo of the finished sheet is filed the same way later.
+  1. File it as a gate photo, naming the questions it shows: `ind scan ingest <s> <id> <photo> --asks 1a,2a,3a`. The sheet stays issued. Then `ind key open <s> <id>` prints only those questions. Never open the whole key before the finished sheet is filed; its photo is filed later without `--asks`.
   2. Repair before the block continues: an `example` sheet with an isomorphic case, or a one-question probe in chat (for example "What does <word> mean here?").
   3. Reveal nothing about items 4 onward.
 - **Sizing:** aim for about 80% right in guided practice. If the gate fires, the next block opens with more completion steps. After two blocks in a row at 100%, fade faster: fewer worked steps and a harder first question. Lint refuses a sheet over the remaining work minutes (`--budget-min`).

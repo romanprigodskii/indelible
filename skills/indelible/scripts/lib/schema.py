@@ -823,7 +823,9 @@ RECORDS = {
             ("measures", "true for " + ", ".join(MEASURING_TYPES)),
             ("status", "built -> linted -> rendered -> issued -> sat -> graded; or void"),
             ("sat", "{start HH:MM, stop HH:MM, date YYYY-MM-DD} from items 0 and N"),
-            ("evidence", "filed by scan ingest; required before key open and grading"),
+            ("evidence", "filed by scan ingest; required before key open and grading. A failure-gate photo "
+                         "(scan ingest --asks) carries asks: key open shows only those, and grading waits "
+                         "for the finished sheet"),
             ("opens_unsat", "session opens (brief --open) while the sheet is issued but not yet taken; 2 force a "
                             "decision"),
             ("sealed", "a sealed instrument is never edited after issue"),
