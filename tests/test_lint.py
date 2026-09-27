@@ -1,4 +1,4 @@
-"""The sheet checker: every rule L1-L9 and W1-W2 has a failing and a passing fixture.
+"""The sheet checker: every rule L1-L10 and W1-W4 has a failing and a passing fixture.
 
 Most rules are checked in-process with ``lint.check(spec, ctx)``; the rules
 that read the workspace (L4 sense words, L5 blocks, L7 exposures and errors,
@@ -272,6 +272,101 @@ class RuleTests(Base):
             it["layer"] = "procedural"
         self.assertEqual(self.status(spec, "W2"), "PASS", "no verbal items: nothing to put first")
 
+    def hinted(self, hint, spec=None):
+        spec = spec or drills_spec()
+        spec["items"][1]["asks"][0]["check_hint"] = hint
+        return spec
+
+    def test_l10_a_hint_never_sends_the_learner_to_find_their_own_mistake(self):
+        self.assertEqual(self.status(drills_spec(), "L10"), "PASS")
+        for hint in ("Find the mistake in your solution.", "Look for any errors in your working",
+                     "Can you spot your slip?", "Double-check it", "Redo the calculation",
+                     "Solve it again", "Check your answer.", "Verify", "How sure are you?",
+                     "Is there a mistake?", "Find what's wrong", "Find the error.",
+                     "Is there an error? Look again.", "Find the error in your code",
+                     "Check your work for mistakes", "Check for errors", "Where did you go wrong?",
+                     "Which step is wrong?", "Did you make a mistake?", "Make sure it's right",
+                     "Check your answer again", "Check your result", "Solve again",
+                     "Do the question again from scratch"):
+            r = result(self.hinted(hint), "L10")
+            self.assertEqual(r["status"], "FAIL", hint)
+            self.assertIn("2a", r["detail"])
+        self.assertEqual(self.status(self.hinted("Find the mistake", cold_spec()), "L10"), "FAIL",
+                         "measuring sheets too")
+
+    def test_l10_subject_words_are_not_a_search(self):
+        for hint in ("Put your answer back into the first line: does it hold?",
+                     "Find the standard error from the other formula: same value?",
+                     "Find the error term at x = 2: is it 0?",
+                     "Does your confidence interval contain the sample mean?",
+                     "Check your answer's units against the question",
+                     "Read the sentence again with your answer in it.",
+                     "Is the percentage error under 5%?", "Does the error message name your line?",
+                     "Check for error bars that overlap zero", "Search the log for errors",
+                     "Find the error of the mean from the other formula", "Run the tests again",
+                     "Add error handling and feed it an empty file: does it still exit 0?"):
+            self.assertEqual(self.status(self.hinted(hint), "L10"), "PASS", hint)
+        spec = self.hinted("Find the mistake")
+        spec["items"][1]["asks"][0]["check"] = False
+        self.assertEqual(self.status(spec, "L10"), "PASS", "a hint with no check line is never printed")
+
+    def test_w3_new_topic_checks_need_a_check_the_learner_can_run(self):
+        # topics_state is empty in ctx(): every topic is below mastery 3
+        for hint in ("Which step would you be pushed on? Do it another way.", "Name your weakest step",
+                     "Work it out a different way"):
+            r = result(self.hinted(hint), "W3")
+            self.assertEqual(r["status"], "WARN", hint)
+            self.assertIn("2a", r["detail"])
+        spec = drills_spec()
+        del spec["items"][2]["asks"][0]["check_hint"]
+        r = result(spec, "W3")
+        self.assertEqual(r["status"], "WARN")
+        self.assertIn("no hint on 3a", r["detail"])
+        spec = self.hinted("Do it another way")
+        self.assertTrue(lint.passed(lint.check(spec, ctx(key=answers_for(spec)))), "a WARN never fails lint")
+
+    def test_w3_owned_topics_may_use_a_second_method(self):
+        spec = self.hinted("Which step would you be pushed on? Do it another way.")
+        for level in (3, "3p", 4, 5):
+            self.assertEqual(self.status(spec, "W3", topics_state={"T04": {"level": level}}), "PASS", level)
+        self.assertEqual(self.status(spec, "W3", topics_state={"T04": {"level": 2}}), "WARN")
+        self.assertEqual(self.status(theory_spec(), "W3"), "PASS", "theory has no check lines")
+
+    def test_w3_subject_words_are_not_a_second_method(self):
+        for hint in ("Is your weakest acid the one with the largest pKa in the table?",
+                     "Does the weakest link in the chain carry the full tension?",
+                     "If the cart is pushed on a level track, does your answer give a = F/m?"):
+            self.assertEqual(self.status(self.hinted(hint), "W3"), "PASS", hint)
+
+    def test_w3_judges_each_question_by_its_own_topic(self):
+        spec = self.hinted("Do it another way")
+        spec["items"][1]["asks"][0]["topic"] = "T09"
+        levels = {"T04": {"level": 4}, "T09": {"level": 1}}
+        self.assertEqual(self.status(spec, "W3", topics_state=levels), "WARN")
+        levels = {"T04": {"level": 1}, "T09": {"level": 4}}
+        spec = self.hinted("Do it another way")
+        for it in spec["items"]:
+            it["asks"][0]["topic"] = "T09"
+        self.assertEqual(self.status(spec, "W3", topics_state=levels), "PASS")
+        self.assertEqual(self.status(spec, "W3", topics_state={"T09": "garbled"}), "WARN",
+                         "an unreadable state counts as not owned")
+
+    def test_w4_the_worked_case_shows_its_check(self):
+        self.assertEqual(self.status(theory_spec(), "W4"), "PASS")
+        spec = theory_spec()
+        spec["theory"]["sections"][0]["body"] = "Start: The shop shut at noon.\n\nOther words: The store closed."
+        self.assertEqual(self.status(spec, "W4"), "WARN")
+        spec["theory"]["sections"][0]["title"] = "A worked case, with its check"
+        self.assertEqual(self.status(spec, "W4"), "WARN", "a title is not a check step")
+        spec["theory"]["sections"][0]["body"] += "\n\nPack your checklist."
+        self.assertEqual(self.status(spec, "W4"), "WARN", "a word starting with 'check' is not a check step")
+        spec["theory"]["sections"][0]["body"] += "\n\nStep 3. Check: read both aloud."
+        self.assertEqual(self.status(spec, "W4"), "PASS")
+        spec = theory_spec()
+        spec["theory"]["sections"] = [s for s in spec["theory"]["sections"] if s["kind"] != "worked"]
+        self.assertEqual(self.status(spec, "W4"), "WARN", "no worked case at all")
+        self.assertEqual(self.status(drills_spec(), "W4"), "PASS")
+
     def test_a_malformed_spec_fails_instead_of_crashing(self):
         spec = drills_spec()
         spec["blocks"] = "not a list"
@@ -314,7 +409,7 @@ class CliLintTests(Base):
         self.assertEqual((row["lint"], row["status"]), ("PASS", "linted"))
         data = json.loads(self.lint(spec["id"], "--json").stdout)
         self.assertEqual(data["result"], "PASS")
-        self.assertEqual(len(data["rules"]), 11)
+        self.assertEqual(len(data["rules"]), len(lint.RULES))
 
     def test_undefined_seed_word_fails_l4_and_blocks_the_build(self):
         from lib import ws as wsmod

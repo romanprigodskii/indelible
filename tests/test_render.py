@@ -103,8 +103,15 @@ class HtmlTemplateTests(Base):
         rules = visible_text(self.page.split('<section class="rules"', 1)[1].split("</section>", 1)[0])
         for s in ("Closed book", "Answer on paper, one answer in each box.",
                   "Write the check beside each answer.", "“I don't know” is always an accepted answer.",
-                  "Stop after 12 minutes.", "Tools allowed: none.", V_RULE):
+                  "Stop after 12 minutes.", "Tools allowed: none.", V_RULE,
+                  "If a check fails and you can't see why within a minute, keep your answer"):
             self.assertIn(s, rules)
+
+    def test_a_failed_check_is_a_flag_not_a_hunt_only_where_there_are_checks(self):
+        from lib import render
+        line = "If a check fails and you can't see why within a minute"
+        self.assertTrue(any(line in r for r in render.rules(drills_spec(), "none")))
+        self.assertFalse(any(line in r for r in render.rules(theory_spec(), "none")))
 
     def test_items_asks_check_lines_and_hints(self):
         self.assertLess(self.text.index("0. Start time:"), self.text.index("Question 1."))

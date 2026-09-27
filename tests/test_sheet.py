@@ -96,7 +96,8 @@ def theory_spec(sheet_id="ielts-theory-01", **over):
                        "def": "the same idea said with other words"}],
             "sections": [
                 {"kind": "worked", "title": "A worked case",
-                 "body": "Start: The shop shut at noon.\n\nOther words: The store closed at midday."},
+                 "body": "Start: The shop shut at noon.\n\nOther words: The store closed at midday.\n\n"
+                         "Check: read both aloud. Same idea, new words."},
                 {"kind": "rule", "title": "How to paraphrase", "body": "Keep the idea. Change the words."},
                 {"kind": "warning", "title": "Watch out", "body": "Do not add new facts."},
             ],

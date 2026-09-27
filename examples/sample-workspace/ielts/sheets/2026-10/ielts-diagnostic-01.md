@@ -7,6 +7,7 @@
 > - Closed book: no notes, no book, no search, no AI.
 > - Answer on paper (or in a typed file), one answer for each box.
 > - Write the check beside each answer. Work backwards from it: put it back in, rebuild the total, or test the definition you used against the question's words.
+> - If a check fails and you can't see why within a minute, keep your answer, put its number on the Least-sure line and go on: I'll show you where at marking.
 > - “I don't know” is always an accepted answer.
 > - Stop after 15 minutes.
 > - Tools allowed: none.

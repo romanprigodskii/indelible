@@ -2,6 +2,23 @@
 
 All notable changes to this project are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.5] - 2026-09-28
+
+The learner is never sent to find their own mistake.
+
+### Changed
+
+- **Marking points to the error, and the learner makes the fix.** The account asked for each miss is now how the learner got their answer (`1) I did it this way: ___  2) a word stopped me  3) I guessed  4) I can see my slip: ___`), not "what happened?". On a topic met that day, "what happened?" asked them to find an error they couldn't see. Claude then names the question and the step, and asks once for the corrected line. A slip whose fix doesn't come is treated as a wrong idea, and a wrong idea gets its fix sheet. Law 11 and a new ban in `SKILL.md` say so, and "one of these is wrong: find it" is gone for good. Method rule R42 and `method.md` §5 give the reasons (Große & Renkl, 2007; Baars et al., 2014).
+- **Careless needs more than a named rule.** Naming the right method counts as a slip account only when the learner writes the corrected line unaided once the step is pointed to. The same operation must also be done right, unaided, elsewhere (never the worked items 1–2 of a first drill). A guess not forced by time becomes the wrong idea "no method yet for …", and its fix sheet gives a second worked case in place of the contrast.
+- **A failed check is a flag, not a hunt.** The rules box on sheets with check lines now says: "If a check fails and you can't see why within a minute, keep your answer, put its number on the Least-sure line and go on: I'll show you where at marking."
+- **Checks on a new topic are ones the learner can run.** A theory or fix sheet's worked case now ends with its check, worked as a step. So does item 1 of a first drill block, which covers textbook pages. The drills' check hints name that check. "Another way" and "the weakest step" wait until a topic reaches mastery 3, because a new learner has one method and no sense yet of where they are weak. Rechecks give only the form of a check, never a topic's own method, so the check doesn't label the question.
+- **"Which line is the first wrong one?" and "find the error" items** appear only on topics the learner owns, or where finding errors is the exam's own question form. Below that, the wrong working sits beside the right one. A mock's miss-review asks why the learner chose their answer, and asks for the answer now only after Claude has pointed to the line or step.
+- The sample workspace was rebuilt: the new rules-box line, and the `.ics` PRODID now carries the current version.
+
+### Added
+
+- **Sheet checker rules.** L10 (fails): a check hint that asks for a search ("find your mistake", "check your work for mistakes"), a re-solve ("redo", "double-check") or a confidence rating, or says only "check your answer". Subject words such as "the standard error", "error bars" or "the error message" pass. W3 (warns): on a topic below mastery 3, a check line with no hint, or one that needs a second method or the weakest step. W4 (warns): a theory or repair sheet whose worked case has no "Check:" step.
+
 ## [0.1.4] - 2026-09-26
 
 ### Changed

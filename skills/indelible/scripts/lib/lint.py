@@ -1,4 +1,4 @@
-"""The sheet checker: rules L1-L9 and warnings W1-W2 (CONTRACT section 7.4).
+"""The sheet checker: rules L1-L10 and warnings W1-W4 (CONTRACT section 7.4).
 
 ``check(spec, ctx)`` is pure: it takes the visible spec and a context dict and
 returns one result per rule, in order. ``gather(ws, subject, spec, row)``
@@ -19,6 +19,15 @@ plain everyday sense; never for a word in the subject lexicon, and never on a
 theory sheet for a word it defines), and ``measured_here`` (a measuring sheet
 that deliberately tests the word).
 
+L10 and W3 read check hints only. A hint is how the learner checks an answer,
+so it must name a check that runs: never a search for their own mistake, a
+re-solve or a confidence rating (L10, any sheet), and on a topic the learner
+doesn't own yet (below mastery 3p) never "another way" or "the weakest step",
+which need a second method or a sense of their own weak spots (W3). W4 asks
+that a theory or repair sheet's worked case ends with a step labelled
+"Check:", so the check a drill asks for has been seen worked. L10 and W3 match
+English wording only; the rules themselves hold in any language.
+
 The key is read in-process for L8 only. Nothing from it is ever returned or
 printed: an L8 FAIL names the question (ask) ids, never the text.
 
@@ -32,11 +41,12 @@ from lib import LISTS_DIR, dates, learning
 from lib import io as fio
 from lib import render
 
-RULES = ["L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L9", "W1", "W2"]
+RULES = ["L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L9", "L10", "W1", "W2", "W3", "W4"]
 TITLES = {
     "L1": "structure", "L2": "check lines", "L3": "unlabelled", "L4": "terms", "L5": "budget",
     "L6": "drill blocks", "L7": "cold validity", "L8": "key leak", "L9": "least-sure",
-    "W1": "formula in block title", "W2": "sentences first",
+    "L10": "check hints", "W1": "formula in block title", "W2": "sentences first",
+    "W3": "checks on new topics", "W4": "worked check",
 }
 
 # L2: every ask has a check line on these types. The contract lists "repair"
@@ -52,6 +62,58 @@ VERBAL_LAYERS = ("verbal", "reading")
 MIN_LEAK_LEN = 3
 BUDGET_FRACTION = 0.8
 MAX_LISTED = 6
+
+# L10: a hint that sends the learner to search for their own mistake, re-solve
+# the question or rate their confidence, instead of naming a check that runs.
+# "Error" is often a subject word (the standard error, an error term, error bars,
+# an error message), so it counts as a search only when the phrase ends there or
+# points at the learner's own work. English wording only; the rule holds in any
+# language, and the builder re-reads other languages itself.
+_SEARCH = r"(?:find|spot|look\s+for|search\s+for|hunt\s+for|locate)"
+_WHOSE = r"(?:(?:the|a|an|any|your|my)\s+)?(?:own\s+)?"
+_OWN = (r"(?:(?:your|my|the|this|each|every)\s+)?(?:own\s+)?"
+        r"(?:work|working|solutions?|answers?|steps?|calculations?|method|proof|code|lines?)")
+_ERR_END = r"(?:\s+(?:in|on)\s+" + _OWN + r"\b|(?=\s*(?:[.?!;]|$)))"
+_SCAN = r"(?:check|look\s+(?:over|through|at)|go\s+(?:over|through)|read\s+through|scan|search)"
+_SEARCH_HINT = re.compile(
+    r"\b" + _SEARCH + r"\s+" + _WHOSE + r"(?:mistakes?|slips?)\b"
+    r"|\b" + _SEARCH + r"\s+(?:your|my)\s+(?:own\s+)?errors?\b"
+    r"|\b" + _SEARCH + r"\s+" + _WHOSE + r"errors?" + _ERR_END +
+    r"|\b" + _SCAN + r"\s+(?:it\s+|" + _OWN + r"\s+)?for\s+(?:any\s+)?(?:mistakes?|slips?)\b"
+    r"|\b" + _SCAN + r"\s+(?:it\s+|" + _OWN + r"\s+)?for\s+(?:any\s+)?errors?" + _ERR_END +
+    r"|\b(?:find|spot|see)\s+what(?:'s|\u2019s|\s+is|\s+went)\s+wrong\b"
+    r"|\bwhere\s+(?:did\s+|does\s+)?(?:you|it|i)\s+(?:went|go|goes)\s+wrong\b"
+    r"|\b(?:which|what)\s+(?:step|line|part)\s+is\s+wrong\b"
+    r"|\bis\s+there\s+(?:a|an|any)\s+(?:mistakes?|slips?)\b"
+    r"|\bis\s+there\s+(?:a|an|any)\s+errors?" + _ERR_END +
+    r"|\b(?:did|have)\s+you\s+(?:make|made)\s+(?:a|an|any)\s+(?:mistakes?|errors?|slips?)\b"
+    r"|\b(?:didn't|didn\u2019t|did\s+not)\s+make\s+(?:a|an|any)\s+(?:mistakes?|errors?|slips?)\b"
+    r"|\bmake\s+sure\s+(?:it|it's|it\u2019s|it\s+is|your\s+answer\s+is|you're|you\s+are)\s+(?:right|correct)\b"
+    r"|\bdouble[\s-]*check"
+    r"|\bre-?do\b|\bre-solve\b|\brework\b"
+    r"|\b(?:solve|do|work|try)\s+(?:(?:it|this|that|them|the\s+(?:question|problem|sum))\s+)?"
+    r"(?:out\s+|through\s+)?again\b"
+    r"|\bare\s+you\s+sure\b|\bhow\s+(?:sure|confident)\s+are\s+you\b"
+    r"|\b(?:rate|mark)\s+your\s+(?:confidence|certainty)\b",
+    re.IGNORECASE)
+# L10: a hint that is only "check your answer", with nothing that says how.
+_BARE_HINT = re.compile(
+    r"^(?:please\s+)?(?:check|re-?check|verify|review|look\s+over|go\s+over)"
+    r"(?:\s+(?:your|the|it|this|each|every))?"
+    r"(?:\s+(?:final\s+)?(?:answers?|work|working|solutions?|calculations?|steps?|results?|everything))?"
+    r"(?:\s+(?:again|carefully|once\s+more))?$",
+    re.IGNORECASE)
+# W3: a hint that needs a second method or a sense of one's own weak spots.
+# Narrow: "the weakest acid" or "a cart pushed on a track" are subject words.
+_SECOND_WAY_HINT = re.compile(
+    r"\b(?:another|a\s+different|a\s+second)\s+(?:way|method|route|approach)\b"
+    r"|\bweakest\s+(?:step|point|part|spot|line)\b"
+    r"|\b(?:step|part|point|line)\s+(?:is|was)\s+(?:the\s+)?weakest\b"
+    r"|\bbe\s+pushed\s+on\b|\bleast\s+sure\b",
+    re.IGNORECASE)
+_CHECK_STEP = re.compile(r"\bcheck\s*:", re.IGNORECASE)
+CHECKABLE_TYPES = CHECK_REQUIRED + ("repair",)
+WORKED_CHECK_TYPES = ("theory", "repair")
 
 _CODE_SPAN = re.compile(r"(`+)(?!`)(.+?)(?<!`)\1(?!`)")
 _FENCE_OPEN = re.compile(r"^[ \t]*(`{3,}|~{3,})")
@@ -554,6 +616,74 @@ def _l9(spec, ctx):
     return "FAIL", "least_sure must be true on %s sheets (one closing line: Least sure of)" % t
 
 
+def _hint_words(hint):
+    return re.sub(r"[^\w\s'-]", " ", _s(hint)).strip()
+
+
+def _l10(spec, ctx):
+    bad = []
+    for it in _items(spec):
+        for a in _asks(it):
+            if a.get("check") is not True:
+                continue
+            hint = _s(a.get("check_hint")).strip()
+            if hint and (_SEARCH_HINT.search(hint) or _BARE_HINT.match(" ".join(_hint_words(hint).split()))):
+                bad.append(a.get("id"))
+    if bad:
+        return "FAIL", ("the check hint on question%s %s asks for a search, a re-solve or a confidence "
+                        "rating: name the check to run (put the answer back in, rebuild the total, test the "
+                        "definition used against the question's words)" % ("s" if len(bad) > 1 else "",
+                                                                             _listed(bad)))
+    return "PASS", "every check hint names a check"
+
+
+def _owned(level):
+    try:
+        return level is not None and learning.level_rank(level) >= learning.level_rank("3p")
+    except Exception:  # an unreadable level counts as not owned
+        return False
+
+
+def _w3(spec, ctx):
+    if spec.get("type") not in CHECKABLE_TYPES:
+        return "PASS", "no check lines on %s sheets" % spec.get("type")
+    state = ctx.get("topics_state") or {}
+    missing, second = [], []
+    for it in _items(spec):
+        for a in _asks(it):
+            if a.get("check") is not True:
+                continue
+            topic_state = state.get(_s(a.get("topic") or it.get("topic")))
+            if isinstance(topic_state, dict) and _owned(topic_state.get("level")):
+                continue
+            hint = _s(a.get("check_hint")).strip()
+            if not hint:
+                missing.append(a.get("id"))
+            elif _SECOND_WAY_HINT.search(hint):
+                second.append(a.get("id"))
+    probs = []
+    if missing:
+        probs.append("no hint on %s" % _listed(missing))
+    if second:
+        probs.append("a second method or 'weakest step' on %s" % _listed(second))
+    if probs:
+        return "WARN", ("%s: on a topic the learner doesn't own yet (below mastery 3), name the check the "
+                        "theory sheet worked, or one that uses only what they own" % "; ".join(probs))
+    return "PASS", "checks on new topics name a check the learner can run"
+
+
+def _w4(spec, ctx):
+    if spec.get("type") not in WORKED_CHECK_TYPES:
+        return "PASS", "not a theory or repair sheet"
+    theory = spec.get("theory") if isinstance(spec.get("theory"), dict) else {}
+    worked = [sec for sec in (theory.get("sections") or [])
+              if isinstance(sec, dict) and _s(sec.get("kind")) == "worked"]
+    if any(_CHECK_STEP.search(_s(sec.get("body"))) for sec in worked):
+        return "PASS", "the worked case shows its check"
+    return "WARN", ("no worked case shows its check: end it with a step labelled 'Check:', the same check "
+                    "the drills will ask for")
+
+
 def _w1(spec, ctx):
     hits = [str(i) for i, b in enumerate(spec.get("blocks") or [], start=1)
             if isinstance(b, dict) and "=" in _s(b.get("title"))]
@@ -574,7 +704,7 @@ def _w2(spec, ctx):
 
 
 CHECKS = {"L1": _l1, "L2": _l2, "L3": _l3, "L4": _l4, "L5": _l5, "L6": _l6, "L7": _l7,
-          "L8": _l8, "L9": _l9, "W1": _w1, "W2": _w2}
+          "L8": _l8, "L9": _l9, "L10": _l10, "W1": _w1, "W2": _w2, "W3": _w3, "W4": _w4}
 
 
 def check(spec, ctx=None):

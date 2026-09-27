@@ -6,9 +6,9 @@ Contents: 1 Rules for every subject · 2 Quantitative · 3 Verbal · 4 Language 
 
 ## 1. Rules for every subject
 
-- **Account first** (Law 11). Map the one-tap menu: "slip" → test the careless conditions below; "didn't know a word" → V; "no idea" → the content mode (on a diagnostic, an untaught topic's "no idea" gets no `kind`: [measure.md](measure.md)); one line → classify from its words and the written work. With "no account", classify from the work alone, and never as C.
+- **Account first** (Law 11): how the learner got their answer, never a hunt for the error. Map the short menu: "I did it this way: ___" → a wrong method is the content mode, and their words are the belief line; a right method means the miss is in carrying it out (test C, form, reading); "a word stopped me" → V; "I guessed" → the content mode, belief line "no method yet for <the operation, in words>" (a guess forced by time is T, no `kind`; on a diagnostic, an untaught topic's guess gets no `kind`: [measure.md](measure.md)); "I can see my slip: ___" → test the careless conditions below; a reply off the menu → classify from its words and the written work. With "no account", classify from the work alone, and never as C.
 - **Check in this order:** not reached (time) → a word (V) → right idea, wrong form → a slip claim (test C) → the profile's content modes.
-- **Careless (C) needs both:** the learner's slip account, and the same operation done right elsewhere (this sheet or a recent one). Missing either, it is not C. Careless per 10 counts only C, and a wrong idea labelled C skips its repair.
+- **Careless (C) needs both:** the learner's slip account (a slip they name; or the right method named in their account, confirmed when they write the corrected line unaided once you point to the step), and the same operation done right, unaided, elsewhere (this sheet or a recent one; never items 1–2 of a mastery 0–1 drill, whose steps the sheet gave). Missing either, it is not C. Careless per 10 counts only C, and a wrong idea labelled C skips its repair.
 - **V and C exist in every taxonomy.** A V word used on the sheet without being defined or owned is my mistake: log an `undefined_term` defect and add the word to `sense_list` (as in [session-grade.md](session-grade.md)), and give the question no `kind`.
 - **Kinds:**
   - `belief`: a wrong idea (including an unknown word). Repair sheet first; never served cold while untreated.
@@ -24,7 +24,7 @@ Contents: 1 Rules for every subject · 2 Quantitative · 3 Verbal · 4 Language 
 
 | Code | Mode | Example | Treatment |
 |---|---|---|---|
-| C | Careless | Wrote 0.35 for 0.53 in the last line; same subtraction right in question 4; "rushed" | `slip`. Ladder only. Ask which check would have caught it; a missing check line is the thing to fix |
+| C | Careless | Wrote 0.35 for 0.53 in the last line; same subtraction right in question 4; "I can see my slip: copied 0.53 as 0.35" | `slip`. Ladder only. Once you have pointed to the line, ask which check would have caught it; a missing check line is the thing to fix |
 | M | Method (did not know how, or a wrong method) | Divides by n for a sample standard deviation | `belief`. Repair sheet: worked case, the wrong worked example beside it, the case where both hold; one drill block; recheck at least 12 h after |
 | V | A word stopped me | Didn't know what "unbiased" meant, so left it blank | `belief`. Vocabulary probe first ([measure.md](measure.md)); the word on the next theory sheet or a words sheet, and in `lexicon`; then re-serve the question type |
 | F | Answer form | Gave a decimal where the question asked for a percentage to one decimal place | `slip`. A short answer-form block; the check reads the form back (units, rounding, the form asked for) |
@@ -42,7 +42,7 @@ Contents: 1 Rules for every subject · 2 Quantitative · 3 Verbal · 4 Language 
 | E | Plausible but unsupported | Chose TRUE because it is true in real life; the passage never says it | `belief`. Check line: "Copy the words that support it"; a drill block where every answer cites its line |
 | R | Rule (grammar, usage or task rule) | Wrote "informations" in a gap | `belief`. The rule on a theory sheet with a contrast pair and the case where both hold; one drill block |
 | T | Time | Last passage: six answers guessed in the final two minutes | No `kind` unless a wrong idea shows. Minutes per passage; practise the skip-and-return order in timed sets |
-| C | Careless | Matched iv in the margin, copied vi onto the answer line; "slip" | `slip`. Ladder; check hint: "Compare the margin with the answer line" |
+| C | Careless | Matched iv in the margin, copied vi onto the answer line; "I can see my slip: wrote vi, I matched iv" | `slip`. Ladder; check hint: "Compare the margin with the answer line" |
 
 ## 4. Language (persona B, Spanish)
 
@@ -54,7 +54,7 @@ Contents: 1 Rules for every subject · 2 Quantitative · 3 Verbal · 4 Language 
 | W | Wrong register | Used "Oye, dame la llave" with a hotel receptionist | `belief`. The same request at two registers, then a short role-play with correction after the exchange |
 | L | Listening | Heard "trece" as "treinta" in a station announcement | `belief`. Minimal-pair items from audio the learner picks: answer first, then compare with the transcript |
 | V | A word stopped me (never met it) | Didn't know "andén" | `belief`. Words sheet (at most 12, each in a sentence); triage as use / seen / no |
-| C | Careless | Wrote "está" right in questions 2 and 5, dropped the accent in 9; "rushed" | `slip`. Ladder; back-translation check |
+| C | Careless | Wrote "está" right in questions 2 and 5, dropped the accent in 9; "I can see my slip: left the accent off" | `slip`. Ladder; back-translation check |
 
 V is a word never met; M is a known word given the wrong meaning. Pronunciation is not scored.
 
@@ -68,7 +68,7 @@ V is a word never met; M is a known word given the wrong meaning. Pronunciation 
 | R | Spec misread | Returned the index where the task asked for the value | `slip`. Check: one test written from the task's own words before coding |
 | B | Build and tooling | Ran the program, never the tests, so the failing test never showed | `belief`. A one-page tooling card; every task ends "run the tests; copy the last line" |
 | V | A word stopped me | Didn't know what "idempotent" meant in the task | `belief`. Defined on the next theory sheet; added to `lexicon` |
-| C | Careless | Typed `<` for `<=` in one bound, right in the other function; "typo" | `slip`. Ladder; the check is a test that runs the other way |
+| C | Careless | Typed `<` for `<=` in one bound, right in the other function; "I can see my slip: typed < for <=" | `slip`. Ladder; the check is a test that runs the other way |
 
 Treatments are sheets, traces and questions. Never write or edit the learner's solution code (Law 12).
 
@@ -82,7 +82,7 @@ Treatments are sheets, traces and questions. Never write or edit the learner's s
 | W | Wrong register | "Kids" and "a lot of stuff" in an academic essay | `belief`. Register contrast pairs. For second-language learners, wording is graded apart from ideas |
 | T | Time | 190 words at 40 minutes; the task needs 250 | No `kind`. Timed plan-then-write drills with minutes per part |
 | V | A word stopped me | Read "curb" in the prompt as "encourage" | `belief`. Vocabulary probe; words sheet |
-| C | Careless | "their" for "there" twice, right elsewhere; "slip" | `slip`. Ladder; a final read-through as the check |
+| C | Careless | "their" for "there" twice, right elsewhere; "I can see my slip: their for there" | `slip`. Ladder; a final read-through as the check |
 
 Model answers are only for practice prompts, after the attempt. Never write work the learner will hand in (Law 12).
 

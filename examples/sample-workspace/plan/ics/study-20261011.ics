@@ -1,6 +1,6 @@
 BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//indelible//indelible 0.1.1//EN
+PRODID:-//indelible//indelible 0.1.5//EN
 CALSCALE:GREGORIAN
 X-WR-CALNAME:Study
 BEGIN:VEVENT

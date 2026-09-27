@@ -43,7 +43,7 @@ Item rules (lint L2, L3 and L9 enforce the first three):
 - One labelled blank per question, each with a check line. For a definition: "write the definition you used and test it against the question's words".
 - Item 0 records the start time; the last line records the stop time and "Least sure of: ___". No per-answer confidence marks.
 - The rules box says "I don't know" is always an accepted answer.
-- Mixed formats: compute, find the error, reverse the question, which rule applies, a one-line "why", and the exam's own answer form. Form, tools and accommodations match `subject.json.format`.
+- Mixed formats: compute, reverse the question, which rule applies, a one-line "why", and the exam's own answer form. No "find the error" items unless the exam itself asks them (a grammar "identify the error" question, say): spotting an error takes the knowledge the item tests. Form, tools and accommodations match `subject.json.format`.
 - Two questions per topic hinge on a key term (the Part A core item and one Part B item). Every other item says what it means in plain words, so a word failure shows apart from a concept failure. Topics that stop after Part A get the second from the vocabulary probe (§7).
 - Multiple choice: the CLI applies no chance correction, so each topic needs at least 4 constructed-response questions (answer written before any options are seen).
 
@@ -61,8 +61,8 @@ Item rules (lint L2, L3 and L9 enforce the first three):
 1. **Evidence first:** `ind sheet sat <subject> <id> --start HH:MM --stop HH:MM`, then `ind scan ingest <subject> <id> <photos>` (or `--typed FILE`, or `--transcript -` for a chat photo you transcribed). Only then `ind key open <subject> <id>`.
 2. **Between Part A and Part B,** give verdicts only; explain nothing on a topic going into Part B.
 3. **Per question:** verdict `right`, `half`, `wrong`, `dont_know` (wrote "I don't know") or `skip` (blank); check `filled`, `missing` or `caught`; `least_sure` from the closing line.
-4. **Accounts before classifying,** one miss at a time, unnamed wrong answers first (wrong and not on the Least-sure line): "Question 7: what happened? 1) slip 2) didn't know a word 3) no idea 4) write one line". Any language is fine. Cap at about 5 minutes per paper; the rest get "no account", never counted as blanks.
-5. **Classify** with the subject taxonomy. Give `kind` only for a specific wrong idea (`belief`) or a slip. "No idea" or "I don't know" on an untaught topic gets no `kind`: teaching covers it.
+4. **Accounts before classifying,** one miss at a time, unnamed wrong answers first (wrong and not on the Least-sure line): "Question 7: how did you get your answer? 1) I did it this way: ___ 2) a word stopped me 3) I guessed 4) I can see my slip: ___". An account is how they got it, never a hunt for the error ([session-grade.md](session-grade.md) §4). Any language is fine. Cap at about 5 minutes per paper; the rest get "no account", never counted as blanks.
+5. **Classify** with the subject taxonomy. Give `kind` only for a specific wrong idea (`belief`) or a slip. A guess or "I don't know" on an untaught topic gets no `kind`: teaching covers it.
 6. **Record:** write the grades file (`ind schema grades`), then `ind grade record <subject> <id> --from grades.json`. No `--shaky` on a diagnostic; use it on mocks and checkpoints.
 7. **Claude-built keys can be wrong.** Say "that doesn't match my answer", check the scan and key, and if the answer is defensible, mark it right and log a `content_error` defect (`ind ledger add defect`).
 8. **Compute:** `ind topic show <subject>` (levels with basis) and `ind stats <subject>` (careless per 10, unnamed-wrong %, check coverage, pace). Count per-topic fractions from the grades file against the item topics in `<subject>/.indelible/specs/<id>.json`. Then `ind render <subject>`.
@@ -149,7 +149,7 @@ Code, and on-demand learners (D), whatever they come for: session 1 is the capst
 - Exam conditions (clock, time of day, tools, accommodations), first in the day, in a block of exam length plus 15 minutes. No recheck before it: that day's rechecks go 3+ hours later, or the next day inside their window.
 - If no window fits the whole exam, sit one section at a time; section scores are their own series.
 - One trend line per instrument family (official, Claude-built, section). Never join mock numbers to diagnostic or recheck numbers.
-- Within 48 hours, a `review` block per miss: account, repair, one fresh item, labelled practice. On official items the learner writes a why-line and a "now" answer before any reveal (`miss-review` sheet). A mock miss's recheck comes at least 12 hours after its repair.
+- Within 48 hours, a `review` block per miss: account, repair, one fresh item, labelled practice. On official items the learner writes a why-line (why they chose their answer) before any reveal, then a "now" answer once Claude has pointed to the line or step the answer turns on, never the answer itself (`miss-review` sheet). A mock miss's recheck comes at least 12 hours after its repair.
 
 **Rationing official material** (entry shape: [sheets.md](sheets.md) §11):
 - Each unseen official unit gets one job and a date: the checkpoints and the final mock first, a diagnostic only from what is left. Persona A: `ind set ielts materials.ration.+ '{"unit":"official test 1","job":"checkpoint","date":"2026-11-14","status":"assigned"}'`, then official test 2 as the `final mock` on 2026-11-21.

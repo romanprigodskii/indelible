@@ -52,7 +52,7 @@ Code adds "Have you ever written and run a program yourself?"; language, "Could 
 Feeds `materials.sources`, `.ration` (shapes: [sheets.md](sheets.md) §11) and the theory source. Answer files: path only, never opened here.
 
 **Q5 · About you:** "Three quick ones. (a) Are you 18 or over? If not, say 'under 16' or '16–17': it only changes sleep, load and reminder defaults. (b) Is your first language different from the one you'll study in? Then I'll explain hard words in it the first time they appear, and you may draft 'why' answers in it. (c) Which feedback suits you, for a wrong answer on question 7?
-A: '7 is wrong: you used the mean where the question asks for the median. Redo it with the median.'
+A: '7 is wrong: you used the mean where the question asks for the median. Next: a fix sheet on the median.'
 B: '7 is wrong: mean used where the question asks for the median. That's a definition slip, and your method was right. Next: two median questions.'"
 Ask (b) only if the languages may differ; language profile: "Which language should I explain things in?". indelible is meant for adults; the under-18 defaults are a safety net, not a target audience. Under 18: sleep ≥8.5 h, nothing ending after 22:00 on school nights unless chosen, school plus study against the ceiling; under 16: no connector without a guardian's agreement. Feeds `learner.*`.
 
@@ -143,7 +143,7 @@ Exit 2: stop, say so in one line. Exit 1: fix what it names, go on.
 IELTS Academic · target 7.5 (floor 7.0) · Sat 12 Dec 2026 (62 days)
 Week: ~4 h · 60-min sessions · clearest before work
 Me: I name mistakes exactly and tell you the next step. "I don't know" is always an accepted answer.
-You: turn up, work on paper, write the check beside each answer, name what you're least sure of, and tell me honestly what happened.
+You: turn up, work on paper, write the check beside each answer, name what you're least sure of, and tell me honestly how you got each answer.
 What I keep: your answers, sheets and marks, all in ~/Study. Say "what do you keep?" to see it.
 Next time: open Claude in ~/Study and say "start ielts".
 Building your diagnostic now (about 3 minutes). Part A is set for Mon 07:00.

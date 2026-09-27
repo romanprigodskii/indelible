@@ -16,9 +16,9 @@ Load this once the 2-day recheck is marked ([session-open.md](session-open.md), 
 A wrong idea (an error of kind `belief`) is never served cold until it has been repaired. The brief's DUE line counts them; list them with `ind error list <s> --status untreated`, or find them under "needs repair" in `ind due <s> --list`. Slips and shaky answers need no repair, because they are already on the ladder.
 
 1. **The repair page** is a `repair` sheet written by the builder, in this order:
-   1. a concrete case, fully worked;
+   1. a concrete case, fully worked, ending with its check (a step labelled "Check:");
    2. the procedure, with every step named;
-   3. a contrast: the learner's wrong idea worked through to its wrong result, beside the right version;
+   3. a contrast: the learner's wrong idea worked through to its wrong result, beside the right version (for a "no method yet" belief, a second worked case instead);
    4. the case where both give the same result, which shows why the wrong idea seemed to work;
    5. pencil questions: completion steps with every operation named.
 2. **The learner reads it, does the pencils, and closes it.** The exposure is logged in step 4 (`ind error repair` records it), so the 24-hour rule keeps the topic off rechecks for a day.
@@ -40,7 +40,7 @@ A wrong idea (an error of kind `belief`) is never served cold until it has been 
 3. **A theory sheet follows this order:**
    1. the floor box (what the topic stands on);
    2. the words, each with a gloss (a first-language gloss on first use, when set);
-   3. the smallest worked concrete case, with pencil questions that are completion steps, every operation named;
+   3. the smallest worked concrete case, ending with its check worked as a step ("Check: …"): the check the drills will ask for, so the learner has seen it run once; then pencil questions that are completion steps, every operation named;
    4. the rule, in a box;
    5. a contrast pair, then the case where both hold;
    6. a warning box with the likeliest wrong turn;
@@ -48,8 +48,8 @@ A wrong idea (an error of kind `belief`) is never served cold until it has been 
    8. "Put this sheet away now. The drills come on their own sheet."
 
    A concrete case always comes before any definition.
-4. **At mastery 0–1, the worked example comes first and fades across the drills.** Item 1 is fully worked and asks one "why does this step follow?" question. Item 2 has its last steps blank. From item 3 on, the questions are independent.
-5. **Mark the pencils by asking.** File the photo or typed answers (`ind scan ingest`) before opening the key; pencils are practice. For a wrong pencil, ask rather than tell: "Look at step 2 of the worked case. What did it do there that you didn't?" If two questions don't get there, fall back to a fill-in from the sheet itself: name the line of the worked case that holds the step, and have the learner copy it into the pencil box. Don't write the step in chat, because the drills would then sit right below it. If you do explain in chat, run `ind session expose <s> <T> --kind chat`.
+4. **At mastery 0–1, the worked example comes first and fades across the drills.** Item 1 is fully worked, ending with its check (a step labelled "Check:"), and asks one "why does this step follow?" question. Item 2 has its last steps blank. From item 3 on, the questions are independent.
+5. **Mark the pencils by asking.** File the photo or typed answers (`ind scan ingest`) before opening the key; pencils are practice. For a wrong pencil, point, then ask: "Look at step 2 of the worked case. What did it do there that you didn't?" Name the step; never ask the learner to find their own mistake. If two questions don't get there, fall back to a fill-in from the sheet itself: name the line of the worked case that holds the step, and have the learner copy it into the pencil box. Don't write the step in chat, because the drills would then sit right below it. If you do explain in chat, run `ind session expose <s> <T> --kind chat`.
 6. **When the learner says "closed"** (the sheet is put away, out of sight):
    - Run `ind session taught <s> <T> --by sheet --block <B>`, or `--by external` for textbook pages. This books the 2-day recheck window and prints it. The window is placed at the close ([close.md](close.md), [plan.md](plan.md)).
    - Tell the learner: "Your 2-day recheck on this is due in about two days; I'll put it in the plan at the close. Please don't review it before then; that's what makes the recheck count."
@@ -76,12 +76,14 @@ When the learner is stuck, climb one rung per message:
 
 - **Blocks of one operation.** Block size comes from the subject (3–8, default 6). The block heading names the operation in words, with no formula. Sentence and verbal questions come first. New material comes in blocks; material the learner already owns is served mixed and unlabelled, because inside a block the learner can answer the block rather than the question.
 - **Every answer has a written backwards check beside it,** including a check of the definition used. By layer:
-  - numbers: put the answer back into the question, or rebuild the total another way;
+  - numbers: put the answer back into the question, or rebuild the total from the other direction;
   - definitions: test the definition you used against the exact words of the question;
   - reading, verbal and language: re-read the sentence with your answer in it, or translate it back;
   - code: a test or assert that runs the other way.
 
-  When a failed check leads the learner to change an answer, that is a catch. Name it at marking: "Your check caught question 4."
+  On new material the check is the one the theory sheet's worked case ended with (for textbook pages, the one drill item 1 works), or one that uses only what the learner owns, and the hint names it. Never "another way", "the weakest step" or "find your mistake": the learner has one method so far, and a hunt needs the very knowledge being learned.
+
+  A failed check the learner can't resolve within a minute is a flag, not a hunt: they keep the answer, put its number on the Least-sure line and go on (the rules box says so), and at marking you point to the step. When a failed check leads the learner to change an answer, that is a catch. Name it at marking: "Your check caught question 4."
 - **The failure gate** is printed after item 3 of each block: *If your check failed on 2 of items 1–3, or you left 2 blank: stop and send a photo of 1–3.* When that photo comes:
   1. File it with `ind scan ingest`, then open the key. The photo of the finished sheet is filed the same way later.
   2. Repair before the block continues: an `example` sheet with an isomorphic case, or a one-question probe in chat (for example "What does <word> mean here?").

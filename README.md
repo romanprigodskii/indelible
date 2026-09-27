@@ -11,9 +11,9 @@
 1. **Read it, then close it.** Theory comes on a sheet you read and put away before the drills. An explanation left in view turns a test into a lookup.
 2. **One thing at a time, then all mixed up.** Teaching drills come in blocks of one question type. Anything that measures is unlabelled and interleaved, like the real exam.
 3. **Nothing counts until it survives 48 hours.** Every new skill comes back cold two days later, on fresh problems. Same-day scores don't count.
-4. **Check backwards, in writing.** Beside every answer, write one check that runs the other way: put the answer back into the question, rebuild the total, or test the definition you used against what the question actually says. Re-solving in your head replays the same slip; a written check catches it. Each sheet ends with a single line, *Least sure of: ___*. There is no confidence flag on every answer: people stop filling it in, and doubt tends to fire on arithmetic while the costly mistakes are confident misreadings of a definition.
+4. **Check backwards, in writing.** Beside every answer, write one check that runs the other way: put the answer back into the question, rebuild the total, or test the definition you used against what the question actually says. Re-solving in your head replays the same slip; a written check catches it. On a new topic, the check is the one the theory sheet showed you working. Each sheet ends with a single line, *Least sure of: ___*. There is no confidence flag on every answer: people stop filling it in, and doubt tends to fire on arithmetic while the costly mistakes are confident misreadings of a definition.
 5. **Every miss goes in the error log** and returns after 1 day, 3 days, 1 week and 3 weeks.
-6. **You do the work.** You get the smallest hint that unblocks you and never an answer you could reach yourself. Explaining a concept back is the real test.
+6. **You do the work.** You get the smallest hint that unblocks you and never an answer you could reach yourself. When an answer is wrong, you're shown where, and the fix is yours: you're never sent to hunt for a mistake in something you learned an hour ago. Explaining a concept back is the real test.
 
 ## Where it works
 
@@ -62,7 +62,7 @@ Say what you want in plain words. These examples come from the made-up learners 
 | "I need a 7.5 in IELTS Academic by December for my master's offer. Can you set me up and keep me honest?" | **Setup.** Up to eight short questions, a two-week plan to check and a one-screen summary. Nothing is written until you say yes. Week 1 opens with a diagnostic: nothing is taught until it's marked. |
 | "teach me rust I guess. please don't ask me a million questions" | **Express setup.** Three questions, then a plan; everything else takes a default you can change later. |
 | "start ielts" or "What's due today?" | **A session.** The 2-day recheck first, then mistakes that are due, then new material and drills, then marking and the close. |
-| "Here are the photos of this morning's drill sheet." | **Marking.** The photos are filed first, and only then is the answer key opened. For each miss you give your account, and it goes in the error log with a date to come back. |
+| "Here are the photos of this morning's drill sheet." | **Marking.** The photos are filed first, and only then is the answer key opened. For each miss you say how you got your answer; then you're shown the step where it went wrong, you make the fix, and the miss goes in the error log with a date to come back. |
 | "I missed Thursday's session." | **Reschedule.** The plan is repaired and checked, the 2-day recheck is always rebooked, and you see the changes before anything goes to your calendar. If you say no, the sessions it added are cancelled and it asks what would work instead. |
 | "Put my study blocks in my calendar." | **Sync.** A preview of what will be added, moved or cancelled, written only after your yes, then read back. Without a calendar connector you get an `.ics` file. |
 | "Weekly review" | **Review.** The week's numbers, each labelled (such as *measured* or *practice*), ending in one to three decisions. |
@@ -107,7 +107,7 @@ An example with a made-up learner: preparing for IELTS Academic 7.5 by 12 Decemb
 
 A typical week from then on:
 
-- **Tuesday: a new skill.** A theory sheet she reads and then closes. Drills on paper, in blocks of one question type, with a written check beside every answer and *Least sure of: ___* at the end. She sends phone photos; they are filed before anything is marked. For each miss she gives her account first, and the miss goes into the error log with a date to come back.
+- **Tuesday: a new skill.** A theory sheet she reads and then closes. Drills on paper, in blocks of one question type, with a written check beside every answer and *Least sure of: ___* at the end. She sends phone photos; they are filed before anything is marked. For each miss she says first how she got her answer; then she is shown the step where it went wrong, and the miss goes into the error log with a date to come back.
 - **Thursday: the 2-day recheck opens the session.** Fresh questions on Tuesday's skill, cold, with nothing reviewed in the 24 hours before. Then the next skill.
 - **Every session ends with the close,** inside the session. Anything she can't finish becomes a dated to-do rather than a vague "later".
 - **Calendar.** Blocks appear in her calendar only after she has seen the changes and said yes. When she writes "I missed Thursday", the plan is repaired, and the 2-day recheck is always rebooked.

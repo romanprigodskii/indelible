@@ -23,12 +23,12 @@ Every question on `drills`, `cold`, `mixed`, `diagnostic`, `mock`, `checkpoint` 
 
 | Layer or form | The learner writes | Example hint |
 |---|---|---|
-| procedural | the answer substituted back, or the total rebuilt another way | "Put your answer back into the equation" |
+| procedural | the answer substituted back, or the total rebuilt from the other direction | "Put your answer back into the equation" |
 | conceptual | the definition used, tested against the question's words | "Which meaning of 'range' did you use?" |
 | verbal, reading | the sentence read again with the answer in it | "Read the sentence again with your word in it" |
 | production | a back-translation into the instruction language | "Translate it back: is that what you meant?" |
 | code | an assert or test that runs the other way | "Parse what you printed: do you get the input back?" |
-| explanation | the weakest point named, then said again | "Which part would you be pushed on?" |
+| explanation | below mastery 3: the answer re-read against the question's words; from 3: the weakest point named, then said again | "Read it as the listener: does every sentence answer the question?" / "Which part would you be pushed on?" |
 
 ## 3. exam
 
@@ -55,7 +55,7 @@ For interviews, vivas and oral exams.
 - **Capture the answer word for word** with `ind note append <s> explanations` before any comment.
 - **Critique point by point:** each required point is present, partial or missing, quoting the learner's words that carried it; then one next step. Second-language wording is marked apart from content; drafting in the first language is allowed.
 - **The model answer comes only after the unscaffolded attempt,** never in the same message as the prompt.
-- **Recording:** each required point is one question: `right` (present and correct), `half` (partial), `wrong` (missing or wrong). `explain` sheets are practice. The measured version is a `cold` sheet with a fresh prompt of the same kind 44–72 h later; its check line: "Name the part you'd be pushed on, and say it again".
+- **Recording:** each required point is one question: `right` (present and correct), `half` (partial), `wrong` (missing or wrong). `explain` sheets are practice. The measured version is a `cold` sheet with a fresh prompt of the same kind 44–72 h later; its check line: "Read it as the listener: does every sentence answer the question?" (from mastery 3: "Name the part you'd be pushed on, and say it again").
 - **Mastery above 3** also needs an explanation attempt on file for the topic. The CLI doesn't track this: check `ind topic show <s>` against the dates in `notes/explanations.md` at the weekly review, and say "not yet explained" where one is missing.
 - **Mock panels** in the last 2–4 weeks: `ind plan add <s> --kind mock --start ISO --min N --measurement`, timed answers only.
 - **Authorship.** When the interview is about the learner's own work, help them describe their role accurately: never bigger, never smaller. Raise it once, when a claim is being drafted.

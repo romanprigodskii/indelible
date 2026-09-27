@@ -10,7 +10,7 @@ Load this for anything that builds, renders, issues, files or marks a sheet. Mar
 4. The Least-sure line
 5. Don'ts
 6. Building a sheet
-7. The checker: rules L1–L9
+7. The checker: rules L1–L10
 8. What the learner gets
 9. Keys
 10. Evidence
@@ -34,7 +34,7 @@ Load this for anything that builds, renders, issues, files or marks a sheet. Mar
 | `diagnostic`, `mock`, `checkpoint` | The blueprint in [measure.md](measure.md), the exam's clock and tools | measured | yes | yes |
 | `words` | At most 12 words, each in a sentence, blanked | measured | no | yes |
 | `triage` | Each word marked use / seen / no: "If you hesitate, it isn't 'use'" | nothing | no | no |
-| `miss-review` | Per official miss, before any reveal: why, the word that stopped you, your answer now | practice | no | yes |
+| `miss-review` | Per official miss, before any reveal: why you chose your answer, the word that stopped you; then, once Claude has pointed to the line or step, your answer now | practice | no | yes |
 | `explain` | The points a full answer needs; model answer withheld; optional timer | practice | no | yes |
 
 - Measured types are labelled `[measured n=…]` by `ind grade record`. The rest are `[practice]` and never count toward mastery.
@@ -45,7 +45,7 @@ Load this for anything that builds, renders, issues, files or marks a sheet. Mar
 
 The templates print these:
 - **Header:** title, date and weekday, estimated minutes, number of questions, and `Practice — written by Claude`, `Measurement — written by Claude` or `Measurement — official`.
-- **Rules box:** closed book; one answer in each box, on paper; the check beside each answer; "I don't know" is always an accepted answer; stop after N minutes; tools allowed; "If a word here was never defined for you, that's my mistake: mark the question V".
+- **Rules box:** closed book; one answer in each box, on paper; the check beside each answer; a failed check the learner can't resolve within a minute: keep the answer, name it on the Least-sure line, go on; "I don't know" is always an accepted answer; stop after N minutes; tools allowed; "If a word here was never defined for you, that's my mistake: mark the question V".
 - **Item 0** `Start time: ____`. **Last line** `Stop time: ____`, plus the Least-sure line when `least_sure` is true.
 - **Each question:** label, answer box, and `Check: ____` with the hint in small text. **Drills** add block titles and, after item 3 of each block: "If your check failed on 2 of items 1–3, or you left 2 blank: stop and send a photo of 1–3."
 - **Theory:** floor box, words, sections, then "Put this sheet away now. The drills come on their own sheet." **Footer:** page X of Y where the format has pages.
@@ -58,14 +58,18 @@ Every answer on `drills`, `cold`, `mixed`, `review`, `diagnostic`, `mock` and `c
 
 | The question turns on | The learner writes | Hint on the sheet (example) |
 |---|---|---|
-| a number | the answer substituted back, or the total rebuilt another way | "Put your answer back into the first line: does it hold?" |
+| a number | the answer substituted back, or the total rebuilt from the other direction | "Put your answer back into the first line: does it hold?" |
 | a definition or key word | the definition used, tested against the question's words | "Write the meaning of 'median' you used. Does the question ask for that?" |
 | a sentence (verbal, reading) | a re-read of the sentence with the answer in it | "Read the sentence again with your answer in it." |
 | language production | a back-translation | "Translate it back: is that what you meant?" |
 | code | an assert or test that runs the other way | "Parse what you printed: do you get the input back?" |
-| a proof or explanation | the weakest step, named and re-derived | "Which step would you be pushed on? Do it another way." |
+| a proof | below mastery 3: the rule each step uses, named beside it; from 3: the weakest step, named and re-derived | "Beside each step, name the rule it uses." / "Which step would you be pushed on? Do it another way." |
+| an explanation (interview, viva) | below mastery 3: the answer re-read against the question's words; from 3: the weakest point named, then said again | "Read it as the listener: does every sentence answer the question?" / "Which part would you be pushed on?" |
 
 - `check_hint` says how to check in about 12 words and never points toward the answer. A question that hinges on a key word also gets the definition check.
+- **A check the learner can run.** On a topic below mastery 3, the hint names the check the theory sheet worked (its worked case ends with a step labelled "Check:"), or one that uses only what the learner already owns. Never "another way" or "the weakest step" there: someone who met a method today has one way and no sense yet of where they are weak (lint W3). On cold, mixed and measuring sheets give only the form of that check (put the answer back in, test the meaning you used, read the sentence again), never a topic's own method: that would label the question.
+- **A check, not a search.** On any sheet, a hint never asks the learner to find their own mistake, to re-solve ("do it again", "double-check") or to rate their confidence (lint L10). A re-solve replays the same slip, and a search needs the knowledge the question is testing. Lint reads English wording only; the rule holds in any language.
+- **A failed check is a flag, not a hunt.** A learner who can't see why a check failed keeps the answer, names it on the Least-sure line and goes on (the rules box says so). At marking, say "Your check on 4 flagged it", record `check: filled`, and point to the step (§6 of [session-grade.md](session-grade.md)).
 - An answer changed after a failed check is `check: caught`; name it at marking: "Your check on 6 caught it."
 
 ## 4. The Least-sure line
@@ -78,7 +82,7 @@ Every answer on `drills`, `cold`, `mixed`, `review`, `diagnostic`, `mock` and `c
 
 | Don't | Instead |
 |---|---|
-| The classmate device: "A classmate says it's 12. Is she right?" | Ask directly. For a common wrong idea, show working and ask "Which line is the first wrong one?" |
+| The classmate device: "A classmate says it's 12. Is she right?" | Ask directly. For a common wrong idea on a topic the learner owns (mastery 3 or above), show working and ask "Which line is the first wrong one?"; below that, put the wrong working beside the right one and ask where they part (unless finding errors is the exam's own question form) |
 | A formula as a label: `f′(x) = ___` | Say what goes in the box: "The value of f′ at x = 1:" |
 | "Give two answers", "both" or "each" for one box | One labelled box per answer: 3a, 3b |
 | A topic name or id anywhere on a measuring or mixed sheet | Neutral titles: "2-day recheck", "Part A" |
@@ -104,7 +108,7 @@ A builder subagent writes every sheet that has answers, so no answer enters this
 - **Ids:** `<subject>-<type>-NN` (`ielts-cold-05`), or for a theory and its drills a shared stem, `<subject>-<stem>-NN-<type>` (`ielts-headings-01-theory`, `ielts-headings-01-drills`). A new id takes the next free NN.
 - **No Agent tool:** keyed sheets can't be built safely. Say so once, offer `external` pages from the learner's book, and label results `[unverified]`.
 
-## 7. The checker: rules L1–L9
+## 7. The checker: rules L1–L10
 
 `ind sheet lint <s> <id> --budget-min N` prints one PASS, FAIL or WARN line per rule and exits 1 on any FAIL. The builder fixes and re-lints. Never show rule codes to a plain-vocabulary learner.
 
@@ -119,8 +123,11 @@ A builder subagent writes every sheet that has answers, so no answer enters this
 | L7 cold validity | a topic outside its window or seen in the last 24 hours, or an untreated mistake | remove it: untreated goes to repair; a window not open yet waits for the open; a window that has passed becomes a late recheck ([plan.md](plan.md) §7). Never change `origin` or `type` to pass |
 | L8 key leak | an accepted answer of 3+ characters appears in the visible text (only the question id is named) | reword; accept letters for choices; for words from a passage, ask for the line number |
 | L9 Least-sure | `least_sure` not true on any type but theory, external, example, triage | set it true |
+| L10 check hints | a check hint asks the learner to find their own mistake ("find the error", "is there a mistake?"), to re-solve ("redo", "do it again", "double-check"), to rate their confidence, or says only "check your answer" | name the check to run (§3) |
 | W1 | `=` in a block title | the operation in words |
 | W2 | drills starting with a non-sentence item when the subject has sentence items | move one first |
+| W3 | on a topic below mastery 3 (3p counts as 3): a check line with no hint, or a hint that needs a second method or the weakest step ("another way", "which step would you be pushed on?") | the check the theory sheet worked, or one using only what the learner owns |
+| W4 | a theory or repair sheet whose worked case shows no check (no step labelled "Check:") | end the worked case with the check the drills will ask for |
 
 L4 resolutions (`defined_here`, `defined_on:<sheet-id>`, `glossary`) are in builder.md rule 5; lint only sees that one is there, so it must be true.
 

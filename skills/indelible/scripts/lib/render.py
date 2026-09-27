@@ -316,6 +316,9 @@ def rules(spec, tools, fmt="html", profile=None):
         out.append("Write the check beside each answer. " + check_how)
     else:
         out.append("Write the check beside each answer where a Check line is printed. " + check_how)
+    if any_check and spec.get("least_sure") is True:
+        out.append("If a check fails and you can't see why within a minute, keep your answer, put its number "
+                   "on the Least-sure line and go on: I'll show you where at marking.")
     out.append("“I don't know” is always an accepted answer.")
     if minutes:
         out.append("Stop after %d minute%s." % (minutes, "" if minutes == 1 else "s"))

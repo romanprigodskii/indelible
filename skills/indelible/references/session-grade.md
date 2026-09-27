@@ -23,7 +23,7 @@ Never reorder these steps.
 2. Open the key with `ind key open`.
 3. Mark every question privately.
 4. Show the learner the list of verdicts.
-5. Take misses one at a time: get the account, classify it, then give the feedback for that question.
+5. Take misses one at a time: get the account (how they got their answer), classify it, then give the feedback for that question: point to the step, and ask for the fix (a slip whose fix doesn't come is reclassified before `grades.json` is written).
 6. Coach any check line that was missing or didn't run the other way.
 7. Write `grades.json`, then run `ind grade record`.
 8. Give the result card.
@@ -75,12 +75,14 @@ Let's go through them one at a time, starting with 4.
 ## 4. Accounts before classifying
 
 - **Order.** First the unnamed wrong answers (wrong, and not on the Least-sure line), then the named wrong answers, then halves. Accounts for "I don't know" are optional.
-- **One question at a time,** as a one-tap menu:
-  `Question 4: what happened? 1) slip  2) didn't know a word  3) no idea  4) write one line`
-- **"Didn't know a word":** ask which word, in one line. Ask for the word only, never the answer.
+- **An account is how the learner got their answer, never where it went wrong.** They know the answer doesn't match, not why. On a topic they met today they can't see the error, and a hunt for it costs minutes and confidence and tells you nothing. Never ask "can you find the mistake?", "which line is wrong?" or "what went wrong?", and never say how many answers are wrong without naming them.
+- **One question at a time,** as a short menu:
+  `Question 4: how did you get your answer? 1) I did it this way: ___  2) a word stopped me  3) I guessed  4) I can see my slip: ___`
+  Option 1 is the richest account: the method in their words is often the wrong idea itself. Word it for the layer when it helps: "I used this rule: ___" (numbers), "I read line __ as saying: ___" (reading), "I thought it meant: ___" (language), "I expected this line to: ___" (code). Option 4 is for a learner who spots a slip at a glance; never press for it. A reply in their own words, off the menu, is always fine.
+- **"A word stopped me":** ask which word, in one line. Ask for the word only, never the answer.
 - **First language allowed.** Persona A may answer in Portuguese. Record the account in the learner's own words.
 - **Cap it at about 5 minutes per sheet.** Record any leftover misses as `"account": "no account"`. They keep their verdict, but "no account" never counts as an extra failure.
-- **Official items** (origin `official:…`): before revealing anything, ask for a one-line "why" and the learner's answer now.
+- **Official items** (origin `official:…`): before revealing anything, ask for a one-line "why" (why they chose their answer) and any word that stopped them. Then point to the passage line or step the answer turns on (never the answer itself), and ask for their answer now.
 - **Don't lead or infer.** Never ask "was it a slip?" and never say "you rushed". Ask instead (see the ban on inferring what the learner did).
 - **"I don't know" is always an accepted answer.** Never ask the learner to justify it.
 - **Blanks** (`skip`) need no account and create no error. If most of a topic's questions are blank, the topic gets a probe before it is taught ([measure.md](measure.md)).
@@ -91,11 +93,11 @@ Take `mode` from the subject's taxonomy ([taxonomies.md](taxonomies.md); the cod
 
 | `kind` | When | What happens next |
 |---|---|---|
-| `belief` | A wrong idea, including a word the learner didn't know, and "no idea" | It stays untreated until a repair sheet fixes it; it is never served cold before then ([session-teach.md](session-teach.md)) |
+| `belief` | A wrong idea, including a word the learner didn't know, and a guess or "no idea" not forced by time (belief line: "no method yet for <the operation, in words>") | It stays untreated until a repair sheet fixes it; it is never served cold before then ([session-teach.md](session-teach.md)) |
 | `slip` | Careless or answer form | Onto the ladder at +1 day, with no repair |
 | `shaky` | Right, but on the Least-sure line, or the learner says it was a guess | Onto the ladder at +3 days |
 
-- **Careless (`C`) needs both** a slip account and the same operation done correctly elsewhere (on this sheet or recently). Without both, classify from the written work, not from the label.
+- **Careless (`C`) needs both** a slip account and the same operation done correctly, unaided, elsewhere (on this sheet or recently; never items 1–2 of a mastery 0–1 drill, whose steps the sheet gave). A slip account is a slip the learner names (option 4), or the right method named in option 1 and confirmed when, once you point to the step, they write the corrected line unaided. Without both, classify from the written work, not from the label.
 - **An undefined word is my mistake.** If a `V` word was never defined for the learner (not on this sheet, not on a sheet they read, not in their glossary), say so: "That word wasn't defined for you. That's my mistake, not yours." Give the question no `kind`, so no error row is opened ([taxonomies.md](taxonomies.md) §1). Log it with `ind ledger add defect --subject stats --category undefined_term --what "'unbiased' used undefined on a recheck" --fix-type lint --fix "sense_list += unbiased"`, then `ind set stats sense_list.+ '"unbiased"'` (`--dry-run` first). A word that was defined, like 'median' on persona C's first theory sheet, is the learner's V miss, as in §8.
 - **The `belief` line** is at most 120 characters, describes the wrong idea, and **never contains the correct answer**. Good: "reads 'median' as the arithmetic mean". Bad: "should find the middle value, 10.5".
 - **A right answer the learner says was a guess, but not on the Least-sure line:** `ind error add stats --topic T02 --kind shaky --mode <code> --belief "<wrong idea>" --account "<their words>" --sheet stats-cold-04 --item 5`.
@@ -104,9 +106,15 @@ Take `mode` from the subject's taxonomy ([taxonomies.md](taxonomies.md); the cod
 
 Law 10: name the error exactly and at once, state the standard, say the learner can reach it, and give the next step. Tone is `learner.tone` in `indelible.json` (default B).
 
+**Point, then ask for the fix.** Name the question and the step where the work parts from the standard ("4, first line: you took the mean; the question asks for the median"). The learner then makes the fix: for a slip, the corrected line, in chat or on the sheet; for a wrong idea, the fix sheet. Never "find it", even after the account: pointing is not teaching, and the fix is still theirs.
+
+- **For a slip, ask for the corrected line once.** If it doesn't come, or comes wrong, don't hint or ask again: it wasn't a slip, so classify it as a `belief` in its content mode, and the fix sheet does the teaching.
+- **A miss with no `kind`** (an untaught topic on a diagnostic or probe) gets the pointer only; teaching covers it.
+- **The fix never changes the verdict.** A corrected line after marking is not a catch.
+
 Persona C, question 4: the question asked for the median of six waiting times, and the learner computed the mean. Their check line put the mean back into the mean formula.
 
-- **Tone A:** "4 is wrong: you found the mean, and the question asks for the median. Redo it with the median."
+- **Tone A:** "4 is wrong: you found the mean, and the question asks for the median. Next: a fix sheet on the median."
 - **Tone B:** "4 is wrong: you found the mean, and the question asks for the median. Your arithmetic and your check were right; the miss is which average the word names, and you can get this. Next: a one-page fix sheet on it, then it comes back on Saturday's 2-day recheck."
 
 | Don't | Why |
@@ -115,6 +123,7 @@ Persona C, question 4: the question asked for the median of six waiting times, a
 | "You're a natural with numbers." | Person-level praise |
 | "It's simply the middle value." | A banned word ("simply", "just", "obviously"), and teaching in chat |
 | "Not quite." | Names nothing |
+| "One of these is wrong. Can you find it?" | A search the learner can't do: point to the question and the step |
 | "You rushed this one." | An inference: ask instead |
 
 Process praise tied to evidence is fine: "Your check on 9 caught a sign error."
@@ -132,9 +141,12 @@ Every answer on a drill or measuring sheet has a written check that works backwa
 | Verbal or reading | Reread the sentence with the answer in place | "Read the sentence with your word in it: does it still say what the passage says?" |
 | Language | Back-translate | "Translate your sentence back into your own language: is that what you meant?" |
 | Code | An assert or test that runs the other way | "Add an assert that feeds your output back in, such as parse(format(x)) == x." |
-| Proof | Name the weakest step and re-derive it | "Which step are you least sure of? Derive that one again another way." |
+| Proof, below mastery 3 | Name the rule each step uses, beside it | "Beside each step, name the rule it uses." |
+| Proof, from mastery 3 | Name the weakest step and re-derive it | "Which step are you least sure of? Derive that one again another way." |
 
 Persona C, question 4: "Your check confirmed the arithmetic of the mean, so it couldn't catch the wrong average. When a question turns on a word, write down the definition you used and test it against the question."
+
+**On a topic below mastery 3,** coach the check the theory sheet worked (its worked case ends with it), or one that uses only what the learner already owns. Never "another way" or "the weakest step": the learner has one method so far, and no sense yet of which step is weak. Coaching is about the checks on the next sheet; the miss itself was already pointed to in §6.
 
 ## 8. Record
 
@@ -147,9 +159,9 @@ Write the input file at `<subject>/.indelible/tmp/<id>.grades.json`. Run `ind sc
  "asks":[
   {"ask":"1a","verdict":"right","check":"filled","least_sure":false},
   {"ask":"4a","verdict":"wrong","check":"filled","least_sure":false,"mode":"V","kind":"belief",
-   "account":"didn't know a word: thought median meant the average","belief":"reads 'median' as the arithmetic mean"},
+   "account":"a word stopped me: median (thought it meant the average)","belief":"reads 'median' as the arithmetic mean"},
   {"ask":"7a","verdict":"wrong","check":"missing","least_sure":true,"mode":"C","kind":"slip",
-   "account":"slip, copied a number wrong","belief":"swapped two digits copying a value from the question"},
+   "account":"I can see my slip: copied a number wrong","belief":"swapped two digits copying a value from the question"},
   {"ask":"9a","verdict":"right","check":"caught","least_sure":false}]}
 ```
 
