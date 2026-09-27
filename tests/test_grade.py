@@ -249,7 +249,7 @@ class ColdSheetTests(GradeBase):
         self.assertIn("cold 3/4 on ielts-cold-01", topics["T04"]["level_basis"])
         self.assertIn("held at 2 while a wrong idea is not fixed (E-ielts-0001)", topics["T04"]["level_basis"])
         self.assertEqual(topics["T04"]["last_cold"], "2026-10-14T08:00+01:00")
-        self.assertEqual(len(topics["T04"]["cold_passes"]), 1)
+        self.assertNotIn("cold_passes", topics["T04"])   # cold passes live in attempts.jsonl only
         # T01's right answers were all on the Least-sure line, so they never count.
         self.assertEqual(topics["T01"]["level"], 0)
 
@@ -271,6 +271,18 @@ class ColdSheetTests(GradeBase):
         self.assertIn("Levels: T04 2 → 3", r.stdout)
         self.assert_no_secrets()
 
+    def test_an_older_topics_file_with_cold_passes_still_grades(self):
+        old = [{"at": "2026-10-10T07:00+01:00", "sheet": "ielts-cold-00", "score": "2/2"}]
+        fio.write_json(self.sdir / "data" / "topics.json", {"T04": {
+            "level": 0, "level_basis": "no evidence yet", "taught_at": "2026-10-12T07:20+01:00",
+            "taught_by": "sheet", "last_cold": None, "cold_passes": old, "explanation_on_file": False, "note": ""}})
+        r = self.record()
+        self.assertIn("T04 0 → 2", r.stdout)
+        topics = self.topics()
+        self.assertEqual(topics["T04"]["cold_passes"], old)   # left as it was: nothing reads or adds to it
+        self.assertEqual(topics["T04"]["last_cold"], "2026-10-14T08:00+01:00")
+        self.assertNotIn("cold_passes", topics["T01"])
+
     def test_graded_once_only(self):
         self.record()
         r = self.record(expect=1)
@@ -286,7 +298,7 @@ class ColdSheetTests(GradeBase):
         self.assertEqual(topics["T01"]["level"], 0)
         self.assertIn("only least-sure questions so far", topics["T01"]["level_basis"])
         self.assertEqual(topics["T04"]["level"], 2)   # held: 7a is an untreated wrong idea
-        self.assertEqual(topics["T01"]["cold_passes"], [])
+        self.assertNotIn("cold_passes", topics["T01"])
         self.assert_no_secrets()
 
     def test_shaky_flag_opens_shaky_mistakes_for_least_sure_right_answers(self):

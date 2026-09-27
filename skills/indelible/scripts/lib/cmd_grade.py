@@ -444,17 +444,11 @@ def cmd_grade_record(args):
         served = [t for t in cold_topics if t not in contaminated_topics]
         closed = close_cold_obligations(ws, subj.id, served, sit_at=sit_at, sheet_block=sheet.get("block"))
 
+        # Which sittings count as cold passes is decided only by the level rules
+        # (learning.compute_levels_from, from attempts.jsonl); level_basis names it.
         state = json.loads(json.dumps(topics_state))
         for t in served:
-            rows = [a for a in attempts if a["topic"] == t and learning.counts_toward_level(a)]
-            st = state.setdefault(t, {})
-            st["last_cold"] = dates.fmt_iso(sit_at)
-            if rows:
-                pts = sum(a["score"] for a in rows)
-                if pts / float(len(rows)) >= learning.PASS_PCT:
-                    passes = st.setdefault("cold_passes", [])
-                    passes.append({"at": dates.fmt_iso(sit_at), "sheet": sid,
-                                   "score": "%s/%d" % (fmt_num(pts), len(rows))})
+            state.setdefault(t, {})["last_cold"] = dates.fmt_iso(sit_at)
         old, levels, merged = recompute_levels(subj, topics_state=state, errors=errors)
         subj.save_topics_state(merged)
         changes = learning.level_changes(topics_state, levels)

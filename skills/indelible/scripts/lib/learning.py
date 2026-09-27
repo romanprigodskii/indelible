@@ -694,7 +694,7 @@ def compute_levels_from(attempts, subject=None, topic_ids=None, errors=None):
 
 TOPIC_STATE_DEFAULTS = {
     "level": 0, "level_basis": "no evidence yet", "taught_at": None, "taught_by": None,
-    "last_cold": None, "cold_passes": [], "explanation_on_file": False, "note": "",
+    "last_cold": None, "explanation_on_file": False, "note": "",
 }
 
 

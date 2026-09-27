@@ -164,8 +164,10 @@ dev/CONTRACT.md  dev/privacy_grep.py
 
 ```json
 {"T01":{"level":2,"level_basis":"practice 5/6 on ielts-headings-01-drills","taught_at":"2026-10-13T07:20+01:00","taught_by":"sheet",
-        "last_cold":null,"cold_passes":[],"explanation_on_file":false,"note":""}}
+        "last_cold":null,"explanation_on_file":false,"note":""}}
 ```
+
+A topic's cold passes are not stored: the level rules find them in `attempts.jsonl`, and `level_basis` names the one that counts. An older workspace may still carry a `cold_passes` list; nothing reads or writes it.
 
 `taught_by`: `sheet` | `external` | `chat` | `tutor`.
 

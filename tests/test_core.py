@@ -669,7 +669,13 @@ class LevelTests(Base):
         merged = learning.merge_levels(state, levels)
         self.assertEqual(merged["T04"]["taught_at"], "2026-10-13T07:20+01:00")
         self.assertEqual(merged["T04"]["level"], 2)
-        self.assertEqual(merged["T01"]["cold_passes"], [])
+        self.assertIsNone(merged["T01"]["last_cold"])
+        self.assertNotIn("cold_passes", merged["T01"])   # not stored: the level rules find cold passes
+        # An older workspace's cold_passes list is left as it is, and nothing reads it.
+        old = {"T04": {"level": 3, "cold_passes": [{"at": "2026-10-10T07:00+01:00", "score": "2/2"}]}}
+        merged = learning.merge_levels(old, levels)
+        self.assertEqual(merged["T04"]["level"], 2)
+        self.assertEqual(merged["T04"]["cold_passes"], old["T04"]["cold_passes"])
         self.assertEqual(learning.level_changes(state, levels), [("T04", 0, 2)])
         self.assertEqual(learning.level_rank("3p"), 2.5)
 

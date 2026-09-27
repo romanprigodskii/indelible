@@ -73,7 +73,7 @@ class StatsBase(GradeBase):
         fio.write_jsonl(self.sdir / "data" / "attempts.jsonl", history())
         fio.write_json(self.sdir / "data" / "topics.json", {
             "T01": {"level": 0, "level_basis": "no evidence yet", "taught_at": "2026-10-12T06:00+01:00",
-                    "taught_by": "external", "last_cold": None, "cold_passes": [], "explanation_on_file": False,
+                    "taught_by": "external", "last_cold": None, "explanation_on_file": False,
                     "note": ""}})
         key = write_sheet(self.ws, self.sid, "ielts-cold-04", "cold", [make_item(1, "T04", ["1a"])])
         self.remember_key(key)

@@ -792,7 +792,7 @@ RECORDS = {
         "kind": "snapshot; computed by the CLI, never typed by hand",
         "example": {"T01": {"level": 2, "level_basis": "practice 5/6 on ielts-headings-01-drills (2026-10-13)",
                             "taught_at": "2026-10-13T07:20+01:00", "taught_by": "sheet", "last_cold": None,
-                            "cold_passes": [], "explanation_on_file": False, "note": ""}},
+                            "explanation_on_file": False, "note": ""}},
         "notes": [
             ("level", "0 | 1 | 2 | \"3p\" | 3 | 4 | 5 (see below)"),
             ("0", "no evidence, or the latest measurement under 25%"),

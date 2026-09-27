@@ -4,6 +4,10 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Changed
+
+- **`topics.json` no longer stores `cold_passes`.** The list was filled by any sitting at 75% or more, including one-question, out-of-window and practice sittings that the level rules reject, and nothing read it. Cold passes are found in `attempts.jsonl` by the level rules, and `level_basis` names the one that counts. An older workspace's list is left as it is and ignored. The sample workspace was rebuilt.
+
 ### Fixed
 
 - **`cal ics` writes only `plan/ics/<name>.ics`.** Before, any path inside the workspace was accepted, so a wrong path could overwrite `data/attempts.jsonl` or a sealed key with no backup. Any other place, or a name without `.ics`, is now refused (exit 2) and nothing is written, as the README says.
