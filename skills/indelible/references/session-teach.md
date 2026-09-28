@@ -55,7 +55,7 @@ A wrong idea (an error of kind `belief`) is never served cold until it has been 
 7. **When the learner says "closed"** (or anything as clear: "put away", "done, closed"; the sheet is out of sight):
    - Run `ind session taught <s> <T> --by sheet --block <B>`, or `--by external` for textbook pages. This books the 2-day recheck window and prints it (drills on a later day move it). The window is placed at the close ([close.md](close.md), [plan.md](plan.md)).
    - Tell the learner: "Your 2-day recheck on this is due in about two days; I'll put it in the plan at the close. Please don't review it before then; that's what makes the recheck count."
-   - Only then hand over the drills, in a new message. They were built ahead and wait as `rendered`; issuing is the hand-over: `ind sheet issue <s> <drills-id> --block <B>`, then give the path and say: "Stuck on a question after a real try? Tell me its number and you get a small hint." Never send drills in the same message as the theory.
+   - Only then hand over the drills, in a new message. They were built ahead and wait as `rendered`; issuing is the hand-over: `ind sheet issue <s> <drills-id> --block <B>`, then give the path and say: "Stuck on a question after a real try? Tell me its number and you get a small hint. When you're done, send the photos (<the route from the welcome card>) and say 'sent'." Never send drills in the same message as the theory.
    - If the learner reopens the theory after a real attempt, that's allowed, but ask them to say so. That answer counts as looked up, not recalled; add a line to the session note with `ind note append <s> session`.
 
 ## 3. The hint ladder
