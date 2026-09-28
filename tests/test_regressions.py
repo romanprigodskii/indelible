@@ -409,7 +409,17 @@ class SheetRegressions(TmpCase):
         (proj / "src" / "parse.rs").write_text("pub fn rows() {}\n", encoding="utf-8")
         (proj / "target" / "debug" / "csvtool").write_text("binary", encoding="utf-8")
         (proj / ".git" / "HEAD").write_text("ref", encoding="utf-8")
+        (proj / ".cargo").mkdir()
+        (proj / ".cargo" / "config.toml").write_text("[build]\n", encoding="utf-8")
+        (proj / "build").mkdir()
+        (proj / "build" / "gen.rs").write_text("// generated\n", encoding="utf-8")
+        (proj / ".env").write_text("A=1\n", encoding="utf-8")
+        (proj / "src" / ".DS_Store").write_text("x", encoding="utf-8")
         r = self.cli(["scan", "ingest", SUBJECT, sid, "--dir", proj])
+        # The note names what the snapshot left out, so a build that fails over it is a filing gap.
+        note = [l for l in r.stdout.splitlines() if l.startswith("note: left out of the snapshot")]
+        self.assertEqual(len(note), 1, r.stdout)
+        self.assertTrue(note[0].endswith(": .cargo/, .git/, build/, target/, .env"), note[0])
         snap = subject_dir(self.ws) / "answers" / sid
         self.assertTrue((snap / "Cargo.toml").is_file(), r.stdout)
         self.assertTrue((snap / "src" / "lib.rs").is_file())
@@ -420,6 +430,18 @@ class SheetRegressions(TmpCase):
         self.assertEqual((ev["kind"], ev["file"], ev["files"]), ("project", "answers/%s/" % sid, 3))
         self.assertEqual(ev["source"], str(proj.resolve()))
         self.assertEqual(sheet_row(self.ws, sid)["status"], "sat")
+
+    def test_scan_ingest_dir_names_at_most_12_left_out_files(self):
+        sid = self.issued_drills()
+        proj = self.tmp / "many"
+        proj.mkdir()
+        (proj / "main.py").write_text("print(1)\n", encoding="utf-8")
+        for i in range(14):
+            (proj / (".hidden%02d" % i)).write_text("x", encoding="utf-8")
+        r = self.cli(["scan", "ingest", SUBJECT, sid, "--dir", proj])
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn(".hidden11 and 2 more", r.stdout)
+        self.assertNotIn(".hidden12", r.stdout)
 
 
 # ==========================================================================

@@ -70,6 +70,7 @@ PROJECT_SKIP_DIRS = {".git", ".hg", ".svn", "target", "node_modules", "__pycache
                      ".idea", ".vscode", "dist", "build", ".mypy_cache", ".pytest_cache", ".tox"}
 PROJECT_MAX_FILES = 400
 PROJECT_MAX_FILE_BYTES = 1024 * 1024
+PROJECT_SKIP_NAMES = 12    # the ingest note names at most this many left-out files and folders
 
 
 def _out(line=""):
@@ -952,23 +953,35 @@ def _free_typed_path(subj, sheet_id):
 
 
 def _project_files(root):
-    """(relative path, source path) of a code project's files, skipping build output and hidden folders."""
+    """(files, skipped) of a code project: files are (relative path, source path);
+    skipped names what was left out (build output and hidden folders, ending "/",
+    then hidden files, links, files over 1 MB and unreadable files)."""
     root = Path(root)
-    found, skipped = [], 0
+    found, skipped = [], []
     for dirpath, dirnames, filenames in os.walk(str(root)):
-        dirnames[:] = sorted(d for d in dirnames if d not in PROJECT_SKIP_DIRS and not d.startswith("."))
+        here = Path(dirpath)
+        keep = []
+        for d in sorted(dirnames):
+            if d in PROJECT_SKIP_DIRS or d.startswith("."):
+                skipped.append((here / d).relative_to(root).as_posix() + "/")
+            else:
+                keep.append(d)
+        dirnames[:] = keep
         for name in sorted(filenames):
+            src = here / name
+            rel = src.relative_to(root).as_posix()
             if name.startswith("."):
+                if name != ".DS_Store":    # macOS folder settings: not worth a line in the note
+                    skipped.append(rel)
                 continue
-            src = Path(dirpath) / name
             try:
                 if not src.is_file() or src.is_symlink() or src.stat().st_size > PROJECT_MAX_FILE_BYTES:
-                    skipped += 1
+                    skipped.append(rel)
                     continue
             except OSError:
-                skipped += 1
+                skipped.append(rel)
                 continue
-            found.append((src.relative_to(root).as_posix(), src))
+            found.append((rel, src))
             if len(found) > PROJECT_MAX_FILES:
                 raise UsageError("%s has more than %d files; point --dir at the project folder itself"
                                  % (root, PROJECT_MAX_FILES))
@@ -1077,8 +1090,11 @@ def cmd_scan_ingest(args):
             entries.append({"kind": "project", "file": _subject_rel(subj, snap) + "/", "original": None,
                             "sha256": h.hexdigest(), "source": str(project), "files": len(files)})
             if skipped:
-                notes.append("skipped %d file%s in %s (hidden, over 1 MB, or links)"
-                             % (skipped, "" if skipped == 1 else "s", project))
+                shown = ", ".join(skipped[:PROJECT_SKIP_NAMES])
+                if len(skipped) > PROJECT_SKIP_NAMES:
+                    shown += " and %d more" % (len(skipped) - PROJECT_SKIP_NAMES)
+                notes.append("left out of the snapshot, from %s (build output, hidden, links or over 1 MB): %s"
+                             % (project, shown))
         for e in entries:
             idx = {"v": 1, "at": now, "sheet": args.id, "date": day.isoformat(),
                    "kind": e["kind"], "file": e["file"], "original": e["original"], "sha256": e["sha256"]}
