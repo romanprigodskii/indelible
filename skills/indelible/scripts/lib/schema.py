@@ -984,7 +984,8 @@ RECORDS = {
                        "(letter, number, word, test-line, short, sentence, long, code, none: sizes the box), "
                        "answer_in_passage (the answer is copied from the item's own passage: lint L8 allows it there, "
                        "never in titles, labels, check hints or theory)"),
-            ("check", "a written backwards check beside the answer (put the answer back in, rebuild the total, or test the definition used); required on drills, cold, mixed, diagnostic, mock, checkpoint, review"),
+            ("check", "a written backwards check beside the answer (put the answer back in, rebuild the total, or test the definition used); required on drills, cold, mixed, diagnostic, checkpoint, review; none on a mock, or on an "
+             "official: item of a diagnostic or checkpoint (exam conditions)"),
             ("least_sure", "true on every type except theory, external, example, triage: one closing line 'Least sure of: ___'. There are no per-answer confidence marks"),
             ("terms[]", "every sense-list word used on the sheet (code spans and fenced code are scanned only "
                         "for the subject's own lexicon and sense_list; check hints and theory bodies are), with its resolution: defined_here (in theory.words), "
