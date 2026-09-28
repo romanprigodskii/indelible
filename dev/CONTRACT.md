@@ -646,7 +646,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
   - a block other than `admin` starts on a day after its subject's `target.date` (`after_date`);
   - an `armed` checkpoint or an `assigned` rationed test (`materials.ration`) of a live subject is dated on or after its `target.date` (`checkpoint_after_date`, no block).
 
-  Each finding carries one suggested fix. The ceiling fix prints the drop order and names a `buffer` block first, then an unprotected block of the lowest-priority subject (the highest `priority` number; a higher-priority subject only when the lower ones have none): the smallest that covers the minutes over, else the largest. The outside-window fix names the first start in that day's windows where the block fits clear of other blocks and blocked time, or says there is none.
+  Each finding carries one suggested fix. The ceiling fix prints the drop order (ending with "the lowest-priority subject's unprotected blocks" unless an entry already names the lowest priority) and names a `buffer` block first, then an unprotected block of the lowest-priority subject (the highest `priority` number; a higher-priority subject only when the lower ones have none): the smallest that covers the minutes over, else the largest. The outside-window fix names the first start in that day's windows where the block fits clear of other blocks and blocked time, or says there is none.
 - **`plan diff [--subject S] [--json]`:** neutral operations against the recorded calendar state (one subject's blocks with `--subject`).
   - `create` for `planned` blocks with a start and no `cal`;
   - `move` for blocks whose `start` ≠ `cal.start`;

@@ -333,6 +333,13 @@ class HardRuleTests(PlanCase):
         self.assertIn("drop order (buffer → the lowest-priority subject's unprotected blocks)", fix)
         self.assertIn("driving, priority 2", fix)
         self.assertNotIn("shorten it", fix)                 # 30 - 24 leaves a block too short to keep
+        # A drop order that already ends with that step (plan.md §9's example) is not given it twice.
+        self.set_root("drop_order", ["buffer", "optional blocks", "the lowest-priority subject's unprotected blocks"])
+        rc, data = self.check()
+        fix = self.findings(data, "FAIL", "ceiling")[0]["fix"]
+        self.assertIn("drop order (buffer → optional blocks → the lowest-priority subject's unprotected blocks)",
+                      fix)
+        self.assertEqual(fix.count("lowest-priority"), 1, fix)
         # A buffer block goes first, whatever its subject.
         buf = self.add("buffer", "2026-10-16T19:00+01:00", 30)
         rc, data = self.check()

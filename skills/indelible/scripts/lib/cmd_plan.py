@@ -107,6 +107,7 @@ MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", 
 TOKEN_RE = re.compile(r"\b(cold|teach|repair|review|drill|chat):([A-Za-z0-9_-]+(?:,[A-Za-z0-9_-]+)*)")
 RECHECK_WORD_RE = re.compile(r"\brecheck|\bcold:", re.I)
 HAS_TIME_RE = re.compile(r"\d[T t]\d")
+LOWEST_PRIORITY_RE = re.compile(r"\blowest[- ]priority\b", re.I)
 
 KIND_WORDS = {
     "teach": "new skill", "cold": "2-day recheck (mixed)", "repair": "fix mistakes", "review": "review",
@@ -1354,9 +1355,9 @@ def _ceiling_fix(ctx, cands, over):
     smallest block that covers the minutes over, else the largest one.
     """
     order = [str(x) for x in (ctx.cfg.get("drop_order") or []) if str(x).strip()]
-    head = "cut %d min in the drop order (%s)" % (
-        over, " → ".join(order + ["the lowest-priority subject's unprotected blocks"]) if order
-        else "the lowest-priority subject's unprotected blocks")
+    if not any(LOWEST_PRIORITY_RE.search(x) for x in order):   # the learner's order may already end so
+        order.append("the lowest-priority subject's unprotected blocks")
+    head = "cut %d min in the drop order (%s)" % (over, " → ".join(order))
     tiers = []
     buf = [b for b in cands if b.get("kind") == "buffer"]
     if buf:
