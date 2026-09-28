@@ -118,7 +118,7 @@ ind session close <subject> --note "recheck 11/14; taught matching headings; dri
 
 | Line | Fix |
 |---|---|
-| C1 evidence | Ask for the photo or file, then `ind scan ingest` ([session-grade.md](session-grade.md)) |
+| C1 evidence | Ask for the photo or file of the finished sheet (a failure-gate photo alone doesn't count), then `ind scan ingest` ([session-grade.md](session-grade.md)) |
 | C2 graded | Grade it now. A practice sheet may instead get the `owed` row from §6 step 1. A measuring sheet has no such option |
 | C3 errors | Each error opened today needs kind, mode, an account (or "no account") and a due date. No command edits an error, so use `--defer`, and complete `grades.json` before recording next time |
 | C4 recheck booked | `ind session taught <subject> <topic>` creates the recheck window. For a block outside its window, `ind plan place` or `ind plan move` it inside |

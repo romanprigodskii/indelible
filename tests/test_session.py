@@ -447,6 +447,31 @@ class CloseTests(SessionBase):
         self.assertIsNotNone(self.lock())
         self.assertEqual(self.jsonl("ielts/data/sessions.jsonl"), [])
 
+    def test_a_failure_gate_photo_alone_is_not_the_sheets_evidence(self):
+        # The gate photo (scan ingest --asks) leaves drills issued; sheet sat then records the
+        # sitting times. grade record waits for the finished sheet, so C1 must ask for it.
+        self.open_session(60)
+        drills = self.sheet("ielts-drills-05", status="issued", sat_date=None)
+        drills["evidence"] = [{"kind": "typed", "file": "answers/ielts-drills-05.txt", "at": NOW,
+                               "asks": ["1a", "2a", "3a"]}]
+        self.put("ielts/data/sheets.jsonl", [drills, self.sheet("ielts-cold-01", type_="cold", status="sat",
+                                                                evidence=False)])
+        r = self.ind("sheet", "sat", "ielts", "ielts-drills-05", "--start", "09:05", now="2026-10-12T09:30+01:00")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        r = self.close()
+        self.assertEqual(r.returncode, 1)
+        line = [l for l in r.stdout.splitlines() if l.startswith("FAIL C1")][0]
+        self.assertIn("no photo or file filed for: ielts-cold-01", line)
+        self.assertIn("only a failure-gate photo filed for: ielts-drills-05", line)
+        self.assertIsNotNone(self.lock())
+        # the finished sheet filed: C1 passes
+        rows = self.jsonl("ielts/data/sheets.jsonl")
+        for row in rows:
+            row["evidence"].append({"kind": "photo", "file": "scans/y.jpg", "at": NOW})
+        self.put("ielts/data/sheets.jsonl", rows)
+        r = self.close()
+        self.assertIn("PASS C1 evidence: 2 sheets taken today, each with a photo or file", r.stdout)
+
     def test_fail_on_an_ungraded_cold_sheet(self):
         self.open_session(60)
         self.put("ielts/data/sheets.jsonl", [

@@ -452,7 +452,7 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
 
   | # | Check | Passes when |
   |---|---|---|
-  | C1 | evidence | Every sheet with a `sat.date` today has ≥1 evidence entry |
+  | C1 | evidence | Every sheet with a `sat.date` today has an evidence entry for the finished sheet (one without `asks`: a failure-gate photo alone doesn't count) |
   | C2 | graded | Every measuring sheet sat today is `graded`. Every other sheet sat today is `graded`, or an open ledger `owed` row mentions its id with a due time within 24 h. Exempt: the read-then-close types `theory`, `external`, `example` and `triage`, whose pencil questions are done with the page open and are never mastery evidence |
   | C3 | errors | Every error opened today has `kind`, `mode`, and `account` (or the literal "no account"). It also has a `next_due`, or `status=untreated` |
   | C4 | cold booked | Every topic with a `teach` exposure today has an open cold obligation or a planned cold block inside its window |

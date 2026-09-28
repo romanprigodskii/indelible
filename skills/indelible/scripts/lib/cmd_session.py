@@ -44,6 +44,7 @@ from lib import io as fio
 from lib import cmd_brief as brief
 from lib import cmd_ledger as ledger
 from lib import cmd_plan as plan
+from lib.cmd_sheet import filed_asks
 
 # Promise words in English and in the personas' first languages (pt, es, de).
 PROMISE_RE = re.compile(r"\b(tomorrow|later|next time|amanhã|mais tarde|mañana|luego|morgen|später)\b",
@@ -498,14 +499,20 @@ def run_checks(ws, subj, lk, now, note):
 
     taken = [s for s in sheets if s.get("status") != "void" and sat_on(s) and day0 <= sat_on(s) <= today]
 
-    # C1 evidence
+    # C1 evidence: the finished sheet's. A failure-gate photo (scan ingest --asks) alone
+    # doesn't count: grade record waits for the whole sheet.
     missing = [s["id"] for s in taken if not s.get("evidence")]
-    if missing:
+    gate_only = [s["id"] for s in taken if s.get("evidence") and not filed_asks(s)[0]]
+    if missing or gate_only:
+        said = []
+        if missing:
+            said.append("no photo or file filed for: %s" % ", ".join(missing))
+        if gate_only:
+            said.append("only a failure-gate photo filed for: %s" % ", ".join(gate_only))
         out.append(Check("C1", "evidence", "FAIL",
-                         "no photo or file filed for: %s (run: scan ingest %s <id> <paths> or --typed FILE)"
-                         % (", ".join(missing), subj.id),
-                         todo="Send the photo or file of your answers for %s" % ", ".join(missing),
-                         by="learner", refs=missing))
+                         "%s (run: scan ingest %s <id> <paths> or --typed FILE)" % ("; ".join(said), subj.id),
+                         todo="Send the photo or file of your answers for %s" % ", ".join(missing + gate_only),
+                         by="learner", refs=missing + gate_only))
     else:
         out.append(Check("C1", "evidence", "PASS",
                          "%d sheet%s taken today, each with a photo or file" % (len(taken), "" if len(taken) == 1 else "s")
