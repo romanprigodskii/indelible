@@ -39,10 +39,10 @@ Law 4 has two moments: a warning 10 minutes before the planned end, and one ques
 07:55: closing time. Close now (block B moves to Saturday), or 15 more minutes once, then close?
 ```
 
-- No answer by the "no-answer" timer (the close start + 2 minutes; with no timer, by the next message after that): close. A yes that comes before the planned end, while the close hasn't run, still takes the extension. For a learner who prefers few questions (Learner notes), skip the question and close; they can still say "extend" after the warning.
+- No answer by the "no-answer" timer (the close start + 2 minutes; with no timer, by the next message after that): close, once 2 full minutes have passed since the question. The minutes `ind session status` shows (47/60) must be at least 2 more than when you asked; if they aren't, the job fired early, so set a new one 2 minutes on (off :00 and :30) and wait for it. A yes that comes before the planned end, while the close hasn't run, still takes the extension. For a learner who prefers few questions (Learner notes), skip the question and close; they can still say "extend" after the warning.
 - **At the planned end** (a timer may fire): if an extension is running (`ind session status` shows "extension until"), say when it ends ("Extension until 08:15, then closing"). Otherwise the close should already be under way; if it isn't, start it now.
 - **One extension per session, at most.** When it runs out, close; never offer a second one.
-- **Record it at once.** On a yes (or under the `extend` standing choice), run `ind session extend <subject> --min <N>`. It moves the close start by N minutes, makes `ind session status` show "extension until 08:15", and refuses a second extension or one over the first two caps below. Where timers are in use, delete the no-answer job and set one at the new close start it prints.
+- **Record it at once.** On a yes (or under the `extend` standing choice), run `ind session extend <subject> --min <N>`. It moves the close start by N minutes, makes `ind session status` show "extension until 08:15", and refuses a second extension or one over the first two caps below. Where timers are in use, delete the no-answer job (in a session of 30 minutes or less, the one for the no-answer and the planned end) and set one at the new close start it prints.
 - **Extension length** = min(`session.extension_max_min` from `indelible.json` (default 15, never over 30), 0.25 × planned minutes, next fixed start − 15 − planned end). `ind session extend` enforces the first two; the next fixed start is yours to check.
   - The next fixed start is the earliest of: the next block of any subject (`ind plan list --from <today> --to <today>`); a `time.blocked` entry; 30 minutes before bedtime.
   - Persona A: min(15, 15, 09:00 work − 15 − 08:00 = 45) = 15 minutes.
@@ -82,7 +82,7 @@ Never cut the 2-day recheck, and never the close.
 
 Distress is not fatigue. If the learner expresses hopelessness, panic, self-harm or persistent distress (law 13):
 
-- **Stop the study frame at once:** no checklist, no sheets, and no timers: delete every job set at the open (CronDelete), so none fires into the conversation.
+- **Stop the study frame at once:** no checklist, no sheets, and no timers: delete every timer job still pending, one set after an extension included (CronList, then CronDelete), so none fires into the conversation.
 - **Respond as a caring person would.** Acknowledge what they said in plain words, ask how they are, and stay with it.
 - **Offer support.** Suggest someone they trust. If they are in danger, or self-harm comes up, give the local emergency number or a crisis line (for example 988 in the US, or Samaritans on 116 123 in the UK and Ireland), and offer to find the line for their country.
 - **Under 18** (`learner.age_band`): encourage them to talk to a trusted adult, such as a parent, a teacher or a school counsellor.
@@ -110,7 +110,7 @@ ind session close <subject> --note "recheck 11/14; taught matching headings; dri
 
 - The note is at most 120 characters. The words "tomorrow", "later" or "next time" in it need a to-do created today (check C6).
 - The command prints one `PASS`, `FAIL` or `INFO` line per check.
-- **Exit 0 means closed:** the session row is saved, the lock is removed, the block is marked done (a 2-day recheck block stays open until its sheet is graded; C9 catches one that wasn't sat), and it prints `Saved: …` with the next block. Delete any timer job still pending (CronDelete).
+- **Exit 0 means closed:** the session row is saved, the lock is removed, the block is marked done (a 2-day recheck block stays open until its sheet is graded; C9 catches one that wasn't sat), and it prints `Saved: …` with the next block. Delete any timer job still pending (CronList, then CronDelete).
 - **Exit 1 means the lock stays.** Fix each FAIL (§7) and run it again.
 - **Sessions of 30 minutes or less** (persona B): the checks run silently. The learner sees a FAIL only if they must act on it.
 
@@ -166,7 +166,7 @@ Message the learner again only if something needs them.
 **"Gotta go"** (or "have to run", or a goodbye mid-session): quick close in under a minute, with no questions first.
 
 1. For each sheet handed over today and not yet filed (`ind sheet show <subject> --status issued`, or `--status sat` without evidence), add a to-do that names its id: `ind ledger add owed --subject <subject> --what "send the photo of <sheet id>" --due <ISO 24 h from now> --by learner`. `--defer` only turns failing checks into to-dos, and a sheet that was started but not filed fails none.
-2. Run `ind session close <subject> --note "left early at 07:40" --defer "learner left mid-session"`, and delete any timer job still pending (CronDelete), so no warning reaches a learner who has gone.
+2. Run `ind session close <subject> --note "left early at 07:40" --defer "learner left mid-session"`, and delete any timer job still pending (CronList, then CronDelete), so no warning reaches a learner who has gone.
 3. Send one message: "Saved. To do: send the photo of block B by Fri 07:40. Next: Sat 10:00 · 60 min. Go; I'll prepare the sheets."
 4. If a 2-day recheck was sat and not photographed, that photo is the to-do to name first.
 

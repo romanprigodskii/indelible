@@ -84,7 +84,7 @@ Run `ind session open <s> --planned <MIN> --block <B> --kind <the block's kind>`
 - **MIN** is the block's length, or the time the learner says they have. "I have 15 minutes" becomes `--planned 15` with no block.
 - **A slot split into a recheck block and a session block** ([plan.md](plan.md) §1): pass the session block as `--block`, and the whole slot's minutes as `--planned`. Issue every sheet of the session against the session block, the recheck included: `ind sheet issue` then sizes them together against the session's minutes, and grading the recheck still finds and closes the recheck block by its topics and window.
 - **Exit 1 because this subject is already locked and not stale:** a session is already running, probably in another chat, and this conversation has no record of what was said or handed out there. Build and issue nothing until you have read `ind session status <s>` (the time, and the sheets out) and `ind ledger list --kind owed --open --subject <s>` (the to-dos). Then tell the learner in one line: "A session that started at 07:00 is still open, probably in another chat. I'll carry it on here, so send photos of any sheet here from now on. Did you already send photos of a sheet there?" If they did, ask for those photos again: a photo the other chat didn't file isn't on record. `ind sheet issue` refuses a second recheck on a topic already out.
-- **A warning that another subject is locked:** ask "Close <other subject> first, or park it?" For park, re-run with `--park-other`. Never switch subjects silently.
+- **A warning that another subject is locked:** ask "Close <other subject> first, or park it?" For park, re-run with `--park-other`, then delete any timer job this conversation set for the parked session (CronList, then CronDelete). Never switch subjects silently.
 - **Read the printed budget** (section 4).
 
 ### Step 5: the opener
@@ -131,14 +131,16 @@ Make the call in the opener; the learner can change any part of it (skip the rec
 
 You act only when a message or a timer arrives, so the moments of Law 4 need timers, or clock times the learner can watch.
 
-- **Claude Code has one-shot timers.** Load them with ToolSearch (`select:CronCreate,CronDelete`). Create one job for each moment below, with `recurring: false` and the minute, hour, day and month pinned. Timers run on the computer's local time: if `ind doctor` says its offset differs from the workspace's time zone, convert first.
+- **Claude Code has one-shot timers.** Load them with ToolSearch (`select:CronCreate,CronDelete,CronList`). Create one job for each moment below, with `recurring: false` and the minute, hour, day and month pinned. Timers run on the computer's local time: if `ind doctor` says its offset differs from the workspace's time zone, convert first.
   - T−10, where T is the planned end: the warning;
   - the close start `session open` printed: the question;
   - the close start + 2 minutes, "no-answer": close if the question got no answer;
-  - T, the planned end;
+  - T, the planned end (in sessions of 30 minutes or less, the no-answer moment: set one job, "no-answer and planned end", for both);
   - in sessions over 75 minutes, each break's start and end.
 
-  Each job's prompt: "indelible timer: <moment> for <s>. Run `ind session status <s>` first. If no session is open, or the study frame is stopped (Law 13), say nothing." Keep the job ids (after a context compaction, CronList finds them). [close.md](close.md) handles each moment (§2), replaces the no-answer job after an extension (§2), and deletes every job left with CronDelete at the close (§6), at an abrupt exit (§10) and when distress stops the study frame (§5).
+  The question gets 2 full minutes. A one-shot job on minute :00 or :30 can fire up to 90 seconds early, so when the no-answer moment falls on one of them, set its job a minute later.
+
+  Each job's prompt: "indelible timer: <moment> for <s>. Run `ind session status <s>` first. If no session is open, or the study frame is stopped (Law 13), say nothing." Keep the job ids (after a context compaction, CronList finds them). [close.md](close.md) handles each moment (§2), replaces the no-answer job after an extension (§2), and deletes every job still pending (CronList, then CronDelete) at the close (§6), at an abrupt exit (§10) and when distress stops the study frame (§5). Parking a session for another subject deletes its jobs too (step 4).
 - **With no timer tool,** give the clock times at the first hand-over, in one line: "Warning at 07:50, closing at 07:55. At 07:55, stop and send your photo even if I haven't written." Then run `ind session status <s>` every time a photo comes back and before each block, and act on what it shows.
 - **The status line:** the first line of `ind session status` can be shown to the learner as is; the "sheets out" line is for you.
 - **Breaks** fall at the times `session open` printed. Nothing about a sealed sheet is discussed during a break.
