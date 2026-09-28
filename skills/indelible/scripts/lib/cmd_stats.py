@@ -141,6 +141,7 @@ def instrument_metrics(attempts, level_fn):
             "careless_per_10": learning.careless_per_10(rows, level_fn),
             "unnamed_wrong": learning.unnamed_wrong_pct(rows),
             "least_sure_hit": learning.least_sure_hit_rate(rows),
+            "least_sure_line": learning.least_sure_line_filled(rows),
             "check_coverage": learning.check_coverage(rows),
             "check_catches": learning.check_catches(rows),
             "check_failed": learning.check_failed(rows),
@@ -286,6 +287,9 @@ def stats_lines(subj, st):
                  "least-sure wrong %s" % pct(m["least_sure_hit"]),
                  "check coverage %s" % pct(m["check_coverage"]),
                  "check catches %d" % m["check_catches"]]
+        if m["least_sure_line"]["n"]:
+            # A blank line is left out of unnamed-wrong, so say how often it was filled.
+            parts.insert(4, "least-sure line filled on %s sheets" % of(m["least_sure_line"]))
         if m["check_failed"]["n"]:
             parts.append(failed_checks(m["check_failed"]))
         if m["check_head"]["n"]:

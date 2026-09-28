@@ -8,8 +8,10 @@ What it does, in order:
      (an ``issued`` sheet with evidence counts as taken). A sheet is graded
      once; a verdict is never amended afterwards.
   2. Checks the grades file against the sealed spec: every graded question
-     exists, a miss that opens a mistake has a mode (and an account), and a
-     belief line never contains an accepted answer from the key.
+     exists, a miss that opens a mistake has a mode (and an account), a
+     belief line never contains an accepted answer from the key, and a sheet
+     with the Least-sure line says how it came back (``least_sure_line``:
+     named, none or blank; named when a question is named).
   3. Appends one attempt per question. Topic and layer come from the spec
      (a question may carry its own ``topic``, e.g. one hidden-test group of a
      code task), the instrument from the sheet type, ``cold`` is true on cold
@@ -42,9 +44,10 @@ What it does, in order:
      ``session expose``). Then the sheet is marked graded and the levels are
      recomputed.
 
-Output: the score with its label, the unnamed-wrong count, check lines, the
-mistakes opened (ids only), ladder moves, level changes and the rechecks
-closed. Nothing from the key is ever printed.
+Output: the score with its label, the unnamed-wrong count (on a sheet with
+the Least-sure line; "left blank" when it was), check lines, the mistakes
+opened (ids only), ladder moves, level changes and the rechecks closed.
+Nothing from the key is ever printed.
 """
 
 import json
@@ -309,6 +312,18 @@ def cmd_grade_record(args):
 
         # ---- pass 1: check every question and build the rows (nothing written yet)
         bad, leaks = [], []
+        # The closing Least-sure line: items named, "none" written, or left blank. A blank is
+        # recorded as blank, never as "sure of everything": the unnamed-wrong share leaves it out.
+        has_line = spec.get("least_sure") is True
+        ls_line = grades.get("least_sure_line")
+        if has_line and ls_line is None:
+            if any(g.get("least_sure") is True for g in grades["asks"]):
+                ls_line = "named"
+            else:
+                bad.append("%s ends with the Least-sure line: give least_sure_line \"none\" (the learner wrote "
+                           "none) or \"blank\" (left empty)" % sid)
+        elif not has_line and ls_line is not None:
+            bad.append("%s has no Least-sure line: leave least_sure_line out" % sid)
         attempts, pending_errors, no_kind, notes = [], [], [], []
         reserve = {}          # E-id -> [verdicts] for re-served mistakes
         reserve_dirty = set()  # E-ids with a contaminated question: not counted
@@ -412,6 +427,8 @@ def cmd_grade_record(args):
                 "taught_by": (topics_state.get(topic) or {}).get("taught_by"),
                 "graded_at": dates.fmt_iso(now),
             }
+            if has_line and ls_line is not None:
+                row["least_sure_line"] = ls_line
             if dirty:
                 row["contaminated"] = True
             if lock.get("session_id"):
@@ -592,9 +609,12 @@ def cmd_grade_record(args):
     pts = sum(a["score"] for a in attempts)
     label = "[measured n=%d]" % n if measured else "[practice]"
     out("%s graded: %s/%d (%d%%) %s" % (sid, fmt_num(pts), n, int(round(100.0 * pts / n)), label))
-    wrong = [a for a in attempts if a["verdict"] == "wrong"]
-    unnamed = [a for a in wrong if not a["least_sure"]]
-    out("Wrong answers not on the Least-sure line: %d of %d" % (len(unnamed), len(wrong)))
+    if ls_line == "blank":
+        out("Least-sure line: left blank")
+    elif has_line:
+        wrong = [a for a in attempts if a["verdict"] == "wrong"]
+        unnamed = [a for a in wrong if not a["least_sure"]]
+        out("Wrong answers not on the Least-sure line: %d of %d" % (len(unnamed), len(wrong)))
     with_lines = [a for a in attempts if a["check"] in learning.CHECK_LINE_VALUES]
     if with_lines:
         covered = len([a for a in with_lines if a["check"] in learning.WRITTEN_CHECKS])

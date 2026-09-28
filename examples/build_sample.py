@@ -418,7 +418,7 @@ Least sure I chose the right idea: 7
 """
 
 DIAG_GRADES = {
-    "start": "07:05", "stop": "07:24", "date": "2026-10-12",
+    "start": "07:05", "stop": "07:24", "date": "2026-10-12", "least_sure_line": "named",
     "asks": [
         {"ask": "1a", "verdict": "right", "check": "filled", "least_sure": False},
         {"ask": "2a", "verdict": "right", "check": "filled", "least_sure": False},
@@ -463,7 +463,7 @@ Least sure I chose the right idea: 5
 """
 
 DRILLS_GRADES = {
-    "start": "07:19", "stop": "07:29", "date": "2026-10-13",
+    "start": "07:19", "stop": "07:29", "date": "2026-10-13", "least_sure_line": "named",
     "asks": [
         {"ask": "1a", "verdict": "right", "check": "filled", "least_sure": False},
         {"ask": "2a", "verdict": "right", "check": "filled", "least_sure": False},

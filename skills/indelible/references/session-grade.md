@@ -44,7 +44,7 @@ No part of the key reaches chat for a question until its account is in (step 6).
 | A sheet sat on an earlier day (solo block), or a photo sent on a later day than the sheet was issued | Add `--date YYYY-MM-DD`. Without it, ingest refuses a recheck, or a sheet with mistakes re-served, issued on an earlier day: their sitting date decides the 2-day window and the 24-hour rule |
 
 Transcribing photos and PDFs (pasted into chat or given by path; a typed file or a code project needs none):
-- Transcribe before the key is open, one line for every question number on the sheet (a failure-gate photo: only its questions, below): the answer, then the check line, exactly as written; `[blank]` for an empty box, `[not found]` for a question you can't find on any page. Keep crossed-out answers (`[crossed out: -4] 4`), because they show a check that caught something. Add the start and stop times and the Least-sure line. A missed page otherwise turns answered questions into blanks, and blanks open no mistake and can send a topic to a probe.
+- Transcribe before the key is open, one line for every question number on the sheet (a failure-gate photo: only its questions, below): the answer, then the check line, exactly as written; `[blank]` for an empty box, `[not found]` for a question you can't find on any page. Keep crossed-out answers (`[crossed out: -4] 4`), because they show a check that caught something. Add the start and stop times and the Least-sure line as written (`[blank]` when it is empty). A missed page otherwise turns answered questions into blanks, and blanks open no mistake and can send a topic to a probe.
 - Never correct spelling or arithmetic. If something is unreadable, write `[unreadable]` and ask a neutral question: "What did you write for question 6?", never "Did you write 14?"
 - **Any `[not found]` line** on a finished sheet: ask one neutral question before filing: "I can't find 29 and 30: left blank, or on a page I didn't get?" A page that turns up joins the same call; one that turns up after filing gets a second `ind scan ingest`. Note the reply beside the line (`[not found; learner: left blank]`).
 - Answers typed straight into chat are treated the same way. Once, suggest a typed file next time.
@@ -63,6 +63,8 @@ For each question, record the following.
 | `verdict` | `right` · `half` · `wrong` · `dont_know` (they wrote "I don't know") · `skip` (left blank) |
 | `check` | `filled` · `missing` · `caught` (the answer changed after a failed check) · `failed` (the check didn't hold and the answer was kept, usually marked ✗) · `head` (the line is empty and the learner says they checked in their head: [self-report], §7) · `n/a` (no check line printed for the question, or no answer to check) |
 | `least_sure` | `true` for every question of an item named on the Least-sure line |
+
+Record the Least-sure line itself once per sheet, as `least_sure_line`: `named` (items named), `none` (the learner wrote "none") or `blank` (left empty). A blank line is recorded as blank, never read as "sure of everything": the unnamed-wrong share leaves that sheet out. `ind grade record` refuses a sheet with the line and nothing named unless it says `none` or `blank`. Don't ask for it afterwards (named after the sitting, it no longer records doubt while working), and never count how often it was left blank (Law 10); the rules box asks for it.
 
 **A word written beside an answer** is the learner flagging a word they were never given (the rules box asks for it). Look it up in the record before any account: the sheet's `terms`, the sheets they read, the glossary. Never defined: §5's "an undefined word is my mistake", even when the answer is right. Defined, on an earlier sheet or in the glossary: on a miss, that is the account "a word stopped me", so don't ask which word again.
 
@@ -181,7 +183,7 @@ Write the input file at `<subject>/.indelible/tmp/<id>.grades.json`. Run `ind sc
 `ind grade record` names any question left out in a note. If one was left out by mistake, it can't be added after the record: tell the learner and log a `misclassification` defect.
 
 ```json
-{"start":"13:04","stop":"13:19","date":"2026-10-15",
+{"start":"13:04","stop":"13:19","date":"2026-10-15","least_sure_line":"named",
  "asks":[
   {"ask":"1a","verdict":"right","check":"filled","least_sure":false},
   {"ask":"4a","verdict":"wrong","check":"filled","least_sure":false,"mode":"V","kind":"belief",
@@ -212,7 +214,7 @@ Mistakes scheduled: 3. One needs a short fix sheet before it comes back.
 Mastery: confidence intervals 2 → 3 [measured].
 ```
 
-A question withdrawn as unclear (§9) gets its own card line, "Withdrawn (my wording): 1", and is not in the score; so does one left out of a recheck as never taught (§5): "Not counted (never taught): 1". Drill scores are `[practice]`; never present them as measured. Every belief now needs a repair before its recheck ([session-teach.md](session-teach.md)). Then run `ind session status <subject>` to see what still fits.
+When the Least-sure line came back blank, the second line reads "Least-sure line: left blank." instead, with no count of unnamed wrong answers. A question withdrawn as unclear (§9) gets its own card line, "Withdrawn (my wording): 1", and is not in the score; so does one left out of a recheck as never taught (§5): "Not counted (never taught): 1". Drill scores are `[practice]`; never present them as measured. Every belief now needs a repair before its recheck ([session-teach.md](session-teach.md)). Then run `ind session status <subject>` to see what still fits.
 
 ## 9. Unverified keys and challenges
 

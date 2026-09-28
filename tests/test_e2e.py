@@ -201,7 +201,7 @@ class PersonaAFullCycle(E2EBase):
         self.assertIn("close starts 07:55", r.stdout)
         self.sheet_cycle(self.drills_spec(), DRILL_KEY,
                          "1 velvetrock\n2 quinsbarrow\n3 something\n4 harrowvane\n5 pellucinth\n"
-                         "6 wrongthing\nLeast sure of: 3\n",
+                         "6 wrongthing\nLeast sure I chose the right idea: 3\n",
                          "2026-10-12T07:05+01:00", "2026-10-12T07:25+01:00")
         r = self.grade("ielts-drills-01", {"start": "07:08", "stop": "07:22", "date": "2026-10-12", "asks": [
             {"ask": "1a", "verdict": "right", "check": "filled"},
@@ -248,10 +248,10 @@ class PersonaAFullCycle(E2EBase):
         # ---- the 2-day recheck, with the slip re-served --------------------------------
         self.cli(["session", "open", "ielts", "--planned", "45"], T1)
         self.sheet_cycle(self.cold_spec(slip_id), COLD_KEY,
-                         "1 brackenwise\n2 tallowmere\n3 fenwickly\n4 ostrevane\nLeast sure of: none\n",
+                         "1 brackenwise\n2 tallowmere\n3 fenwickly\n4 ostrevane\nLeast sure I chose the right idea: none\n",
                          "2026-10-14T08:01+01:00", "2026-10-14T08:15+01:00")
         r = self.grade("ielts-cold-01", {"start": "08:03", "stop": "08:12", "date": "2026-10-14",
-                                         "asks": [{"ask": "%da" % n, "verdict": "right", "check": "filled"}
+                                         "least_sure_line": "none", "asks": [{"ask": "%da" % n, "verdict": "right", "check": "filled"}
                                                   for n in range(1, 5)]}, "2026-10-14T08:18+01:00")
         self.assertIn("[measured n=4]", r.stdout)
         self.assertIn("%s passed, rung 1" % slip_id, r.stdout)

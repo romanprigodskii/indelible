@@ -79,6 +79,7 @@ Every answer on `drills`, `cold`, `mixed`, `review`, `diagnostic` and `checkpoin
 ## 4. The Least-sure line
 
 - One closing line per sheet: "Least sure I chose the right idea (item numbers): ___", the same wording for every subject. It asks about the idea or method chosen, not a possible slip ([method.md](method.md) §4). No per-answer confidence marks; never add them or ask for them.
+- Marking records the line as `least_sure_line`: `named`, `none` or `blank`. A blank line is never read as "sure of everything"; the unnamed-wrong share leaves that sheet out ([session-grade.md](session-grade.md) §3).
 - Every question of a named item gets `least_sure: true`. These never count toward mastery, even when right; with `--shaky`, right ones return at +3 days. Wrong answers that were not named get accounts first and come back first.
 - Why: [method.md](method.md) §4.
 

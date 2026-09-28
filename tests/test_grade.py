@@ -363,6 +363,48 @@ class ColdSheetTests(GradeBase):
         self.assertIn("(shaky, due 2026-10-17)", r.stdout)
         self.assert_no_secrets()
 
+    def test_the_least_sure_line_is_recorded_named_none_or_blank(self):
+        # With a question named, the line is "named", on every row of the sheet.
+        self.record()
+        self.assertEqual(set(a["least_sure_line"] for a in self.attempts()), {"named"})
+
+    def test_a_line_naming_nothing_must_say_none_or_blank(self):
+        # A blank line is not "sure of everything": with nothing named, the grades file says which.
+        for g in self.grades["asks"]:
+            g["least_sure"] = False
+        r = self.record(expect=2)
+        self.assertIn('ends with the Least-sure line: give least_sure_line "none"', r.stderr)
+        self.assertEqual(self.attempts(), [])
+        self.grades["least_sure_line"] = "blank"
+        out = self.record().stdout
+        self.assertIn("Least-sure line: left blank", out)
+        self.assertNotIn("Wrong answers not on the Least-sure line", out)
+        self.assertEqual(set(a["least_sure_line"] for a in self.attempts()), {"blank"})
+
+    def test_a_least_sure_line_that_contradicts_the_asks_is_refused(self):
+        self.grades["least_sure_line"] = "none"     # but 2a, 4a and 6a are named
+        r = self.record(expect=2)
+        self.assertIn("grades.least_sure_line is none, but 2a, 4a, 6a have least_sure true", r.stderr)
+        self.grades["least_sure_line"] = "sure"
+        r = self.record(expect=2)
+        self.assertIn("grades.least_sure_line must be one of: named, none, blank", r.stderr)
+        self.assertEqual(self.attempts(), [])
+
+    def test_a_sheet_without_the_line_records_none_of_it(self):
+        spec_path = self.sdir / ".indelible" / "specs" / "ielts-cold-01.json"
+        spec = fio.read_json(spec_path)
+        spec["least_sure"] = False
+        fio.write_json(spec_path, spec)
+        for g in self.grades["asks"]:
+            g["least_sure"] = False
+        self.grades["least_sure_line"] = "none"
+        r = self.record(expect=2)
+        self.assertIn("ielts-cold-01 has no Least-sure line: leave least_sure_line out", r.stderr)
+        del self.grades["least_sure_line"]
+        out = self.record().stdout
+        self.assertNotIn("Least-sure line", out)
+        self.assertFalse(any("least_sure_line" in a for a in self.attempts()))
+
     def test_requires_evidence(self):
         write_sheet(self.ws, self.sid, "ielts-cold-01", "cold",
                     [make_item(n, "T04" if n % 2 else "T01", ["%da" % n]) for n in range(1, 9)],
@@ -404,7 +446,7 @@ class PracticeAndLadderTests(GradeBase):
         items = [make_item(n, "T02", ["%da" % n], layer="reading") for n in range(1, 5)]
         key = write_sheet(self.ws, self.sid, "ielts-tfng-01-drills", "drills", items)
         self.remember_key(key)
-        grades = {"date": "2026-10-14", "start": "07:10", "stop": "07:30", "asks": [
+        grades = {"date": "2026-10-14", "start": "07:10", "stop": "07:30", "least_sure_line": "none", "asks": [
             {"ask": "1a", "verdict": "right", "check": "filled"},
             {"ask": "2a", "verdict": "right", "check": "filled"},
             {"ask": "3a", "verdict": "half", "check": "filled", "kind": "slip", "mode": "F",
@@ -443,7 +485,7 @@ class PracticeAndLadderTests(GradeBase):
                  make_item(2, "T04", ["2a", "2b"], origin="error:E-ielts-0002")]
         key = write_sheet(self.ws, self.sid, "ielts-cold-02", "cold", items)
         self.remember_key(key)
-        grades = {"date": "2026-10-15", "start": "07:05", "stop": "07:15", "asks": [
+        grades = {"date": "2026-10-15", "start": "07:05", "stop": "07:15", "least_sure_line": "none", "asks": [
             {"ask": "1a", "verdict": "right", "check": "filled"},
             {"ask": "2a", "verdict": "right", "check": "filled"},
             {"ask": "2b", "verdict": "wrong", "check": "filled", "mode": "D", "account": "same as before"}]}
@@ -477,7 +519,7 @@ class PracticeAndLadderTests(GradeBase):
                  make_item(2, "T04", ["2a"], origin="sentinel:E-ielts-0002")]
         key = write_sheet(self.ws, self.sid, "ielts-cold-09", "cold", items)
         self.remember_key(key)
-        grades = {"date": "2026-10-14", "start": "07:00", "asks": [
+        grades = {"date": "2026-10-14", "start": "07:00", "least_sure_line": "none", "asks": [
             {"ask": "1a", "verdict": "wrong", "check": "filled", "mode": "C", "account": "slip"},
             {"ask": "2a", "verdict": "right", "check": "filled"}]}
         path = write_grades(self.tmp, "g.json", grades)
@@ -522,7 +564,7 @@ class GradingRegressionTests(GradeBase):
         key = write_sheet(self.ws, self.sid, "ielts-diagnostic-01", "diagnostic", items,
                           issued="2026-10-12T06:55+01:00")
         self.remember_key(key)
-        self.grade("ielts-diagnostic-01", {"date": "2026-10-12", "start": "07:00", "stop": "07:40", "asks": [
+        self.grade("ielts-diagnostic-01", {"date": "2026-10-12", "start": "07:00", "stop": "07:40", "least_sure_line": "none", "asks": [
             {"ask": "%da" % n, "verdict": "right" if n % 3 else "dont_know", "check": "filled"} for n in range(1, 9)]},
             now="2026-10-12T07:45+01:00")
         self.assertEqual(self.exposures(), [])
@@ -542,7 +584,7 @@ class GradingRegressionTests(GradeBase):
         key = write_sheet(self.ws, self.sid, "ielts-repair-01", "repair", items)
         self.remember_key(key)
         r = self.grade("ielts-repair-01", {"date": "2026-10-14", "start": "07:00", "stop": "07:10",
-                                           "asks": [{"ask": "1a", "verdict": "right", "check": "n/a"}]})
+                                           "least_sure_line": "none", "asks": [{"ask": "1a", "verdict": "right", "check": "n/a"}]})
         self.assertIn("no ladder move", r.stdout)
         e = self.errors()[0]
         self.assertEqual((e["status"], e["rung"], e["next_due"], e["passes"]), ("untreated", 0, None, []))
@@ -560,7 +602,7 @@ class GradingRegressionTests(GradeBase):
         key = write_sheet(self.ws, self.sid, "ielts-cold-07", "cold", items)
         self.remember_key(key)
         r = self.grade("ielts-cold-07", {"date": "2026-10-14", "start": "07:00", "stop": "07:05",
-                                         "asks": [{"ask": "1a", "verdict": "right", "check": "filled"}]})
+                                         "least_sure_line": "none", "asks": [{"ask": "1a", "verdict": "right", "check": "filled"}]})
         self.assertIn("E-ielts-0001 not moved: the wrong idea is not fixed yet", r.stdout)
         e = self.errors()[0]
         self.assertEqual((e["status"], e["rung"], e["passes"]), ("untreated", 0, []))
@@ -571,7 +613,7 @@ class GradingRegressionTests(GradeBase):
         key = write_sheet(self.ws, self.sid, "ielts-headings-01-theory", "theory", items)
         self.remember_key(key)
         r = self.grade("ielts-headings-01-theory", {"date": "2026-10-14", "start": "07:00", "stop": "07:15",
-                                                     "asks": [{"ask": "%da" % n, "verdict": "right", "check": "n/a"}
+                                                     "least_sure_line": "none", "asks": [{"ask": "%da" % n, "verdict": "right", "check": "n/a"}
                                                               for n in range(1, 6)]})
         self.assertIn("5/5 (100%) [practice]", r.stdout)
         self.assertIn("Levels: no change", r.stdout)
@@ -588,7 +630,7 @@ class GradingRegressionTests(GradeBase):
                 a.pop("check_hint", None)
         key = write_sheet(self.ws, self.sid, "ielts-probe-01", "probe", items)
         self.remember_key(key)
-        grades = {"date": "2026-10-14", "start": "07:00", "stop": "07:05", "asks": [
+        grades = {"date": "2026-10-14", "start": "07:00", "stop": "07:05", "least_sure_line": "none", "asks": [
             {"ask": "1a", "verdict": "right", "check": "missing"},
             {"ask": "2a", "verdict": "right", "check": "head"},
             {"ask": "3a", "verdict": "right"}]}
@@ -612,7 +654,7 @@ class GradingRegressionTests(GradeBase):
         items = [make_item(1, "T04", ["1a", "1b"], origin="cold:T04")]
         key = write_sheet(self.ws, self.sid, "ielts-cold-08", "cold", items)
         self.remember_key(key)
-        r = self.grade("ielts-cold-08", {"date": "2026-10-14", "start": "08:00", "stop": "08:05", "asks": [
+        r = self.grade("ielts-cold-08", {"date": "2026-10-14", "start": "08:00", "stop": "08:05", "least_sure_line": "none", "asks": [
             {"ask": "1a", "verdict": "right", "check": "filled"},
             {"ask": "1b", "verdict": "right", "check": "filled"}]})
         self.assertIn("Not counted (seen too recently", r.stdout)
@@ -640,7 +682,7 @@ class GradingRegressionTests(GradeBase):
                  make_item(2, "T02", ["2a", "2b"], origin="cold:T02", layer="reading")]
         key = write_sheet(self.ws, self.sid, "ielts-cold-01", "cold", items)
         self.remember_key(key)
-        r = self.grade("ielts-cold-01", {"date": "2026-10-14", "start": "07:02", "stop": "07:14", "asks": [
+        r = self.grade("ielts-cold-01", {"date": "2026-10-14", "start": "07:02", "stop": "07:14", "least_sure_line": "none", "asks": [
             {"ask": a, "verdict": "right", "check": "filled"} for a in ("1a", "1b", "2a", "2b")]})
         self.assertIn("2-day recheck done: T04 (B-20261014-ielts-1), T02 (B-20261014-ielts-1)", r.stdout)
         blocks = dict((b["id"], b) for b in read_rows(self.ws / "plan" / "blocks.jsonl"))
@@ -663,7 +705,7 @@ class GradingRegressionTests(GradeBase):
                  make_item(3, "T02", ["3a"], origin="error:E-ielts-0002", layer="reading")]
         key = write_sheet(self.ws, self.sid, "ielts-mixed-01", "mixed", items)
         self.remember_key(key)
-        r = self.grade("ielts-mixed-01", {"date": "2026-10-14", "start": "07:05", "stop": "07:15", "asks": [
+        r = self.grade("ielts-mixed-01", {"date": "2026-10-14", "start": "07:05", "stop": "07:15", "least_sure_line": "none", "asks": [
             {"ask": a, "verdict": "right", "check": "filled"} for a in ("1a", "2a", "3a")]})
         self.assertIn("[practice]", r.stdout)
         self.assertNotIn("2-day recheck done", r.stdout)
@@ -690,7 +732,7 @@ class GradingRegressionTests(GradeBase):
         items = [make_item(1, "T01", ["1a"], origin="cold:T01", layer="reading")]
         key = write_sheet(self.ws, self.sid, "ielts-cold-09", "cold", items, block="B-20261014-ielts-2")
         self.remember_key(key)
-        r = self.grade("ielts-cold-09", {"date": "2026-10-14", "start": "08:00", "stop": "08:03", "asks": [
+        r = self.grade("ielts-cold-09", {"date": "2026-10-14", "start": "08:00", "stop": "08:03", "least_sure_line": "none", "asks": [
             {"ask": "1a", "verdict": "right", "check": "filled"}]})
         self.assertIn("graded: 1/1 (100%) [measured n=1]", r.stdout)
         self.assertNotIn("2-day recheck done", r.stdout)
@@ -706,7 +748,7 @@ class GradingRegressionTests(GradeBase):
         key = write_sheet(self.ws, self.sid, "ielts-cold-10", "cold", items, block="B-20261014-ielts-2",
                           issued="2026-10-15T06:55+01:00")
         self.remember_key(key)
-        r = self.grade("ielts-cold-10", {"date": "2026-10-15", "start": "07:00", "stop": "07:05", "asks": [
+        r = self.grade("ielts-cold-10", {"date": "2026-10-15", "start": "07:00", "stop": "07:05", "least_sure_line": "none", "asks": [
             {"ask": "%da" % n, "verdict": "right", "check": "filled"} for n in (1, 2)]},
             now="2026-10-15T07:10+01:00")
         self.assertIn("Levels: T01 0 → 3", r.stdout)
@@ -731,7 +773,7 @@ class GradingRegressionTests(GradeBase):
                            layer="reading") for n in (1, 2, 3, 4)]
         key = write_sheet(self.ws, self.sid, "ielts-cold-01", "cold", items)
         self.remember_key(key)
-        r = self.grade("ielts-cold-01", {"date": "2026-10-14", "start": "08:00", "stop": "08:08", "asks": [
+        r = self.grade("ielts-cold-01", {"date": "2026-10-14", "start": "08:00", "stop": "08:08", "least_sure_line": "none", "asks": [
             {"ask": "1a", "verdict": "right", "check": "filled"},
             {"ask": "2a", "verdict": "right", "check": "filled"},
             {"ask": "3a", "verdict": "wrong", "check": "filled", "mode": "D", "kind": "belief",
@@ -758,7 +800,7 @@ class GradingRegressionTests(GradeBase):
         items = [make_item(n, "T01", ["%da" % n], origin="cold:T01", layer="reading") for n in (1, 2)]
         key = write_sheet(self.ws, self.sid, "ielts-cold-02", "cold", items, issued="2026-10-19T10:55+01:00")
         self.remember_key(key)
-        r = self.grade("ielts-cold-02", {"date": "2026-10-19", "start": "11:00", "stop": "11:05", "asks": [
+        r = self.grade("ielts-cold-02", {"date": "2026-10-19", "start": "11:00", "stop": "11:05", "least_sure_line": "none", "asks": [
             {"ask": "%da" % n, "verdict": "right", "check": "filled"} for n in (1, 2)]},
             now="2026-10-19T11:10+01:00")
         self.assertIn("Levels: T01 0 → 3", r.stdout)
@@ -770,7 +812,7 @@ class GradingRegressionTests(GradeBase):
         items = [make_item(n, "T01", ["%da" % n], origin="cold:T01", layer="reading") for n in (1, 2)]
         key = write_sheet(self.ws, self.sid, "ielts-cold-01", "cold", items)
         self.remember_key(key)
-        r = self.grade("ielts-cold-01", {"date": "2026-10-14", "start": "08:00", "stop": "08:05", "asks": [
+        r = self.grade("ielts-cold-01", {"date": "2026-10-14", "start": "08:00", "stop": "08:05", "least_sure_line": "none", "asks": [
             {"ask": "%da" % n, "verdict": "right", "check": "filled"} for n in (1, 2)]})
         self.assertIn("Levels: T01 0 → 3", r.stdout)
         r = self.cli(["due", self.sid, "--list"], now="2026-10-21T07:00+01:00")    # 6 days 23 h: not yet
@@ -781,7 +823,7 @@ class GradingRegressionTests(GradeBase):
         self.assertNotIn("T01", r.stdout.split("1. 2-day rechecks", 1)[1].split("2. ", 1)[0])
         key = write_sheet(self.ws, self.sid, "ielts-cold-02", "cold", items, issued="2026-10-21T09:00+01:00")
         self.remember_key(key)
-        r = self.grade("ielts-cold-02", {"date": "2026-10-21", "start": "09:05", "stop": "09:10", "asks": [
+        r = self.grade("ielts-cold-02", {"date": "2026-10-21", "start": "09:05", "stop": "09:10", "least_sure_line": "none", "asks": [
             {"ask": "%da" % n, "verdict": "right", "check": "filled"} for n in (1, 2)]}, now="2026-10-21T09:15+01:00")
         self.assertIn("Levels: T01 3 → 4", r.stdout)
         r = self.cli(["due", self.sid, "--list"], now="2026-11-11T10:00+00:00")
@@ -796,7 +838,7 @@ class GradingRegressionTests(GradeBase):
         items = [make_item(n, "T01", ["%da" % n], origin="cold:T01") for n in (1, 2, 3)]
         key = write_sheet(self.ws, self.sid, "ielts-words-01", "words", items)
         self.remember_key(key)
-        r = self.grade("ielts-words-01", {"date": "2026-10-14", "start": "08:00", "stop": "08:06", "asks": [
+        r = self.grade("ielts-words-01", {"date": "2026-10-14", "start": "08:00", "stop": "08:06", "least_sure_line": "none", "asks": [
             {"ask": "%da" % n, "verdict": "right", "check": "n/a"} for n in (1, 2, 3)]})
         self.assertIn("[measured n=3]", r.stdout)
         self.assertIn("2-day recheck done: T01 (B-20261014-ielts-2)", r.stdout)
@@ -812,7 +854,7 @@ class GradingRegressionTests(GradeBase):
         items = [make_item(n, "T01", ["%da" % n], origin="cold:T01") for n in (1, 2, 3)]
         key = write_sheet(self.ws, self.sid, "ielts-probe-01", "probe", items, block="B-20261014-ielts-2")
         self.remember_key(key)
-        r = self.grade("ielts-probe-01", {"date": "2026-10-16", "start": "08:00", "stop": "08:06", "asks": [
+        r = self.grade("ielts-probe-01", {"date": "2026-10-16", "start": "08:00", "stop": "08:06", "least_sure_line": "none", "asks": [
             {"ask": "%da" % n, "verdict": "right", "check": "n/a"} for n in (1, 2, 3)]},
             now="2026-10-16T09:00+01:00")
         self.assertIn("[measured n=3]", r.stdout)
@@ -829,7 +871,7 @@ class GradingRegressionTests(GradeBase):
         items[0]["asks"][1]["topic"] = "T02"
         key = write_sheet(self.ws, self.sid, "ielts-drills-09", "drills", items)
         self.remember_key(key)
-        self.grade("ielts-drills-09", {"date": "2026-10-14", "start": "07:00", "stop": "07:10", "asks": [
+        self.grade("ielts-drills-09", {"date": "2026-10-14", "start": "07:00", "stop": "07:10", "least_sure_line": "none", "asks": [
             {"ask": "1a", "verdict": "right", "check": "filled"},
             {"ask": "1b", "verdict": "right", "check": "filled"}]})
         by_ask = dict((a["ask"], a["topic"]) for a in self.attempts())

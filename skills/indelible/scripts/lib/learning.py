@@ -12,7 +12,8 @@ Sections:
      after a recheck left the topic below 3) and the 24-hour rule.
   4. Levels: compute_levels_from(attempts, subject, errors=None) -> {topic: {level, level_basis}}.
   5. Metrics: accuracy by instrument, careless per 10, unnamed-wrong %,
-     least-sure hit rate, check coverage, catches and head checks, retention, execution.
+     least-sure hit rate, Least-sure line filled, check coverage, catches and
+     head checks, retention, execution.
   6. Loader helpers (I/O, clearly separated): compute_levels(subject_dir).
 """
 
@@ -920,9 +921,23 @@ def careless_per_10(attempts, levels_before):
 
 
 def unnamed_wrong_pct(attempts):
-    """Wrong answers not on the Least-sure line / all wrong answers."""
-    wrong = [a for a in attempts or [] if a.get("verdict") == "wrong"]
+    """Wrong answers not on the Least-sure line / all wrong answers.
+
+    A sheet whose line came back blank is left out: a blank is not "sure of
+    everything", so its wrong answers say nothing about unnamed errors. Rows
+    graded before ``least_sure_line`` was recorded count as before.
+    """
+    wrong = [a for a in attempts or [] if a.get("verdict") == "wrong" and a.get("least_sure_line") != "blank"]
     return _ratio(len([a for a in wrong if not a.get("least_sure")]), len(wrong))
+
+
+def least_sure_line_filled(attempts):
+    """Sheets whose Least-sure line was filled in (items named, or "none") / sheets with a recorded line."""
+    lines = {}
+    for a in attempts or []:
+        if a.get("least_sure_line") in ("named", "none", "blank"):
+            lines[a.get("sheet") or "?"] = a["least_sure_line"]
+    return _ratio(len([v for v in lines.values() if v != "blank"]), len(lines))
 
 
 def least_sure_hit_rate(attempts):

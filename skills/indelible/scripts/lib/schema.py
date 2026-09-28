@@ -44,6 +44,9 @@ VERDICTS = ["right", "half", "wrong", "dont_know", "skip"]
 # failed: the check was written and didn't hold, and the answer was left as it was (marked ✗ on the sheet).
 # `head`: the learner says they checked in their head, with no line written ([self-report]).
 CHECKS = ["filled", "missing", "caught", "failed", "head", "n/a"]
+# The sheet's closing Least-sure line: items named, "none" written, or left blank. A blank line is
+# not "sure of everything", so the unnamed-wrong share leaves its sheet out.
+LEAST_SURE_LINES = ["named", "none", "blank"]
 INSTRUMENTS = ["practice", "cold", "diagnostic", "mock", "checkpoint", "probe", "words"]
 PROVENANCE = ["practice", "measured"]
 ERROR_KINDS = ["belief", "slip", "shaky"]
@@ -503,6 +506,7 @@ def validate_attempt(a):
     p += _enum(a, "check", CHECKS, "attempt")
     p += _enum(a, "instrument", INSTRUMENTS, "attempt")
     p += _enum(a, "prov", PROVENANCE, "attempt")
+    p += _enum(a, "least_sure_line", LEAST_SURE_LINES, "attempt", null=True)
     p += _iso(a, "at", "attempt")
     return p
 
@@ -674,6 +678,7 @@ def validate_grades(g):
     for k in ("start", "stop"):
         if g.get(k) is not None and not dates.is_hhmm(g[k]):
             p.append("grades.%s must be HH:MM" % k)
+    p += _enum(g, "least_sure_line", LEAST_SURE_LINES, "grades", null=True)
     asks = g.get("asks")
     if not isinstance(asks, list):
         return p + ["grades.asks must be a list"]
@@ -694,6 +699,13 @@ def validate_grades(g):
             p.append("%s.least_sure must be true or false" % name)
         if isinstance(a.get("belief"), str) and len(a["belief"]) > 120:
             p.append("%s.belief is longer than 120 characters" % name)
+    named = [a.get("ask") for a in asks if isinstance(a, dict) and a.get("least_sure") is True]
+    line = g.get("least_sure_line")
+    if line == "named" and not named:
+        p.append("grades.least_sure_line is named, but no ask has least_sure true")
+    elif line in ("none", "blank") and named:
+        p.append("grades.least_sure_line is %s, but %s %s least_sure true" % (
+            line, ", ".join(str(x) for x in named), "has" if len(named) == 1 else "have"))
     return p
 
 
@@ -852,6 +864,8 @@ RECORDS = {
             ("verdict", "right (1) | half (0.5) | wrong (0) | dont_know (0) | skip (0)"),
             ("check", "filled | missing | caught (answer changed after a failed check) | failed (the check didn't hold and the answer was kept: marked ✗) | head (checked in the head, no line written: self-report) | n/a"),
             ("least_sure", "true if the ask is on the sheet's closing Least-sure line"),
+            ("least_sure_line", "named | none | blank: that closing line on the sheet (only on a sheet that has "
+                                "one); unnamed-wrong % leaves out a sheet whose line was blank"),
             ("instrument", " | ".join(INSTRUMENTS) + "; drills, mixed, repair, review, example -> practice"),
             ("interval_h", "hours since the topic's last warm exposure"),
             ("mode", "a code from the subject taxonomy; account = the learner's own words"),
@@ -1021,7 +1035,7 @@ RECORDS = {
     "grades": {
         "file": "any path, passed to: indelible.py grade record <subject> <id> --from grades.json",
         "kind": "input: verdicts for one sitting",
-        "example": {"start": "07:05", "stop": "07:17", "date": "2026-10-15",
+        "example": {"start": "07:05", "stop": "07:17", "date": "2026-10-15", "least_sure_line": "none",
                     "asks": [{"ask": "1a", "verdict": "right", "check": "filled", "least_sure": False},
                              {"ask": "3a", "verdict": "wrong", "check": "filled", "least_sure": False, "mode": "V",
                               "account": "didn't know 'albeit'; guessed 'because'", "kind": "belief",
@@ -1030,7 +1044,10 @@ RECORDS = {
             ("start / stop", "HH:MM from items 0 and N; date YYYY-MM-DD"),
             ("verdict", "right | half | wrong | dont_know | skip ('I don't know' is always an accepted answer)"),
             ("check", "filled | missing | caught | failed (marked ✗, answer kept) | head (the learner says they checked in their head; no line written) | n/a; always n/a when no check line was printed"),
-            ("least_sure", "true if the learner named this ask on the Least-sure line"),
+            ("least_sure", "true for every ask of an item the learner named on the Least-sure line"),
+            ("least_sure_line", "named | none (the learner wrote none) | blank (left empty; never read as "
+                                "'sure of everything'). On a sheet with the Least-sure line: named when left out "
+                                "and an ask is named, otherwise required. Left out on a sheet without the line"),
             ("kind", "belief | slip | shaky: creates an error for wrong, half or dont_know asks"),
             ("account", "the learner's own words, asked before classifying; or 'no account'"),
             ("belief", "at most 120 characters; never the correct answer"),

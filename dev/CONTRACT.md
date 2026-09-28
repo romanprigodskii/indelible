@@ -197,6 +197,7 @@ A topic's cold passes are not stored: the level rules find them in `attempts.jso
 - **`verdict`:** `right` (1) | `half` (0.5) | `wrong` (0) | `dont_know` (0) | `skip` (0).
 - **`check`:** `filled` | `missing` | `caught` | `failed` | `head` | `n/a`. `caught` means the answer was changed after a failed check; `failed` means the check was written and didn't hold, and the answer was kept (the learner marks it ✗); `head` means the line was left empty and the learner says they checked in their head ([self-report]). A question printed without a check line (its spec ask has no `check: true`) is always `n/a`.
 - **`instrument`:** `practice` | `cold` | `diagnostic` | `mock` | `checkpoint` | `probe` | `words`.
+- **`least_sure_line`** (on a sheet that has the Least-sure line): `named` | `none` | `blank`, the line as it came back, the same on every row of the sheet. Rows graded before the field existed have none.
 - **`prov`:** `practice` | `measured`. `measured` iff the instrument measures.
 
 ### 5.6 `data/errors.jsonl` (snapshot)
@@ -348,8 +349,9 @@ For error re-serves, only 2 and 3 apply, plus `next_due ≤ date(t)`.
 |---|---|
 | accuracy by instrument | (right + 0.5 × half) ÷ asks presented |
 | careless per 10 | 10 × (misses with mode `C`) ÷ asks attempted on topics that were at level ≥3 before the sitting |
-| unnamed-wrong % | wrong answers with `least_sure=false` ÷ all wrong answers |
+| unnamed-wrong % | wrong answers with `least_sure=false` ÷ all wrong answers, leaving out sheets whose `least_sure_line` is `blank` (a blank is not "sure of everything") |
 | least-sure hit rate | least-sure asks that were wrong ÷ least-sure asks |
+| Least-sure line filled | sheets whose `least_sure_line` is `named` or `none` ÷ sheets with one recorded |
 | check coverage | asks with check `filled`, `caught` or `failed` ÷ asks with a check line (`filled`, `missing`, `caught`, `failed` or `head`): a check in the head stays in the denominator |
 | check catches | count of `caught` |
 | failed checks | count of `failed`, with those on right answers counted apart: they point at the check, its tolerance or the key |
@@ -602,12 +604,13 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
 **`grade record <subject> <id> --from grades.json [--shaky]`**:
 
 ```json
-{"start":"07:05","stop":"07:17","date":"2026-10-15",
+{"start":"07:05","stop":"07:17","date":"2026-10-15","least_sure_line":"none",
  "asks":[{"ask":"1a","verdict":"right","check":"filled","least_sure":false},
          {"ask":"3a","verdict":"wrong","check":"filled","least_sure":false,"mode":"V","account":"didn't know 'albeit'; guessed 'because'","kind":"belief","belief":"reads 'albeit' as 'because'"}]}
 ```
 
 - **Requires** `status` `sat` (sets it if evidence exists and the status is `issued`) and evidence of the finished sheet on file: a failure-gate photo alone (`scan ingest --asks`) is refused (exit 1).
+- **`least_sure_line`**: `named`, `none` or `blank`, the sheet's closing line as it came back. On a sheet with the Least-sure line (spec `least_sure`) it is `named` when left out and a question is named, and required otherwise (exit 2); on a sheet without one it is refused (exit 2). `validate_grades` refuses `named` with no question named, and `none` or `blank` with one. It is copied onto every attempt row.
 - **`check`** may be left out on an ask with no check line, or for `skip` and `dont_know`: it is then `n/a`. On an ask printed without a check line, any value but `n/a` is refused (exit 2), so check coverage counts only questions that asked for a check.
 - **The sitting time** is `start` (else `stop`) on `date`, from the grades file, then `sat.*`. With neither time it is now (a sitting today) or 12:00 (an earlier day), but never before `issued_at`. For a `cold` sheet, or one with a graded `cold:`, `error:` or `sentinel:` item, that guess is made only when the sheet was issued today and is graded within max(3 h, 3 × `est_min`) of its issue; otherwise it refuses (exit 2) and asks for `date` and `start`. A sitting more than 5 minutes before `issued_at` is refused (exit 2): a wrong date, or a 12-hour clock.
 - **Appends one attempt per ask:**
@@ -621,7 +624,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
 - **An ask with `verdict: right` and `least_sure: true`** creates a `shaky` error when `--shaky` is passed. It is off by default.
 - **Afterwards:** sets `status=graded` and `graded_at`, recomputes the levels, and prints:
   - the score with its label (`[measured n=14]` or `[practice]`);
-  - the unnamed-wrong count;
+  - on a sheet with the Least-sure line, the unnamed-wrong count, or `Least-sure line: left blank` when it came back blank;
   - the check lines written and those that caught a mistake, with `failed` checks and checks in the head (`head`, and the misses among them) apart;
   - the errors created (ids only);
   - the level changes;

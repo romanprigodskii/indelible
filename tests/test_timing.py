@@ -127,7 +127,7 @@ class ClosingWindowTests(TimingCase):
         asks = [{"ask": "1a", "verdict": "right", "check": "filled", "least_sure": False},
                 {"ask": "2a", "verdict": "right", "check": "filled", "least_sure": False}]
         path = self.grades_file("late.json", {"date": "2026-10-16", "start": "07:35", "stop": "07:45",
-                                              "asks": asks})
+                                              "least_sure_line": "none", "asks": asks})
         r = self.cli(["grade", "record", self.sid, "ielts-cold-01", "--from", path], now="2026-10-16T08:00+01:00")
         self.assertIn("Levels: no change", r.stdout)
         self.assertIn("Not counted toward level 3: T01 was sat at 72.1 h, outside its 44–72 h window. Treat it "
@@ -141,7 +141,7 @@ class ClosingWindowTests(TimingCase):
         asks = [{"ask": "1a", "verdict": "right", "check": "filled", "least_sure": False},
                 {"ask": "2a", "verdict": "right", "check": "filled", "least_sure": False}]
         path = self.grades_file("inwindow.json", {"date": "2026-10-16", "start": "07:20", "stop": "07:28",
-                                                  "asks": asks})
+                                                  "least_sure_line": "none", "asks": asks})
         r = self.cli(["grade", "record", self.sid, "ielts-cold-01", "--from", path], now="2026-10-16T08:00+01:00")
         self.assertIn("T01 0 → 3", r.stdout)
         self.assertNotIn("Not counted toward level 3", r.stdout)
@@ -194,11 +194,11 @@ class SittingTimeTests(TimingCase):
 
     def test_grading_refuses_to_guess_the_time_of_a_recheck_sat_earlier(self):
         self.sheet(evidence=True, sitting={"start": None, "stop": None, "date": "2026-10-15"})
-        r = self.grade("ielts-cold-01", {"asks": self.ASKS}, code=2)
+        r = self.grade("ielts-cold-01", {"least_sure_line": "none", "asks": self.ASKS}, code=2)
         self.assertIn("Not recorded: ielts-cold-01 was issued 2026-10-15T20:50+01:00 and has no start or stop time",
                       r.stdout + r.stderr)
         self.assertEqual(sheet_row(self.ws, "ielts-cold-01")["status"], "issued")
-        r = self.grade("ielts-cold-01", {"date": "2026-10-15", "start": "21:00", "stop": "21:08", "asks": self.ASKS})
+        r = self.grade("ielts-cold-01", {"date": "2026-10-15", "start": "21:00", "stop": "21:08", "least_sure_line": "none", "asks": self.ASKS})
         self.assertIn("T01 0 → 3", r.stdout)
         attempt = fio.read_jsonl(self.sdir / "data" / "attempts.jsonl")[0]
         self.assertEqual(attempt["interval_h"], 61.5)
@@ -208,7 +208,7 @@ class SittingTimeTests(TimingCase):
         now = "2026-10-15T21:10+01:00"
         r = self.cli(["scan", "ingest", self.sid, "ielts-cold-01", "--typed", self.typed], now=now)
         self.assertIn("marked as taken (2026-10-15)", r.stdout)
-        r = self.grade("ielts-cold-01", {"asks": self.ASKS}, now="2026-10-15T21:15+01:00")
+        r = self.grade("ielts-cold-01", {"least_sure_line": "none", "asks": self.ASKS}, now="2026-10-15T21:15+01:00")
         self.assertIn("T01 0 → 3", r.stdout)
 
     def test_practice_sent_the_next_day_keeps_today_with_a_note(self):
@@ -222,21 +222,21 @@ class SittingTimeTests(TimingCase):
     def test_a_sitting_before_the_issue_is_refused(self):
         # "7:00" for a recheck issued at 20:50 the same day: a 12-hour-clock slip, not a sitting
         self.sheet(evidence=True)
-        r = self.grade("ielts-cold-01", {"date": "2026-10-15", "start": "07:00", "stop": "07:10", "asks": self.ASKS},
+        r = self.grade("ielts-cold-01", {"date": "2026-10-15", "start": "07:00", "stop": "07:10", "least_sure_line": "none", "asks": self.ASKS},
                        code=2)
         self.assertIn("The sitting time 2026-10-15T07:00+01:00 is before ielts-cold-01 was issued "
                       "(2026-10-15T20:50+01:00). Check the date and the start time (24-hour clock).",
                       r.stdout + r.stderr)
         self.assertEqual(sheet_row(self.ws, "ielts-cold-01")["status"], "issued")
         # a few minutes early is a clock difference, not a slip
-        r = self.grade("ielts-cold-01", {"date": "2026-10-15", "start": "20:47", "stop": "20:57", "asks": self.ASKS})
+        r = self.grade("ielts-cold-01", {"date": "2026-10-15", "start": "20:47", "stop": "20:57", "least_sure_line": "none", "asks": self.ASKS})
         self.assertIn("T01 0 → 3", r.stdout)
 
     def test_a_guessed_sitting_time_is_never_before_the_issue(self):
         # practice with no times, sat on the day it was issued: the guess is the issue time, not 12:00
         self.sheet("ielts-drills-01", stype="drills", origin="new", evidence=True,
                    sitting={"start": None, "stop": None, "date": "2026-10-15"})
-        self.grade("ielts-drills-01", {"asks": self.ASKS})
+        self.grade("ielts-drills-01", {"least_sure_line": "none", "asks": self.ASKS})
         attempt = fio.read_jsonl(self.sdir / "data" / "attempts.jsonl")[0]
         self.assertEqual(attempt["at"], self.ISSUED)
 
@@ -295,7 +295,7 @@ class MovedWindowTests(TimingCase):
             "sat": {"start": None, "stop": None, "date": None},
             "evidence": [{"path": "scans/d.jpg", "kind": "photo"}], "graded_at": None, "opens_unsat": 0,
             "block": None})
-        grades = self.grades_file("g.json", {"date": "2026-10-16", "start": "12:50", "stop": "13:00", "asks": [
+        grades = self.grades_file("g.json", {"date": "2026-10-16", "start": "12:50", "stop": "13:00", "least_sure_line": "none", "asks": [
             {"ask": "1a", "verdict": "right", "check": "n/a"}, {"ask": "2a", "verdict": "right", "check": "n/a"}]})
         r = self.cli(["grade", "record", self.sid, "ielts-overview-01-drills", "--from", grades],
                      now="2026-10-16T18:00+01:00")
@@ -490,7 +490,7 @@ class LateRecheckTests(TimingCase):
         asks = [{"ask": "1a", "verdict": "right", "check": "filled", "least_sure": False},
                 {"ask": "2a", "verdict": "right", "check": "filled", "least_sure": False}]
         path = self.grades_file("friday.json", {"date": "2026-10-16", "start": "07:05", "stop": "07:15",
-                                                "asks": asks})
+                                                "least_sure_line": "none", "asks": asks})
         r = self.cli(["grade", "record", self.sid, "ielts-cold-01", "--from", path], now="2026-10-16T07:20+01:00")
         self.assertIn("T01 0 → 3", r.stdout)
         self.assertEqual(self.blocks()[self.BID]["status"], "done")

@@ -181,6 +181,35 @@ class StatsTests(StatsBase):
         self.assertEqual(list(st["instruments"]), ["cold"])
 
 
+class LeastSureLineStatsTests(StatsBase):
+    """A Least-sure line left blank is not "sure of everything": unnamed-wrong leaves its sheet out,
+    and stats say how often the line was filled in."""
+
+    def setUp(self):
+        StatsBase.setUp(self)
+        rows = history()
+        for a in rows:
+            if a["sheet"] == "ielts-cold-01":
+                a["least_sure_line"] = "none"
+            elif a["sheet"] == "ielts-cold-02":
+                a["least_sure_line"] = "named"
+        rows.append(dict(attempt("ielts-cold-05", 1, "T02", "wrong", "2026-10-16T08:00+01:00", "cold", 60.0,
+                                 mode="D"), least_sure_line="blank"))
+        fio.write_jsonl(self.sdir / "data" / "attempts.jsonl", rows)
+
+    def test_a_blank_line_is_left_out_of_unnamed_wrong(self):
+        st = json.loads(self.cli(["stats", self.sid, "--json"]).stdout)
+        cold = st["instruments"]["cold"]
+        # The wrong answer on the blank sheet is neither named nor unnamed: still 1 of 2.
+        self.assertEqual((cold["unnamed_wrong"]["num"], cold["unnamed_wrong"]["n"]), (1, 2))
+        self.assertEqual((cold["least_sure_line"]["num"], cold["least_sure_line"]["n"]), (2, 3))
+        # Practice rows from before the field was recorded count as before.
+        self.assertEqual(st["instruments"]["practice"]["least_sure_line"]["n"], 0)
+        out = self.cli(["stats", self.sid]).stdout
+        self.assertIn("least-sure wrong 100% (1/1) · least-sure line filled on 2 of 3 sheets · check coverage", out)
+        self.assertNotIn("least-sure line filled", out.split("practice [", 1)[1])
+
+
 class FailedCheckLineTests(unittest.TestCase):
     def test_failed_checks_name_those_on_right_answers(self):
         self.assertEqual(cmd_stats.failed_checks({"n": 3, "right": 0}), "failed checks 3")

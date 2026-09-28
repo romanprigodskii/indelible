@@ -200,11 +200,11 @@ class SampleRecheckSession(SampleBase):
         self.cli("sheet", "build", SUBJECT, sheet, "--format", "md")
         self.cli("sheet", "issue", SUBJECT, sheet, "--block", recheck[0])
         typed = self.tmp / "typed.txt"
-        typed.write_text("1 B\n2 A\n3 A\nLeast sure of: none\n", encoding="utf-8")
+        typed.write_text("1 B\n2 A\n3 A\nLeast sure I chose the right idea: none\n", encoding="utf-8")
         self.cli("scan", "ingest", SUBJECT, sheet, "--typed", typed)
         self.cli("key", "open", SUBJECT, sheet)
         grades = self.tmp / "grades.json"
-        grades.write_text(json.dumps({"start": "07:02", "stop": "07:07", "date": "2026-10-15", "asks": [
+        grades.write_text(json.dumps({"start": "07:02", "stop": "07:07", "date": "2026-10-15", "least_sure_line": "none", "asks": [
             {"ask": "%da" % n, "verdict": "right", "check": "filled"} for n in (1, 2, 3)]}), encoding="utf-8")
         r = self.cli("grade", "record", SUBJECT, sheet, "--from", grades, "--shaky")
         self.assertIn("[measured n=3]", r.stdout)

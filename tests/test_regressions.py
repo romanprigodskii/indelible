@@ -795,7 +795,7 @@ class ReportingRegressions(TmpCase):
         items = [make_item(1, "T01", ["1a", "1b"], layer="reading"), make_item(2, "T04", ["2a", "2b"])]
         write_sheet(self.ws, SUBJECT, "ielts-diagnostic-01", "diagnostic", items, issued="2026-10-12T07:55+01:00")
         g = self.tmp / "g.json"
-        g.write_text(json.dumps({"date": "2026-10-12", "start": "08:00", "stop": "08:10", "asks": [
+        g.write_text(json.dumps({"date": "2026-10-12", "start": "08:00", "stop": "08:10", "least_sure_line": "none", "asks": [
             {"ask": a, "verdict": "right", "check": "filled"} for a in ("1a", "1b", "2a", "2b")]}), encoding="utf-8")
         self.cli(["grade", "record", SUBJECT, "ielts-diagnostic-01", "--from", g])
         pace = [ln for ln in self.cli(["brief", SUBJECT]).stdout.splitlines() if ln.startswith("PACE:")][0]
