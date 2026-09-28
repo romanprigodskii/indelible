@@ -85,6 +85,14 @@ class SessionLoad(unittest.TestCase):
         self.assertLessEqual(total, SESSION_LOAD_MAX, "a session loads %d characters (%s); the budget is %d" % (
             total, ", ".join("%s %d" % (n.split("/")[-1], s) for n, s in sizes.items()), SESSION_LOAD_MAX))
 
+    def test_the_session_route_loads_session_grade_when_no_recheck_did(self):
+        # A session with nothing due has no recheck, so session-grade is first needed when a
+        # practice sheet comes back; the route must not call it "already loaded" then.
+        skill = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
+        row = [ln for ln in skill.splitlines() if ln.startswith("| `session [subject]`")][0]
+        self.assertNotIn("already loaded", row)
+        self.assertIn("session-grade, loaded at the recheck or the first sheet back, marks each later sheet", row)
+
 
 class TriggerEvals(unittest.TestCase):
     def setUp(self):
