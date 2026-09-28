@@ -16,7 +16,7 @@ Contents: 1 Rules for every subject · 2 Quantitative · 3 Verbal · 4 Language 
   - `shaky`: right, but on the Least-sure line (`--shaky`: one per named item). Ladder at +3 days; right there, those answers then count toward the level.
   - Time (unreached questions): verdict `skip`, no `kind`, no error row.
 - **The `belief` text** is at most 120 characters, states the wrong idea, and never the right answer. The examples below follow that style.
-- **Codes** are single capital letters stored as `mode`. Set them at `teach` from the profile's table: `ind set <subject> taxonomy '[{"code":"V","name":"a word stopped me","treatment":"…"}, …]'`. A subject spanning layers combines sets, renaming a code only if two collide. Persona A (IELTS): verbal V D E R T C, essay A S O W, and L from language.
+- **Codes** are single capital letters stored as `mode`. Set them at `teach` from the profile's table: `ind set <subject> taxonomy '[{"code":"V","name":"a word stopped me","treatment":"…"}, …]'`. A subject spanning layers combines sets, renaming a code only if two collide. Persona A (IELTS): verbal V D E R T F C, essay A S O W, and L from language. An exam or course subject keeps an answer-form code, for a right answer in a form the exam's marking rejects ([session-grade.md](session-grade.md) §9): F in the quantitative and verbal tables; a language, code or essay subject adds one under a free letter (the language table's F is grammatical form).
 - **Treatments are sheets,** never explanations in chat above a test (Law 2). Sheet types and check-line forms: [sheets.md](sheets.md).
 - **Tell the learner the mode in plain words** (Law 10), naming the question by its gist and the learner's answer ([session-grade.md](session-grade.md) §3): "Question 5 (why the second entrance was built; you wrote TRUE): the passage never says this, so the answer isn't supported. Every TRUE needs words in the passage behind it. Your other answers on that passage had them, so this is within reach. Next: a short sheet on it on Thursday; until then, copy the supporting words beside each answer."
 
@@ -42,6 +42,7 @@ Contents: 1 Rules for every subject · 2 Quantitative · 3 Verbal · 4 Language 
 | E | Plausible but unsupported | Chose TRUE because it is true in real life; the passage never says it | `belief`. Check line: "Copy the words that support it"; a drill block where every answer cites its line |
 | R | Rule (grammar, usage or task rule) | Wrote "informations" in a gap | `belief`. The rule on a theory sheet with a contrast pair and the case where both hold; one drill block |
 | T | Time | Last passage: six answers guessed in the final two minutes | No `kind` unless a wrong idea shows. Minutes per passage; practise the skip-and-return order in timed sets |
+| F | Answer form (the exam's form) | Wrote four words where the question said "NO MORE THAN THREE WORDS"; wrote the word from the passage where the question asked for a letter | `slip`. Ladder; check hint: "Count your words against the instruction's limit, and give the answer in the form it asks for" |
 | C | Careless | Matched iv in the margin, copied vi onto the answer line; "I can see my slip: wrote vi, I matched iv" | `slip`. Ladder; check hint: "Compare the margin with the answer line" |
 
 ## 4. Language (persona B, Spanish)

@@ -94,6 +94,7 @@ SUBJECT_DRAFT = {
         {"code": "E", "name": "plausible but unsupported", "treatment": "check line copies the supporting words"},
         {"code": "R", "name": "rule (grammar, usage or task rule)", "treatment": "theory sheet with a contrast pair, one drill block"},
         {"code": "T", "name": "ran out of time", "treatment": "minutes per passage; skip-and-return in timed sets"},
+        {"code": "F", "name": "answer form (the exam's form)", "treatment": "ladder only; count the words against the instruction's limit"},
         {"code": "C", "name": "careless slip (slip account, same step right elsewhere)", "treatment": "ladder only; compare margin and answer line"},
         {"code": "A", "name": "essay claim", "treatment": "claim in one sentence first"},
         {"code": "S", "name": "essay support", "treatment": "claim, reason, example frames"},
