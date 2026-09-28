@@ -26,8 +26,10 @@ What it does, in order:
      counted"). A repair, theory, example or drills sheet never does, and an
      untreated wrong idea is never moved (repair it first).
   5. Opens a mistake for each wrong, half or "don't know" question with a
-     ``kind`` (and, with ``--shaky``, for right answers on the Least-sure
-     line). The question's key entry is copied, unread, to
+     ``kind`` (and, with ``--shaky``, one for each item whose right answers
+     are on the Least-sure line: they count toward the level once it comes
+     back right, and an earlier recheck that then counts is closed). The
+     question's key entry is copied, unread, to
      ``.indelible/keys/errors/<E-id>.json``.
   6. Closes the 2-day recheck block this sheet served (the sheet's linked
      block, else the open recheck whose window or time holds the sitting);
