@@ -27,8 +27,8 @@
     "replies": [
       {
         "n": 1, "q": "Q1", "about": "goal, why, success (express)",
-        "reply": "Learn Rust properly. For fun. Pick something for me to build.",
-        "sets": ["subject.profile", "subject.target.goal", "subject.target.why", "subject.target.success"]
+        "reply": "Learn Rust properly. For fun. Pick something for me to build. I write Python scripts at work; nothing in Rust yet.",
+        "sets": ["subject.profile", "subject.target.goal", "subject.target.why", "subject.target.success", "claude_md.Learner notes"]
       },
       {
         "n": 2, "q": "Q2", "about": "date only (express)",
@@ -93,19 +93,21 @@
     },
     "ledger": [],
     "claude_md": {
-      "Learner notes": ["Prefers few questions: ask only when a decision needs it"]
+      "Learner notes": ["Prefers few questions: ask only when a decision needs it", "Has written and run programs (Python scripts at work); new to Rust", "Code folder: ~/code/rust-study, outside the study folder"]
     },
     "readback_mentions": [
       "Rust, for fun; capstone: a CLI tool that parses a CSV, with tests",
       "no date: 4-week cycles, each ending with a capstone check-in",
-      "whenever: no fixed sessions, no calendar"
+      "whenever: no fixed sessions, no calendar",
+      "your code: a folder outside the study folder, only read"
     ],
     "readback_mentions_if_permission_prompt": [
       "the one permission rule: Bash(python3 *indelible.py*)"
     ],
     "checks": [
       "Express path: at most 5 learner replies during onboarding.",
-      "Q3, Q4, Q5, Q7 and Q8 are not asked during onboarding; each is asked later on its own, only when it becomes needed, never as a batch.",
+      "Q3 (apart from its code line, which rides the express Q1 card), Q4, Q5, Q7 and Q8 are not asked during onboarding; each is asked later on its own, only when it becomes needed, never as a batch.",
+      "The Found line names the toolchain from ind doctor's toolchains (cargo found; nothing is run), and the readback names the code folder, outside the study folder.",
       "Express starts from the first message: the opener echoes it, promises 3 questions and lists no others.",
       "While 'prefers few questions' stands: the scope map is a statement, Q4 carries the theory-source question, Q5 asks only age and first language (tone stays B), and the 10-minute warning is a statement that defaults to closing.",
       "No file exists in the workspace before the readback 'yes'.",

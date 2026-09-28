@@ -30,6 +30,9 @@ from lib import ws as wsmod
 
 CLOUD_MARKERS = ["OneDrive", "iCloud", "Mobile Documents", "Dropbox", "CloudStorage", "Google Drive"]
 LATEX_ENGINES = ("tectonic", "xelatex", "lualatex")
+# Language toolchains a code learner may need: looked up on PATH only, never run
+# (running one could start a download, e.g. a rustup proxy installing a toolchain).
+TOOLCHAINS = ("cargo", "rustc", "go", "node", "javac", "gcc", "python3", "py")
 RENDER_TIMEOUT_S = 60
 # The same as lib.render.BROWSER_OFFLINE_FLAGS (this fallback must not import render):
 # a headless test print makes no network connections.
@@ -41,7 +44,8 @@ BROWSER_OFFLINE_FLAGS = (
 
 
 def register(subparsers):
-    p = subparsers.add_parser("doctor", help="check Python, the workspace, the time zone and the sheet renderers")
+    p = subparsers.add_parser("doctor", help="check Python, the workspace, the time zone, the sheet renderers "
+                                          "and which language toolchains are on PATH")
     p.add_argument("--json", action="store_true", help="machine-readable output")
     p.add_argument("--quick", action="store_true",
                    help="presence checks only: no test compile or test print, nothing recorded")
@@ -124,6 +128,11 @@ def detect_iana_tz():
     except OSError:
         pass
     return None
+
+
+def detect_toolchains():
+    """{name: on PATH} for the language toolchains: presence only, nothing is executed."""
+    return dict((name, shutil.which(name) is not None) for name in TOOLCHAINS)
 
 
 def cloud_marker(path):
@@ -461,10 +470,11 @@ def cmd_doctor(args):
         except IndelibleError as exc:
             warnings.append("could not record the renderer: %s" % exc)
 
+    toolchains = detect_toolchains()
     report = {
         "python": ver, "python_ok": py_ok, "platform": sys.platform, "workspace": ws_info,
         "timezone": tz_info, "renderers": rows, "renderer_source": source_r, "backend": backend,
-        "backend_recorded": recorded, "quick": bool(args.quick), "warnings": warnings,
+        "backend_recorded": recorded, "toolchains": toolchains, "quick": bool(args.quick), "warnings": warnings,
     }
     if args.json:
         _out(json.dumps(report, ensure_ascii=False, indent=2))
@@ -491,6 +501,8 @@ def cmd_doctor(args):
         if r.get("path") and r["ok"]:
             extra += " (%s)" % r["path"]
         _out("    %s  %s%s" % (r["name"].ljust(width), state, (": " + extra) if extra else ""))
+    found = [n for n in TOOLCHAINS if toolchains.get(n)]
+    _out("  Toolchains  %s (on PATH; none was run)" % (", ".join(found) if found else "none of " + ", ".join(TOOLCHAINS)))
     if backend:
         if recorded:
             _out("  Sheets      %s (recorded in indelible.json)" % backend)

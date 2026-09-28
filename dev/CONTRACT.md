@@ -358,6 +358,7 @@ Invoke as `python3 <skill>/scripts/indelible.py <command> ...`. Every command ac
   - Reports: the Python version; whether the workspace is writable; whether it sits inside a cloud-synced folder (a path containing `OneDrive`, `iCloud`, `Mobile Documents` or `Dropbox`, which triggers a warning); and the time zone.
   - **Renderers:** `typst` on PATH (a real test compile of a 3-line file into a temp dir); `tectonic`, `xelatex` or `lualatex` on PATH; and Chrome, Chromium or Edge at the usual paths for printing HTML to PDF (also test-printed if found).
   - Records the first working backend in `indelible.json.render` when a workspace exists.
+  - **Toolchains:** whether `cargo`, `rustc`, `go`, `node`, `javac`, `gcc`, `python3` and `py` are on PATH (`toolchains` in `--json`, name → true or false). Presence only: none is ever run, so nothing can start a download.
   - Exit 0.
 - **`init <path> [--pointer]`**
   - Creates the workspace tree (§4 root part) from `assets/workspace/`.

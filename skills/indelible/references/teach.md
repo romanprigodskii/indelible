@@ -18,7 +18,7 @@ For a new workspace or a new subject. Ask only what the first plan needs, show t
 1. Say once: "I'll run a small script that keeps your study record as files in a folder on your computer. It sends nothing over the internet." Run `ind doctor --json` (it only reports, and may make a one-page test PDF in a temporary folder). No Python 3.9+: SKILL.md, "Without Python or a lasting folder".
 2. **Folder:** the current one only if empty, outside git and not cloud-synced; else `~/Study` (`%USERPROFILE%\Study`). In Cowork, a new folder inside the shared folder. A temporary sandbox only after saying it will be lost (SKILL.md, setup step 1). Never change an existing `CLAUDE.md`.
 3. **Calendar, by inspection only:** match your tool list against [calendar.md](calendar.md) §2; loading a deferred schema is not a call. **No connector calls, no account reads.**
-4. **Note:** a multiple-choice tool, a narrow screen, the learner's language (interview in it), the time zone, `py -3` on Windows, any permission prompt (readback row 12).
+4. **Note:** a multiple-choice tool, a narrow screen, the learner's language (interview in it), the time zone, `py -3` on Windows, any permission prompt (readback row 12), and for a programming language, whether its toolchain is on the PATH (doctor's `toolchains`: looked up, never run).
 
 ## 3. Opener
 
@@ -32,7 +32,7 @@ Found: Python 3.12 · PDF sheets · time zone Lisbon · Google Calendar (I won't
 (1 of 7) When is it? Are you registered, and by when must you be? …
 ```
 
-"Found" lists only what exists ("no calendar connected (a file you import works too)"). Nothing parsed: end with Q1, "(1 of 8)".
+"Found" lists only what exists ("no calendar connected (a file you import works too)"). For code it names the toolchain either way ("Found: Python 3.10 · cargo" or "cargo not found"); a missing one makes session 1 "install <toolchain> (about 15 min), then the starter task" in the preview and readback, and the diagnostic waits for it. Nothing parsed: end with Q1, "(1 of 8)".
 
 ## 4. Questions
 
@@ -124,7 +124,7 @@ At most 12 lines, rows that apply; "more" shows the other defaults. Persona A:
 12 One-time step, for fewer prompts: type /permissions and allow Bash(python3 *indelible.py*) (it allows any python3 command that mentions indelible.py)
 ```
 
-Row 12 only if a permission prompt appeared during this setup (Windows: `Bash(py -3 *indelible.py*)`). "change N": apply, show changed rows, ask again. "yes": §7 at once.
+Row 12 only if a permission prompt appeared during this setup (Windows: `Bash(py -3 *indelible.py*)`). Code adds a statement row for the learner's own code folder, outside the study folder (`scan ingest --dir` refuses one inside it): "Your code: ~/code/rust-study, outside the study folder; I only read it, and copy it when you hand work in." "change N": apply, show changed rows, ask again. "yes": §7 at once.
 
 ## 7. What teach writes (after "yes" only)
 
@@ -136,7 +136,7 @@ Exit 2: stop, say so in one line. Exit 1: fix what it names, go on.
 4. Known topics: `ind topic add <id> T01 --name "<name>" --layer <layer>` (the scope from readback row 4; [measure.md](measure.md) §2). Weights and the out-of-scope list: `ind note append <id> scope`.
 5. Week 1 in full, week 2 as a skeleton: `ind plan add ielts --kind diagnostic --start 2026-10-12T07:00 --min 60 --protected --measurement --content "Diagnostic, part A"` (on demand: none), with local times and no offset ([plan.md](plan.md) §1). Then `ind plan check`; fix every FAIL, say if a session moved.
 6. To-dos and safeguards: `ind ledger add owed --subject ielts --what "Register for the 12 Dec sitting" --due 2026-10-20T20:00 --by learner`, and one ledger decision mirroring each checkpoint ([measure.md](measure.md) §12).
-7. Outside the generated markers: subject `CLAUDE.md` "Learner notes" (why, if-then plan, authorship answer, fixed-time wishes, "prefers few questions"), "Do not calibrate on"; root "About the learner". Longer: `ind note append <id> onboarding`.
+7. Outside the generated markers: subject `CLAUDE.md` "Learner notes" (why, if-then plan, authorship answer, fixed-time wishes, "prefers few questions", the code folder's full path), "Do not calibrate on"; root "About the learner". Longer: `ind note append <id> onboarding`.
 8. `ind render all`.
 9. Calendar 1–2: the sync in [calendar.md](calendar.md) §3; the "yes" covers this batch only if it matches the preview. 3: `ind cal ics <ws>/plan/ics/study.ics --from <first day> --to <last day>` and how to import it; at the next open, ask once whether it's in, then `ind cal ack` ([calendar.md](calendar.md) §5).
 10. If row 11 stands: `git init` in the workspace (the shipped `.gitignore` keeps keys, photos, typed answers and the inbox out); no remote.
@@ -167,8 +167,10 @@ Building your diagnostic now (about 3 minutes). Part A is set for Mon 07:00.
 
 ```
 Got it: Rust. I'll keep questions to a minimum: 3 now, then a plan; everything else gets a default you can change any time.
-(1 of 3) What's it for, and is there something you'd like to build? If not, I'll pick a small project.
+(1 of 3) What's it for, and is there something you'd like to build? If not, I'll pick a small project. And have you written and run a program yourself before?
 ```
+
+For code, the express Q1 card carries Q3's code line, since the answer picks the first measurement before it is built: "never" means the floor probe of [measure.md](measure.md) §1 and the on-ramp of [profiles.md](profiles.md) §7, not the capstone.
 
 The rest are visible defaults ([profiles.md](profiles.md) §10); a skipped question is asked alone when its trigger fires ([session-open.md](session-open.md) §6). Record "prefers few questions" under Learner notes. While it stands:
 - the scope map is shown as a statement ("Say if anything here is missing"), never a question;

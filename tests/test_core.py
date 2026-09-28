@@ -788,6 +788,25 @@ class CliSetupTests(Base):
         self.assertIn("indelible doctor", r.stdout)
         self.assertIn("Renderers", r.stdout)
 
+    def test_doctor_reports_toolchains_without_running_them(self):
+        # A fake cargo that would leave a mark if it were ever run: doctor only looks it up on PATH.
+        bindir = self.tmp / "bin"
+        bindir.mkdir()
+        mark = self.tmp / "cargo-was-run"
+        for name, body in (("cargo", "#!/bin/sh\ntouch '%s'\n" % mark), ("cargo.bat", "@echo off\r\ntype nul > \"%s\"\r\n" % mark)):
+            f = bindir / name
+            f.write_text(body, encoding="utf-8")
+            f.chmod(0o755)
+        r = run(["doctor", "--quick", "--json"], env={"PATH": str(bindir)})
+        self.assertEqual(r.returncode, 0, r.stderr)
+        rep = json.loads(r.stdout)
+        self.assertIs(rep["toolchains"]["cargo"], True)
+        self.assertIs(rep["toolchains"]["rustc"], False)
+        self.assertFalse(mark.exists())
+        r = run(["doctor", "--quick"], env={"PATH": str(bindir)})
+        self.assertIn("Toolchains  cargo (on PATH; none was run)", r.stdout)
+        self.assertFalse(mark.exists())
+
     def test_doctor_warns_on_cloud_folder(self):
         root = self.tmp / "Dropbox" / "Study"
         r = run(["init", root, "--timezone", "Europe/Lisbon"])

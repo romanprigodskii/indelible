@@ -208,4 +208,4 @@ Questions skipped at `teach` (express, or "skip") and follow-ups nobody needed o
 | P9 | Wants to test a change | "Shall we write down now what result would make us keep it or undo it?" (`ind ledger add hypothesis`) |
 | P10 | Week-2 review, if 3/3 starts finish ≥5/6 | "Stop a drill block early after 3 right?" |
 | P11 | Express: first session that can't be placed | Q7 |
-| – | Express: Q3 before the diagnostic results; Q4 (it asks about theory pages too) in the close message before the first teach, since the sheets are built after it; Q5 (a) and (b) before the first marked miss; Q8 at the first clash | [teach.md](teach.md) §4 wording |
+| – | Express: Q3 before the diagnostic results (for code, its code line rides the express Q1 card); Q4 (it asks about theory pages too) in the close message before the first teach, since the sheets are built after it; Q5 (a) and (b) before the first marked miss; Q8 at the first clash | [teach.md](teach.md) §4 wording |
