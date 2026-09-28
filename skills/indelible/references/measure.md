@@ -19,7 +19,7 @@ Contents: 1 Instrument · 2 Scope map · 3 Two-stage diagnostic · 4 Sitting · 
 
 - Before any official or past paper, ask: "Have you seen any of this paper before, even part of it?" A seen paper is practice, never a measurement.
 - Official items are registered by pointer (`origin: official:<source>`, text like "Test 2, questions 1–13"), with the official answers sealed as the key. Never copy official item text into a record.
-- Code: the learner types every line. File the source and the saved compiler or test output with `ind scan ingest`.
+- Code: the learner types every line. File the project and the saved compiler or test output with `ind scan ingest <s> <id> --dir <project folder> --typed <output file>` ([profiles.md](profiles.md) §7).
 
 ## 2. Scope map
 

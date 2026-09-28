@@ -159,7 +159,7 @@ File it before opening the key; it settles any dispute about a mark.
 | Photos or scans (jpg, png, pdf, heic) | `ind scan ingest <s> <id> <path> [<path> …]`, a path per page | Copied into `scans/`; HEIC converted where possible |
 | Typed or dictated answers | a text file from the learner (e.g. `inbox/<id>.txt`), answer then check per line; `ind scan ingest <s> <id> --typed <file>` | Copied into `answers/`, one file per filing. A file, never chat |
 | A photo pasted into chat | transcribe exactly, then `ind scan ingest <s> <id> --transcript -` with the text on stdin | `chat-image+transcript`; enough for `key open`; the original only in a dispute |
-| Code | source plus the learner's own test or compiler output: `ind scan ingest <s> <id> <files>`, or one file with `--typed` | Hidden tests run only on a copy |
+| Code | the project and the learner's own test or compiler output, in one call: `ind scan ingest <s> <id> --dir <project folder> --typed <output file>` | Copied to `answers/<id>/` with its folder layout (build output, hidden files and files over 1 MB skipped); the folder must be outside the workspace. Hidden tests run only on a temp copy of that snapshot |
 | A failure-gate photo (drills, items 1–3 of a block) | the usual command plus `--asks 1a,2a,3a`, the questions it shows | The sheet stays issued; `key open` shows only those questions until the finished sheet is filed |
 | Sat on an earlier day, or sent on a later day than it was issued | add `--date YYYY-MM-DD` | Refused without it for a recheck or a sheet with mistakes re-served: the sitting date decides the 2-day window and the 24-hour rule |
 

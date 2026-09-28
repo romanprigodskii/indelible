@@ -527,10 +527,11 @@ For a rounded number, `check` also gives the tolerance the check holds to, the s
 - **`sheet sat <subject> <id> [--start HH:MM] [--stop HH:MM] [--date YYYY-MM-DD]`:** sets `status=sat` and `sat.*` (the date defaults to today). With no `--date` and no date on record, a sheet issued on an earlier day is refused (exit 1) when its sitting time matters (a `cold` sheet, or any `cold:`, `error:` or `sentinel:` item); any other sheet keeps today with a note.
 - **`sheet void <subject> <id> --reason TEXT`**
 - **`sheet show <subject> [--status S]`:** lists the sheets.
-- **`scan ingest <subject> <id> [PATHS...] [--typed FILE] [--transcript -] [--date YYYY-MM-DD] [--asks 1a,2a,3a]`**
+- **`scan ingest <subject> <id> [PATHS...] [--typed FILE] [--transcript -] [--dir PROJECT] [--date YYYY-MM-DD] [--asks 1a,2a,3a]`**
   - Copies files to `scans/<date>-<id>-answers[-pN].<ext>`. For HEIC it tries `sips` (macOS) or `heif-convert` to JPG and keeps the original.
   - `--typed` copies to `answers/<id>.txt`, or to `answers/<id>-N.txt` (the next free N from 2) when that is taken: a later typed file never replaces an earlier one.
   - `--transcript -` reads stdin and saves `scans/<date>-<id>-answers.txt` with evidence kind `chat-image+transcript`.
+  - `--dir PROJECT` copies a code project, with its folder layout, to `answers/<id>/` (`answers/<id>-N/` when that is taken), skipping build output (`target`, `build`, `dist`, `node_modules`, …), hidden files and folders, links and files over 1 MB, and notes how many files it skipped. A folder inside the workspace is refused (exit 2). It combines with `--typed` in one call.
   - Appends to `scans/index.jsonl` and to the sheet's `evidence`. Sets `status=sat` if the sheet was `issued`, with the taken date from `--date`, else today; without `--date`, it refuses (exit 1, nothing filed) a sheet issued on an earlier day whose sitting time matters, as `sheet sat` does.
   - **`--asks`** files a failure-gate photo: only on an `issued` `drills` sheet (otherwise exit 1, nothing filed), with ask ids that are on the sheet (otherwise exit 2). Each evidence entry and index row carries `asks`, and the sheet stays `issued` with no taken date.
 - **`key open <subject> <id>`**
@@ -629,8 +630,8 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
   - **title:** `<Subject title> · <kind in plain words> · <min>m`. A cold block's title never names a topic: it reads `2-day recheck (mixed)`.
   - **notes** (≤600 characters): 3–6 steps, what stays closed, a fallback, and `Start: open Claude in <ws> and say "start <subject>"`, plus the marker `[ind:<block-id>]` on the first line.
 - **`cal ack --from results.json`:** takes a list of `{"block","provider","id","etag","start"}` rows, sets `cal`, and sets `status=synced` (or `cancelled` stays).
-- **`cal ics <out.ics> [--from DATE] [--to DATE] [--subject S]`** writes an RFC 5545 VCALENDAR (the output path must be `<ws>/plan/ics/<name>.ics`; any other path is refused with exit 2 and nothing is written):
-  - one VEVENT per timed, non-cancelled block;
+- **`cal ics <out.ics> [--from DATE] [--to DATE] [--subject S] [--ops all|create]`** writes an RFC 5545 VCALENDAR (the output path must be `<ws>/plan/ics/<name>.ics`; any other path is refused with exit 2 and nothing is written):
+  - one VEVENT per timed, non-cancelled block; with `--ops create`, only the blocks `plan diff` would create (a file can't move an event already imported, so it never re-sends one);
   - `UID=<block-id>@indelible`, `DTSTAMP` and `DTSTART`/`DTEND` in UTC (`Z`);
   - `SUMMARY` = the title, `DESCRIPTION` = the notes (escaped), `SEQUENCE` = the move count;
   - `VALARM` with `TRIGGER:-PT<reminder_min>M`;

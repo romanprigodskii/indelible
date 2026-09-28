@@ -113,7 +113,7 @@ Detect from the tool list alone: names, descriptions and schemas. Make no connec
 - **Never focus records or habits.** They don't show in the calendar view, which is what the learner looks at.
 
 **A file (`ics`), for Apple Calendar, Outlook and anything else**
-- **Export:** `ind cal ics <ws>/plan/ics/study-<YYYYMMDD>.ics --from <today> --to <today + 13 days>`. It writes one event per timed block, in UTC, with a reminder.
+- **Export:** `ind cal ics <ws>/plan/ics/study-<YYYYMMDD>.ics --from <today> --to <today + 13 days> --ops create`. It writes one event per timed block the diff would create (exactly its `+` rows, so the file matches the preview), in UTC, with a reminder. Without `--ops create` it re-sends every block, those already imported included.
 - **Create-only:** a file can't move or cancel events that were already imported.
 - **Import steps.** Give them once, for the learner's app:
   - Mac Calendar: File > Import, into a calendar named "Study" (make it once).
@@ -121,10 +121,10 @@ Detect from the tool list alone: names, descriptions and schemas. Make no connec
   - Outlook desktop: File > Open & Export > Import/Export > Import an iCalendar (.ics) file.
   - Outlook on the web: Add calendar > Upload from file.
   - Windows with an iPhone (persona C): email the file to yourself and open it on the phone.
-- **Acknowledge** once the learner confirms the import: `ind cal ack` with rows of `"provider":"ics","id":"<block-id>@indelible","etag":null`.
+- **Acknowledge** once the learner confirms the import: `ind cal ack` with a row for each block in the file, and only those: `"provider":"ics","id":"<block-id>@indelible","etag":null`.
 - **Later changes:** some apps duplicate re-imported events instead of updating them.
   - For a few moves, give a short list of edits to make by hand ("Move Thursday 07:00 IELTS to Friday 07:00").
-  - For many, the learner deletes the "Study" calendar and imports a fresh file.
+  - For many, the learner deletes the "Study" calendar and imports a fresh file, made without `--ops create` so it holds every block; then `ind cal ack` every block in it.
   - Once the learner confirms either one, `ind cal ack` the new starts so the diff stops offering them.
 - **Apple users with a Google account** can take the Google route instead: Claude writes to Google, and Apple Calendar shows it.
 - **After a clock change,** ask the learner to check that the times look right. `ind doctor` reports the time zone.

@@ -107,7 +107,7 @@ The per-profile defaults are in [profiles.md](profiles.md).
   - **Pronunciation is not scored.** Say so.
 - **Code** (persona D). The learner writes every line in their own editor; never write or edit their solution code or their exercise files.
   - The tasks come as a `drills` sheet in Markdown or HTML: small tasks, one operation per block.
-  - Evidence is their source plus the compiler or test output, saved to one text file and filed with `ind scan ingest <s> <id> --typed <file>`.
+  - Evidence is their project plus the saved compiler or test output, filed in one call: `ind scan ingest <s> <id> --dir <project folder> --typed <output file>` ([profiles.md](profiles.md) §7).
   - Hints stop at rung 4 and contain no code for the current task. A worked example is an isomorphic task, never the current one.
   - The recheck is a fresh variant: the compiler is allowed, but docs and AI are not.
 - **Discrimination.** Confusable topics are kept apart while they are being learned. Once both are at mastery 3 or above, a `mixed` sheet of unlabelled "which applies?" questions and contrast pairs comes once a week until both reach 4 ([plan.md](plan.md) places it).

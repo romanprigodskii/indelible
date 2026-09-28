@@ -202,7 +202,7 @@ Drill scores are `[practice]`; never present them as measured. Every belief now 
 - **If the answer is not defensible:** give the standard in one line and treat the question as a miss.
 
 **Challenges to a mark.** Check the record before conceding or refusing:
-1. the filed evidence (`<subject>/scans/` or `<subject>/answers/`);
+1. the filed evidence (`<subject>/scans/`, `<subject>/answers/<id>.txt`, or a code project's snapshot `<subject>/answers/<id>/`);
 2. the key (`ind key open` again);
 3. what you recorded (your `grades.json`, `ind error list <subject>`).
 
