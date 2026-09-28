@@ -60,7 +60,7 @@ IDs are stable, so `overrides[].rule` in `subject.json` can name one (for exampl
 | R4 | Same-day scores are practice; mastery moves only on a 2-day recheck or a measurement | core | [lit-strong] | Soderstrom & Bjork, 2015 |
 | R5 | Every new skill comes back cold, on fresh questions, and that recheck is protected in the plan | core | [lit-strong] | Cepeda et al., 2006; Rawson et al., 2013 |
 | R5 window | Aim for 48 hours, inside 44–72 | default | [one-learner] | Cepeda et al., 2008 |
-| R5 again | A topic comes back cold again: in a new window after a recheck that left it below mastery 3, a week after its first pass (for mastery 4), then every 3 weeks until the date | default | [lit-strong] | Rawson et al., 2013 |
+| R5 again | A topic comes back cold again: in a new window after a recheck that left it below mastery 3, a week after its first pass (for mastery 4), then every 3 weeks until the date | default | [one-learner] | Rawson et al., 2013 |
 | R6 | A wrong idea gets a fix sheet before it comes back cold, at least 24 hours before (the fix is an exposure, so R7 holds it back that long anyway) | core | [lit-strong] | Pashler et al., 2005; Metcalfe, 2017 |
 | R7 | Nothing on a topic in the 24 hours before its recheck, which opens the session; a sealed question is marked or discussed, never both | core | [integrity] | |
 | R8 | No answer before a real attempt; keys open only after the attempt is filed | core | [integrity] | Bastani et al., 2025 |
