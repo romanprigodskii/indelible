@@ -1,6 +1,6 @@
 """Sheets, keys and evidence (CONTRACT section 7.4).
 
-    sheet new    <subject> <id> --spec PATH --answers PATH [--replace] [--block ID]
+    sheet new    <subject> <id> --spec PATH (--answers PATH | --marked-online) [--replace] [--block ID]
     sheet lint   <subject> <id> [--budget-min N] [--block ID] [--at ISO] [--json]
     sheet build  <subject> <id> [--format pdf|html|md] [--date YYYY-MM-DD]
     sheet issue  <subject> <id> [--block ID]
@@ -12,7 +12,10 @@
     key open     <subject> <id>
 
 Keys and accepted answers are never printed, except by ``key open``, which
-works only once evidence of the attempt is filed.
+works only once evidence of the attempt is filed. An official test the
+platform marks online (``--marked-online``: a diagnostic, mock or checkpoint of
+``official:`` items only) has no answers to seal: its key is empty, and
+``key open`` says the verdicts come from the platform's right/wrong list.
 Status flow: built -> linted -> rendered -> issued -> sat -> graded (or void).
 A sealed instrument (issued or later) is never edited.
 
@@ -61,6 +64,8 @@ from lib.cmd_brief import fmt_when
 EDITABLE = ("built", "linted", "rendered")
 SEALED = ("issued", "sat", "graded", "void")
 KEY_OPTIONAL_TYPES = ("theory", "external", "example", "triage")
+# An official test the platform marks online (--marked-online): the platform holds the answers.
+ONLINE_TYPES = ("diagnostic", "mock", "checkpoint")
 RESERVE_TYPES = ("cold", "mixed")   # sheets that serve rechecks and mistakes: one in hand per origin
 IMAGE_EXTS = (".jpg", ".jpeg", ".png", ".heic", ".heif", ".webp", ".gif", ".tif", ".tiff")
 HEIC_EXTS = (".heic", ".heif")
@@ -89,7 +94,10 @@ def register(subparsers):
     a.add_argument("subject")
     a.add_argument("id")
     a.add_argument("--spec", required=True, metavar="PATH", help="the visible sheet spec (JSON)")
-    a.add_argument("--answers", required=True, metavar="PATH", help="the answers file; deleted once sealed")
+    a.add_argument("--answers", default=None, metavar="PATH", help="the answers file; deleted once sealed")
+    a.add_argument("--marked-online", action="store_true",
+                   help="an official test the platform marks online: no answers to seal (a diagnostic, mock "
+                        "or checkpoint whose items are all official:)")
     a.add_argument("--replace", action="store_true", help="rebuild a sheet that is not issued yet")
     a.add_argument("--block", default=None, metavar="ID",
                    help="the block it is built for (lint sizes and times it against that block)")
@@ -316,7 +324,22 @@ def _secure_keys_dir(subj):
 # sheet new
 # ==========================================================================
 
-def _spec_problems(spec, answers, subj, sheet_id):
+def _online_problems(spec):
+    """Why a spec can't be registered as an official test marked online (``--marked-online``)."""
+    if not isinstance(spec, dict):
+        return []
+    probs = []
+    if spec.get("type") not in ONLINE_TYPES:
+        probs.append("--marked-online is for an official test (%s), not %s" % (", ".join(ONLINE_TYPES), spec.get("type")))
+    mine = [str(it.get("n")) for it in spec.get("items") or []
+            if isinstance(it, dict) and not str(it.get("origin") or "").startswith("official:")]
+    if mine:
+        probs.append("--marked-online needs every item official: (a pointer to the platform's questions); "
+                     "not item%s %s" % ("s" if len(mine) > 1 else "", ", ".join(mine[:8])))
+    return probs
+
+
+def _spec_problems(spec, answers, subj, sheet_id, online=False):
     probs = list(schema.validate_sheetspec(spec))
     if isinstance(spec, dict):
         if spec.get("id") != sheet_id:
@@ -328,6 +351,8 @@ def _spec_problems(spec, answers, subj, sheet_id):
         if unknown:
             probs.append("unknown topic%s %s (add with: indelible.py topic add)"
                          % ("s" if len(unknown) > 1 else "", ", ".join(unknown)))
+    if online:
+        return probs + _online_problems(spec)
     probs += schema.validate_answers(answers)
     if isinstance(spec, dict) and isinstance(answers, dict):
         ids = [a for a in _ask_ids(spec) if a]
@@ -382,13 +407,18 @@ def cmd_new(args):
     sheet_id = args.id
     _check_id(sheet_id)
     _refuse_existing(subj.load_sheets(), sheet_id, args.replace)
+    online = bool(getattr(args, "marked_online", False))
+    if online and args.answers is not None:
+        raise UsageError("Give --answers or --marked-online, not both: a test marked online has no answers to seal")
+    if not online and args.answers is None:
+        raise UsageError("--answers is required (or --marked-online, for an official test the platform marks)")
     spec = _read_input_json(args.spec, "spec")
-    answers = _read_input_json(args.answers, "answers")
-    probs = _spec_problems(spec, answers, subj, sheet_id)
+    answers = {} if online else _read_input_json(args.answers, "answers")
+    probs = _spec_problems(spec, answers, subj, sheet_id, online=online)
     if probs:
         raise CheckFailed("sheet new refused for %s:\n  - %s" % (sheet_id, "\n  - ".join(probs)))
 
-    ans_path = Path(args.answers).expanduser()
+    ans_path = None if online else Path(args.answers).expanduser()
     spec_path = Path(args.spec).expanduser()
     if args.block:
         _block_for(ws, subj, args.block)
@@ -418,6 +448,8 @@ def cmd_new(args):
             "block": args.block or (old or {}).get("block"),
             "code": (old or {}).get("code") or next_sheet_code(subj, rows),
         }
+        if online:
+            row["marked_online"] = True   # the platform holds the answers: the key is empty
         if old is not None:
             rows[i] = row
         else:
@@ -426,7 +458,9 @@ def cmd_new(args):
         # The builder writes its answers file into <subject>/.indelible/tmp/, and only a
         # file there is deleted once the key is sealed: the scripts never delete a file
         # outside the workspace.
-        if _inside_dir(ans_path, subj.tmp_dir):
+        if ans_path is None:
+            pass
+        elif _inside_dir(ans_path, subj.tmp_dir):
             try:
                 ans_path.unlink()
             except OSError as exc:
@@ -443,6 +477,10 @@ def cmd_new(args):
                 spec_path.unlink()
             except OSError:
                 pass
+    if online:
+        _out("%s built: %s, ~%s min, marked online: no key (verdicts come from the platform's right/wrong list)"
+             % (sheet_id, _plural(n_asks, "question"), _num(sealed.get("est_min"))))
+        return 0
     _out("%s built: %s, ~%s min, key sealed sha256:%s" % (sheet_id, _plural(n_asks, "question"),
                                                            _num(sealed.get("est_min")), sha[:12]))
     return 0
@@ -1190,6 +1228,9 @@ def cmd_key_open(args):
         shown = list(key) if isinstance(key, dict) else []
         subj.append_key_opened({"v": 1, "at": _now_iso(ws), "sheet": args.id, "asks": shown})
     _out(json.dumps(key, ensure_ascii=False, indent=2))
+    if row.get("marked_online"):
+        sys.stderr.write("indelible: %s was marked online by the platform, so no key is on file. Take each "
+                         "verdict from the platform's right/wrong list filed as its evidence.\n" % args.id)
     if not full:
         sys.stderr.write("indelible: only %s %s filed (a failure-gate photo), so only %s shown. The rest open "
                          "once the finished sheet is filed: scan ingest %s %s <photos> (without --asks).\n"

@@ -516,6 +516,53 @@ class KeyTests(SheetBase):
         self.assertEqual(rows[0]["at"], "2026-10-12T09:00+01:00")
         self.assertEqual(rows[0]["asks"], ["1a", "2a", "3a", "4a", "5a", "6a"])
 
+    def test_an_official_test_marked_online_has_no_key_to_seal(self):
+        # The platform holds the answers: the spec is pointers only, and the verdicts come from
+        # the right/wrong list filed as evidence.
+        spec = cold_spec("ielts-mock-01", type="mock", title="Practice test",
+                         terms=[{"term": "test", "resolution": "everyday"}])
+        for it in spec["items"]:
+            it["origin"] = "official:online practice test 2"
+            it["text"] = "Online practice test 2, question %d" % it["n"]
+            for a in it["asks"]:
+                a["check"] = False
+                a.pop("check_hint", None)
+        sp, ap = write_inputs(self.ws, spec)
+        ap.unlink()
+        r = self.cli("sheet", "new", SUBJECT, spec["id"], "--spec", sp, "--marked-online")
+        self.ok(r)
+        self.assertIn("ielts-mock-01 built: 4 questions, ~10 min, marked online: no key", r.stdout)
+        row = sheet_row(self.ws, spec["id"])
+        self.assertTrue(row["marked_online"])
+        self.assertEqual(fio.read_json(subject_dir(self.ws) / ".indelible" / "keys" / "ielts-mock-01.json"), {})
+        self.ok(self.cli("sheet", "lint", SUBJECT, spec["id"]))
+        self.ok(self.cli("sheet", "build", SUBJECT, spec["id"], "--format", "md"))
+        self.ok(self.cli("sheet", "issue", SUBJECT, spec["id"]))
+        self.assertEqual(self.cli("key", "open", SUBJECT, spec["id"]).returncode, 1, "still sealed until filed")
+        self.ok(self.cli("scan", "ingest", SUBJECT, spec["id"], "--typed", "-", stdin="1 right\n2 wrong\n3 right\n4 right\n"))
+        r = self.ok(self.cli("key", "open", SUBJECT, spec["id"]))
+        self.assertEqual(json.loads(r.stdout), {})
+        self.assertIn("marked online by the platform", r.stderr)
+        grades = self.tmp / "mock.grades.json"
+        grades.write_text(json.dumps({"least_sure_line": "blank", "asks": [
+            {"ask": "%da" % n, "verdict": v, "check": "n/a", "least_sure": False}
+            for n, v in ((1, "right"), (2, "wrong"), (3, "right"), (4, "right"))]}), encoding="utf-8")
+        r = self.ok(self.cli("grade", "record", SUBJECT, spec["id"], "--from", grades))
+        self.assertEqual(sheet_row(self.ws, spec["id"])["status"], "graded")
+        # Not both, not neither, and only an official test.
+        r = self.cli("sheet", "new", SUBJECT, "ielts-mock-02", "--spec", sp, "--answers", ap, "--marked-online")
+        self.assertEqual(r.returncode, 2)
+        r = self.cli("sheet", "new", SUBJECT, "ielts-mock-02", "--spec", sp)
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("--answers is required", r.stdout + r.stderr)
+        drills = drills_spec()
+        dp, _ = write_inputs(self.ws, drills)
+        r = self.cli("sheet", "new", SUBJECT, drills["id"], "--spec", dp, "--marked-online")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("--marked-online is for an official test", r.stdout)
+        self.assertIn("not items 1, 2, 3, 4, 5, 6", r.stdout)
+        self.assertIsNone(sheet_row(self.ws, drills["id"]))
+
     def test_gate_photo_opens_only_its_questions(self):
         spec = drills_spec()                        # blocks [1-3] and [4-6]
         answers = answers_for(spec)

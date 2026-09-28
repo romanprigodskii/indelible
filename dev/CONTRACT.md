@@ -529,11 +529,12 @@ For a rounded number, `check` also gives the tolerance the check holds to, the s
 
 **Commands:**
 
-- **`sheet new <subject> <id> --spec PATH --answers PATH [--replace] [--block ID]`**
+- **`sheet new <subject> <id> --spec PATH (--answers PATH | --marked-online) [--replace] [--block ID]`**
   - Validates the spec. Copies it to `.indelible/specs/<id>.json`.
   - Writes the answers to `.indelible/keys/<id>.json` (mode 600) and **deletes** the answers file when it is inside `<subject>/.indelible/tmp/`. An answers file anywhere else is left in place, with a warning.
   - Appends or updates the sheets row (`status=built`), with its sheet `code` (§5.4).
   - Prints exactly: `<id> built: <asks> questions, ~<est_min> min, key sealed sha256:<first 12>`.
+  - `--marked-online` registers an official test the platform marks online, whose answers the learner never has: only a `diagnostic`, `mock` or `checkpoint` whose items are all `official:` (else exit 1). No answers file is read (both flags, or neither, exit 2); the key is written empty (`{}`), the row gets `"marked_online": true`, and it prints `<id> built: <asks> questions, ~<est_min> min, marked online: no key (verdicts come from the platform's right/wrong list)`.
   - Refuses to overwrite an existing id unless its status is `built`, `linted` or `rendered` and `--replace` is given. **A sealed instrument is never edited after issue.**
 - **`sheet lint <subject> <id> [--budget-min N] [--block ID] [--at ISO] [--json]`** prints PASS, FAIL or WARN lines, one per rule id. It sets `lint` to PASS or FAIL, and `status=linted` on PASS. Exit 1 on any FAIL. `--block` (or `sheet new --block`) links the block the sheet will be sat in: L5 sizes it against that block, and L7 judges at the block's start while it is still ahead, or at now once the subject's open session runs on that block (a slot split into a recheck block and a session block opens its session on the later block, so its sheets are sat from now). `--at` judges L7 at that time instead. The skill builds a 2-day recheck only at the open, inside its window, since `due` works out what is due now only and a rendered recheck waiting in the learner's `sheets/` folder could be looked at before it is sat.
 
@@ -584,6 +585,7 @@ For a rounded number, `check` also gives the tolerance the check holds to, the s
   - Prints the whole key when the status is `sat` and the finished sheet is filed (an evidence entry without `asks`), or when it is `graded` with evidence.
   - Before that, a sheet (`issued` or `sat`) with failure-gate evidence prints only the key entries of the questions that evidence covers, and says so on stderr.
   - Otherwise it refuses (exit 1).
+  - On a sheet registered `--marked-online` it prints the empty key and says on stderr that the verdicts come from the platform's right/wrong list filed as evidence.
   - It is the only command that prints answers. Each opening appends `{"at","sheet","asks"}` to `.indelible/keys/opened.jsonl`, `asks` being the questions printed.
 
 **Templates** (`assets/templates/typ/sheet.typ`, `html/sheet.html`, `md/sheet.md`): Python fills them with `string.Template`-style `$placeholders`, or builds the body in code. Every rendered sheet has:
