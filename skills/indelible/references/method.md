@@ -100,6 +100,7 @@ IDs are stable, so `overrides[].rule` in `subject.json` can name one (for exampl
 | Law 10 | Feedback names the error, states the standard, says it is within reach, gives the next step; no person-level praise, and no tally of the learner's repeats | core | [lit-mixed] | Yeager et al., 2014 |
 | breaks | One 10-minute break per 75 minutes in long sessions | default | [lit-mixed] | Biwer et al., 2023 |
 | if-then | One if-then plan for the obstacle the learner names | default | [lit-strong] | Gollwitzer & Sheeran, 2006 |
+| catch-up | With sessions of 120 minutes or more, a daily 15-minute catch-up offered as an if-then plan: a logged quick session serving only due rechecks and mistakes, never rereading notes | opt | [design] | |
 | early exit | Leave a block after 3 right answers | opt (off) | [one-learner] | Rohrer & Taylor, 2006 |
 | auto-move | Move a missed block within 24 hours without asking | opt | [design] | |
 
