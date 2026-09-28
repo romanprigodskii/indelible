@@ -27,7 +27,7 @@ A wrong idea (an error of kind `belief`) is never served cold until it has been 
    - If the wrong idea did not come back, run `ind error repair <s> <E> --sheet <repair-sheet-id>`. The repair counts as an exposure, so the next serve is at least 24 hours later, never the same day. Tell the learner: "That mistake is fixed. It comes back in a recheck in a couple of days, to make sure it stays fixed."
    - If it came back (2 or more misses on the same step), leave the error untreated and run `ind session expose <s> <T> --kind repair`, so the 24-hour rule still sees the page. The next session gets a new repair page built on a different concrete case.
 5. **Chat during a repair** is for questions and pointers back to the page ("Look at the contrast box: what's different in the second line?"). If you explain anything in chat, run `ind session expose <s> <T> --kind chat` at once.
-6. **Mock misses:** the first serve is a `review` sheet with the learner's account, the repair and one fresh question. It counts as practice, and the recheck comes at least 12 hours later ([measure.md](measure.md)).
+6. **Mock misses:** the first serve is a `review` sheet with the learner's account, the repair and one fresh question. It counts as practice, and grading it logs a drill exposure, so the recheck comes at least 24 hours later ([measure.md](measure.md)).
 
 ## 2. New material
 
