@@ -1,6 +1,6 @@
 # Headings: the whole paragraph first
 
-**Date: ____________** · About 10 min · 2 questions · Practice — written by Claude · Sheet IELTS-02
+**Date: ____________** · About 10 min · 3 questions · Practice — written by Claude · Sheet IELTS-02
 
 > **Rules**
 >
@@ -84,6 +84,14 @@ D. The trouble with car parks
 - **1a** Step 1: the whole paragraph in five words or fewer:  
   Answer: ______________________  
 - **1b** Step 3: letter of the heading that matches your five words:  
+  Answer: ______________________  
+
+**2.** Back to the worked case. Step 2 sets headings A and C aside because:  
+(a) each names one detail, not what the whole paragraph says  
+(b) each shares fewer words with the paragraph than B does  
+(c) neither says what the first sentence says
+
+- **2a** Letter (a, b or c):  
   Answer: ______________________  
 
 ---

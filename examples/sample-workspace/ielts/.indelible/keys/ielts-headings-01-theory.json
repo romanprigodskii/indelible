@@ -14,5 +14,12 @@
     ],
     "check": "n/a (pencil question)",
     "solution": "C says the same as the five words; A, B and D pick up single details."
+  },
+  "2a": {
+    "accept": [
+      "a"
+    ],
+    "check": "n/a (pencil question)",
+    "solution": "The rule: the heading says what the whole paragraph says. (b) is matching words; (c) is the first-sentence trap from the warning box."
   }
 }

@@ -12,6 +12,12 @@
       "verdict": "right",
       "check": "n/a",
       "least_sure": false
+    },
+    {
+      "ask": "2a",
+      "verdict": "right",
+      "check": "n/a",
+      "least_sure": false
     }
   ]
 }

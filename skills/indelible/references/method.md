@@ -66,7 +66,7 @@ IDs are stable, so `overrides[].rule` in `subject.json` can name one (for exampl
 | R8 | No answer before a real attempt; keys open only after the attempt is filed | core | [integrity] | Bastani et al., 2025 |
 | R9 | Every word on a sheet is defined there, already owned, or published by the exam | core | [integrity] | Abedi & Lord, 2001 |
 | R11 | One labelled box per answer, start and stop times, one Least-sure line per sheet | core | [design] | Butler, Karpicke & Roediger, 2008 |
-| R12 | At mastery 0–1 the worked example comes first, then fades | default | [lit-strong] | Renkl & Atkinson, 2003 |
+| R12 | At mastery 0–1 the worked example comes first, then fades, with a principle prompt on each worked case | default | [lit-strong] | Renkl & Atkinson, 2003; Atkinson, Renkl & Merrill, 2003 |
 | R12 order | A small concrete case before the definition, then the general rule | default | [lit-mixed] | Fyfe et al., 2014 |
 | R13 | Each theory sheet lists what it stands on, and missing ground comes first | default | [lit-mixed] | Simonsmeier et al., 2022 |
 | R15 | A sheet fits the minutes left; an over-budget sheet is refused | default | [design] | |
@@ -127,7 +127,7 @@ Graded [lit-mixed] for the principle; the details are [one-learner]. An earlier 
 
 - **Six per block is a ceiling, not a target.** Extra same-type questions add little later (Rohrer & Taylor, 2006). Blocking helps when categories differ a lot, mixing when they are easily confused (Carvalho & Goldstone, 2014); blocking can win for word lists (Brunmair & Richter, 2019).
 - **The ladder's shape is a convenience.** Expanding gaps do no better than equal ones (Latimier et al., 2021), and the best gap grows with the time left before the test (Cepeda et al., 2008). Hence the deadline cap and a per-subject recheck window (`cold_window_h`).
-- **Worked examples first, for novices only.** The advantage reverses as expertise grows (Kalyuga, 2007), and struggling first then being taught also works (Sinha & Kapur, 2021). A stuck learner gets a worked example on a separate sheet, never the answer in chat (Koedinger & Aleven, 2007).
+- **Worked examples first, for novices only.** The advantage reverses as expertise grows (Kalyuga, 2007), and struggling first then being taught also works (Sinha & Kapur, 2021). A stuck learner gets a worked example on a separate sheet, never the answer in chat (Koedinger & Aleven, 2007). Fading alone helps most on questions like the worked one; adding a prompt to name the principle behind each worked step carried the method to unfamiliar questions too, with no extra time on task (Atkinson, Renkl & Merrill, 2003). Hence R12's principle prompt: a choice among the sheet's own reasons, answered by letter.
 - **Concrete first is a default, not a law.** A concrete case that fades into the general rule helps learners connect the two (Fyfe et al., 2014), but generic examples can transfer better than concrete ones (Kaminski, Sloutsky & Heckler, 2008): hence R12 order is [lit-mixed], and the rule box after the case always states the general form. A learner who would rather see the rule first can lock an override of R12 order at review; lint L11 then accepts the rule before the case, but still asks for a worked case on the sheet.
 - **A same-day failure is real evidence;** only same-day success can't show mastery.
 - **A guess before reading.** Answering questions on material before studying it helps learning of that material once the answers follow, across texts, videos and lectures, even when most first answers are wrong (Pan & Carpenter, 2023). Most of that evidence is on prose and video, and for procedures it shades into struggling first (Sinha & Kapur, 2021), hence R53 is [lit-mixed]: a new topic at mastery 0–1 only, at most two questions, framed as a guess, answered further down the same sheet and never marked.
@@ -172,6 +172,7 @@ Why no "sure / not sure" beside each answer? People stop filling it in, and the 
 
 - Abedi & Lord (2001), *Applied Measurement in Education*.
 - Agarwal & Roediger (2011), *Memory*.
+- Atkinson, Renkl & Merrill (2003), *Journal of Educational Psychology*.
 - Baars, Vink, van Gog, de Bruin & Paas (2014), *Learning and Instruction*.
 - Bastani et al. (2025), *PNAS*.
 - Bertsch et al. (2007), *Memory & Cognition*.

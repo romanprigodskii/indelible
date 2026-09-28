@@ -4,7 +4,7 @@ NOW/NEXT: today 07:00–08:00 new skill: Results, then the first new skill (60 m
 DUE: mistakes due: 1 slip · mistakes to fix before they come back: 1
 MASTERY (0–5): Matching headings 2 · True, false or not given 1 · Task 1 overview 1 · Paraphrase 1
 LAST SESSIONS:
-  Tue 13 Oct 07:00 · 52 of 60 min · 8 questions, 8 right · closed same day · Results given; first skill taught; recheck booked for Thursday
+  Tue 13 Oct 07:00 · 52 of 60 min · 9 questions, 9 right · closed same day · Results given; first skill taught; recheck booked for Thursday
   Mon 12 Oct 07:00 · 50 of 60 min · 8 questions, 4 right · closed same day · Diagnostic part A sat and marked
 PACE: mixed sheet about 142 s per question (1 sheet; plan 99 s) [measured] · reading about 100 s per question (1 sheet; plan 70 s) [practice]
 NOTES:

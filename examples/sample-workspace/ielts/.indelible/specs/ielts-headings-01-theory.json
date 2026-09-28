@@ -27,6 +27,21 @@
           "check": false
         }
       ]
+    },
+    {
+      "n": 2,
+      "topic": "T01",
+      "layer": "reading",
+      "op": "pick-heading",
+      "origin": "new",
+      "text": "Back to the worked case. Step 2 sets headings A and C aside because:\n(a) each names one detail, not what the whole paragraph says\n(b) each shares fewer words with the paragraph than B does\n(c) neither says what the first sentence says",
+      "asks": [
+        {
+          "id": "2a",
+          "label": "Letter (a, b or c):",
+          "check": false
+        }
+      ]
     }
   ],
   "blocks": [],

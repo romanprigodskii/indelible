@@ -12,6 +12,6 @@ Goal: IELTS Academic 7.5 · date 2026-12-12 · updated Tue 13 Oct 07:52
 
 Scores by instrument (never combined into one line):
 - diagnostic test: 56% of 8 questions [measured]
-- practice: 100% of 8 questions [practice]
+- practice: 100% of 9 questions [practice]
 
 Mastery: 2 = practice at 75% or more; 3 = passed a 2-day recheck; 4 = passed a second one a week later; 5 = held in a mock or checkpoint.

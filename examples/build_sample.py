@@ -257,7 +257,13 @@ THEORY_SPEC = {
         "Headings:\nA. Why children should learn to cook\nB. A busy market in a small village\n"
         "C. How a school came to feed itself\nD. The trouble with car parks",
         [ask("1a", "Step 1: the whole paragraph in five words or fewer:"),
-         ask("1b", "Step 3: letter of the heading that matches your five words:")])],
+         ask("1b", "Step 3: letter of the heading that matches your five words:")]),
+        item(2, "T01", "reading", "pick-heading",
+             "Back to the worked case. Step 2 sets headings A and C aside because:\n"
+             "(a) each names one detail, not what the whole paragraph says\n"
+             "(b) each shares fewer words with the paragraph than B does\n"
+             "(c) neither says what the first sentence says",
+             [ask("2a", "Letter (a, b or c):")])],
     "blocks": [],
     "terms": [{"term": "heading", "resolution": "defined_here"},
               {"term": "distractor", "resolution": "defined_here"}],
@@ -324,6 +330,9 @@ THEORY_KEY = {
            "solution": "Every sentence is about the school producing food for itself."},
     "1b": {"accept": ["C"], "check": "n/a (pencil question)",
            "solution": "C says the same as the five words; A, B and D pick up single details."},
+    "2a": {"accept": ["a"], "check": "n/a (pencil question)",
+           "solution": "The rule: the heading says what the whole paragraph says. (b) is matching words; (c) is "
+                       "the first-sentence trap from the warning box."},
 }
 
 DRILL_CHECK = "Read the whole paragraph again under your heading."
@@ -446,6 +455,7 @@ DIAG_GRADES = {
 THEORY_TYPED = """Theory sheet, pencil questions
 1a. school garden feeds its kitchen
 1b. C
+2a. a
 """
 
 # No start or stop time: the pencils share the sheet with the reading, so their time says nothing about pace.
@@ -454,6 +464,7 @@ THEORY_GRADES = {
     "asks": [
         {"ask": "1a", "verdict": "right", "check": "n/a", "least_sure": False},
         {"ask": "1b", "verdict": "right", "check": "n/a", "least_sure": False},
+        {"ask": "2a", "verdict": "right", "check": "n/a", "least_sure": False},
     ],
 }
 
