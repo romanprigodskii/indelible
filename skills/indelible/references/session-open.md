@@ -186,17 +186,4 @@ Why the recheck opens the session: performance during learning is an unreliable 
 
 ## 6. Questions asked later
 
-Questions skipped at `teach` (express, or "skip") and follow-ups nobody needed on day one. Ask each alone, only when its trigger fires, never two in one message.
-
-| # | Trigger | Question |
-|---|---|---|
-| P1 | Week-1 review or late-session decline | "Your 60-minute sessions ran 58, 95 and 72. Keep 60 with a firmer stop, or plan 75?" |
-| P3 | Week-1 review | "Want a quick energy check at the start of shorter sessions too?" |
-| P5 | First overrun | "Next time we run long: close on time, extend once, or ask?" (`session.overrun`) |
-| P6 | First missed session (scheduled) | Step 2's one question for all the missed blocks; "What got in the way?" at most once, only after a skip with no reason given, in the next message |
-| P7 | First tutor mention | "How often, and what do they set? May I make them a one-page summary of your mistake types? No answers in it." |
-| P8 | First phone photo | "Want me to pick photos up from a folder your phone syncs to? Make it a folder just for study photos, not your whole camera roll. I copy them into your study folder, which itself stays unsynced." On a yes, record the folder's full path under "About the learner" in the root `CLAUDE.md` (a device setting, shared by every subject) |
-| P9 | Wants to test a change | "Shall we write down now what result would make us keep it or undo it?" (`ind ledger add hypothesis`) |
-| P10 | Week-2 review, if 3/3 starts finish ≥5/6 | "Stop a drill block early after 3 right?" |
-| P11 | Express: first session that can't be placed | Q7 |
-| – | Express: Q3 before the diagnostic results (for code, its code line rides the express Q1 card); Q4 (it asks about theory pages too) in the close message before the first teach, since the sheets are built after it; Q5 (a) and (b) before the first marked miss; Q8 at the first clash | [teach.md](teach.md) §4 wording |
+Questions skipped at `teach` (express, or "skip"), and follow-ups nobody needed on day one, are asked one at a time, alone, when their trigger fires, in the words of [teach.md](teach.md) §10: the first overrun (P5), the first missed session (P6: step 2), the first tutor mention (P7), the first phone photo (P8), a change the learner wants to test (P9), a late-session decline (P1), the first session that can't be placed (P11: Q7); on express, Q3 before the diagnostic results, Q4 in the close message before the first teach, Q5 before the first marked miss, Q8 at the first clash. The week-1 and week-2 reviews ask P1, P3 and P10 ([review.md](review.md) §8).

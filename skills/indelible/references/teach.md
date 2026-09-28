@@ -4,7 +4,7 @@ For a new workspace or a new subject. Ask only what the first plan needs, show t
 
 **Always the learner's call** (on express, as visible defaults): session length and frequency (Q6); days, times, clearest time, sleep (Q7); fixed commitments (Q8); the calendar and reminder (Q10, under the plan preview, never before it).
 
-**Contents:** 1 Budget · 2 Stage 0 · 3 Opener · 4 Questions · 5 Preview and Q10 · 6 Readback · 7 Writes · 8 Welcome · 9 Express, second subject. Questions skipped here are asked later, one at a time: [session-open.md](session-open.md) §6.
+**Contents:** 1 Budget · 2 Stage 0 · 3 Opener · 4 Questions · 5 Preview and Q10 · 6 Readback · 7 Writes · 8 Welcome · 9 Express, second subject · 10 Questions asked later. Questions skipped here are asked later, one at a time (§10).
 
 ## 1. Budget and cards
 
@@ -68,7 +68,7 @@ Weekly = length × days. ≤30 min: a sheet and its drills may fall on different
 Read the calendar only on a yes (busy times, 14 days). Plan into named times, never leftover gaps. "Whenever" (no fixed times) with no date: `time.schedule` `on_demand`.
 
 **Q8 · Fixed commitments:** "What's fixed or coming up that I should plan around: work or school, training, classes or a tutor, travel, other exams? And, if you like: what has made you stop studying something before?"
-Feeds `time.blocked`, `time.rest_day`; a tutor queues P7 ([session-open.md](session-open.md) §6). The obstacle becomes one if-then plan in their words ("If work gets busy, then I keep the 2-day rechecks and shorten the rest"; Gollwitzer & Sheeran, 2006).
+Feeds `time.blocked`, `time.rest_day`; a tutor queues P7 (§10). The obstacle becomes one if-then plan in their words ("If work gets busy, then I keep the 2-day rechecks and shorten the rest"; Gollwitzer & Sheeran, 2006).
 
 **Q9 · Priorities** (second subject or several goals): "Which matters most right now, what outranks all of it, and what gives way first when a week gets tight?" Default: nearest deadline first; 2-day rechecks never give way.
 
@@ -174,7 +174,7 @@ Got it: Rust. I'll keep questions to a minimum: 3 now, then a plan; everything e
 
 For code, the express Q1 card carries Q3's code line, since the answer picks the first measurement before it is built: "never" means the floor probe of [measure.md](measure.md) §1 and the on-ramp of [profiles.md](profiles.md) §7, not the capstone.
 
-The rest are visible defaults ([profiles.md](profiles.md) §10); a skipped question is asked alone when its trigger fires ([session-open.md](session-open.md) §6). Record "prefers few questions" under Learner notes. While it stands:
+The rest are visible defaults ([profiles.md](profiles.md) §10); a skipped question is asked alone when its trigger fires (§10). Record "prefers few questions" under Learner notes. While it stands:
 - the scope map is shown as a statement ("Say if anything here is missing"), never a question;
 - Q4 (asked later) includes the theory-source part; tone stays B unless the learner raises it (Q5 drops part c);
 - the 10-minute warning is the only word on time: no question follows, and the session closes unless they say "extend" ([close.md](close.md) §2).
@@ -183,3 +183,20 @@ The rest are visible defaults ([profiles.md](profiles.md) §10); a skipped quest
 - **Raise:** `ind set root time.weekly_target_min <new> --dry-run`, then apply it and set `time.weekly_ceiling_min` to the agreed limit in the same step (a derived ceiling can rise past it: [measure.md](measure.md) §9). Then set each subject's `target_weekly_min` so they add up to the new total.
 - **Share:** lower the first subject's `target_weekly_min` by the new subject's share; the total and the limit stay.
 - **A different session length** for the new subject is its blocks' `--min`, plus a Learner note.
+
+## 10. Questions asked later
+
+Questions skipped here (express, or "skip") and follow-ups nobody needed on day one. Ask each alone, only when its trigger fires, never two in one message. [session-open.md](session-open.md) §6 lists the triggers for a session.
+
+| # | Trigger | Question |
+|---|---|---|
+| P1 | Week-1 review or late-session decline | "Your 60-minute sessions ran 58, 95 and 72. Keep 60 with a firmer stop, or plan 75?" |
+| P3 | Week-1 review | "Want a quick energy check at the start of shorter sessions too?" |
+| P5 | First overrun | "Next time we run long: close on time, extend once, or ask?" (`session.overrun`) |
+| P6 | First missed session (scheduled) | [session-open.md](session-open.md) §3 step 2's one question for all the missed blocks; "What got in the way?" at most once, only after a skip with no reason given, in the next message |
+| P7 | First tutor mention | "How often, and what do they set? May I make them a one-page summary of your mistake types? No answers in it." |
+| P8 | First phone photo | "Want me to pick photos up from a folder your phone syncs to? Make it a folder just for study photos, not your whole camera roll. I copy them into your study folder, which itself stays unsynced." On a yes, record the folder's full path under "About the learner" in the root `CLAUDE.md` (a device setting, shared by every subject) |
+| P9 | Wants to test a change | "Shall we write down now what result would make us keep it or undo it?" (`ind ledger add hypothesis`) |
+| P10 | Week-2 review, if 3/3 starts finish ≥5/6 | "Stop a drill block early after 3 right?" |
+| P11 | Express: first session that can't be placed | Q7 |
+| – | Express: Q3 before the diagnostic results (for code, its code line rides the express Q1 card); Q4 (it asks about theory pages too) in the close message before the first teach, since the sheets are built after it; Q5 (a) and (b) before the first marked miss; Q8 at the first clash | §4 wording |

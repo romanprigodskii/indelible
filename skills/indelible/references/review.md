@@ -134,7 +134,7 @@ Log a mistake the moment you notice it, in any command, not only here: `ind ledg
 
 Make one to three proposals, each a yes/no question, asked one at a time. They come from what the review found: re-baseline triggers, overruns and session length ([plan.md](plan.md), section 10), liveness, sleep and safeguards that fired.
 
-- **Week 1** always includes the question about actual session lengths ([plan.md](plan.md), section 10).
+- **Week 1** always includes the question about actual session lengths (P1: [plan.md](plan.md) section 10) and P3; week 2, P10 when its trigger holds ([teach.md](teach.md) §10 has all three).
 - **Make the call:** state your recommendation, then the question.
 
 **Carry out a yes the same day, in this order:**
