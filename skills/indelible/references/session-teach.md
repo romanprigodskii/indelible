@@ -39,7 +39,7 @@ A wrong idea (an error of kind `belief`) is never served cold until it has been 
    - `external` pages the learner already owns ("your practice book, pages 44–47: read them, then close the book"). This is an `external` sheet that names the pages and carries 3–5 pencil questions, done with the book closed. Never copy the pages' content.
 3. **A theory sheet follows this order:**
    1. the floor box (what the topic stands on);
-   2. the words, each with a gloss (a first-language gloss on first use, when set);
+   2. the words and symbols, each with a gloss (a first-language gloss on first use, when set); a symbol, built-in or piece of syntax also says how to read it aloud and what it does;
    3. the smallest worked concrete case, ending with its check worked as a step ("Check: …"): the check the drills will ask for, so the learner has seen it run once; then pencil questions that are completion steps, every operation named;
    4. the rule, in a box;
    5. a contrast pair, then the case where both hold;

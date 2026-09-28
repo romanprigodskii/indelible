@@ -120,6 +120,8 @@ At `teach`, put these in the draft for `ind subject add --from` ([teach.md](teac
 
 Every profile sets `taxonomy` in the draft: the subject file's default (V M R F C T) is only a placeholder.
 
+A maths, statistics or code subject also seeds `lexicon` in the draft with the syllabus's own symbols and built-ins (maths: `ln`, `λ`, `‖`, `Σ`, `x̄`, `σ`, `p̂`, `z*`; Python: `len`, `.append`), so lint L4 asks for each to be defined where it is first used, in code too. Leave out marks that are also prose or markup (`%`, `!`, `**`, `→`, `//`).
+
 ## 10. Defaults (a readback row only when it applies)
 
 These stand for every skipped question ([teach.md](teach.md)), shown as visible defaults.

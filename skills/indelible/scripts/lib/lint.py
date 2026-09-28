@@ -17,8 +17,10 @@ the party whose sizing it checks. A measurement (diagnostic, mock, checkpoint)
 is exempt from the session's question budget, not from its own minutes: its
 block's minutes less the 10 kept for recording (``budget_for``).
 
-L4 terms: code (inline `spans` and fenced blocks) is never scanned; check
-hints and theory section bodies are. Resolutions: ``defined_here`` (the word is
+L4 terms: code (inline `spans` and fenced blocks) is scanned only for the
+subject's own ``lexicon`` and ``sense_list`` entries (``len``, ``.append``,
+``λ``), never for the seed list, whose words are often identifiers; check hints
+and theory section bodies are scanned for all of them. Resolutions: ``defined_here`` (the word is
 in ``theory.words`` on this sheet), ``defined_on:<sheet-id>`` (a sheet of this
 subject, not void, that defines the word; ``sheet issue`` waits until that
 sheet is issued), ``glossary`` (the
@@ -206,6 +208,25 @@ def strip_code(text):
     return "\n".join(out)
 
 
+def code_parts(text):
+    """Only the code in a text: the lines of fenced blocks and the insides of inline spans
+    (what ``strip_code`` blanks out)."""
+    out, fence = [], None
+    for line in _s(text).split("\n"):
+        m = _FENCE_OPEN.match(line)
+        if fence is None:
+            if m:
+                fence = m.group(1)[0] * len(m.group(1))
+                continue
+            out += [s.group(2) for s in _CODE_SPAN.finditer(line)]
+        else:
+            if m and m.group(1).startswith(fence) and not line.strip()[len(m.group(1)):].strip():
+                fence = None
+                continue
+            out.append(line)
+    return "\n".join(out)
+
+
 def choice_labels(texts):
     """Option labels printed at the start of a line: 'iii. ...', '(iv) ...', 'B) ...' (lowercase)."""
     found = set()
@@ -370,6 +391,15 @@ def _l3(spec, ctx):
 def _term_texts(spec):
     """The texts L4 scans: titles, item text, labels, check hints, theory section titles and
     bodies; code removed. A hint is printed under its question, so a word in it is read too."""
+    return [strip_code(x) for x in _raw_term_texts(spec)]
+
+
+def _code_texts(spec):
+    """The code in the same texts, scanned only for the subject's own words."""
+    return [c for c in (code_parts(x) for x in _raw_term_texts(spec)) if c.strip()]
+
+
+def _raw_term_texts(spec):
     texts = [spec.get("title")]
     texts += [b.get("title") for b in spec.get("blocks") or [] if isinstance(b, dict)]
     for it in _items(spec):
@@ -381,7 +411,7 @@ def _term_texts(spec):
         for sec in th.get("sections") or []:
             if isinstance(sec, dict):
                 texts += [sec.get("title"), sec.get("body")]
-    return [strip_code(x) for x in texts if _s(x).strip()]
+    return [_s(x) for x in texts if _s(x).strip()]
 
 
 def _taught(w, spec, ctx, texts):
@@ -417,6 +447,14 @@ def _l4(spec, ctx):
     for w in ctx.get("sense") or []:
         pat = phrase_pattern(w)
         if pat and any(pat.search(x) for x in texts):
+            used.append(w)
+    # Code is scanned only for the subject's own words and symbols (its lexicon and
+    # sense list, e.g. `len`, `.append`): a seed word there is usually an identifier.
+    code = _code_texts(spec)
+    own = sorted(set(ctx.get("lexicon") or []) | set(ctx.get("sense_list") or []))
+    for w in own if code else []:
+        pat = phrase_pattern(w)
+        if w not in used and pat and any(pat.search(x) for x in code):
             used.append(w)
     resolved = {}
     for term in spec.get("terms") or []:
@@ -999,6 +1037,7 @@ def gather(ws, subject, spec, row=None, budget_min=None, now=None, block=None, a
         "topics": dict((t["id"], _s(t.get("name")).strip()) for t in subject.topics()),
         "sense": sense_words(cfg),
         "lexicon": set(" ".join(_s(w).lower().split()) for w in _lexicon_terms(cfg.get("lexicon"))),
+        "sense_list": set(" ".join(_s(w).lower().split()) for w in _lexicon_terms(cfg.get("sense_list"))),
         "glossary": _glossary_terms(subject),
         "sheet_words": _sheet_words(specs),
         "block_size": block_size,

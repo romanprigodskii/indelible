@@ -161,6 +161,27 @@ class RuleTests(Base):
         self.assertEqual(self.status(spec, "L4", sense=sense), "FAIL")
         self.assertIn("cohesive device", sense)
 
+    def test_l4_code_is_read_for_the_subjects_own_words_only(self):
+        spec = drills_spec()
+        spec["items"][0]["text"] = ("What does `len([4, 1, 7])` give? Then `range(3)`?\n\n"
+                                    "```\nb = [1]\nb.append(6)\n```")
+        self.assertEqual(self.status(spec, "L4"), "PASS", "seed words in code are identifiers")
+        r = result(spec, "L4", lexicon={"len", ".append"})
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("'.append'", r["detail"])
+        self.assertIn("'len'", r["detail"])
+        self.assertEqual(self.status(spec, "L4", sense_list={"len"}), "FAIL", "the sense list counts too")
+        spec["terms"] = [{"term": "len", "resolution": "defined_on:ielts-code-01-theory"},
+                         {"term": ".append", "resolution": "defined_on:ielts-code-01-theory"}]
+        self.assertEqual(self.status(spec, "L4", lexicon={"len", ".append"}), "PASS")
+        # Unicode symbols in prose are words too, once the subject lists them.
+        spec = drills_spec()
+        spec["items"][0]["text"] = "Data: n = 25, x̄ = 48, σ = 10. Work out x̄ − 2σ."
+        self.assertEqual(self.status(spec, "L4"), "PASS")
+        r = result(spec, "L4", sense=lint.sense_words({"lexicon": ["x̄", "σ"]}))
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("'x̄'", r["detail"])
+
     def test_l4_defined_on_names_a_sheet_that_defines_the_word(self):
         reading = lint.sense_words({"sense_list": ["gist"]})
         spec = drills_spec()
@@ -551,6 +572,19 @@ class CliLintTests(Base):
         r = self.lint(spec["id"])
         self.assertEqual(r.returncode, 1)
         self.assertIn("'bridge'", self.line(r, "L4"))
+
+    def test_the_subjects_own_words_are_read_in_code(self):
+        from lib import ws as wsmod
+        subj = wsmod.Workspace(self.ws).subject(SUBJECT)
+        cfg = subj.load()
+        cfg["sense_list"] = ["append"]
+        subj.save(cfg)
+        spec = drills_spec()
+        spec["items"][2]["text"] = "What is in b after `b = [1]; b.append(6)`?"
+        self.assertEqual(new_sheet(self.ws, spec).returncode, 0)
+        r = self.lint(spec["id"])
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("'append'", self.line(r, "L4"))
 
     def test_cold_item_on_a_topic_taught_10h_ago_fails_l7(self):
         add_exposure(self.ws, "T01", "2026-10-10T08:00+01:00")
