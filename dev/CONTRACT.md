@@ -505,7 +505,8 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
   - W1: a formula character (`=`) appears in a block title;
   - W2: the first item is not a sentence or verbal item, on `drills` where the subject has verbal items;
   - W3: on a sheet with check lines (the L2 types plus `repair`), an ask with `check: true` on a topic below mastery 3p (the ask's own `topic`, else its item's; from `data/topics.json`; no state counts as 0) has no `check_hint`, or a hint that needs a second method or a sense of the weakest step ("another way", "a different method", "the weakest step", "would you be pushed on"). Subject words pass ("the weakest acid");
-  - W4: on `theory` and `repair`, no `worked` section has a step labelled "Check:" in its body: the worked case ends with the check the drills will ask for.
+  - W4: on `theory` and `repair`, no `worked` section has a step labelled "Check:" in its body: the worked case ends with the check the drills will ask for;
+  - W5: on `theory`, `example` and `repair`, `est_min` is under the pace floor plus the sheet's words to read (`theory.floor`, `theory.words`, `theory.sections`) at 150 a minute: the builder adds reading time at 120 words a minute, 90 in a second language.
 - **`sheet build <subject> <id> [--format pdf|html|md]`**
   - Requires `lint=PASS`.
   - Renders through the chain: typst, then Chrome/Edge headless on the HTML (PDF), then HTML, then Markdown. It uses the backend recorded by `doctor`, or tries in order.
@@ -535,7 +536,7 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
   - write the check beside each answer;
   - on sheets with check lines and a Least-sure line: a failed check the learner can't resolve within a minute is kept, named on the Least-sure line, and left ("I'll show you where at marking");
   - "I don't know" is always an accepted answer; on the sheets that get hints (`theory`, `external`, `example`, `repair`, `drills`) the same line adds "Stuck on a question after a real try? Tell me its number: you get a small hint, never the answer";
-  - stop after N minutes;
+  - stop after N minutes; on `theory`, `external`, `example` and `repair`, which are read in full, "Allow about N minutes, and read it all even if it takes longer";
   - tools allowed;
   - "If a word here was never explained to you, on this sheet or an earlier one, write it beside that answer: that's my mistake, not yours" (marking looks the word up: a word defined on an earlier sheet is the learner's miss);
 - **item 0:** `Start time: ____`;

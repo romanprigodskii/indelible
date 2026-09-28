@@ -8,7 +8,7 @@
 > - Answer on paper (or in a typed file), one answer for each box.
 > - Write the check beside each answer where a Check line is printed. Work backwards from it: put it back in, rebuild the total, or test the definition you used against the question's words.
 > - “I don't know” is always an accepted answer. Stuck on a question after a real try? Tell me its number: you get a small hint, never the answer.
-> - Stop after 10 minutes.
+> - Allow about 10 minutes, and read it all even if it takes longer.
 > - Tools allowed: none.
 > - If a word here was never explained to you, on this sheet or an earlier one, write it beside that answer: that's my mistake, not yours.
 

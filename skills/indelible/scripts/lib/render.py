@@ -347,7 +347,12 @@ def rules(spec, tools, fmt="html", profile=None, reference_sheet=False):
                    "on the Least-sure line and go on: I'll show you where at marking.")
     # One line for "can't do it": the hint offer shares the "I don't know" line, to keep the box short.
     out.append("“I don't know” is always an accepted answer." + (" " + STUCK_LINE if t in HINT_TYPES else ""))
-    if minutes:
+    if minutes and t in THEORY_BEARING:
+        # A sheet read with the page open is read in full: a first reading of a new topic that
+        # stops at the estimate leaves the drills with nothing to stand on.
+        out.append("Allow about %d minute%s, and read it all even if it takes longer."
+                   % (minutes, "" if minutes == 1 else "s"))
+    elif minutes:
         out.append("Stop after %d minute%s." % (minutes, "" if minutes == 1 else "s"))
     else:
         out.append("Stop when the time set for this sheet is up.")

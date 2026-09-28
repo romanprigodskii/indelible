@@ -1,4 +1,4 @@
-"""The sheet checker: every rule L1-L12 and W1-W4 has a failing and a passing fixture.
+"""The sheet checker: every rule L1-L12 and W1-W5 has a failing and a passing fixture.
 
 Most rules are checked in-process with ``lint.check(spec, ctx)``; the rules
 that read the workspace (L4 sense words, L5 blocks, L7 exposures and errors,
@@ -497,6 +497,24 @@ class RuleTests(Base):
         spec["theory"]["sections"] = [s for s in spec["theory"]["sections"] if s["kind"] != "worked"]
         self.assertEqual(self.status(spec, "W4"), "WARN", "no worked case at all")
         self.assertEqual(self.status(drills_spec(), "W4"), "PASS")
+
+    def test_w5_a_reading_sheet_allows_time_to_read(self):
+        self.assertEqual(self.status(theory_spec(), "W5"), "PASS")
+        # 451 words to read and one pencil question: the pace floor alone (3 min) passes L5.
+        spec = theory_spec(est_min=3)
+        spec["theory"]["sections"][1]["body"] = " ".join(["word"] * 400)
+        self.assertEqual(self.status(spec, "L5"), "PASS")
+        r = result(spec, "W5")
+        self.assertEqual(r["status"], "WARN")
+        self.assertIn("words over 120 a minute", r["detail"])
+        self.assertIn("at least 6 min", r["detail"])
+        spec["est_min"] = 8    # 451 / 90 + 1.25 + 1, rounded up: the builder's own sum for a second language
+        self.assertEqual(self.status(spec, "W5"), "PASS")
+        for t in ("example", "repair"):
+            self.assertEqual(self.status(theory_spec(est_min=3, type=t, theory=spec["theory"]), "W5"), "WARN", t)
+        # External pages are named, not printed; drills are sized by pace alone.
+        self.assertEqual(self.status(theory_spec(est_min=3, type="external", theory=spec["theory"]), "W5"), "PASS")
+        self.assertEqual(self.status(drills_spec(), "W5"), "PASS")
 
     def test_l11_a_worked_case_comes_before_the_rule(self):
         self.assertEqual(self.status(theory_spec(), "L11"), "PASS")

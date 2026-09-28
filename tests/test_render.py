@@ -168,6 +168,18 @@ class HtmlTemplateTests(Base):
         self.assertEqual(render.build_model(ex)["close_line"], render.CLOSE_LINE_EXAMPLE)
         self.assertNotIn("drills", render.rules(ex, "none")[0])
 
+    def test_reading_sheets_allow_their_minutes_and_practice_stops_at_them(self):
+        allow = "Allow about 8 minutes, and read it all even if it takes longer."
+        for t in ("theory", "external", "example", "repair"):
+            lines = render.rules(theory_spec(type=t), "none")
+            self.assertIn(allow, lines, t)
+            self.assertFalse(any(r.startswith("Stop after") for r in lines), t)
+        # Drills and measuring sheets keep the hard stop: it protects the session's close.
+        for spec in (drills_spec(), cold_spec(), drills_spec(type="mock")):
+            lines = render.rules(spec, "none")
+            self.assertTrue(any(r.startswith("Stop after") for r in lines), spec["type"])
+            self.assertFalse(any(r.startswith("Allow about") for r in lines), spec["type"])
+
     def test_a_failed_check_is_a_flag_not_a_hunt_only_where_there_are_checks(self):
         from lib import render
         line = "If a check fails and you can't see why within a minute"

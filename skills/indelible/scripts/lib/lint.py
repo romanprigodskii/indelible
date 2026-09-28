@@ -1,4 +1,4 @@
-"""The sheet checker: rules L1-L12 and warnings W1-W4 (CONTRACT section 7.4).
+"""The sheet checker: rules L1-L12 and warnings W1-W5 (CONTRACT section 7.4).
 
 ``check(spec, ctx)`` is pure: it takes the visible spec and a context dict and
 returns one result per rule, in order. ``gather(ws, subject, spec, row)``
@@ -13,7 +13,9 @@ and L7 judges the recheck at the block's start: a recheck built at the previous
 close is judged at the time it will be sat, not at build time. ``sheet issue``
 checks both again. L5 also recomputes the builder's own estimate from the
 subject's ``pace_s`` (``pace_floor``) and fails a lower ``est_min``, since the
-estimate is written by the party whose sizing it checks. A measurement
+estimate is written by the party whose sizing it checks. W5 adds the reading
+a theory, example or repair sheet asks for (``reading_words``, at a fast 150
+words a minute), which the pace floor leaves out. A measurement
 (diagnostic, mock, checkpoint) is exempt from the session's question budget,
 not from its own minutes: its block's minutes less the 10 kept for recording
 (``budget_for``).
@@ -61,13 +63,13 @@ from lib import LISTS_DIR, dates, learning
 from lib import io as fio
 from lib import render
 
-RULES = ["L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L9", "L10", "L11", "L12", "W1", "W2", "W3", "W4"]
+RULES = ["L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L9", "L10", "L11", "L12", "W1", "W2", "W3", "W4", "W5"]
 TITLES = {
     "L1": "structure", "L2": "check lines", "L3": "unlabelled", "L4": "terms", "L5": "budget",
     "L6": "drill blocks", "L7": "cold validity", "L8": "key leak", "L9": "least-sure",
     "L10": "check hints", "L11": "worked case first", "L12": "taught operations",
     "W1": "formula in block title", "W2": "sentences first",
-    "W3": "checks on new topics", "W4": "worked check",
+    "W3": "checks on new topics", "W4": "worked check", "W5": "reading time",
 }
 
 # L2: every ask has a check line on these types. The contract lists "repair"
@@ -90,6 +92,11 @@ VERBAL_LAYERS = ("verbal", "reading")
 MIN_LEAK_LEN = 3
 BUDGET_FRACTION = 0.8
 RECORD_MIN = 10     # a measurement block holds the exam clock plus 10–15 minutes to record (measure.md §4)
+# W5: the sheets read in full before their pencils, and the reading pace it allows. builder.md budgets
+# 120 words a minute (90 in a second language); 150 is a fast reader, so W5 warns only when even
+# that reader could not finish.
+READING_TYPES = ("theory", "example", "repair")
+READING_WPM = 150
 MAX_LISTED = 6
 
 # L10: a hint that sends the learner to search for their own mistake, re-solve
@@ -544,6 +551,19 @@ def pace_floor(spec, pace_s=None):
     return secs / 60.0 + 1
 
 
+def reading_words(spec):
+    """The words a reading sheet asks the learner to read: the floor box, the words box and the sections."""
+    th = spec.get("theory") if isinstance(spec.get("theory"), dict) else {}
+    texts = [_s(f) for f in (th.get("floor") or [])]
+    for w in th.get("words") or []:
+        if isinstance(w, dict):
+            texts += [_s(w.get("term")), _s(w.get("gloss")), _s(w.get("def"))]
+    for sec in th.get("sections") or []:
+        if isinstance(sec, dict):
+            texts += [_s(sec.get("title")), _s(sec.get("body"))]
+    return sum(len(t.split()) for t in texts)
+
+
 def over_budget_fix(stype):
     """What to do about a sheet over its budget: a measurement is split or given a longer block, never cut."""
     if stype in BUDGET_EXEMPT:
@@ -909,6 +929,22 @@ def _w4(spec, ctx):
                     "the drills will ask for")
 
 
+def _w5(spec, ctx):
+    if spec.get("type") not in READING_TYPES:
+        return "PASS", "not a theory, example or repair sheet"
+    try:
+        est_f = float(spec.get("est_min"))
+    except (TypeError, ValueError):
+        return "PASS", "est_min is checked by L5"
+    words = reading_words(spec)
+    need = pace_floor(spec, ctx.get("pace_s")) + words / float(READING_WPM)
+    if est_f + 1e-9 < need:
+        return "WARN", ("est_min %s leaves no time to read the sheet's %d words: at least %s min with the pencil "
+                        "questions. Add the reading time, the words over 120 a minute (90 in a second language)"
+                        % (_num(est_f), words, _num(math.ceil(need - 1e-9))))
+    return "PASS", "%d words to read within ~%s min" % (words, _num(est_f))
+
+
 def _w1(spec, ctx):
     hits = [str(i) for i, b in enumerate(spec.get("blocks") or [], start=1)
             if isinstance(b, dict) and "=" in _s(b.get("title"))]
@@ -930,7 +966,7 @@ def _w2(spec, ctx):
 
 CHECKS = {"L1": _l1, "L2": _l2, "L3": _l3, "L4": _l4, "L5": _l5, "L6": _l6, "L7": _l7,
           "L8": _l8, "L9": _l9, "L10": _l10, "L11": _l11, "L12": _l12,
-          "W1": _w1, "W2": _w2, "W3": _w3, "W4": _w4}
+          "W1": _w1, "W2": _w2, "W3": _w3, "W4": _w4, "W5": _w5}
 
 
 def check(spec, ctx=None):
