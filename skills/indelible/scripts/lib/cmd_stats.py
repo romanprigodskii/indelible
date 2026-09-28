@@ -224,6 +224,7 @@ def compute_stats(ws, subj, since=None, until=None, now=None):
         "instruments": instrument_metrics(rows, level_fn),
     }
     result.update(retention_split(rows, state))
+    result["unreadable"] = unreadable_attempts(ws, subj)
     sessions = subj.load_sessions(include_archive=True)
     blocks = subject_blocks(ws, subj.id)
     if lo is not None or hi is not None:
@@ -236,6 +237,19 @@ def compute_stats(ws, subj, since=None, until=None, now=None):
         ex["missed"] = len([b for b in _past_blocks(blocks, now) if _was_missed(b)])
     result["execution"] = ex
     return result
+
+
+def unreadable_attempts(ws, subj):
+    """[{file, bad, lines}] for the graded-question files (active and archived) that hold
+    unreadable lines now: those lines are left out of every figure, and a file with none
+    readable would otherwise read as "No graded questions yet"."""
+    out = []
+    paths = sorted(subj.archive_dir.glob("attempts-*.jsonl")) if subj.archive_dir.is_dir() else []
+    for p in paths + [subj.attempts_path]:
+        bad, total = fio.jsonl_unreadable(p)
+        if bad:
+            out.append({"file": ws.rel(p), "bad": bad, "lines": total})
+    return out
 
 
 def _past_blocks(blocks, now):
@@ -276,8 +290,17 @@ def stats_lines(subj, st):
         span = "questions from %s to %s" % (st["since"] or "the start", st["until"] or "now")
     lines = ["%s (%s) · %s · %d questions · one line per instrument, never pooled"
              % (subj.title(), subj.id, span, st["asks"])]
+    lost = st.get("unreadable") or []
+    for u in lost:
+        if u["bad"] == u["lines"]:
+            lines.append("Unreadable: every line of %s (%d) is kept aside in .indelible/quarantine.jsonl and left out "
+                         "of these figures. Restore the file from the workspace's git history or a .bak."
+                         % (u["file"], u["lines"]))
+        else:
+            lines.append("Left out: %d unreadable line%s of %s (kept aside in .indelible/quarantine.jsonl)."
+                         % (u["bad"], "" if u["bad"] == 1 else "s", u["file"]))
     if not st["instruments"]:
-        lines.append("No graded questions yet.")
+        lines.append("No graded questions can be read." if lost else "No graded questions yet.")
     for inst, m in st["instruments"].items():
         n = m["accuracy"]["n"]
         tag = "[measured n=%d]" % n if m["label"] == "measured" else "[practice n=%d]" % n

@@ -56,7 +56,7 @@ dev/CONTRACT.md  dev/privacy_grep.py  dev/hooks/pre-push (runs privacy_grep.py; 
   - Snapshot files (`*.json`, and `.jsonl` files marked "snapshot" below) are written to a temp file, then `os.replace`, retried up to 5 times at 100 ms. The previous version is kept as `<name>.bak`.
   - Append files are written with one `write()` per line plus a newline, then flushed.
 - **Workspace write lock:** `<ws>/.indelible/write.lock`, created with `O_CREAT|O_EXCL`. It holds the pid and a timestamp and is stale after 10 minutes. Every writing command takes it.
-- **Bad JSONL lines** never crash a reader. They are appended to `<ws>/.indelible/quarantine.jsonl` (`{file, line_no, text}`) and skipped. `brief` prints a one-line warning if the quarantine is non-empty.
+- **Bad JSONL lines** never crash a reader. They are appended to `<ws>/.indelible/quarantine.jsonl` (`{file, line_no, text}`) and skipped. `brief` prints a one-line warning if the quarantine is non-empty. A file the quarantine names whose every line is unreadable now (a bad write over the whole record) would read as empty, so `brief` names it too (a FLAGS entry, and an `UNREADABLE FILE:` line for Claude saying to restore it from git or a `.bak`), and `stats` names each graded-question file with unreadable lines and leaves them out of its figures.
 - **Workspace discovery**, in order:
   1. the `--workspace PATH` flag;
   2. the env var `INDELIBLE_WORKSPACE`;
@@ -398,7 +398,7 @@ Invoke as `python3 <skill>/scripts/indelible.py <command> ...`. Every command ac
 
 ```
 <Title> · <profile> · <date or "no date"> (<N days left>)
-FLAGS: unclosed session S-… (started …) | missed? blocks … | alarm <subject>: last 2 planned blocks missed | late recheck (window passed): 1 | sheet … issued, not taken after 2 sessions | quarantine lines | armed safeguard due …
+FLAGS: unclosed session S-… (started …) | missed? blocks … | alarm <subject>: last 2 planned blocks missed | late recheck (window passed): 1 | sheet … issued, not taken after 2 sessions | quarantine lines | unreadable file … | armed safeguard due …
 NOW/NEXT: today's blocks and the next block (kind, time, content)
 DUE: cold serves eligible now: 1 · level-4 and upkeep serves eligible now: 2 · errors due: 3 beliefs repaired, 2 slips, 1 shaky, 1 sentinel · untreated beliefs needing repair: 2
 TO-DO (≤3 days): L-0004 Register for … (due Tue 20:00)
@@ -703,7 +703,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
   - `ledger close <L-id> [--status done|dropped|scored] [--note TEXT]`
   - `ledger list [--kind K] [--open] [--subject S] [--json]`
 - **`note append <subject> <name>`:** reads stdin and appends it to `notes/<name>.md` under a timestamp heading.
-- **`stats <subject> [--since DATE] [--until DATE] [--json]`:** the metrics in §6.6, each labelled with its instrument. `--since` and `--until` keep only the questions answered on or after, and on or before, those dates.
+- **`stats <subject> [--since DATE] [--until DATE] [--json]`:** the metrics in §6.6, each labelled with its instrument. `--since` and `--until` keep only the questions answered on or after, and on or before, those dates. A graded-question file (`data/attempts.jsonl` or an archive) with unreadable lines gets a line naming it ("Unreadable: every line of …" when none can be read, then "No graded questions can be read." in place of "No graded questions yet."), and `--json` lists them under `unreadable` as `{file, bad, lines}`.
 - **`review week [subject|all] [--week YYYY-Www]`:**
   - execution: blocks run, moved or missed; minutes planned vs actual; overruns; same-day closes;
   - learning: 48 h retention, errors in, out and overdue, level changes, careless per 10, unnamed-wrong %, check coverage and catches (failed and head checks apart);

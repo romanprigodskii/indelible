@@ -175,6 +175,25 @@ class StatsTests(StatsBase):
         self.assertIn("retention 7 d or more [measured]: 100% (1/1)", out)
         self.assert_no_secrets()
 
+    def test_an_unreadable_record_is_named_not_read_as_empty(self):
+        path = self.sdir / "data" / "attempts.jsonl"
+        good = path.read_text(encoding="utf-8")
+        path.write_text(good + "not json\n", encoding="utf-8")
+        out = self.cli(["stats", self.sid]).stdout
+        self.assertIn("Left out: 1 unreadable line of ielts/data/attempts.jsonl (kept aside in "
+                      ".indelible/quarantine.jsonl).", out)
+        self.assertIn("cold [measured n=8]", out)
+        path.write_text("BEGIN:VCALENDAR\nVERSION:2.0\nEND:VCALENDAR\n", encoding="utf-8")
+        out = self.cli(["stats", self.sid]).stdout
+        self.assertIn("Unreadable: every line of ielts/data/attempts.jsonl (3) is kept aside in "
+                      ".indelible/quarantine.jsonl and left out of these figures.", out)
+        self.assertIn("No graded questions can be read.", out)
+        self.assertNotIn("No graded questions yet.", out)
+        st = json.loads(self.cli(["stats", self.sid, "--json"]).stdout)
+        self.assertEqual(st["unreadable"], [{"file": "ielts/data/attempts.jsonl", "bad": 3, "lines": 3}])
+        path.write_text("", encoding="utf-8")
+        self.assertIn("No graded questions yet.", self.cli(["stats", self.sid]).stdout)
+
     def test_since_until_window(self):
         st = json.loads(self.cli(["stats", self.sid, "--json", "--since", "2026-10-14", "--until", "2026-10-14"]).stdout)
         self.assertEqual(st["asks"], 3)

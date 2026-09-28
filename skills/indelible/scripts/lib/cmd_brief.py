@@ -1210,6 +1210,18 @@ def brief_sections(ws, subj, now, sheets=None, overview=False):
         if q:
             flags.append("%d line%s in the record could not be read; kept aside" % (q, "" if q == 1 else "s")
                          if plain else "quarantine: %d unreadable line%s" % (q, "" if q == 1 else "s"))
+        # A file whose every line is unreadable reads as empty ("No graded questions yet"): say so.
+        lost = ws.unreadable_files()
+        if lost:
+            flags.append(("a whole record file can't be read, so nothing in it counts until it is restored"
+                          if len(lost) == 1 else "%d record files can't be read, so nothing in them counts until "
+                          "they are restored" % len(lost)) if plain else
+                         "unreadable file%s: %s" % ("" if len(lost) == 1 else "s", ", ".join(r for r, _ in lost)))
+            cflags.append(Section("", text=clip(
+                "UNREADABLE FILE: %s: every line is unreadable (kept in .indelible/quarantine.jsonl), so reads "
+                "treat it as empty. Restore it from the workspace's git history (or a .bak beside it) before "
+                "grading, planning or stats" % "; ".join("%s (%d line%s)" % (r, n, "" if n == 1 else "s")
+                                                         for r, n in lost), 400)))
         for r in ws.open_ledger_items(kind="decision", subject=sid, rows=ledger):
             sg = r.get("safeguard") or {}
             co = sg.get("check_on")

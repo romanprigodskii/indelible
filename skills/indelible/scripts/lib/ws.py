@@ -291,6 +291,19 @@ class Workspace(object):
     def quarantine_count(self):
         return fio.quarantine_count(self.root)
 
+    def unreadable_files(self):
+        """[(workspace-relative path, lines)] for each file the quarantine names whose every
+        line is unreadable now: a whole record lost to a bad write reads as empty otherwise."""
+        out = []
+        for rel in sorted(set(r.get("file") for r in self.quarantine_rows() if isinstance(r.get("file"), str))):
+            path = self.root / rel
+            if not path.is_file():
+                continue
+            bad, total = fio.jsonl_unreadable(path)
+            if total and bad == total:
+                out.append((rel, total))
+        return out
+
     # ---- config -----------------------------------------------------------
     def load_config(self, reload=False):
         if self._config is None or reload:

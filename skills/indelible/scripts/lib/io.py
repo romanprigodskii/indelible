@@ -7,6 +7,8 @@
 - Append files get one ``write()`` per line plus a newline, then a flush.
 - Bad JSONL lines never crash a reader: they are appended to
   ``<ws>/.indelible/quarantine.jsonl`` as ``{file, line_no, text}`` and skipped.
+  ``jsonl_unreadable`` counts them in a file as it is now, so a file whose every
+  line is unreadable is named, never read as empty.
 - ``write_lock(ws_root)`` is the workspace write lock, taken by every writing
   command: ``<ws>/.indelible/write.lock`` created with O_CREAT|O_EXCL, holding
   the pid and a timestamp, stale after 10 minutes.
@@ -163,6 +165,26 @@ def _quarantine(bad, path, ws_root):
             continue
         append_jsonl(quarantine_path(ws_root), {"v": 1, "file": rel, "line_no": line_no, "text": text})
         seen.add((rel, line_no, text))
+
+
+def jsonl_unreadable(path):
+    """(bad, total) for a JSONL file as it is now: its non-blank lines that are not a JSON
+    object, and all its non-blank lines. (0, 0) for a missing or empty file. Quarantines nothing."""
+    text = read_text(Path(path))
+    bad = total = 0
+    for line in (text or "").split("\n"):
+        stripped = line.strip()
+        if not stripped:
+            continue
+        total += 1
+        try:
+            obj = json.loads(stripped)
+        except ValueError:
+            bad += 1
+            continue
+        if not isinstance(obj, dict):
+            bad += 1
+    return bad, total
 
 
 def read_jsonl(path, ws_root=None, quarantine=True):

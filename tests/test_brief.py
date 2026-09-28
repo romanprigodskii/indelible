@@ -271,6 +271,22 @@ class BriefTests(BriefBase):
         self.assertIn("a check on an earlier decision is due (2026-10-11): Timed section moves to 09:00", learner)
         self.assertIn("SAFEGUARD DUE: L-0001", claude)
 
+    def test_a_file_with_no_readable_line_is_named(self):
+        # A wrong write (a calendar file over the graded record) leaves no readable line: every
+        # read treats the file as empty, so the brief says so rather than only counting lines.
+        path = self.s / "data" / "attempts.jsonl"
+        path.write_text("BEGIN:VCALENDAR\nVERSION:2.0\nEND:VCALENDAR\n", encoding="utf-8")
+        learner, claude = self.parts(self.brief())
+        self.assertIn("a whole record file can't be read, so nothing in it counts until it is restored", learner)
+        self.assertIn("UNREADABLE FILE: ielts/data/attempts.jsonl (3 lines): every line is unreadable", claude)
+        self.assertNotIn("attempts.jsonl", learner)
+        # One readable line left: only the count of unreadable lines, no UNREADABLE FILE.
+        path.write_text('BEGIN:VCALENDAR\n{"v": 1, "sheet": "ielts-cold-01"}\n', encoding="utf-8")
+        learner, claude = self.parts(self.brief())
+        self.assertNotIn("UNREADABLE FILE", claude)
+        self.assertNotIn("whole record file", learner)
+        self.assertIn("could not be read; kept aside", learner)
+
     def test_notes_from_the_subject_claude_md(self):
         md = self.s / "CLAUDE.md"
         text = md.read_text(encoding="utf-8")
