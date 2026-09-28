@@ -188,6 +188,32 @@ class FailedCheckLineTests(unittest.TestCase):
         self.assertEqual(cmd_stats.failed_checks({"n": 3, "right": 2}), "failed checks 3 (2 on right answers)")
 
 
+class FailedCheckOutputTests(StatsBase):
+    """A check marked ✗ on a right answer reaches stats, the weekly review and its file."""
+
+    def setUp(self):
+        StatsBase.setUp(self)
+        rows = history() + [attempt("ielts-para-02-drills", 13, "T04", "right", "2026-10-13T08:00+01:00",
+                                    "practice", check="failed")]
+        fio.write_jsonl(self.sdir / "data" / "attempts.jsonl", rows)
+
+    def test_stats_prints_failed_checks(self):
+        out = self.cli(["stats", self.sid]).stdout
+        self.assertIn("failed checks 1 (1 on a right answer)", out)
+        st = json.loads(self.cli(["stats", self.sid, "--json"]).stdout)
+        prac = st["instruments"]["practice"]
+        self.assertEqual((prac["check_failed"]["n"], prac["check_failed"]["right"]), (1, 1))
+        # A failed check was written, so it counts towards coverage.
+        self.assertEqual((prac["check_coverage"]["num"], prac["check_coverage"]["n"]), (11, 13))
+
+    def test_review_week_prints_failed_checks(self):
+        self.add_week_records()
+        out = self.cli(["review", "week", "all"]).stdout
+        self.assertIn("checks 85% (11/13), 1 caught, 1 failed", out)
+        text = (self.ws / "reviews" / "2026-W42.md").read_text(encoding="utf-8")
+        self.assertIn("failed checks 1 (1 on a right answer)", text)
+
+
 class ReviewWeekTests(StatsBase):
     def test_review_prints_at_most_15_lines_and_writes_the_file(self):
         self.add_week_records()

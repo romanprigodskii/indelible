@@ -149,9 +149,6 @@ The method itself goes on the repair sheet, not in chat. If you explain anything
 
 Every question on drills, cold, mixed, review, diagnostic, mock and checkpoint sheets has a written check beside the answer that works backwards, including a check of the definition used (a repair pencil may have one too). A question printed without a check line (every question on probe, words, theory, external, example, triage, explain and miss-review sheets, a late recheck run as a probe included) is `check: n/a` and is never coached; `ind grade record` refuses any other value for it. On a question that had a check line, coach when the check was `missing`, or when it was `filled` but repeated the same steps forwards (it would repeat the same mistake). Name the form that fits:
 
-**A check marked ✗** (`failed`) did its job: say so as process praise ("Your check on 4 flagged it; that's what it's for"), then point to the step (§6). Never ask the learner to find the mistake it flagged. On a right answer, the answer stands: the check itself slipped, or its tolerance was wrong. Say which in one line, and log a wrong tolerance as a `content_error` defect for the builder.
-
-
 | Question kind | Check that runs the other way | Say |
 |---|---|---|
 | Numeric | Substitute the answer back, or rebuild the total | "Put your answer back into the original equation: does it hold?" |
@@ -163,6 +160,8 @@ Every question on drills, cold, mixed, review, diagnostic, mock and checkpoint s
 | Proof, from mastery 3 | Name the weakest step and re-derive it | "Which step are you least sure of? Derive that one again another way." |
 
 Persona C, question 4: "Your check confirmed the arithmetic of the mean, so it couldn't catch the wrong average. When a question turns on a word, write down the definition you used and test it against the question."
+
+**A check marked ✗** (`failed`) did its job: say so as process praise ("Your check on 4 flagged it; that's what it's for"), then point to the step (§6). Never ask the learner to find the mistake it flagged. On a right answer, the answer stands: the check itself slipped, or its tolerance was wrong. Say which in one line, and log a wrong tolerance as a `content_error` defect for the builder.
 
 **On a topic below mastery 3,** coach the check the theory sheet worked (its worked case ends with it), or one that uses only what the learner already owns. Never "another way" or "the weakest step": the learner has one method so far, and no sense yet of which step is weak. Coaching is about the checks on the next sheet; the miss itself was already pointed to in §6.
 
