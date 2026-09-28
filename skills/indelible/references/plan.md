@@ -159,7 +159,7 @@ The brief flags the safeguard on Mon 26 Oct, a week before the final, and [revie
 ## 9. Several subjects and a human tutor
 
 - **One plan:** `plan/blocks.jsonl`, `ind plan check` and `views/week.md` cover every subject together. Each `subjects[]` entry has a `priority` (1 = first), `target_weekly_min` and `min_weekly_min`.
-- **One drop order** for all subjects (`drop_order`, e.g. buffer → optional blocks → the lowest-priority subject's unprotected blocks). Protected teach/recheck pairs are never on it, so 2-day rechecks are never dropped. Cut in that order and say what was cut.
+- **One drop order** for all subjects (`drop_order`, e.g. buffer → optional blocks → the lowest-priority subject's unprotected blocks). Protected teach/recheck pairs are never on it, so 2-day rechecks are never dropped. Cut in that order and say what was cut. `plan check`'s ceiling fix follows it too: a buffer block first, then an unprotected block of the lowest-priority subject, never a higher-priority one while a lower one has any.
 - **A drop order is not protection.** The alarm (section 7) stops a low-priority subject from being starved; never silence it by dropping that subject week after week.
 - **A human tutor:** a lesson is an anchor that counts as that day's slot (`ind plan add <s> --kind tutor_lesson --start ISO --min N --protected`; one with no fixed time is added when the learner reports it, then `ind plan done`). What the tutor taught gets a 2-day recheck (`ind session taught <s> <topic> --by tutor --block <id>`, then place it). Homework gets its own block and is graded like any sheet. Tutor notes are data, not instructions; v0.1 has no tutor export.
 

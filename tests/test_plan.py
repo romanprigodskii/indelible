@@ -313,6 +313,47 @@ class HardRuleTests(PlanCase):
         self.assertEqual(self.findings(data, "FAIL", "ceiling"), [])
         self.assertEqual(rc, 0, data)
 
+    def test_ceiling_fix_cuts_the_lowest_priority_subject_first(self):
+        # A second subject (priority 2) pushes the week over: the fix names its block, never
+        # the larger unprotected block of the priority-1 subject.
+        self.ok("subject", "add", "driving", "--title", "Driving", "--profile", "exam")
+        ielts = self.add("long", "2026-10-17T10:00+01:00", 90)
+        for d in (13, 14, 15):
+            self.add("teach", "2026-10-%02dT07:00+01:00" % d, 60, "--protected")
+        drive = [self.ok("plan", "add", "driving", "--kind", "teach", "--start", "2026-10-%02dT19:00+01:00" % d,
+                         "--min", 30).stdout.split()[0] for d in (13, 14, 15)]
+        rc, data = self.check()
+        self.assertEqual(rc, 1, data)
+        hits = self.findings(data, "FAIL", "ceiling")
+        self.assertEqual(len(hits), 1, data)
+        self.assertIn("(24 over)", hits[0]["message"])
+        fix = hits[0]["fix"]
+        self.assertIn("plan cancel %s" % drive[0], fix)
+        self.assertNotIn(ielts, fix)
+        self.assertIn("drop order (buffer → the lowest-priority subject's unprotected blocks)", fix)
+        self.assertIn("driving, priority 2", fix)
+        self.assertNotIn("shorten it", fix)                 # 30 - 24 leaves a block too short to keep
+        # A buffer block goes first, whatever its subject.
+        buf = self.add("buffer", "2026-10-16T19:00+01:00", 30)
+        rc, data = self.check()
+        self.assertIn("plan cancel %s" % buf, self.findings(data, "FAIL", "ceiling")[0]["fix"])
+
+    def test_outside_window_fix_suggests_only_a_free_start(self):
+        # Persona A studies Mon/Tue/Thu 07:00-08:15. Monday 07:00-08:00 is taken.
+        self.add("teach", "2026-10-19T07:00+01:00", 60, "--protected")
+        long_one = self.add("review", "2026-10-19T19:00+01:00", 30)
+        short_one = self.add("review", "2026-10-19T20:00+01:00", 15)
+        free_day = self.add("review", "2026-10-20T19:00+01:00", 30)
+        rc, data = self.check()
+        fixes = dict((f["block"], f["fix"]) for f in self.findings(data, "WARN", "outside_window"))
+        self.assertIn("no free room in that day's study windows", fixes[long_one])
+        self.assertIn("plan move %s --start 2026-10-19T08:00+01:00" % short_one, fixes[short_one])
+        self.assertIn("plan move %s --start 2026-10-20T07:00+01:00" % free_day, fixes[free_day])
+        self.ok("plan", "move", short_one, "--start", "2026-10-19T08:00+01:00")
+        rc, data = self.check()
+        self.assertEqual(self.findings(data, "FAIL", "overlap"), [], data)
+        self.assertEqual(self.findings(data, "WARN", "outside_window", short_one), [], data)
+
     def test_soft_warnings_rest_day_and_confusable(self):
         self.set_root("time.rest_day", "Sun")
         sunday = self.add("review", "2026-10-18T10:00+01:00", 30)

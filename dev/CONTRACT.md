@@ -622,7 +622,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
   - confusable topics are taught on the same day;
   - the block falls on the rest day.
 
-  Each finding carries one suggested fix.
+  Each finding carries one suggested fix. The ceiling fix prints the drop order and names a `buffer` block first, then an unprotected block of the lowest-priority subject (the highest `priority` number; a higher-priority subject only when the lower ones have none): the smallest that covers the minutes over, else the largest. The outside-window fix names the first start in that day's windows where the block fits clear of other blocks and blocked time, or says there is none.
 - **`plan diff [--json]`:** neutral operations against the recorded calendar state.
   - `create` for `planned` blocks with a start and no `cal`;
   - `move` for blocks whose `start` ≠ `cal.start`;

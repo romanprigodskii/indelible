@@ -1245,6 +1245,66 @@ def _week_of(dt):
     return dates.week_start(dt.date())
 
 
+def _priority(ctx, sid):
+    """A subject's priority (1 = first); a subject with none counts as the lowest."""
+    entry = ctx.ws.subject_entry(sid) or {}
+    p = entry.get("priority")
+    return p if isinstance(p, int) and not isinstance(p, bool) else 99
+
+
+def _ceiling_fix(ctx, cands, over):
+    """The suggested cut for a week over the ceiling.
+
+    Buffer blocks go first, then the unprotected blocks of the lowest-priority
+    subject (a higher-priority subject only when the lower ones have none): the
+    smallest block that covers the minutes over, else the largest one.
+    """
+    order = [str(x) for x in (ctx.cfg.get("drop_order") or []) if str(x).strip()]
+    head = "cut %d min in the drop order (%s)" % (
+        over, " → ".join(order + ["the lowest-priority subject's unprotected blocks"]) if order
+        else "the lowest-priority subject's unprotected blocks")
+    tiers = []
+    buf = [b for b in cands if b.get("kind") == "buffer"]
+    if buf:
+        tiers.append((buf, "spare time"))
+    loose = [b for b in cands if not b.get("protected") and b.get("kind") != "buffer"]
+    for prio in sorted(set(_priority(ctx, b.get("subject")) for b in loose), reverse=True):
+        tier = [b for b in loose if _priority(ctx, b.get("subject")) == prio]
+        subjects = sorted(set(b.get("subject") for b in tier))
+        tiers.append((tier, "%s, priority %s" % (", ".join(subjects), prio if prio != 99 else "not set")))
+    if not tiers:
+        return "cut %d min this week, or raise time.weekly_ceiling_min with the learner's yes" % over
+    tier, what = tiers[0]
+    enough = sorted([b for b in tier if b_minutes(b) >= over], key=lambda b: (b_minutes(b), b.get("id")))
+    if enough:
+        pick = enough[0]
+        fix = "%s, e.g. plan cancel %s --reason \"over the weekly ceiling\" (%d min; %s)" % (
+            head, pick["id"], b_minutes(pick), what)
+        if b_minutes(pick) - over >= 15:
+            fix += "; or shorten it: plan move %s --start %s --min %d" % (
+                pick["id"], iso(b_start(pick, ctx.tz)), b_minutes(pick) - over)
+        return fix
+    pick = sorted(tier, key=lambda b: (-b_minutes(b), b.get("id")))[0]
+    return "%s, e.g. plan cancel %s --reason \"over the weekly ceiling\" (%d min; %s), then plan check again" % (
+        head, pick["id"], b_minutes(pick), what)
+
+
+def _free_start(ctx, b, s, e, timed):
+    """The first start in the study windows of the block's day where it fits without
+    overlapping another block, blocked time or the past, else None."""
+    need = timedelta(minutes=b_minutes(b))
+    busy = [(s0, e0) for s0, e0, x in timed if x is not b]
+    busy += [(a, z) for a, z, _ in _blocked_spans(ctx, s.date() - timedelta(days=1), s.date())]
+    for a, z in sorted(_window_spans(ctx, s.date())):
+        t = max(a, next_quarter(ctx.now)) if a < ctx.now else a
+        while t + need <= z:
+            clash = [e0 for s0, e0 in busy if overlaps(t, t + need, s0, e0)]
+            if not clash:
+                return t
+            t = max(clash)
+    return None
+
+
 def run_checks(ctx, blocks):
     """All plan check findings for the future blocks and open obligations."""
     tz, now = ctx.tz, ctx.now
@@ -1423,14 +1483,7 @@ def run_checks(ctx, blocks):
             if total > ceiling:
                 over = int(total - ceiling)
                 cands = [b for s, e, b in future if _week_of(s) == wk]
-                buf = [b for b in cands if b.get("kind") == "buffer"]
-                loose = sorted([b for b in cands if not b.get("protected")], key=lambda b: -b_minutes(b))
-                pick = (buf or loose or [None])[0]
-                if pick is not None:
-                    fix = ("cut %d min following the drop order, e.g. plan cancel %s "
-                           "--reason \"over the weekly ceiling\"" % (over, pick["id"]))
-                else:
-                    fix = "cut %d min this week, or raise time.weekly_ceiling_min with the learner's yes" % over
+                fix = _ceiling_fix(ctx, cands, over)
                 f.add("FAIL", "ceiling", None, "Week %s has %d min planned; the ceiling is %d min (%d over)."
                       % (dates.iso_week(wk), total, ceiling, over), fix, week=dates.iso_week(wk))
 
@@ -1469,8 +1522,12 @@ def run_checks(ctx, blocks):
             if inside:
                 continue
             day_windows = _window_spans(ctx, s.date())
-            if day_windows:
-                fix = "plan move %s --start %s (that day's study window)" % (b["id"], iso(day_windows[0][0]))
+            free = _free_start(ctx, b, s, e, timed) if day_windows else None
+            if free is not None:
+                fix = "plan move %s --start %s (free in that day's study window)" % (b["id"], iso(free))
+            elif day_windows:
+                fix = ("no free room in that day's study windows: move it to another day, shorten it, or add "
+                       "this slot to time.windows with the learner's yes")
             else:
                 fix = "move it to a day with a study window, or add this slot to time.windows with the learner's yes"
             f.add("WARN", "outside_window", b, "%s is outside the study windows." % span_label(s, e), fix, when=iso(s))
