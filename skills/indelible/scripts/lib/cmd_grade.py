@@ -36,9 +36,11 @@ What it does, in order:
      the topic's ``last_cold`` unset. Nor does a topic with fewer than
      MIN_COLD_ASKS counted questions (a words recheck excepted): it can't be a
      cold pass, so the note says so and its recheck stays open. A practice sheet
-     logs a ``drill`` exposure per topic, timed at the sitting; a measuring
-     sheet logs none (feedback given afterwards is logged with ``session
-     expose``). Then the sheet is marked graded and the levels are recomputed.
+     logs a ``drill`` exposure per topic, timed at the sitting, and moves the
+     window of a 2-day recheck still to come, as session expose does; a
+     measuring sheet logs none (feedback given afterwards is logged with
+     ``session expose``). Then the sheet is marked graded and the levels are
+     recomputed.
 
 Output: the score with its label, the unnamed-wrong count, check lines, the
 mistakes opened (ids only), ladder moves, level changes and the rechecks
@@ -53,7 +55,7 @@ from lib import CheckFailed, DataError, UsageError
 from lib import dates, learning, schema
 from lib import io as fio
 from lib import ws as wsmod
-from lib.cmd_brief import block_topics, fmt_when
+from lib.cmd_brief import block_topics, exposure_lines, fmt_when, rebook_first_recheck
 from lib.cmd_sheet import filed_asks
 from lib.cmd_learning import (
     add_parser_once, error_status_phrase, fmt_changes, fmt_num, leaks_answer, new_error, out,
@@ -519,8 +521,8 @@ def cmd_grade_record(args):
         # A practice sheet is a warm exposure, timed when it was sat (not when it
         # is marked). A measuring sheet is none: feedback given afterwards is
         # logged by Claude with session expose.
+        graded_topics = []
         if not measured:
-            graded_topics = []
             for a in attempts:
                 if a["topic"] and a["topic"] not in graded_topics:
                     graded_topics.append(a["topic"])
@@ -549,6 +551,18 @@ def cmd_grade_record(args):
         old, levels, merged = recompute_levels(subj, topics_state=state, errors=errors)
         subj.save_topics_state(merged)
         changes = learning.level_changes(topics_state, levels)
+
+        # The drill exposure moves a 2-day recheck still to come, as session expose does:
+        # the window runs from the last warm exposure (CONTRACT 6.4), the sitting or a later
+        # one already logged. The move itself is quiet; a placed recheck it leaves outside
+        # the window, or within 24 h of the sitting, gets its WARN.
+        moved_lines = []
+        if graded_topics:
+            logged = subj.load_exposures()
+            for t in graded_topics:
+                at = max(sit_end, learning.last_exposure(t, logged) or sit_end)
+                rebooked = rebook_first_recheck(ws, subj, t, at)
+                moved_lines += [ln for ln in exposure_lines(ws, subj, t, sit_end, rebooked) if ln.startswith("WARN")]
 
         # A 2-day recheck sat outside its window is a late recheck: the level
         # rules ignore it for level 3, but it still uses up the serve.
@@ -614,6 +628,8 @@ def cmd_grade_record(args):
         dirty = [a["ask"] for a in attempts if a.get("contaminated")]
         out("Not counted (seen too recently, in the 24 h before the sitting): %s on %s. Its 2-day recheck "
             "stays open." % (", ".join(dirty), ", ".join(contaminated_topics)))
+    for line in moved_lines:
+        out(line)
     for t, n_counted, window_serve in thin:
         why = "%s: %d counted question%s; a cold pass needs at least %d, so this sitting can't raise mastery" % (
             t, n_counted, "" if n_counted == 1 else "s", learning.MIN_COLD_ASKS)

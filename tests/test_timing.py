@@ -275,6 +275,35 @@ class MovedWindowTests(TimingCase):
         r = self.cli(["plan", "check"], now=self.DRILLS)
         self.assertIn("plan check: PASS", r.stdout)
 
+    def test_drills_graded_on_a_later_day_move_the_window_without_session_expose(self):
+        self.cli(["session", "taught", self.sid, "T03"])
+        bid = self.obligation()["id"]
+        self.cli(["plan", "place", bid, "--start", "2026-10-17T10:00+01:00", "--min", "15"])
+        items = [{"n": n, "topic": "T03", "layer": "production", "op": "write-overview", "origin": "new",
+                  "text": "Write one overview sentence.", "asks": [{"id": "%da" % n, "label": "Answer:"}]}
+                 for n in (1, 2)]
+        spec = {"v": 1, "id": "ielts-overview-01-drills", "type": "drills", "subject": self.sid, "title": "Drills",
+                "est_min": 8, "tools": "none", "answer_form": "short", "items": items, "blocks": [], "terms": [],
+                "theory": None, "least_sure": True}
+        fio.write_json(self.sdir / ".indelible" / "specs" / "ielts-overview-01-drills.json", spec)
+        fio.write_json(self.sdir / ".indelible" / "keys" / "ielts-overview-01-drills.json",
+                       {"%da" % n: {"accept": ["x"]} for n in (1, 2)})
+        fio.append_jsonl(self.sdir / "data" / "sheets.jsonl", {
+            "v": 1, "id": "ielts-overview-01-drills", "subject": self.sid, "type": "drills", "measures": False,
+            "topics": ["T03"], "asks": 2, "est_min": 8, "status": "issued", "created": self.NOW, "lint": "PASS",
+            "files": [], "key_sha": "0" * 64, "issued_at": "2026-10-15T08:00+01:00",
+            "sat": {"start": None, "stop": None, "date": None},
+            "evidence": [{"path": "scans/d.jpg", "kind": "photo"}], "graded_at": None, "opens_unsat": 0,
+            "block": None})
+        grades = self.grades_file("g.json", {"date": "2026-10-16", "start": "12:50", "stop": "13:00", "asks": [
+            {"ask": "1a", "verdict": "right", "check": "n/a"}, {"ask": "2a", "verdict": "right", "check": "n/a"}]})
+        r = self.cli(["grade", "record", self.sid, "ielts-overview-01-drills", "--from", grades],
+                     now="2026-10-16T18:00+01:00")
+        self.assertEqual(self.obligation()["window"], {"from": "2026-10-18T09:00+01:00",
+                                                       "to": "2026-10-19T13:00+01:00", "basis": "exposure"})
+        self.assertIn("WARN: the 2-day recheck booked Sat 17 Oct 10:00 (%s) is outside its new window" % bid,
+                      r.stdout)
+
     def test_a_placed_recheck_left_outside_the_new_window_is_named(self):
         self.cli(["session", "taught", self.sid, "T03"])
         bid = self.obligation()["id"]

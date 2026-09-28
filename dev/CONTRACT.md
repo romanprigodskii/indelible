@@ -614,6 +614,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
   - `instrument` comes from the sheet type (`drills`, `mixed`, `repair`, `review` and `example` → `practice`);
   - `cold` is true for type `cold`;
   - `interval_h` is the time since the topic's last warm exposure.
+- **A practice sheet** logs a `drill` exposure per topic at the end of the sitting, then moves the window of each topic's open 2-day recheck from its last warm exposure, as `session expose` does (§7.3), and prints the WARN lines for a placed recheck now outside its window or within 24 h of the sitting. A measuring sheet logs no exposure.
 - **For asks whose item origin is `error:<E>` or `sentinel:<E>`:** `right` → `pass_`, anything else → `fail`. Only on a `cold`, `mixed` or measuring sheet, and only when the topic had no exposure in the 24 h before the sitting; otherwise a note says "not counted" and nothing moves. Only a `cold` sheet marks such rows `contaminated`, which drops them from levels.
 - **For `wrong`, `half` or `dont_know` asks with `kind` given:** creates an error. It copies that ask's key entry to `.indelible/keys/errors/<E>.json`, and sets `named_least_sure` from `least_sure`.
 - **An ask with `verdict: right` and `least_sure: true`** creates a `shaky` error when `--shaky` is passed. It is off by default.

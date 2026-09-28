@@ -93,7 +93,7 @@ When the learner is stuck, climb one rung per message:
 - **Sizing:** aim for about 80% right in guided practice. If the gate fires, the next block opens with more completion steps. After two blocks in a row at 100%, fade faster: fewer worked steps and a harder first question. Lint refuses a sheet over the remaining work minutes (`--budget-min`).
 - **The end of the sheet** has the stop time and a single line: "Least sure of (question numbers): ___". There are no confidence marks on individual answers.
 - **Marking** follows [session-grade.md](session-grade.md). Scores are `[practice]` and never count as mastery.
-- **Drills in a later session than their theory** (common in short sessions): run `ind session expose <s> <T> --kind drill`. The 2-day window counts from the last warm exposure, so this moves the recheck window to 44–72 h after the drills and prints it. Place or move the recheck inside the new window, then run `ind plan check`.
+- **Drills in a later session than their theory** (common in short sessions): run `ind session expose <s> <T> --kind drill`. The 2-day window counts from the last warm exposure, so this moves the recheck window to 44–72 h after the drills and prints it. Place or move the recheck inside the new window, then run `ind plan check`. Grading the drills moves the window too, from the sitting time (a drills sheet graded on a later day with no `session expose` still counts), and warns about a placed recheck it leaves outside the window.
 
 ## 5. Profile blocks
 
