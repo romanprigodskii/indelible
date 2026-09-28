@@ -8,8 +8,8 @@ sheets show, the sealed key, and the time the sheet will be sat). ``run(...)``
 does both.
 
 When the sheet is linked to a block (``sheet new/lint --block``, or the
-sheet row's block), L5 uses that block's minutes, less the sheets already
-issued on it, and L7 judges cold and mixed items at the block's start while
+sheet row's block), L5 uses that block's minutes (the open session's work
+minutes, when it runs on that block), less the sheets already issued on it, and L7 judges cold and mixed items at the block's start while
 the block is still ahead: the time the sheet will be sat, not build time
 (``--at`` names another time). The builder links every sheet to its block, so
 a mixed sheet built at the close is judged at the next block. ``sheet issue``
@@ -1050,17 +1050,34 @@ def _session_minutes(subject, block_id):
         return None
 
 
+def _session_work(ws, subject, planned):
+    """The work minutes ``session open`` prints for a session of ``planned`` minutes
+    (learning.session_budget, at the subject's dominant layer and the root's breaks)."""
+    try:
+        cfg = subject.load() or {}
+    except Exception:
+        cfg = {}
+    try:
+        sess = (ws.load_config() or {}).get("session") or {}
+    except Exception:
+        sess = {}
+    bmin = sess.get("break_min")
+    return learning.session_budget(planned, learning.dominant_layer(cfg), cfg.get("pace_s"),
+                                   sess.get("break_every_min") or 75, 10 if bmin is None else bmin)["work_min"]
+
+
 def budget_for(ws, subject, spec, row=None, budget_min=None, block=None):
     """(minutes or None, basis) for L5 and the issue check.
 
     ``--budget-min`` wins. Else the linked block: 0.8 × its minutes, or, for a
     measurement (diagnostic, mock, checkpoint), its minutes less the RECORD_MIN
     it keeps for recording (measure.md §4: the exam clock plus 10–15 minutes).
-    A practice sheet on the block of the open session uses the session's planned
-    minutes (with its extension) when they are longer: a slot split into a
-    recheck block and a session block is one session. Every other sheet already
-    issued on the block (sat and graded too) is taken off, so sheets are sized
-    together, not one by one.
+    A practice sheet on the block of the open session uses the work minutes
+    ``session open`` printed for its planned minutes (with its extension)
+    instead, longer or shorter than the block: a slot split into a recheck block
+    and a session block is one session, and a session opened short has less
+    time. Every other sheet already issued on the block (sat and graded too) is
+    taken off, so sheets are sized together, not one by one.
     Else 0.8 × the default session; a measurement never uses that, and a mock or
     checkpoint falls back to the exam's own minutes (``format.minutes``).
     """
@@ -1080,9 +1097,9 @@ def budget_for(ws, subject, spec, row=None, budget_min=None, block=None):
                 if measuring:
                     total, basis = max(minutes - RECORD_MIN, 0.0), "block %s of %s min, less %d to record" % (
                         block_id, _num(round(minutes)), RECORD_MIN)
-                elif session is not None and session > minutes:
-                    total, basis = BUDGET_FRACTION * session, "0.8 × the session's %s min on block %s" % (
-                        _num(round(session)), block_id)
+                elif session is not None and session > 0:
+                    work = _session_work(ws, subject, session)
+                    total, basis = work, "the session's %s work minutes on block %s" % (_num(work), block_id)
                 else:
                     total, basis = BUDGET_FRACTION * minutes, "0.8 × block %s of %s min" % (
                         block_id, _num(round(minutes)))

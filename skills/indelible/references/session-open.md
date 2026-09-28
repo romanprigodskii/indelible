@@ -155,7 +155,7 @@ With P = planned minutes:
 
 Work minutes are also reduced by a grading estimate: 15 seconds per question, plus 1 minute for each expected miss, at a 25% miss rate. The question budget is the work minutes divided by the pace of the subject's main layer. Never recompute these numbers; use what `ind session open` prints:
 
-- **Work minutes:** the total sheet time for today, covering the recheck, repair, theory and drills. Give the remaining minutes to the builder, and lint with `ind sheet lint <s> <id> --budget-min <remaining>`. Never issue a sheet over budget (Law 4). **Minutes win:** fit sheets by their estimated minutes against the work minutes.
+- **Work minutes:** the total sheet time for today, covering the recheck, repair, theory and drills. Give the remaining minutes to the builder, and lint with `ind sheet lint <s> <id> --budget-min <remaining>`. Never issue a sheet over budget (Law 4): `ind sheet issue` refuses one over these work minutes, less the sheets already issued on the session's block. **Minutes win:** fit sheets by their estimated minutes against the work minutes.
 - **Question budget:** a rough guide to the total number of questions today, the recheck included. It assumes the main layer's pace, so a session that mixes layers (code with short concept questions, say) may fit more questions than it prints.
 - **Close start:** the close begins at this time, not at the planned end.
 - **Break times:** only for sessions over 75 minutes.

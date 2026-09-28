@@ -918,15 +918,41 @@ class CliLintTests(Base):
         self.assertEqual(sheet_row(self.ws, spec["id"])["status"], "rendered")
 
     def test_the_open_sessions_minutes_count_on_its_own_block(self):
-        bid = self.plan_block("teach", "2026-10-12T09:15+01:00", 45)   # a slot split: 15 recheck + 45
-        spec = drills_spec(est_min=40)
+        bid = self.plan_block("teach", "2026-10-12T09:30+01:00", 30)   # a slot split: 30 recheck + 30
+        spec = drills_spec(est_min=30)
         self.assertEqual(new_sheet(self.ws, spec, extra=["--block", bid]).returncode, 0)
-        self.assertIn("over the budget of 36 min", self.line(self.lint(spec["id"]), "L5"))
+        self.assertIn("over the budget of 24 min", self.line(self.lint(spec["id"]), "L5"))
         r = run(["session", "open", SUBJECT, "--planned", "60", "--block", bid], ws=self.ws, now=NOW)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("Budget: 36.7 work minutes", r.stdout)
+        # The session's work minutes, as session open printed them, not 0.8 × its 60 (48).
         r = self.lint(spec["id"])
         self.assertEqual(r.returncode, 0, r.stdout)
-        self.assertIn("within 48 min (0.8 × the session's 60 min on block %s)" % bid, self.line(r, "L5"))
+        self.assertIn("within 36.7 min (the session's 36.7 work minutes on block %s)" % bid, self.line(r, "L5"))
+        # A 45-minute sheet linted against a looser budget is refused at issue.
+        big = drills_spec("ielts-drills-02", est_min=45)
+        self.assertEqual(new_sheet(self.ws, big, extra=["--block", bid]).returncode, 0)
+        self.assertEqual(self.lint(big["id"], "--budget-min", "50").returncode, 0)
+        self.assertEqual(run(["sheet", "build", SUBJECT, big["id"], "--format", "md"], ws=self.ws,
+                             now=NOW).returncode, 0)
+        r = run(["sheet", "issue", SUBJECT, big["id"], "--block", bid], ws=self.ws, now=NOW)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("over the budget of 36.7 min (the session's 36.7 work minutes on block %s)" % bid,
+                      r.stdout + r.stderr)
+        self.assertEqual(sheet_row(self.ws, big["id"])["status"], "rendered")
+
+    def test_a_session_opened_short_of_its_block_has_less_time(self):
+        bid = self.plan_block("teach", "2026-10-12T09:00+01:00", 90)   # 0.8 × 90 = 72
+        spec = drills_spec(est_min=30)
+        self.assertEqual(new_sheet(self.ws, spec, extra=["--block", bid]).returncode, 0)
+        self.assertIn("within 72 min", self.line(self.lint(spec["id"]), "L5"))
+        r = run(["session", "open", SUBJECT, "--planned", "30", "--block", bid], ws=self.ws, now=NOW)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("Budget: 18.5 work minutes", r.stdout)
+        r = self.lint(spec["id"])
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("over the budget of 18.5 min (the session's 18.5 work minutes on block %s)" % bid,
+                      self.line(r, "L5"))
 
     def test_the_pace_floor_reads_the_subjects_pace(self):
         from lib import ws as wsmod
