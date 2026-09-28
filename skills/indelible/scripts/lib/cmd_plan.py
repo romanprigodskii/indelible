@@ -1374,7 +1374,7 @@ def _free_start(ctx, b, s, e, timed):
     busy = [(s0, e0) for s0, e0, x in timed if x is not b]
     busy += [(a, z) for a, z, _ in _blocked_spans(ctx, s.date() - timedelta(days=1), s.date())]
     for a, z in sorted(_window_spans(ctx, s.date())):
-        t = max(a, next_quarter(ctx.now)) if a < ctx.now else a
+        t = next_quarter(ctx.now) if a < ctx.now else a
         while t + need <= z:
             clash = [e0 for s0, e0 in busy if overlaps(t, t + need, s0, e0)]
             if not clash:
@@ -1771,6 +1771,8 @@ def card_notes(ctx, b):
         fallback = RECHECK_FALLBACK
     if b.get("solo"):
         steps = [s for s in steps if not s.startswith("Open Claude")]
+        if len(steps) < 3:   # a card has at least 3 steps
+            steps.insert(max(0, len(steps) - 1), "Work through your sheets in order.")
         entry = ctx.ws.subject_entry(b.get("subject")) or {}
         start_line = ("On your own: your sheets are in %s/%s/sheets. Send photos of your answers at your next "
                       "session." % (ws_display(ctx.ws), entry.get("dir") or b.get("subject")))

@@ -558,6 +558,11 @@ class SoloTests(PlanCase):
         self.assertNotIn("open Claude", notes[solo])
         self.assertIn("Start: open Claude in", notes[with_claude])
         self.assertIn("(on your own)", self.ok("brief", SID).stdout)
+        project = self.add("project", "2026-10-17T10:00+01:00", 60, "--solo")
+        notes = dict((x["block"], x["notes"]) for x in json.loads(self.ok("plan", "diff", "--json").stdout))
+        steps = [l for l in notes[project].splitlines() if re.match(r"^\d\. ", l)]
+        self.assertGreaterEqual(len(steps), 3, notes[project])
+        self.assertNotIn("Open Claude", notes[project])
 
     def test_mark_and_clear_solo_without_moving(self):
         bid = self.add("review", "2026-10-13T07:00+01:00", 30)
