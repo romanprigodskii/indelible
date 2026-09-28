@@ -1,3 +1,6 @@
 # The hook runs under sh, which fails on CRLF line endings: keep it LF on every checkout,
 # Windows (core.autocrlf=true) included.
 dev/hooks/* text eol=lf
+# A Python script run by its #! line (under WSL or Git Bash, say) fails on CRLF too:
+# "env: 'python3\r': No such file or directory".
+*.py text eol=lf

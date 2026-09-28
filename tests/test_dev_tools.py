@@ -2,8 +2,8 @@
 
 The privacy check itself needs a local, git-ignored denylist, so it can't run here.
 These tests run the hook against a stub check in a throwaway git repository, keep
-its line endings LF (sh fails on CRLF), and make sure the README tells a contributor
-how to turn the hook on.
+its line endings LF (sh fails on CRLF), and the Python scripts' too (a #! line fails
+on CRLF), and make sure the README tells a contributor how to turn the hook on.
 """
 
 import os
@@ -47,6 +47,19 @@ class PrePushHook(unittest.TestCase):
         if r.returncode != 0:
             self.skipTest("not a git checkout")
         self.assertEqual(r.stdout.strip(), "dev/hooks/pre-push: eol: lf")
+
+    @unittest.skipUnless(shutil.which("git"), "needs git")
+    def test_git_checks_python_scripts_out_with_lf(self):
+        # A script run by its #! line reads "python3\r" as the interpreter's name on CRLF.
+        scripts = ["dev/privacy_grep.py", "skills/indelible/scripts/indelible.py", "examples/build_sample.py"]
+        r = subprocess.run(["git", "check-attr", "eol", "--"] + scripts, cwd=str(REPO_DIR),
+                           stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                           universal_newlines=True)
+        if r.returncode != 0:
+            self.skipTest("not a git checkout")
+        self.assertEqual(r.stdout.splitlines(), ["%s: eol: lf" % s for s in scripts])
+        for s in scripts:
+            self.assertTrue((REPO_DIR / s).read_bytes().startswith(b"#!/usr/bin/env python3\n"), s)
 
     @unittest.skipUnless(os.name == "posix", "hooks run under sh; executable bits are POSIX only")
     def test_the_hook_is_executable(self):
