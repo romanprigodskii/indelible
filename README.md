@@ -92,7 +92,7 @@ You don't need to learn these: say what you want in plain words. You can also ty
 | `status` | "where am I", "this week", "how am I doing", "what do you keep?" | A short look at your week, your last recheck and what's solid, in a few plain lines. It changes nothing in your plan or records. |
 | `diagnose` · `mock` | "test me properly", "full mock" | A measurement with no teaching: unlabelled, timed and scored. |
 | `plan` · `reschedule` | "plan my week", "I missed Thursday", "sick till Monday" | Builds or repairs your plan and checks it against your sleep and commitments, then shows it to you. Nothing goes to your calendar before your yes; if you say no, the sessions it added are cancelled. |
-| `review` | "weekly review", "review my week" | The weekly review, ending in one to three decisions. |
+| `review` | "weekly review", "review my week", "am I on track?" | The weekly review, with whether the plan still fits your date, ending in one to three decisions. |
 | `sync` | "put it in my calendar", "fix my calendar" | Shows the calendar changes, makes them only after your yes, then reads them back. |
 | `migrate` | "use my existing notes" | Imports a study system you've been running by hand, without losing anything. In v0.1 this is a guided procedure rather than a script command (see [What it runs](#what-it-runs-writes-and-sends)). |
 

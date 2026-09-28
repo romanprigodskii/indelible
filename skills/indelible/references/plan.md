@@ -136,7 +136,7 @@ Why: spaced retrieval beats massed practice, and the best gap grows with the tim
 
 ## 8. Re-baselining (the learner's call, with a safeguard)
 
-**Triggers:** a checkpoint below its threshold; 2 misses in a week; slack below zero; a new commitment; the date gets fixed; a load score of 2 or less at the weekly check-in; the learner asks.
+**Triggers:** a checkpoint below its threshold; 2 misses in a week; slack below zero; a short runway verdict at the weekly review ([review.md](review.md) §2); a new commitment; the date gets fixed; a load score of 2 or less at the weekly check-in; the learner asks.
 
 **Protocol:**
 1. Show the evidence, with every number labelled.

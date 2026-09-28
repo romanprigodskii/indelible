@@ -1,6 +1,6 @@
 # review: the weekly review
 
-Load for `review`, "weekly review", "review my week" or a yes to the close offer, and for `status` (section 9 only). Run it in the main conversation, never in a subagent. Any change it leads to goes through [plan.md](plan.md), and any calendar change through [calendar.md](calendar.md).
+Load for `review`, "weekly review", "review my week", a pace question ("am I on track?", "is this the right speed?") or a yes to the close offer, and for `status` (section 9 only). Run it in the main conversation, never in a subagent. Any change it leads to goes through [plan.md](plan.md), and any calendar change through [calendar.md](calendar.md).
 
 1. When
 2. Run it
@@ -23,7 +23,8 @@ Load for `review`, "weekly review", "review my week" or a yes to the close offer
   Full weekly review, about 10 minutes? (yes/no)
   ```
 
-  On a yes, carry on from section 2, step 2 (the check-in questions come only then). On a no, settle any safeguard that is due (section 4) and stop.
+  On a yes, carry on from section 2, step 2 (the check-in questions come only then, at step 3). On a no, settle any safeguard that is due (section 4) and stop.
+- **A pace question** ("am I on track?", "is this the right speed?", "too slow?"), at any time: give the runway line (section 2, step 2) and the figures behind it, then "Full weekly review? (yes/no)". With no date, say what fits in the rest of this 4-week cycle ([measure.md](measure.md) §9).
 - **On-demand mode** (persona D): at the first open after 7 days or more away, show 3 lines inside the re-entry opener ([session-teach.md](session-teach.md) §6), never as a separate routine. They ask nothing, and never count what is due (re-entry step 3):
 
   ```
@@ -34,12 +35,13 @@ Load for `review`, "weekly review", "review my week" or a yes to the close offer
 
 ## 2. Run it
 
-1. **Report.** `ind review week all` or `ind review week <subject>` (with `--week YYYY-Www` as above). It prints at most 15 lines and writes `reviews/YYYY-Www.md`. Show those lines in plain vocabulary, with the labels the CLI prints. Add no number that isn't in the output. Never join two instruments into one trend.
-2. **Check-in** (section 3).
-3. **Safeguards** (section 4) and **overrides** (section 5).
-4. **Hygiene**, liveness and your own mistakes (sections 6 and 7).
-5. **Maintenance.** Run `ind compact <subject>` for each live subject. It keeps `.bak` copies and refuses if the mistake IDs don't match up; report a refusal and don't work around it.
-6. **Proposals:** 1–3 of them (section 8).
+1. **Report.** `ind review week all` or `ind review week <subject>` (with `--week YYYY-Www` as above). It prints at most 15 lines and writes `reviews/YYYY-Www.md`. Show those lines in plain vocabulary, with the labels the CLI prints. Add no number that isn't in the output, apart from the runway line. Never join two instruments into one trend.
+2. **Runway,** only when `target.date` is set. Re-run the verdict of [measure.md](measure.md) §9 with today's levels (`ind topic show <s>`) and the planned minutes left to the date; once two topics have a cold pass, use the learner's own step hours. Give it in one line, every figure `[mine]`: "Runway: needs about 31 h at your pace, about 36 h planned to 12 Dec [mine]: tight." A short verdict (it needs more than is planned) brings §9's three-cut question and is a re-baseline trigger ([plan.md](plan.md) §8).
+3. **Check-in** (section 3).
+4. **Safeguards** (section 4) and **overrides** (section 5).
+5. **Hygiene**, liveness and your own mistakes (sections 6 and 7).
+6. **Maintenance.** Run `ind compact <subject>` for each live subject. It keeps `.bak` copies and refuses if the mistake IDs don't match up; report a refusal and don't work around it.
+7. **Proposals:** 1–3 of them (section 8).
 
 Persona A, week 42:
 
@@ -48,6 +50,7 @@ Week 42 · IELTS 4/4 sessions (238/240 min) · all closed the same day
 2-day recheck 83% (10/12) [measured] · 2 of 9 wrong answers weren't on your Least-sure line
 Checks written beside 94% of answers, all sheets; they caught 3 slips
 Mistakes: 6 new, 4 fixed, 1 overdue · To do: register for the 12 Dec sitting (due Tue)
+Runway: needs about 31 h at your pace, about 36 h planned to 12 Dec [mine]: tight
 Proposal: move Saturday's timed section to 09:00, the exam's start time? (yes/no)
 ```
 

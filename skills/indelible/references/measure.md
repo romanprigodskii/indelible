@@ -113,7 +113,7 @@ Computed by the CLI (`ind grade record`, `ind topic recompute`), never typed. Th
 - **Add** each mock (exam minutes plus 60 minutes of review) and the buffer (`time.buffer_pct`).
 - **Recalibrate** once two topics have a cold pass: step hours become the learner's own time from first teach to first cold pass, per level step.
 - **Available:** planned study minutes from today to the date, minus blocked dates. Every hours figure is `[mine]`.
-- **When:** a rough fit at `teach`, with every topic at mastery 0 (one preview line; it overstates the need), then the real verdict on the results card.
+- **When:** a rough fit at `teach`, with every topic at mastery 0 (one preview line; it overstates the need), then the real verdict on the results card, re-run at each weekly review and for a pace question ([review.md](review.md) §2).
 - **Verdict:** comfortable (needs 80% of available or less), tight (80–100%), or plainly "needs 48 h, you have 38 h". The 80% line is mine too.
 - **If it doesn't fit,** one numbered question with three cuts: 1) drop the lowest-weight topics; 2) add hours up to the weekly ceiling (the only time the ceiling is re-asked); 3) move the date or the target. Log the choice: `ind ledger add decision --subject <s> --summary "…" --why "<their words>" --check-on DATE --rule "…" --action "…"`.
 - **Adding hours** (cut 2): `ind set root session.days_per_week <n>` or `session.length_min`; the weekly target follows. Run it with `--dry-run` first: a ceiling that was never set explicitly is re-derived and can rise past what the learner agreed, so set `time.weekly_ceiling_min` to the agreed ceiling in the same step. With one subject, also `ind set root subjects.<id>.target_weekly_min <new weekly target>`, or the week view keeps the old target.

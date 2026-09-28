@@ -80,7 +80,7 @@ If you are about to do any of these, stop and take the structural route instead.
 | `status [subject\|all]` | "where am I", "this week", "how am I doing", "what do you keep?" | A read-only look: at most 5 plain lines, then the offer of a full review. Changes nothing in the plan or records | [review.md](references/review.md) §9 |
 | `diagnose`, `mock [subject]` | "test me properly", "full mock" | A measurement sitting with no teaching | [measure.md](references/measure.md), [taxonomies.md](references/taxonomies.md) |
 | `plan`, `reschedule` | "plan my week", "I missed Thursday", "sick till Monday" | Build or repair the plan, check it, preview it, confirm it | [plan.md](references/plan.md) |
-| `review` | "weekly review", "review my week", a yes to the close offer | The weekly review, plus 1–3 decisions | [review.md](references/review.md) |
+| `review` | "weekly review", "review my week", "am I on track?", a yes to the close offer | The weekly review, plus 1–3 decisions | [review.md](references/review.md) |
 | `sync` | "put it in my calendar", "fix my calendar" | Calendar diff, preview, write, then read back | [calendar.md](references/calendar.md) |
 | `migrate <path>` | "use my existing notes" | Import a hand-run study system without losing anything | [migrate.md](references/migrate.md) |
 | `forget` (v0.2) | "delete what you recorded about…" | Not in v0.1, and scripts never delete learner data. Say so. Deleting the whole workspace folder removes everything; deleting one subject's folder leaves its rows in `plan/blocks.jsonl`, `ledger.jsonl` and `plan/ics/`, and the brief then fails until its entry leaves `subjects` in `indelible.json`. The learner deletes; never delete or edit inside a data file | none |
