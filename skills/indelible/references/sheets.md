@@ -133,6 +133,8 @@ With `vocab: plain` the learner sees:
 | Internal | Learner sees |
 |---|---|
 | cold re-serve | 2-day recheck |
+| level-4 or upkeep serve | later recheck |
+| sentinel | last check |
 | repaired | fixed |
 | owed | to do |
 | ask | question |
