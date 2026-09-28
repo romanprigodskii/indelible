@@ -573,6 +573,25 @@ class SickDaysTests(TimingCase):
                          "the late-recheck rule then (plan.md §7 and §11)" % self.BID)
         self.assertEqual(fixes["B-20261015-ielts-1"], "move it to another day: plan move B-20261015-ielts-1 --start ISO")
 
+    def test_a_run_of_sick_days_is_one_entry(self):
+        # date to to_date, both included: the same finding as one entry per day, and nothing after it.
+        self.cli(["set", "root", "time.blocked.+",
+                  json.dumps({"date": "2026-10-15", "to_date": "2026-10-16", "what": "sick"})])
+        fixes = self.fixes()
+        self.assertTrue(fixes[self.BID].startswith("no time is left in its window"), fixes[self.BID])
+        self.assertIn("B-20261015-ielts-1", fixes)
+        self.cli(["plan", "move", "B-20261015-ielts-1", "--start", "2026-10-17T10:00+01:00"])
+        data = json.loads(self.cli(["plan", "check", "--json"], code=None).stdout)
+        self.assertNotIn("B-20261015-ielts-1", [r["block"] for r in data["findings"] if r["rule"] == "blocked"],
+                         "the day after to_date is free")
+
+    def test_a_run_of_days_needs_its_first_day_and_an_end_after_it(self):
+        for bad, why in (({"date": "2026-10-16", "to_date": "2026-10-15", "what": "sick"}, "is before date"),
+                         ({"to_date": "2026-10-15", "what": "sick"}, "needs a date")):
+            r = self.cli(["set", "root", "time.blocked.+", json.dumps(bad)], code=None)
+            self.assertNotEqual(r.returncode, 0, bad)
+            self.assertIn(why, r.stdout + r.stderr)
+
     def test_a_recheck_with_time_left_in_its_window_is_moved_inside_it(self):
         self.sick("2026-10-15")
         self.assertEqual(self.fixes()[self.BID], "move it inside its window (Thu 15 Oct 03:29 – Fri 16 Oct 07:29): "

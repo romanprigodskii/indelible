@@ -158,8 +158,8 @@ WINDOW_SPEC = OBJ({
 }, open_=True, required=["days", "from", "to"])
 
 BLOCKED_SPEC = OBJ({
-    "days": LIST(DAY()), "date": DATE(), "from": HHMM(null=True), "to": HHMM(null=True),
-    "what": STR(null=True, max_len=120),
+    "days": LIST(DAY()), "date": DATE(), "to_date": DATE(null=True), "from": HHMM(null=True),
+    "to": HHMM(null=True), "what": STR(null=True, max_len=120),
 }, open_=True)
 
 SUBJECT_ENTRY_SPEC = OBJ({
@@ -438,6 +438,13 @@ def validate_config(cfg):
             if sub.get("id") in seen:
                 probs.append("subject id %r appears twice" % sub.get("id"))
             seen.add(sub.get("id"))
+    for b in t.get("blocked") or []:
+        # A run of days (a sick week) is one entry: date to to_date, both included.
+        if isinstance(b, dict) and b.get("to_date") is not None:
+            if not b.get("date"):
+                probs.append("time.blocked: to_date %s needs a date (the first day)" % b["to_date"])
+            elif dates.is_date(b["date"]) and dates.is_date(b["to_date"]) and b["to_date"] < b["date"]:
+                probs.append("time.blocked: to_date %s is before date %s" % (b["to_date"], b["date"]))
     for w in t.get("windows") or []:
         if isinstance(w, dict) and dates.is_hhmm(w.get("from", "")) and dates.is_hhmm(w.get("to", "")):
             # "24:00" is the end of the day; a "to" earlier than "from" is an overnight
@@ -790,7 +797,8 @@ RECORDS = {
             ("time.schedule", "scheduled | on_demand (no attendance questions in on_demand)"),
             ("time.weekly_ceiling_min", "defaults to round(1.4 x weekly_target_min)"),
             ("time.windows", "[{days:[Mon..Sun], from:HH:MM, to:HH:MM}] usual study windows (soft)"),
-            ("time.blocked", "[{days, from, to, what}] or [{date, what}] hard unavailability"),
+            ("time.blocked", "[{days, from, to, what}] or [{date, to_date, what}] hard unavailability; to_date "
+                             "(optional) makes one entry cover date to to_date, both included, e.g. sick days"),
             ("session.*", "length_min, max_min, days_per_week, overrun ask|stop|extend, extension_max_min, break_every_min, break_min"),
             ("policies.missed", "ask | auto_move | drop"),
             ("policies.calendar_write", "preview_confirm | auto_move_24h | none"),

@@ -1272,6 +1272,8 @@ def _sleep_spans(ctx, d0, d1):
 
 
 def _blocked_spans(ctx, d0, d1):
+    """(start, end, what) for each time.blocked span on the days d0..d1: a weekly entry
+    (``days``), one date, or a run of days (``date`` to ``to_date``, both included)."""
     out = []
     entries = [e for e in (ctx.tcfg.get("blocked") or []) if isinstance(e, dict)]
     d = d0
@@ -1280,9 +1282,11 @@ def _blocked_spans(ctx, d0, d1):
         for e in entries:
             if e.get("date"):
                 try:
-                    if dates.to_date(e["date"]) != d:
-                        continue
+                    first = dates.to_date(e["date"])
+                    last = dates.to_date(e["to_date"]) if e.get("to_date") else first
                 except ValueError:
+                    continue
+                if not first <= d <= last:
                     continue
             elif e.get("days"):
                 try:

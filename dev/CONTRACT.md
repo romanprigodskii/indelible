@@ -139,6 +139,7 @@ dev/CONTRACT.md  dev/privacy_grep.py  dev/hooks/pre-push (runs privacy_grep.py; 
   - subject `state`: `live` | `shadow` | `legacy` | `paused`
   - calendar `provider`: `none` | `ics` | `ticktick` | `google` | `other`
 - **`weekly_ceiling_min`** defaults to round(1.4 × target).
+- **`time.blocked`** entries are weekly (`days`, `from`, `to`), one date (`date`), or a run of days (`date` and `to_date`, both included: a sick week in one entry); a date entry without `from`/`to` blocks the whole day. `to_date` without `date`, or before it, is refused.
 
 ### 5.2 `subject.json`
 
