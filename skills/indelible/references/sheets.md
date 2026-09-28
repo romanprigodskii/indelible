@@ -102,7 +102,7 @@ A builder subagent writes every sheet that has answers, so no answer enters this
 
 - Files land in `<subject>/sheets/YYYY-MM/<id>.<ext>`, source beside them; `--format html` suits a phone (persona B), `--format md` an editor (persona D).
 - Hand-over: "Your 2-day recheck, sheet IELTS-07, is ready: sheets/2026-10/ielts-cold-05.pdf. Print it or open it on screen, and answer on paper." No printer: read on screen, answer in a notebook, first line the sheet code and the start time, then the answers numbered as on the sheet. A file that won't open: paste its text unchanged; a pasted theory sheet stays in the conversation, so its drills go in a new conversation (`/clear`) or a later session (Law 2).
-- **Typed answers from a phone** (`format.answer_form` "typed", persona B): an HTML or Markdown sheet whose rules box asks for one chat message per sheet, sent when the learner stops: numbered as on the sheet, each with its check, then the start and stop times and the Least-sure line. Nothing on it is discussed before then. Filed verbatim ([session-grade.md](session-grade.md) §2); a text file works too; a failure gate's three answers come as their own message, filed with `--asks`.
+- **Typed answers** (`format.answer_form` "typed": language subjects, persona B): an HTML or Markdown sheet whose rules box asks for one chat message per sheet, sent when the learner stops: numbered as on the sheet, each with its check, then the start and stop times and the Least-sure line. Nothing on it is discussed before then. Filed verbatim ([session-grade.md](session-grade.md) §2); a text file works too; a failure gate's three answers come as their own message, filed with `--asks`.
 
 ## 9. Keys
 

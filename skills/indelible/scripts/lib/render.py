@@ -288,7 +288,7 @@ def _range_text(nums):
 def gate_text(three, typed=False):
     """The failure gate over three items. Any mix counts: "I don't know" is an accepted answer, so a
     learner who writes it has left nothing blank, and one failed check plus one blank is 2 too.
-    ``typed``: the learner types the answers (a phone learner), so they send those, not a photo."""
+    ``typed``: the learner types the answers (the subject asks for typed ones), so they send those, not a photo."""
     r = _range_text(three)
     return ("If 2 of items %s have a failed check, an “I don't know” or an empty box: "
             "stop and send %s %s." % (r, "your answers to" if typed else "a photo of", r))
@@ -303,7 +303,7 @@ def gate_text_always(three, typed=False):
 
 
 def typed_answers(answer_form):
-    """True when the subject's ``format.answer_form`` is "typed" (a language learner on a phone)."""
+    """True when the subject's ``format.answer_form`` is "typed" (the language profile's default)."""
     return _s(answer_form).strip().lower() == "typed"
 
 
