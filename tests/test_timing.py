@@ -242,6 +242,15 @@ class SittingTimeTests(TimingCase):
         r = self.grade("ielts-cold-01", {"least_sure_line": "none", "asks": self.ASKS}, now="2026-10-15T21:15+01:00")
         self.assertIn("T01 0 → 3", r.stdout)
 
+    def test_a_first_pass_timed_by_the_clock_is_not_a_confirmed_named_answer(self):
+        # The guessed sitting is now, which carries seconds; the rows store it to the minute.
+        self.sheet(issued="2026-10-15T20:50+01:00")
+        now = "2026-10-15T21:15:27+01:00"
+        self.cli(["scan", "ingest", self.sid, "ielts-cold-01", "--typed", self.typed], now=now)
+        r = self.grade("ielts-cold-01", {"least_sure_line": "none", "asks": self.ASKS}, now=now)
+        self.assertIn("T01 0 → 3", r.stdout)
+        self.assertNotIn("counts now", r.stdout)
+
     def test_practice_sent_the_next_day_keeps_today_with_a_note(self):
         self.sheet("ielts-drills-01", stype="drills", origin="new")
         r = self.cli(["scan", "ingest", self.sid, "ielts-drills-01", "--typed", self.typed])

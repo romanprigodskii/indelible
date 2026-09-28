@@ -609,10 +609,25 @@ def cmd_grade_record(args):
         # that opened it count, at their own sitting (learning.first_reserve_passed). That can make
         # an earlier recheck the pass that raises its topic to 3: it served the topic, so set
         # last_cold to it and close the booking it served, or the brief would still offer it.
+        # Only a sitting whose named right answers a re-serve passed on this sheet let count is
+        # one: a first pass on this sheet is not (its rows keep the sitting to the minute, while a
+        # sitting timed by the clock keeps its seconds, so a time comparison can't tell them apart).
+        passed_here = set(eid for eid, verdicts in reserve.items()
+                          if stype in LADDER_TYPES and eid not in reserve_dirty
+                          and all(v == "right" for v in verdicts))
+        named_at = {}   # topic -> the sittings of its named right answers those re-serves confirm
+        if passed_here:
+            for a in subj.load_attempts(include_archive=True):
+                if (a.get("sheet") != sid and a.get("error_id") in passed_here and a.get("least_sure") is True
+                        and a.get("verdict") == "right"
+                        and not learning.REASKED_RE.match(str(a.get("origin") or ""))):
+                    at = dates.try_parse_iso(a.get("at"))
+                    if at is not None:
+                        named_at.setdefault(a.get("topic"), set()).add(at)
         confirmed = []
         for t, lv in sorted(levels.items()):
             fp = dates.try_parse_iso(lv.get("first_pass"))
-            if (fp is None or fp >= sit_at or learning.level_rank(lv.get("level")) < 3
+            if (fp is None or fp not in named_at.get(t, ()) or learning.level_rank(lv.get("level")) < 3
                     or learning.level_rank((topics_state.get(t) or {}).get("level")) >= 3):
                 continue
             row = merged.setdefault(t, {})
