@@ -14,7 +14,7 @@ Load for `review`, "weekly review", "review my week", a pace question ("am I on 
 
 ## 1. When
 
-- **Scheduled mode:** once a week, about 10 minutes. Offer it in one line at the close of the first session of a new week if `reviews/<last week>.md` doesn't exist yet, and run it whenever the learner asks. Review the week just ended: pass `--week YYYY-Www` when the default isn't that week.
+- **Scheduled mode:** once a week, about 10 minutes. Offer it in one line at the close of the first session of a new week if `reviews/<last week>.md` doesn't exist yet ([close.md](close.md) §8), and run it whenever the learner asks. Review the week just ended: pass `--week YYYY-Www` when the default isn't that week.
 - **Sessions of 30 minutes or less** (persona B; the day-7 check-in of [measure.md](measure.md) §11): at that close, run `ind review week` and give 3 lines from it in place of the one-line offer. The last line offers the full review:
 
   ```
