@@ -65,7 +65,8 @@ IDs are stable, so `overrides[].rule` in `subject.json` can name one (for exampl
 | R8 | No answer before a real attempt; keys open only after the attempt is filed | core | [integrity] | Bastani et al., 2025 |
 | R9 | Every word on a sheet is defined there, already owned, or published by the exam | core | [integrity] | Abedi & Lord, 2001 |
 | R11 | One labelled box per answer, start and stop times, one Least-sure line per sheet | core | [design] | Butler, Karpicke & Roediger, 2008 |
-| R12 | A worked concrete case before the definition; at mastery 0–1 the worked example comes first, then fades | default | [lit-strong] | Renkl & Atkinson, 2003 |
+| R12 | At mastery 0–1 the worked example comes first, then fades | default | [lit-strong] | Renkl & Atkinson, 2003 |
+| R12 order | A small concrete case before the definition, then the general rule | default | [lit-mixed] | Fyfe et al., 2014 |
 | R13 | Each theory sheet lists what it stands on, and missing ground comes first | default | [lit-mixed] | Simonsmeier et al., 2022 |
 | R15 | A sheet fits the minutes left; an over-budget sheet is refused | default | [design] | |
 | R16 | Every session has a planned end, a 10-minute warning and at most one capped extension | core | [integrity] | |
@@ -123,6 +124,7 @@ Graded [lit-mixed] for the principle; the details are [one-learner]. An earlier 
 - **Six per block is a ceiling, not a target.** Extra same-type questions add little later (Rohrer & Taylor, 2006). Blocking helps when categories differ a lot, mixing when they are easily confused (Carvalho & Goldstone, 2014); blocking can win for word lists (Brunmair & Richter, 2019).
 - **The ladder's shape is a convenience.** Expanding gaps do no better than equal ones (Latimier et al., 2021), and the best gap grows with the time left before the test (Cepeda et al., 2008). Hence the deadline cap and a per-subject recheck window (`cold_window_h`).
 - **Worked examples first, for novices only.** The advantage reverses as expertise grows (Kalyuga, 2007), and struggling first then being taught also works (Sinha & Kapur, 2021). A stuck learner gets a worked example on a separate sheet, never the answer in chat (Koedinger & Aleven, 2007).
+- **Concrete first is a default, not a law.** A concrete case that fades into the general rule helps learners connect the two (Fyfe et al., 2014), but generic examples can transfer better than concrete ones (Kaminski, Sloutsky & Heckler, 2008): hence R12 order is [lit-mixed], and the rule box after the case always states the general form.
 - **A same-day failure is real evidence;** only same-day success can't show mastery.
 - **Hypercorrection is shown mostly on facts.** A wrong procedure also needs a contrast with a wrong worked example (Durkin & Rittle-Johnson, 2012), which fix sheets include.
 - **"Careless" needs two things:** the learner's slip account and the same step done right elsewhere.
@@ -177,10 +179,12 @@ Why no "sure / not sure" beside each answer? People stop filling it in, and the 
 - Dunlosky, Rawson, Marsh, Nathan & Willingham (2013), *Psychological Science in the Public Interest*.
 - Durkin & Rittle-Johnson (2012), *Learning and Instruction*.
 - Ericson, Margulieux & Rick (2017), *Koli Calling* (computing education conference).
+- Fyfe, McNeil, Son & Goldstone (2014), *Educational Psychology Review*.
 - Gigerenzer, Hoffrage & Kleinbölting (1991), *Psychological Review*.
 - Gollwitzer & Sheeran (2006), *Advances in Experimental Social Psychology*.
 - Große & Renkl (2007), *Learning and Instruction*.
 - Kalyuga (2007), *Educational Psychology Review*.
+- Kaminski, Sloutsky & Heckler (2008), *Science*.
 - Koedinger & Aleven (2007), *Educational Psychology Review*.
 - Koriat & Bjork (2005), *JEP: LMC*.
 - Latimier, Peyre & Ramus (2021), *Educational Psychology Review*.
