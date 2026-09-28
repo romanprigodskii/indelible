@@ -88,6 +88,7 @@ Every answer on `drills`, `cold`, `mixed`, `review`, `diagnostic` and `checkpoin
 |---|---|
 | The classmate device: "A classmate says it's 12. Is she right?" | Ask directly. For a common wrong idea on a topic the learner owns (mastery 3 or above), show working and ask "Which line is the first wrong one?"; below that, put the wrong working beside the right one and ask where they part (unless finding errors is the exam's own question form) |
 | A formula as a label: `f′(x) = ___` | Say what goes in the box: "The value of f′ at x = 1:" |
+| A label that leaves the form open when only one form counts, or names none when any would do | "as one fraction", "the exam's name for the test", or "any equivalent form" ([session-grade.md](session-grade.md) §9 marks the exam's form) |
 | "Give two answers", "both" or "each" for one box | One labelled box per answer: 3a, 3b |
 | A topic name or id anywhere on a measuring or mixed sheet | Neutral titles: "2-day recheck", "Part A" |
 | A formula in a heading | The operation in words |
