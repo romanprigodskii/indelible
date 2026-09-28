@@ -497,15 +497,32 @@ class RuleTests(Base):
         self.assertEqual(self.status(spec, "W1"), "WARN")
         self.assertTrue(lint.passed(lint.check(spec, ctx(key=answers_for(spec)))), "a WARN never fails lint")
 
-    def test_w2_sentences_first(self):
-        self.assertEqual(self.status(drills_spec(), "W2"), "PASS")
-        spec = drills_spec()
-        spec["items"][0]["layer"] = "procedural"
-        self.assertEqual(self.status(spec, "W2"), "WARN")
+    def test_w2_a_sentence_item_follows_the_numbers_it_is_about(self):
+        r = result(drills_spec(), "W2")
+        self.assertEqual((r["status"], r["detail"]), ("PASS", "every item is a sentence or verbal item"))
         spec = drills_spec()
         for it in spec["items"]:
             it["layer"] = "procedural"
-        self.assertEqual(self.status(spec, "W2"), "PASS", "no verbal items: nothing to put first")
+        self.assertEqual(self.status(spec, "W2"), "PASS", "no verbal items")
+        # A sentence item first, cut off from the numbers: the shape that failed in use.
+        spec["items"][0]["layer"] = "verbal"
+        r = result(spec, "W2")
+        self.assertEqual(r["status"], "WARN")
+        self.assertIn("sentence item 1 has no computed item before it on its topic", r["detail"])
+        # After the computed items on its topic, it passes.
+        spec["items"][0]["layer"] = "procedural"
+        spec["items"][2]["layer"] = "verbal"
+        self.assertEqual(self.status(spec, "W2"), "PASS")
+        # Numbers on another topic don't count.
+        spec["items"][0]["topic"] = spec["items"][1]["topic"] = "T01"
+        self.assertEqual(self.status(spec, "W2"), "WARN")
+        # A sentence asked as the last question of a computed item is part of that item.
+        spec = drills_spec()
+        for it in spec["items"]:
+            it["layer"] = "procedural"
+        spec["items"][0]["asks"].append({"id": "1b", "label": "Using your answer to 1a, one sentence on why:",
+                                         "check": True, "check_hint": "Read your sentence against 1a."})
+        self.assertEqual(self.status(spec, "W2"), "PASS")
 
     def hinted(self, hint, spec=None):
         spec = spec or drills_spec()

@@ -25,7 +25,7 @@ Load this for anything that builds, renders, issues, files or marks a sheet. Mar
 | `theory` | Read, then closed: floor box, words, a worked case, the rule, a contrast, a warning, then pencil questions marked with the sheet open | practice | no | no |
 | `external` | Pages in the learner's own book ("pp. 44–47: read, then close"), then 3–5 pencil questions, book closed | practice | no | no |
 | `example` | One worked case: the stuck question's structure on different details | practice | no | no |
-| `drills` | Blocks of one operation (`block_size`), sentence questions first, a failure gate after item 3 of each block (item 4 in a block of 6 or more whose item 1 is worked) | practice | yes | yes |
+| `drills` | Blocks of one operation (`block_size`), a sentence question last in the item whose numbers it uses, a failure gate after item 3 of each block (item 4 in a block of 6 or more whose item 1 is worked) | practice | yes | yes |
 | `cold` | The 2-day recheck: mixed, unlabelled, fresh numbers and sentences | measured | yes | yes |
 | `mixed` | Owned material interleaved, or confusable topics as "which applies?"; unlabelled | practice | yes | yes |
 | `repair` | Fix sheet for one wrong idea, with pencil questions | practice | optional | yes |
@@ -134,7 +134,7 @@ A builder subagent writes every sheet that has answers, so no answer enters this
 | L11 worked case first | a theory or repair sheet with no `worked` section, or with a `rule` section before the first one (a locked override of R12 order lets the rule come first, never the worked case go) | a concrete worked case first, then the rule |
 | L12 taught operations | on drills, a new item whose `op` no theory, external, example or repair sheet of its topic has shown (as a pencil question's `op` or in a worked section's `ops`); a topic with no such sheet is skipped | show it worked on the theory and rebuild that, or drop the item; never rename an `op` |
 | W1 | `=` in a block title | the operation in words |
-| W2 | drills starting with a non-sentence item when the subject has sentence items | move one first |
+| W2 | on drills with both computed and sentence items, a sentence item with no computed item before it on its topic | make it the last question of the computed item it is about |
 | W3 | on a topic below mastery 3 (3p counts as 3): a check line with no hint, or a hint that needs a second method or the weakest step ("another way", "which step would you be pushed on?") | the check the theory sheet worked, or one using only what the learner owns |
 | W4 | a theory or repair sheet whose worked case shows no check (no step labelled "Check:") | end the worked case with the check the drills will ask for |
 | W5 | a theory, example or repair sheet whose estimate leaves no time to read it: under the pace floor plus its words (floor box, words box, sections) at 150 a minute | add the reading time: its words over 120 a minute, over 90 in a second language (builder.md) |

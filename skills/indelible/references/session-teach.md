@@ -81,7 +81,7 @@ When the learner is stuck, climb one rung per message:
 
 ## 4. Drills
 
-- **Blocks of one operation.** Block size comes from the subject (3–8, default 6). The block heading names the operation in words, with no formula. Sentence and verbal questions come first. New material comes in blocks; material the learner already owns is served mixed and unlabelled, because inside a block the learner can answer the block rather than the question.
+- **Blocks of one operation.** Block size comes from the subject (3–8, default 6). The block heading names the operation in words, with no formula. A sentence question comes right after the computed questions it is about, as the last question of the same item ("Using your answers to 3a–3b, …"), never cut off from its numbers. New material comes in blocks; material the learner already owns is served mixed and unlabelled, because inside a block the learner can answer the block rather than the question.
 - **Every answer has a written backwards check beside it,** including a check of the definition used. By layer:
   - numbers: put the answer back into the question, or rebuild the total from the other direction;
   - definitions: test the definition you used against the exact words of the question;

@@ -552,7 +552,7 @@ For a rounded number, `check` also gives the tolerance the check holds to, the s
 
   WARN rules:
   - W1: a formula character (`=`) appears in a block title;
-  - W2: the first item is not a sentence or verbal item, on `drills` where the subject has verbal items;
+  - W2: on `drills` with both verbal and non-verbal items (verbal: layer `verbal` or `reading`, or a sentence op), a verbal item has no non-verbal item before it on its topic: a sentence is answered off the numbers it is about, as the last ask of their item;
   - W3: on a sheet with check lines (the L2 types plus `repair`), an ask with `check: true` on a topic below mastery 3p (the ask's own `topic`, else its item's; from `data/topics.json`; no state counts as 0) has no `check_hint`, or a hint that needs a second method or a sense of the weakest step ("another way", "a different method", "the weakest step", "would you be pushed on"). Subject words pass ("the weakest acid");
   - W4: on `theory` and `repair`, no `worked` section has a step labelled "Check:" in its body: the worked case ends with the check the drills will ask for;
   - W5: on `theory`, `example` and `repair`, `est_min` is under the pace floor plus the sheet's words to read (`theory.floor`, `theory.words`, `theory.sections`) at 150 a minute: the builder adds reading time at 120 words a minute, 90 in a second language.

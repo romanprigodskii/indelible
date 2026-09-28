@@ -73,7 +73,7 @@ TITLES = {
     "L1": "structure", "L2": "check lines", "L3": "unlabelled", "L4": "terms", "L5": "budget",
     "L6": "drill blocks", "L7": "cold validity", "L8": "key leak", "L9": "least-sure",
     "L10": "check hints", "L11": "worked case first", "L12": "taught operations",
-    "W1": "formula in block title", "W2": "sentences first",
+    "W1": "formula in block title", "W2": "sentences after their numbers",
     "W3": "checks on new topics", "W4": "worked check", "W5": "reading time",
 }
 
@@ -1025,14 +1025,29 @@ def _w1(spec, ctx):
 
 
 def _w2(spec, ctx):
+    """A sentence is answered off numbers the learner has just computed: on drills that mix
+    computed and sentence items, a sentence item with no computed item before it on its topic
+    stands cut off from them. Put it as the last question of the item it is about."""
     if spec.get("type") != "drills":
         return "PASS", "not a drills sheet"
     items = _items(spec)
-    if not items or not any(is_verbal(it) for it in items):
+    verbal = [it for it in items if is_verbal(it)]
+    if not verbal:
         return "PASS", "no sentence or verbal items"
-    if is_verbal(items[0]):
-        return "PASS", "a sentence or verbal item comes first"
-    return "WARN", "the first item is not a sentence or verbal item; put one first"
+    if len(verbal) == len(items):
+        return "PASS", "every item is a sentence or verbal item"
+    cut_off, computed = [], set()
+    for it in items:
+        topic = _s(it.get("topic"))
+        if not is_verbal(it):
+            computed.add(topic)
+        elif topic not in computed:
+            cut_off.append(_s(it.get("n")))
+    if cut_off:
+        return "WARN", ("sentence item %s has no computed item before it on its topic: make it the last "
+                        "question of the computed item it is about ('Using your answers to 3a–3b, …')"
+                        % _listed(cut_off))
+    return "PASS", "each sentence item follows the numbers it is about"
 
 
 CHECKS = {"L1": _l1, "L2": _l2, "L3": _l3, "L4": _l4, "L5": _l5, "L6": _l6, "L7": _l7,
