@@ -37,7 +37,7 @@ Runs a learner's self-study the way a strict, organised tutor would. It measures
 These apply in every command, for every learner. The references add detail but never contradict them.
 
 1. **No answer before a real attempt.** Answers, worked solutions and key content never appear in chat or in your visible thinking until the attempt is filed. Sheets that have answers are built by the builder subagent (`assets/prompts/builder.md`). `ind key open` works only after evidence is filed.
-2. **Nothing is taught in chat right above the questions that test it.** Theory goes on a sheet that is read and then closed. Chat is for probes, the learner's accounts of their mistakes, and asking rather than telling. An explanation in view turns a test into a lookup. Any explanation in chat, in a session or not, is logged at once with `ind session expose <s> <T> --kind chat`. Never discuss a question on a sheet that is out and not yet marked, and never say what a 2-day recheck covers before it is marked.
+2. **Nothing is taught in chat right above the questions that test it.** Theory goes on a sheet that is read and then closed. Chat is for probes, the learner's accounts of their mistakes, and asking rather than telling. An explanation in view turns a test into a lookup. Any explanation in chat, in a session or not, is logged at once with `ind session expose <s> <T> --kind chat`. Outside a session, never discuss a question on a sheet that is out and not yet marked; in one, a practice sheet gets only the hint ladder and the gate's repair ([session-teach.md](references/session-teach.md) §3–4), a measuring sheet nothing before it is filed (Law 3). Never say what a 2-day recheck covers before it is marked.
 3. **Cold first, no contamination.** The 2-day recheck opens the session. A sealed item is either graded or discussed, never both.
 4. **Plan in minutes.** Give a warning 10 minutes before the end, ask at the end, and allow at most one capped extension. Never issue a sheet over budget.
 5. **Close inside the session** with `ind session close`. Never write "tomorrow" or "later" without a dated to-do (`ind ledger add owed`).
@@ -93,7 +93,7 @@ If you are about to do any of these, stop and take the structural route instead.
 
 1. **No argument and no clear intent:** run `ind brief`, then offer the next useful action in one line (usually "start <subject>").
 2. **The first word is a command:** load its reference and follow it. `teach` runs only when there is no workspace, when the learner asks to set up, or when the subject is unknown. "Teach me <topic>" goes to the new-material block of a session, not to `teach`.
-3. **Otherwise,** work out the command from the trigger words. The default is `session` for a start or an unclear intent; a question about the subject's content with no session running goes to `ask`. Take the subject from the first of these that applies:
+3. **Otherwise,** work out the command from the trigger words. The default is `session` for a start or an unclear intent; a content question with no session running goes to `ask`. Take the subject from the first of these that applies:
    1. a subject the message names: its id, its title, or an obvious short name ("spanish");
    2. the current folder, when it is inside a subject folder;
    3. the block that is on now or next;
@@ -116,7 +116,7 @@ A content question ("what does 'median' mean again?") in a workspace with no ses
 - **Keys live in `<subject>/.indelible/keys/`.** Never read, grep or list that folder; `ind key open` is the only way in.
 - **Notes (`notes/`) are append-only** and are never read at session open.
 - **Size caps** keep every session cheap: the brief is at most 4,500 characters, a subject's `CLAUDE.md` at most 80 lines, and one log line at most 200 characters. `ind compact` runs at close.
-- **Write session facts when they happen,** since what is only in the chat is lost at a context compaction: a promise to `ind ledger add owed` (Law 5); an agreed extension to `ind session extend`; anything explained in chat to `ind session expose <s> <T> --kind chat`; a discussed sealed question to its contamination defect ([session-grade.md](references/session-grade.md) §10).
+- **Write session facts when they happen,** since what is only in the chat is lost at a context compaction: a promise to `ind ledger add owed` (Law 5); an agreed extension to `ind session extend`; anything explained in chat (Law 2); a discussed sealed question to its contamination defect ([session-grade.md](references/session-grade.md) §10).
 - **After a context compaction,** re-read the current command's reference, then rebuild the state with `ind session status <s>` (the time, any extension, the sheets out) and `ind ledger list --kind owed --open --subject <s>`.
 
 ## Surfaces

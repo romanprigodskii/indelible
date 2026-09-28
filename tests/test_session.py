@@ -354,6 +354,24 @@ class ExposeTaughtOverrideTests(SessionBase):
         law2 = [ln for ln in skill.splitlines() if ln.startswith("2. **Nothing is taught in chat")][0]
         self.assertIn("`ind session expose <s> <T> --kind chat`", law2)
 
+    def test_law_2_keeps_the_hint_ladder_on_a_practice_sheet_in_a_session(self):
+        # The ban on discussing a sheet that is out holds outside a session; in one, session-teach.md §3
+        # gives hints on a practice sheet, and the references never contradict the laws (SKILL.md).
+        root = Path(__file__).resolve().parents[1]
+        skill = (root / "skills" / "indelible" / "SKILL.md").read_text(encoding="utf-8")
+        law2 = [ln for ln in skill.splitlines() if ln.startswith("2. **Nothing is taught in chat")][0]
+        self.assertIn("Outside a session, never discuss a question on a sheet that is out", law2)
+        self.assertIn("a practice sheet gets only the hint ladder", law2)
+        self.assertIn("(references/session-teach.md) §3", law2)
+        self.assertIn("a measuring sheet nothing before it is filed", law2)
+        teach = (root / "skills" / "indelible" / "references" / "session-teach.md").read_text(encoding="utf-8")
+        self.assertIn("## 3. The hint ladder", teach)
+        self.assertIn("Hints: on practice sheets only", teach)
+        contract = (root / "dev" / "CONTRACT.md").read_text(encoding="utf-8")
+        claw2 = [ln for ln in contract.splitlines() if ln.startswith("2. Nothing is taught in chat")][0]
+        self.assertIn("Outside a session, a question on a sheet that is out", claw2)
+        self.assertIn("hint ladder", claw2)
+
     def test_taught_books_one_cold_obligation_with_its_window(self):
         self.put("plan/blocks.jsonl", [self.block("B-20261012-ielts-1", "2026-10-12T09:00+01:00",
                                                   "2026-10-12T10:00+01:00")])
