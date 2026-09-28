@@ -1,6 +1,6 @@
 # Time control and the close
 
-Re-read this file every time a session nears its end, and again after a context compaction. It covers keeping time during the session, the 10-minute warning, cuts, fatigue, wellbeing, the close checklist, and what happens after the learner leaves.
+Re-read this file every time a session nears its end, and after a context compaction.
 
 ## Contents
 
@@ -17,15 +17,15 @@ Re-read this file every time a session nears its end, and again after a context 
 
 ## 1. Keeping time
 
-`ind session open` wrote the lock with the planned end and the close start (planned end minus 2, 5 or 8 minutes, for sessions of up to 30, up to 75, or more minutes).
+`ind session open` wrote the lock with the planned end and the close start (the planned end minus 2, 5 or 8 minutes, for sessions of up to 30, up to 75, or more minutes).
 
-- **Status line.** Run `ind session status <subject>` at each returned photo and before each block. It prints one line, for example `[indelible] 47/60 min · close starts 07:55 · questions so far 38`, and a second one naming the sheets out (issued or taken, not graded yet, not counting read-then-close sheets already taken), if any. Use it to decide what still fits. Tell the learner the minutes left when you start a block: "About 20 minutes left: drills block B, then closing."
-- **Budget.** Never hand out a sheet whose estimated minutes exceed the time left before the close starts. Cut instead (§3).
-- **Breaks.** In sessions over 75 minutes, call each break at the time `session open` printed: "Break: 10 minutes. Back at 19:25."
+- **Status line:** `ind session status <subject>` at each returned photo and before each block, to decide what still fits. Its first line (`[indelible] 47/60 min · close starts 07:55 · questions so far 38`) may be shown as is; the second, for you, names the sheets out. Starting a block, give the minutes left: "About 20 minutes left: drills block B, then closing."
+- **Budget:** never hand out a sheet whose estimated minutes exceed the time left before the close start; cut (§3).
+- **Breaks** (sessions over 75 minutes) at the printed times: "Break: 10 minutes. Back at 19:25."
 
 ## 2. The 10-minute warning and the one extension
 
-Law 4 has two moments: a warning 10 minutes before the planned end, and one question at the end of the work time (the close start from the lock).
+Law 4 has two moments: a warning 10 minutes before the planned end, and one question at the close start.
 
 **The warning (T−10)** is a statement, not a question. Persona A, 07:00–08:00:
 
@@ -33,56 +33,40 @@ Law 4 has two moments: a warning 10 minutes before the planned end, and one ques
 07:50, 10 minutes left. Block B (~8 min) won't fit before closing at 07:55, so unless you extend, it moves to Saturday.
 ```
 
-**The question at the close start**, only if work is left and an extension is possible (below):
+**The question at the close start,** only if work is left and an extension is possible (below):
 
 ```
 07:55: closing time. Close now (block B moves to Saturday), or 15 more minutes once, then close?
 ```
 
-- No answer by the "no-answer" timer (the close start + 2 minutes; with no timer, by the next message after that): close, once 2 full minutes have passed since the question. The minutes `ind session status` shows (47/60) must be at least 2 more than when you asked; if they aren't, the job fired early, so set a new one 2 minutes on (off :00 and :30) and wait for it. A yes that comes before the planned end, while the close hasn't run, still takes the extension. For a learner who prefers few questions (Learner notes), skip the question and close; they can still say "extend" after the warning.
-- **At the planned end** (a timer may fire): if an extension is running (`ind session status` shows "extension until"), say when it ends ("Extension until 08:15, then closing"). Otherwise the close should already be under way; if it isn't, start it now.
-- **One extension per session, at most.** When it runs out, close; never offer a second one.
-- **Record it at once.** On a yes (or under the `extend` standing choice), run `ind session extend <subject> --min <N>`. It moves the close start by N minutes, makes `ind session status` show "extension until 08:15", and refuses a second extension or one over any of the caps below. Where timers are in use, delete the no-answer job (in a session of 30 minutes or less, the one for the no-answer and the planned end) and set one at the new close start it prints.
-- **Extension length** = min(`session.extension_max_min` from `indelible.json` (default 15, never over 30), 0.25 × planned minutes, next fixed start − 15 − planned end). `ind session extend` enforces all three, and a refusal names the cap and the start it comes from. Work the third out before asking, so the question offers only what fits.
-  - The next fixed start is the earliest of: the next block of any subject (`ind plan list --from <today> --to <today>`); a `time.blocked` entry; 30 minutes before bedtime. Something already under way when the session started (a whole day blocked as sick, say) doesn't count.
+- **No answer by the no-answer timer** (the close start + 2 minutes; with no timer, the next message after that): close, once `ind session status` shows at least 2 minutes more than when you asked (if not, the job fired early: set one 2 minutes on, off :00 and :30). A yes before the planned end, while the close hasn't run, still takes the extension. For a learner who prefers few questions (Learner notes), skip the question and close; they can still say "extend" after the warning.
+- **At the planned end:** with an extension running ("extension until" in `ind session status`), say when it ends ("Extension until 08:15, then closing"); otherwise start the close if it isn't under way.
+- **One extension per session;** when it runs out, close.
+- **Record it at once:** on a yes (or the `extend` standing choice), `ind session extend <subject> --min <N>`; with timers, replace the no-answer job (in 30 minutes or less, the no-answer and planned-end one) with one at the new close start it prints.
+- **Extension length** = min(`session.extension_max_min` (default 15, never over 30), 0.25 × planned minutes, next fixed start − 15 − planned end), which `ind session extend` enforces; work out the third before asking, so the question offers only what fits.
+  - The next fixed start is the earliest of the next block of any subject (`ind plan list --from <today> --to <today>`), a `time.blocked` entry, and 30 minutes before bedtime; something already under way when the session started (a day blocked as sick) doesn't count.
   - Persona A: min(15, 15, 09:00 work − 15 − 08:00 = 45) = 15 minutes.
-- **If the extension comes to 0 or less,** the options are "close now" or "shift the next block". Shifting needs a yes: then `ind plan move <block-id> --start <ISO>`. If that block is in the learner's calendar, follow [calendar.md](calendar.md) before writing anything there.
-- **Standing choice.** `session.overrun` `stop`: close without asking. `extend`: take the one extension without asking, and say so.
-- **Overruns.**
-  - A session that runs more than 20% over its planned minutes (an extension counts) logs `ind ledger add defect --subject <s> --category sizing --what "ran 75 of 60 min" --fix-type <type> --fix "<change>"`.
-  - Two overruns in a row of more than 25% go to the plan: lengthen the slot or shrink the budget ([plan.md](plan.md)).
+- **An extension of 0 or less:** "close now" or "shift the next block" (a yes, then `ind plan move <block-id> --start <ISO>`, and [calendar.md](calendar.md) before any calendar write).
+- **Standing choice** `session.overrun`: `stop` closes without asking; `extend` takes the one extension without asking, and says so.
+- **Overruns:** over 20% past the planned minutes (an extension counts): `ind ledger add defect --subject <s> --category sizing --what "ran 75 of 60 min" --fix-type <type> --fix "<change>"`. Two in a row over 25% go to the plan: lengthen the slot or shrink the budget ([plan.md](plan.md)).
 
 ## 3. What to cut
 
-When the remaining work doesn't fit before the close start, cut in this order:
+When the remaining work doesn't fit before the close start, cut in this order: new theory; the second drill block; mixed extras. Never the 2-day recheck, and never the close.
 
-1. new theory;
-2. the second drill block;
-3. mixed extras.
-
-Never cut the 2-day recheck, and never the close.
-
-- Cut work is not lost. It goes into the next block's sheets, which you build after the close message (§9).
-- Theory cut before it was read means the topic was not taught today, so don't run `ind session taught` for it.
-- A block cut before it started was never presented. Leave its questions out of `grades.json` ([session-grade.md](session-grade.md)).
+Cut work goes into the next block's sheets (§9). Theory cut before it was read was not taught (no `ind session taught`); a block cut before it started stays out of `grades.json`.
 
 ## 4. Fatigue
 
-- **A difficulty statement** ("I'm wiped", "this is too much", "my head's done"): offer a stop in one line, **each time** one recurs. "We can stop here: I'll close now and the rest moves to Saturday. Or keep going. Your call."
-  - Don't argue, and don't repeat the offer until the next statement.
-  - A stop is a normal close (§6), started early.
-- **Recording a difficulty statement.** Record it only with the learner's knowledge: "Want me to note that for the weekly review?" On a yes, run `ind note append <subject> fatigue` with their words on stdin. If they say "off the record", nothing is written.
-- **The decline rule,** for sessions of 90 minutes or more:
-  1. Compare the first third of today's graded questions with the last third, on accuracy and on seconds per question (from each sheet's start and stop).
-  2. Put both in the close note, e.g. `thirds 84→66%, 72→98 s/q`.
-  3. If the last third drops by 15 points or more, or slows by 30% or more, in 2 of the last 3 such sessions (the LAST SESSIONS lines in `ind brief <subject>`), propose a shorter session or an extra break.
-  4. The learner decides. A yes is a dated decision with a safeguard ([plan.md](plan.md)).
+- **A difficulty statement** ("I'm wiped", "this is too much"): offer a stop in one line, each time one comes: "We can stop here: I'll close now and the rest moves to Saturday. Or keep going. Your call." Don't argue, or repeat it before the next one. A stop is a normal close (§6), started early.
+- **Record it** only with the learner's knowledge: "Want me to note that for the weekly review?" A yes: `ind note append <subject> fatigue`, their words on stdin; "off the record": nothing.
+- **The decline rule** (sessions of 90 minutes or more): compare the first and last thirds of today's graded questions on accuracy and seconds per question (from each sheet's start and stop), both in the close note (`thirds 84→66%, 72→98 s/q`). A last third down 15 points or more, or 30% slower, in 2 of the last 3 such sessions (LAST SESSIONS in `ind brief <subject>`): propose a shorter session or an extra break. The learner decides; a yes is a dated decision with a safeguard ([plan.md](plan.md)).
 
 ## 5. Wellbeing
 
-Distress is not fatigue. If the learner expresses hopelessness, panic, self-harm or persistent distress (law 13):
+Distress is not fatigue. If the learner expresses hopelessness, panic, self-harm or persistent distress (Law 13):
 
-- **Stop the study frame at once:** no checklist, no sheets, and no timers: delete every timer job still pending, one set after an extension included (CronList, then CronDelete), so none fires into the conversation.
+- **Stop the study frame at once:** no checklist, no sheets, no timers: delete every pending timer job, one set after an extension included (CronList, then CronDelete), so none fires into the conversation.
 - **Respond as a caring person would.** Acknowledge what they said in plain words, ask how they are, and stay with it.
 - **Offer support.** Suggest someone they trust. If they are in danger, or self-harm comes up, give the local emergency number or a crisis line (for example 988 in the US, or Samaritans on 116 123 in the UK and Ireland), and offer to find the line for their country.
 - **Under 18** (`learner.age_band`): encourage them to talk to a trusted adult, such as a parent, a teacher or a school counsellor.
@@ -92,15 +76,13 @@ Distress is not fatigue. If the learner expresses hopelessness, panic, self-harm
 
 ## 6. Running the close
 
-Start at the close start from the lock (after the extension, if one was taken). Before you run the command:
+Start at the close start (after the extension, if one was taken). Before the command:
 
-1. **Everything sat today is filed and graded** ([session-grade.md](session-grade.md)). A 2-day recheck is always graded today. A practice sheet that can't be graded now needs a to-do: `ind ledger add owed --subject <s> --what "grade <sheet id>" --due <ISO within 24 h> --by claude`.
-2. **Every topic taught today** has had `ind session taught <subject> <topic>`.
-   - For a scheduled learner, place each new recheck in the first session inside its window, as [plan.md](plan.md) describes (`ind plan place`), then run `ind plan check`. Not a topic owed a re-teach because it didn't land ([session-teach.md](session-teach.md) §4): the re-teach books its new window.
-   - For an on-demand learner, leave it unplaced; the close message names the window.
-3. **Every promise made today** ("I'll…", "we'll do it next time") already has its to-do, written when it was made. Check with `ind ledger list --kind owed --open --subject <s>`, and add any that is missing: `ind ledger add owed --subject <s> --what "<text>" --due <ISO>`.
+1. **Everything sat today is filed and graded** ([session-grade.md](session-grade.md)); a 2-day recheck always today. A practice sheet that can't be graded now gets a to-do: `ind ledger add owed --subject <s> --what "grade <sheet id>" --due <ISO within 24 h> --by claude`.
+2. **Every topic taught today** has had `ind session taught <subject> <topic>`. Scheduled: place each new recheck in the first session inside its window (`ind plan place`, [plan.md](plan.md)), then `ind plan check`, except a topic owed a re-teach ([session-teach.md](session-teach.md) §4). On demand: unplaced; the close message names the window.
+3. **Every promise made today** ("I'll…", "we'll do it next time") has its to-do: check `ind ledger list --kind owed --open --subject <s>`, and add any missing (`ind ledger add owed --subject <s> --what "<text>" --due <ISO>`).
 4. **An overrun over 20%** is logged (§2).
-5. **The next block of this subject is solo** (`solo` in `ind plan list`, "on your own" in the brief; no session with Claude comes before it, however far off): build its practice sheets now with the builder ([sheets.md](sheets.md) §6), then issue each: `ind sheet issue <s> <id> --block <B>`. A new topic's drills (mastery 0–1) stop for marking, so they never go solo (`ind sheet issue` refuses them): give the block practice on topics at mastery 2 or above, and teach the new topic at a session with Claude. A theory and its drills on such a topic go as a pair; the block's card says read the theory, close it, then the drills. Check C8 fails until one is issued. If the build fails, the close message says so and offers to move the block; don't leave it to an owed `--by claude` to-do, which nobody will act on before the block.
+5. **The next block of this subject is solo** (`solo` in `ind plan list`, "on your own" in the brief; no session with Claude before it, however far off): build its practice sheets now, with no new topic ([session-teach.md](session-teach.md) §6), and issue each (`ind sheet issue <s> <id> --block <B>`); C8 fails until one is. A failed build: the close message says so and offers to move the block, never an owed `--by claude` to-do nobody acts on in time.
 
 Then run:
 
@@ -108,35 +90,29 @@ Then run:
 ind session close <subject> --note "recheck 11/14; taught matching headings; drills A done, B cut"
 ```
 
-- The note is at most 120 characters. The words "tomorrow", "later" or "next time" in it need a to-do created today (check C6).
-- The command prints one `PASS`, `FAIL` or `INFO` line per check.
-- **Exit 0 means closed:** the session row is saved, the lock is removed, the block is marked done (a 2-day recheck block stays open until its sheet is graded; C9 catches one that wasn't sat), and it prints `Saved: …` with the next block. Delete any timer job still pending (CronList, then CronDelete).
-- **Exit 1 means the lock stays.** Fix each FAIL (§7) and run it again.
-- **Sessions of 30 minutes or less** (persona B): the checks run silently. The learner sees a FAIL only if they must act on it.
+- The note is at most 120 characters; "tomorrow", "later" or "next time" in it need a to-do created today (C6).
+- **Exit 0 means closed** (the lock removed, the block marked done, a recheck block only once its sheet is graded): delete any pending timer job (CronList, then CronDelete).
+- **Exit 1 means the lock stays:** fix each FAIL line (§7) and run it again. In sessions of 30 minutes or less (persona B) the checks run silently; the learner sees a FAIL only if they must act on it.
 
 ## 7. Fixing FAIL lines
 
 | Line | Fix |
 |---|---|
-| C1 evidence | Ask for the photo or file of the finished sheet (a failure-gate photo alone doesn't count), then `ind scan ingest` ([session-grade.md](session-grade.md)) |
-| C2 graded | Grade it now. A practice sheet may instead get the `owed` row from §6 step 1. A measuring sheet has no such option |
-| C3 errors | Each error opened today needs kind, mode, an account (or "no account") and a due date. No command edits an error, so use `--defer`, and complete `grades.json` before recording next time |
-| C4 recheck booked | `ind session taught <subject> <topic>` creates the recheck window. For a block outside its window, `ind plan place` or `ind plan move` it inside |
-| C5 fix before recheck | A recheck within 24 h includes a topic with an unfixed mistake. A repair less than 24 h before the recheck takes that topic off it (the 24-hour rule), so ask: "Your 2-day recheck is at 07:00, but one mistake on that topic isn't fixed yet. Shall I move the recheck to <time>, still inside its window?" (a time at least 24 h after the fix). On a yes, `ind plan move`, with [calendar.md](calendar.md) for the calendar. Otherwise `--defer` |
+| C1 evidence | Ask for the finished sheet's photo or file (a gate photo alone doesn't count), then `ind scan ingest` ([session-grade.md](session-grade.md) §2) |
+| C2 graded | Grade it now; a practice sheet (never a measuring one) may get §6 step 1's to-do |
+| C3 errors | Each error opened today needs kind, mode, an account (or "no account") and a due date. No command edits an error: `--defer`, and complete `grades.json` before recording next time |
+| C4 recheck booked | `ind session taught <subject> <topic>` creates the window; `ind plan place` or `ind plan move` a block into it |
+| C5 fix before recheck | Ask: "Your 2-day recheck is at 07:00, but one mistake on that topic isn't fixed yet. Shall I move the recheck to <time>, still inside its window?" (at least 24 h after the fix). A yes: `ind plan move`, with [calendar.md](calendar.md). Otherwise `--defer` |
 | C6 promises | `ind ledger add owed …` for each real promise, with a due time |
-| C7 views | A view was hand-edited. Say: "Your edit to the progress page will be replaced; I'll keep a backup copy." On a yes, `ind render <subject> --force`, then close again |
-| C8 next sheets | INFO: build after the message (§9). FAIL only before a solo block with no sheet issued: build and issue its sheets now (§6 step 5), or `--defer` and name the to-do in the message |
-| C9 recheck sat | A 2-day recheck booked in this session's time wasn't sat (skipped, or the time ran out). Move it to the next slot inside its window with the command the line prints, then `ind plan check`, and preview it for the calendar ([calendar.md](calendar.md)). No time left in the window, or on demand: INFO only. Name the window in the close message; past its window it is a late recheck, which the next brief flags ([plan.md](plan.md) §7) |
+| C7 views | A view was hand-edited: "Your edit to the progress page will be replaced; I'll keep a backup copy." On a yes, `ind render <subject> --force`, then close again |
+| C8 next sheets | INFO: build after the message (§9). FAIL only before a solo block with no sheet issued: build and issue now (§6 step 5), or `--defer` and name the to-do in the message |
+| C9 recheck sat | Move the unsat recheck with the command the line prints, then `ind plan check`, and preview it for the calendar ([calendar.md](calendar.md)). No time left in the window, or on demand: INFO; name the window in the close message (past it, a late recheck: [plan.md](plan.md) §7) |
 
-**`--defer "<reason>"`** is for a fix that can't happen now: the photo isn't available, the learner has to leave, or the fix would overrun.
-- Run `ind session close <subject> --note "…" --defer "photo of block B not available"`.
-- Every failing check becomes a to-do due in 24 hours, and the session closes "with to-dos".
-- Tell the learner each to-do in plain words, with its due time.
-- Never defer the grading of a 2-day recheck whose answers are already in front of you.
+**`--defer "<reason>"`,** for a fix that can't happen now (no photo, the learner has to leave, it would overrun): `ind session close <subject> --note "…" --defer "photo of block B not available"` turns every failing check into a to-do due in 24 hours; tell the learner each, in plain words, with its due time. Never defer grading a 2-day recheck whose answers are in front of you.
 
 ## 8. The close message
 
-Send one message. It uses plain vocabulary, has no IDs, and every number carries its label:
+One message, plain vocabulary, no IDs, every number labelled:
 
 ```
 Saved: <what was recorded>. [To do: <item> by <day time>.]
@@ -144,33 +120,31 @@ Next: <day time> · <plain content> · <min> min. You can go; I'm preparing the 
 ```
 
 - **Persona A:** "Saved: 2-day recheck 11/14 [measured], 3 mistakes scheduled, matching headings now mastery 2 [practice]. Next: Sat 10:00 · 2-day recheck + fixed mistakes · 60 min. You can go; I'm preparing the next sheets."
-- **Persona B:** "Saved: 6 of 8 words right [measured]; the other 2 are scheduled to come back. Next: Fri 07:40 · words + ordering food · 20 min. You can go; I'm preparing the next sheets."
 - **Persona D** (on demand, no calendar): "Saved: ownership drills 5/6 [practice]; the 2-day recheck is booked. Next: 2-day recheck, best between Thu 14:00 and Fri 18:00 · 15 min. You can go; I'm preparing the next sheets."
-- **First close of a new week** (scheduled mode, while `reviews/<last week>.md` doesn't exist yet): add one last line, "Weekly review, about 10 minutes? (yes/no)". With sessions of 30 minutes or less, run `ind review week` before the message and give its 3 lines of [review.md](review.md) §1 in place of that line (their Next line is the message's own). A yes loads [review.md](review.md); a no, or no answer, stands until next week.
-- **Before the first teach**, the close message also carries the theory-source question (Q4, in [teach.md](teach.md) §4's words), since the sheets are built after it.
-- **Next block solo:** its sheets are already issued (§6 step 5), so the message gives their paths instead of "I'm preparing the next sheets": "Next: Thu 19:00 · on your own · 45 min. Your sheet: sheets/2026-10/ielts-mixed-04.pdf. Send photos at your next session. You can go."
+- **First close of a new week** (scheduled mode, no `reviews/<last week>.md` yet): a last line, "Weekly review, about 10 minutes? (yes/no)"; with sessions of 30 minutes or less, instead the 3 lines of `ind review week` ([review.md](review.md) §1), run before the message (their Next line is the message's own). A yes loads [review.md](review.md); a no, or no answer, stands until next week.
+- **Before the first teach,** it also carries the theory-source question (Q4, in [teach.md](teach.md) §4's words), since the sheets are built after it.
+- **Next block solo:** its sheets are issued (§6 step 5), so give their paths instead of "I'm preparing the next sheets": "Next: Thu 19:00 · on your own · 45 min. Your sheet: sheets/2026-10/ielts-mixed-04.pdf. Send photos at your next session. You can go."
 
-If blocks were added or moved today and the learner's calendar provider is not `none`, run `ind plan diff` before the message and follow [calendar.md](calendar.md): preview, a yes, write, then `ind cal ack`.
+If blocks were added or moved today and the calendar provider is not `none`, run `ind plan diff` before the message and follow [calendar.md](calendar.md): preview, a yes, write, then `ind cal ack`.
 
 ## 9. After the message
 
-The learner may already be gone. Work silently:
+The learner may be gone. Work silently:
 
-1. Build the next block's practice sheets (theory, drills, repair) with the builder subagent. Before a theory sheet, run the floor check ([session-teach.md](session-teach.md) §2 step 1) with `ind topic show <s>`: if a floor topic is below 3p, build that floor topic's sheets instead, and the new topic waits until the floor topic's 2-day recheck has passed. Build them as [sheets.md](sheets.md) §6 describes: built, linted and rendered (a solo block's were built and issued before the message, §6 step 5). Build a theory before the drills that point at it: lint checks their words and operations against it. They are issued at hand-over, in that block. Include any work cut today. The recheck is not built now: it is built at the next open, inside its window ([session-open.md](session-open.md) §2).
+1. Build the next block's practice sheets (theory, drills, repair), with any work cut today ([sheets.md](sheets.md) §6; the recheck waits for the next open). Before a theory sheet, run the floor check ([session-teach.md](session-teach.md) §2 step 1) with `ind topic show <s>`: a floor topic below 3p gets its sheets instead. Build a theory before the drills that point at it: lint checks them against it.
 2. Run `ind compact <subject>`.
-3. If a sheet fails lint or can't be finished, add `ind ledger add owed --subject <s> --what "build sheets for <day> <time> block" --due <ISO at least 2 h before the block> --by claude`.
+3. A sheet that fails lint or can't be finished: `ind ledger add owed --subject <s> --what "build sheets for <day> <time> block" --due <ISO at least 2 h before the block> --by claude`.
 
 Message the learner again only if something needs them.
 
 ## 10. Abrupt exits and late closes
 
-**"Gotta go"** (or "have to run", or a goodbye mid-session): quick close in under a minute, with no questions first.
+**"Gotta go"** (or "have to run", or a goodbye mid-session): a quick close in under a minute, no questions first.
 
-1. For each sheet handed over today and not yet filed (`ind sheet show <subject> --status issued`, or `--status sat` without evidence), add a to-do that names its id: `ind ledger add owed --subject <subject> --what "send the photo of <sheet id>" --due <ISO 24 h from now> --by learner`. `--defer` only turns failing checks into to-dos, and a sheet that was started but not filed fails none.
-2. Run `ind session close <subject> --note "left early at 07:40" --defer "learner left mid-session"`, and delete any timer job still pending (CronList, then CronDelete), so no warning reaches a learner who has gone.
-3. Send one message: "Saved. To do: send the photo of block B by Fri 07:40. Next: Sat 10:00 · 60 min. Go; I'll prepare the sheets."
-4. If a 2-day recheck was sat and not photographed, that photo is the to-do to name first.
+1. For each sheet handed over today and not filed (`ind sheet show <subject> --status issued`, or `--status sat` without evidence), a to-do naming its id (`--defer` covers failing checks only): `ind ledger add owed --subject <subject> --what "send the photo of <sheet id>" --due <ISO 24 h from now> --by learner`. A 2-day recheck sat and not photographed is named first.
+2. `ind session close <subject> --note "left early at 07:40" --defer "learner left mid-session"`, and delete any pending timer job (CronList, then CronDelete).
+3. One message: "Saved. To do: send the photo of block B by Fri 07:40. Next: Sat 10:00 · 60 min. Go; I'll prepare the sheets."
 
-**No reply at all:** the lock stays. The next start finishes the close first (see SKILL.md, setup step 5).
+**No reply at all:** the lock stays, and the next start finishes the close first (SKILL.md, setup step 5).
 
-**A late close** (the brief shows an unclosed session): do it before anything else, in at most 10 minutes, using the same checklist. The CLI records it as late and logs its own mistake. Say one line: "Finishing Tuesday's close first: about 5 minutes."
+**A late close** (an unclosed session in the brief): before anything else, in at most 10 minutes, with the same checklist; the CLI records it as late. One line: "Finishing Tuesday's close first: about 5 minutes."

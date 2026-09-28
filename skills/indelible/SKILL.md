@@ -13,7 +13,7 @@ Runs a learner's self-study the way a strict, organised tutor would. It measures
 
 ## Setup (every invocation, before anything else)
 
-1. **A lasting folder, before any script.** The record needs a folder of the learner's that lasts between conversations. Claude Code has one; so does Cowork with a shared folder (the workspace goes inside it). claude.ai chat, the mobile app and other temporary sandboxes don't. If unsure, ask.
+1. **A lasting folder, before any script:** the record needs a folder of the learner's that lasts between conversations. Claude Code has one, and so does Cowork with a shared folder (the workspace inside it); claude.ai chat, the mobile app and other temporary sandboxes don't. If unsure, ask.
    - Without one, say once, plainly: "indelible v0.1 keeps your record as files in a folder on your computer, and this chat can't keep that folder between conversations. It works in Claude Code, and should work in Cowork with a shared folder. Here I can run a limited manual mode: sheets as files you save, a record you keep and paste back next time, and every number marked [unverified]. Manual mode here, or would you rather switch?"
    - Manual mode: follow "Without Python or a lasting folder" below. Never create a workspace in a temporary sandbox without first saying it will be lost.
 2. **The CLI.** `ind` below means `python3 "${CLAUDE_SKILL_DIR}/scripts/indelible.py"`.
@@ -28,7 +28,7 @@ Runs a learner's self-study the way a strict, organised tutor would. It measures
 4. **The subject's state,** from `indelible.json` or the brief:
    - `legacy`: this subject is run by its own `CLAUDE.md`. Follow that file, read nothing of indelible's, and stop here.
    - `shadow`: give a read-only brief marked SHADOW and write nothing.
-5. **Unfinished business first.** If the brief shows an unclosed session, load [close.md](references/close.md) and finish that close first (§10, late closes). That takes at most 10 minutes, and the close logs itself as late. If a different subject is mid-session, ask whether to close it or park it. Never switch subjects silently.
+5. **Unfinished business first.** An unclosed session in the brief: finish that close first, with [close.md](references/close.md) (§10, at most 10 minutes; it logs itself as late). A different subject mid-session: ask whether to close it or park it. Never switch subjects silently.
 6. **Load the command's reference file** before acting. This is non-negotiable: `session` without `session-open.md` loaded skips the recheck-first order the learner relies on.
 7. **No Python 3.9+:** follow "Without Python or a lasting folder" below.
 
@@ -85,9 +85,9 @@ If you are about to do any of these, stop and take the structural route instead.
 | `review` | "weekly review", "review my week", "am I on track?", a yes to the close offer | The weekly review, plus 1–3 decisions | [review.md](references/review.md) |
 | `sync` | "put it in my calendar", "fix my calendar" | Calendar diff, preview, write, then read back | [calendar.md](references/calendar.md) |
 | `migrate <path>` | "use my existing notes" | Import a hand-run study system without losing anything | [migrate.md](references/migrate.md) |
-| `forget` (v0.2) | "delete what you recorded about…" | Not in v0.1, and scripts never delete learner data. Say so. Deleting the whole workspace folder removes everything; deleting one subject's folder leaves its rows in `plan/blocks.jsonl`, `ledger.jsonl` and `plan/ics/`, and the brief then fails until its entry leaves `subjects` in `indelible.json`. The learner deletes; never delete or edit inside a data file | none |
+| `forget` (v0.2) | "delete what you recorded about…" | Not in v0.1; say so. Scripts never delete learner data, and you never delete or edit inside a data file. The learner deletes: the whole workspace folder removes everything; one subject's folder leaves its rows in `plan/blocks.jsonl`, `ledger.jsonl` and `plan/ics/`, and the brief fails until its entry leaves `subjects` in `indelible.json` | none |
 
-Sheets, check lines, the checker (lint), keys and evidence are covered in [sheets.md](references/sheets.md), which applies to every command that builds or grades a sheet. The reasons behind every rule, and how strong the evidence is, are in [method.md](references/method.md).
+[sheets.md](references/sheets.md) covers sheets, check lines, the checker, keys and evidence for every command that builds or grades a sheet. [method.md](references/method.md) gives the reason for every rule, and how strong its evidence is.
 
 ### Routing
 
@@ -101,37 +101,37 @@ Sheets, check lines, the checker (lint), keys and evidence are covered in [sheet
 
 ### Questions outside a session (`ask`)
 
-A question about the subject's content ("what does 'median' mean again?"), asked in a workspace with no session running. It opens no lock and no session. During a session, the session's references cover questions instead.
+A content question ("what does 'median' mean again?") in a workspace with no session running; it opens no lock and no session.
 
-1. **Read the state:** `ind brief <s>` (without `--open`, so it counts no open) and `ind sheet show <s> --status issued`.
-2. **A question on a sheet that is out** (issued and not yet marked) is sealed (Law 3): "Write 'I don't know' for now. We'll go through it right after marking." Say nothing more about it.
-3. **Otherwise ask before telling** (Law 2): one probe ("What do you remember about it?"), or a pointer to the sheet that taught it ("Look at 'What it is and why' on your sheet about it."). "Teach me X", or a question that needs a lesson, goes to `session`.
-4. **If you still explain,** keep it to a few lines, then run `ind session expose <s> <T> --kind chat` at once. If it prints a WARN about a booked 2-day recheck, run `ind plan check` and move that recheck as [plan.md](references/plan.md) says (a preview and a yes before any calendar write). Tell the learner only "Your next 2-day recheck moves to <day>, so it still counts": never its topics or its block id.
+1. **Read the state:** `ind brief <s>` (no `--open`) and `ind sheet show <s> --status issued`.
+2. **A question on a sheet that is out** (issued, not yet marked) is sealed (Law 3): "Write 'I don't know' for now. We'll go through it right after marking." Nothing more.
+3. **Otherwise ask before telling** (Law 2): one probe ("What do you remember about it?"), or a pointer to the sheet that taught it ("Look at 'What it is and why' on your sheet about it."). "Teach me X", or a question needing a lesson, goes to `session`.
+4. **If you still explain,** keep it to a few lines, then `ind session expose <s> <T> --kind chat` at once. A WARN about a booked 2-day recheck: `ind plan check`, and move that recheck as [plan.md](references/plan.md) says (a preview and a yes before any calendar write). Tell the learner only "Your next 2-day recheck moves to <day>, so it still counts", never its topics or block id.
 
 ## File contract
 
-- **The workspace belongs to the learner.** It is found through `--workspace`, `INDELIBLE_WORKSPACE`, an `indelible.json` in a parent folder, or `~/.indelible/workspace`.
-- **Facts live in `data/*.jsonl` and `*.json`,** and they are written only by `ind`. `views/*.md` are generated from them; never edit a view.
+- **The workspace belongs to the learner,** found through `--workspace`, `INDELIBLE_WORKSPACE`, an `indelible.json` in a parent folder, or `~/.indelible/workspace`.
+- **Facts live in `data/*.jsonl` and `*.json`,** written only by `ind`; `views/*.md` are generated from them: never edit a view.
 - **Run `ind schema <record>` instead of guessing a field name.**
-- **Keys live in `<subject>/.indelible/keys/`.** Never read, grep or list that folder yourself. `ind key open` is the only way in.
+- **Keys live in `<subject>/.indelible/keys/`.** Never read, grep or list that folder; `ind key open` is the only way in.
 - **Notes (`notes/`) are append-only** and are never read at session open.
 - **Size caps** keep every session cheap: the brief is at most 4,500 characters, a subject's `CLAUDE.md` at most 80 lines, and one log line at most 200 characters. `ind compact` runs at close.
-- **Write session facts when they happen, not at the close.** A promise goes to `ind ledger add owed` as it is made (law 5); an agreed extension to `ind session extend`; anything explained in chat to `ind session expose <s> <T> --kind chat` at once; a sealed question that got discussed gets its contamination defect at once ([session-grade.md](references/session-grade.md) §10). What is only in the chat is lost at a context compaction.
-- **After a context compaction,** re-read the current command's reference, then rebuild the state with `ind session status <s>` (the time, any extension and the sheets out) and `ind ledger list --kind owed --open --subject <s>`.
+- **Write session facts when they happen,** since what is only in the chat is lost at a context compaction: a promise to `ind ledger add owed` (Law 5); an agreed extension to `ind session extend`; anything explained in chat to `ind session expose <s> <T> --kind chat`; a discussed sealed question to its contamination defect ([session-grade.md](references/session-grade.md) §10).
+- **After a context compaction,** re-read the current command's reference, then rebuild the state with `ind session status <s>` (the time, any extension, the sheets out) and `ind ledger list --kind owed --open --subject <s>`.
 
 ## Surfaces
 
-- **Claude Code (terminal or desktop):** supported in v0.1. It gives a lasting folder, the builder subagent and connectors.
-- **Cowork with a shared folder:** untested in v0.1. It should work like Claude Code, with the workspace inside the shared folder.
-- **claude.ai chat and the mobile app:** a limited manual mode only (setup step 1). Full support is planned for v0.2 and is not available yet.
-- **Without a calendar connector:** give an `.ics` file (`ind cal ics`) or a table in `views/week.md`. A study session is never blocked because of the calendar.
-- **Plain vocabulary** is the default, so the learner sees "2-day recheck", "fixed", "to do" and "question". The mapping is in [sheets.md](references/sheets.md).
+- **Claude Code (terminal or desktop):** supported in v0.1: a lasting folder, the builder subagent and connectors.
+- **Cowork with a shared folder:** untested in v0.1; it should work like Claude Code, with the workspace inside the shared folder.
+- **claude.ai chat and the mobile app:** a limited manual mode only (setup step 1); full support is planned for v0.2.
+- **Without a calendar connector:** an `.ics` file (`ind cal ics`) or a table in `views/week.md`. The calendar never blocks a study session.
+- **Plain vocabulary** is the default: the learner sees "2-day recheck", "fixed", "to do" and "question" ([sheets.md](references/sheets.md) §12).
 
 ## Without Python or a lasting folder
 
-When `ind doctor` can't run (no Python 3.9+), say so once and offer a manual mode under the same laws; with no lasting folder, setup step 1 has already offered it. Nothing enforces the laws here, so keep them by hand.
+When `ind doctor` can't run (no Python 3.9+), say so once and offer a manual mode under the same laws (with no lasting folder, setup step 1 has offered it). Nothing enforces the laws here: keep them by hand.
 
-- **Sheets:** `external` pages from the learner's own book, and short probes asked in chat. With the Agent tool, the builder may write a sheet and its answers as two files, `<ws>/manual/<sheet>.md` and `<sheet>.answers.md`; open the answers file only after the learner's answers are in a file or in chat (Law 1). With no Agent tool, build no sheet that needs a key; a theory sheet, which has none, may still be a file.
+- **Sheets:** `external` pages from the learner's own book, and short probes asked in chat. With the Agent tool, the builder may write a sheet and its answers as two files, `<ws>/manual/<sheet>.md` and `<sheet>.answers.md`; open the answers only once the learner's answers are in (Law 1). With no Agent tool, build no sheet that needs a key; a theory sheet, which has none, may still be a file.
 - **Records:** one plain Markdown file per subject that the learner keeps (`<ws>/manual/<subject>-record.md`): date, what was taught, results, mistakes as wrong ideas (never the right answer), and their next dates, worked out by hand (recheck 44–72 h after teaching; mistakes after 1, 3, 7 and 21 days). Label every number `[unverified]`.
 - **No lasting folder:** give each sheet and the updated record as a file for the learner to save (never an answers file before the attempt is in), and say this chat won't keep them.
 - **Session open:** there is no brief. Ask the learner to paste or point to their record, and read only that.

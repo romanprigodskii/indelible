@@ -7,7 +7,7 @@ Privacy: this repository is public. Every example uses the synthetic learners Aâ
 ## 1. Scope
 
 **In v0.1:**
-- **The skill:** SKILL.md with laws, bans and a router; one reference file per command.
+- **The skill:** SKILL.md with laws, bans and a router; one reference file per command. What a study session loads (SKILL.md and the session-open, session-grade, session-teach, sheets and close references) totals at most 110,000 characters.
 - **`indelible.py`:** a Python CLI (standard library only, Python 3.9+) for setup, the session open summary (the brief), the session lock and close checklist, and the spacing ladder.
 - **More CLI jobs:** grading records, levels, sheet specs, the sheet checker (lint) and rendering, keys kept apart, evidence filing, plan blocks and their checks, calendar operations (diff and ack) plus `.ics` export, the ledger, stats, the weekly review and compaction.
 - **Sheet building by a builder subagent**, so answers never enter the main conversation.

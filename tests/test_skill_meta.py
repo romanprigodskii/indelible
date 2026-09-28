@@ -1,9 +1,16 @@
-"""The SKILL.md frontmatter fits the Agent Skills limits, and the trigger evals are well formed.
+"""The SKILL.md frontmatter fits the Agent Skills limits, a session's instructions fit their
+budget, and the trigger evals are well formed.
 
 The Agent Skills format caps the description at 1,024 characters and
 compatibility at 500. The description decides when the skill starts, and it
 sits close to its cap, so an edit that adds a trigger must not quietly push
 it past.
+
+A study session loads SKILL.md and five references (session-open, -grade and
+-teach, sheets and close), and every character of them is paid for again in
+each session and after each compaction. Their total is capped at 110,000
+characters: material only the builder reads belongs in builder.md, and a rule
+is said once, in the file that owns it.
 
 evals/trigger.json can only be run with a model (README.md, "Contributing"),
 so no test here says whether a prompt triggers. These tests check what can go
@@ -27,6 +34,9 @@ NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 DESCRIPTION_MAX = 1024
 COMPATIBILITY_MAX = 500
 NAME_MAX = 64
+SESSION_FILES = ("SKILL.md", "references/session-open.md", "references/session-grade.md",
+                 "references/session-teach.md", "references/sheets.md", "references/close.md")
+SESSION_LOAD_MAX = 110000
 
 
 def frontmatter():
@@ -66,6 +76,14 @@ class Frontmatter(unittest.TestCase):
         self.assertIsInstance(c, str)
         self.assertLessEqual(len(c), COMPATIBILITY_MAX,
                              "compatibility is %d characters; the limit is %d" % (len(c), COMPATIBILITY_MAX))
+
+
+class SessionLoad(unittest.TestCase):
+    def test_a_sessions_instructions_fit_their_budget(self):
+        sizes = dict((name, len((SKILL_DIR / name).read_text(encoding="utf-8"))) for name in SESSION_FILES)
+        total = sum(sizes.values())
+        self.assertLessEqual(total, SESSION_LOAD_MAX, "a session loads %d characters (%s); the budget is %d" % (
+            total, ", ".join("%s %d" % (n.split("/")[-1], s) for n, s in sizes.items()), SESSION_LOAD_MAX))
 
 
 class TriggerEvals(unittest.TestCase):

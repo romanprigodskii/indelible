@@ -36,6 +36,7 @@ except ImportError:  # run as part of the tests package
     from tests.helpers import SKILL_DIR
 
 import indelible  # helpers put scripts/ on sys.path
+from lib import lint
 
 SPAN_RE = re.compile(r"`(ind [^`]+)`")
 FENCE_RE = re.compile(r"^\s*```")
@@ -295,6 +296,26 @@ class SectionPointers(unittest.TestCase):
                 bad += ["%s:%d %s" % (path.name, no, m.group(0)) for m in BUILDER_RULE_RE.finditer(line)
                         if m.group(1) not in rules]
         self.assertEqual(bad, [], "pointers to a builder.md writing rule that doesn't exist")
+
+
+class CheckerRules(unittest.TestCase):
+    """builder.md's checker table is the builder's copy of the lint rules; sheets.md §7 names them."""
+
+    def test_the_builders_table_has_every_rule_in_order(self):
+        builder = (SKILL_DIR / "assets" / "prompts" / "builder.md").read_text(encoding="utf-8")
+        table = builder.split("### The checker", 1)[1].split("\n### ", 1)[0]
+        rows = re.findall(r"^\| ((?:L|W)\d+)( [^|]+?)? \|", table, re.M)
+        self.assertEqual([r for r, _ in rows], lint.RULES)
+        for rule, title in rows:
+            if rule.startswith("L"):
+                self.assertEqual(title.strip().lower(), lint.TITLES[rule].lower(), rule)
+
+    def test_sheets_md_names_every_rule_with_its_title(self):
+        stub = sections((SKILL_DIR / "references" / "sheets.md").read_text(encoding="utf-8"))[7]
+        for rule in lint.RULES:
+            if rule.startswith("L"):
+                self.assertIn(("%s %s" % (rule, lint.TITLES[rule])).lower(), stub.lower(), rule)
+        self.assertIn("W1–W%d" % len([r for r in lint.RULES if r.startswith("W")]), stub)
 
 
 if __name__ == "__main__":
