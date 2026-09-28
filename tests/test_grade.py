@@ -799,6 +799,66 @@ class GradingRegressionTests(GradeBase):
         self.assertEqual(blocks["B-20261021-ielts-1"]["status"], "planned")   # booked for later: left open
         self.assert_no_secrets()
 
+    def test_a_two_topic_recheck_stays_open_for_the_topic_served_too_thinly(self):
+        add_exposure(self.ws, self.sid, "T01", "2026-10-12T07:40+01:00")
+        add_exposure(self.ws, self.sid, "T04", "2026-10-12T07:40+01:00")
+        b = cold_obligation("B-20261014-ielts-2", self.sid, "T01", "2026-10-14T03:40+01:00", "2026-10-15T07:40+01:00")
+        b["content"] = "cold:T01,T04"
+        add_blocks(self.ws, [b])
+        items = [make_item(1, "T01", ["1a"], origin="cold:T01", layer="reading"),
+                 make_item(2, "T04", ["2a"], origin="cold:T04"), make_item(3, "T04", ["3a"], origin="cold:T04")]
+        key = write_sheet(self.ws, self.sid, "ielts-cold-09", "cold", items, block="B-20261014-ielts-2")
+        self.remember_key(key)
+        r = self.grade("ielts-cold-09", {"date": "2026-10-14", "start": "08:00", "stop": "08:03",
+                                         "least_sure_line": "none", "asks": [
+            {"ask": a, "verdict": "right", "check": "filled"} for a in ("1a", "2a", "3a")]})
+        self.assertIn("Levels: T04 0 → 3", r.stdout)
+        self.assertNotIn("2-day recheck done", r.stdout)
+        self.assertIn("Recheck B-20261014-ielts-2 stays open for T01 (T04 served).", r.stdout)
+        self.assertIn("Its 2-day recheck stays open: serve it again, with at least 2 questions, before Thu 15 Oct "
+                      "07:40.", r.stdout)
+        blocks = dict((b["id"], b) for b in read_rows(self.ws / "plan" / "blocks.jsonl"))
+        self.assertEqual(blocks["B-20261014-ielts-2"]["status"], "planned")
+        # Not served again in its window: a late recheck for T01 alone (T04 used its serve).
+        r = self.cli(["due", self.sid, "--list"], now="2026-10-16T10:00+01:00")
+        late = r.stdout.split("0. late rechecks", 1)[1].split("1. 2-day", 1)[0]
+        self.assertIn("B-20261014-ielts-2 T01 Matching headings", late)
+        self.assertNotIn("T04", late)
+        self.assertIn("LATE RECHECK (plan.md §7): B-20261014-ielts-2 T01 Matching headings",
+                      self.cli(["brief", self.sid], now="2026-10-16T10:00+01:00").stdout)
+        # Had it been served again with 2 questions inside its window (due and brief write nothing), the block closes.
+        items = [make_item(n, "T01", ["%da" % n], origin="cold:T01", layer="reading") for n in (1, 2)]
+        key = write_sheet(self.ws, self.sid, "ielts-cold-10", "cold", items, block="B-20261014-ielts-2",
+                          issued="2026-10-15T06:55+01:00")
+        self.remember_key(key)
+        r = self.grade("ielts-cold-10", {"date": "2026-10-15", "start": "07:00", "stop": "07:05",
+                                         "least_sure_line": "none", "asks": [
+            {"ask": "%da" % n, "verdict": "right", "check": "filled"} for n in (1, 2)]}, now="2026-10-15T07:10+01:00")
+        self.assertIn("2-day recheck done: T01 (B-20261014-ielts-2)", r.stdout)
+        blocks = dict((b["id"], b) for b in read_rows(self.ws / "plan" / "blocks.jsonl"))
+        self.assertEqual(blocks["B-20261014-ielts-2"]["status"], "done")
+        self.assert_no_secrets()
+
+    def test_a_two_topic_recheck_stays_open_for_the_topic_seen_too_recently(self):
+        add_exposure(self.ws, self.sid, "T02", "2026-10-12T07:40+01:00")
+        add_exposure(self.ws, self.sid, "T04", "2026-10-12T07:40+01:00")
+        add_exposure(self.ws, self.sid, "T02", "2026-10-13T20:00+01:00", kind="chat")   # 12 h before the sitting
+        b = cold_obligation("B-20261014-ielts-2", self.sid, "T02", "2026-10-14T03:40+01:00", "2026-10-15T07:40+01:00")
+        b["content"] = "cold:T02,T04"
+        add_blocks(self.ws, [b])
+        items = [make_item(1, "T02", ["1a", "1b"], origin="cold:T02", layer="reading"),
+                 make_item(2, "T04", ["2a", "2b"], origin="cold:T04")]
+        key = write_sheet(self.ws, self.sid, "ielts-cold-09", "cold", items, block="B-20261014-ielts-2")
+        self.remember_key(key)
+        r = self.grade("ielts-cold-09", {"date": "2026-10-14", "start": "08:00", "stop": "08:05",
+                                         "least_sure_line": "none", "asks": [
+            {"ask": a, "verdict": "right", "check": "filled"} for a in ("1a", "1b", "2a", "2b")]})
+        self.assertIn("Not counted (seen too recently", r.stdout)
+        self.assertIn("Recheck B-20261014-ielts-2 stays open for T02 (T04 served).", r.stdout)
+        blocks = dict((b["id"], b) for b in read_rows(self.ws / "plan" / "blocks.jsonl"))
+        self.assertEqual(blocks["B-20261014-ielts-2"]["status"], "planned")
+        self.assert_no_secrets()
+
     def test_a_mixed_sheet_serves_no_recheck_and_moves_no_warm_mistake(self):
         # T01 taught Mon; its 2-day recheck is open. Two slips are due; T04 was drilled
         # an hour before a mixed practice sheet that carries a cold:T01 item anyway.

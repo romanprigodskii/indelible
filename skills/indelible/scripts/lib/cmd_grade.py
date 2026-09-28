@@ -39,7 +39,8 @@ What it does, in order:
      item on a practice sheet serves nothing: it leaves the recheck open and
      the topic's ``last_cold`` unset. Nor does a topic with fewer than
      MIN_COLD_ASKS counted questions (a words recheck excepted): it can't be a
-     cold pass, so the note says so and its recheck stays open. A practice sheet
+     cold pass, so the note says so and its recheck stays open, even on a block
+     booked for several topics (so does one seen too recently). A practice sheet
      logs a ``drill`` exposure per topic, timed at the sitting, and moves the
      window of a 2-day recheck still to come, as session expose does; a
      measuring sheet logs none (feedback given afterwards is logged with
@@ -208,14 +209,18 @@ def _serves(block, sit_at, tz):
     return dates.plus(f, hours=-slack) <= sit_at <= dates.plus(t, hours=slack)
 
 
-def close_cold_obligations(ws, subject_id, topics, sit_at=None, sheet_block=None):
+def close_cold_obligations(ws, subject_id, topics, sit_at=None, sheet_block=None, keep_open=(), left_open=None):
     """Mark done the recheck block this sitting served. Returns [(topic, block id)].
 
     The served block is the sheet's linked block when it is an open recheck
     holding one of ``topics``; otherwise every open recheck block of those
     topics whose time (or, for an obligation or a block whose time passed
     unsat, whose window) holds the sitting, within SERVED_SLACK_H hours. Later
-    rechecks, booked for another day, stay open.
+    rechecks, booked for another day, stay open. So does a served block that
+    also holds a topic in ``keep_open`` (one this sitting served with too few
+    counted questions, or seen in the 24 h before it): its recheck is still
+    owed, and ``left_open`` (a list) gets (block id, served topics, open topics).
+    The topics served there drop out of the late-recheck check by their last_cold.
     """
     if not topics:
         return []
@@ -239,6 +244,11 @@ def close_cold_obligations(ws, subject_id, topics, sit_at=None, sheet_block=None
             if b is not linked:
                 continue
         elif sit_at is not None and not _serves(b, sit_at, None):
+            continue
+        still = [t for t in cold_topics_of(b) if t in keep_open]
+        if still:
+            if left_open is not None:
+                left_open.append((b.get("id"), hit, still))
             continue
         b["status"] = "done"
         closed.extend((t, b.get("id")) for t in hit)
@@ -582,7 +592,11 @@ def cmd_grade_record(args):
                                    and not learning.REASKED_RE.match(a["origin"])])
                     thin.append((t, n_counted, learning.needs_window(t, topics_state.get(t), exposures), pending))
             served = [t for t in served if t not in [x[0] for x in thin]]
-        closed = close_cold_obligations(ws, subj.id, served, sit_at=sit_at, sheet_block=sheet.get("block"))
+        # A recheck block holding a topic this sitting left open (thin, or seen too recently) stays open for it.
+        kept = []
+        closed = close_cold_obligations(
+            ws, subj.id, served, sit_at=sit_at, sheet_block=sheet.get("block"), left_open=kept,
+            keep_open=[x[0] for x in thin] + [t for t in contaminated_topics if t in cold_topics])
 
         # Which sittings count as cold passes is decided only by the level rules
         # (learning.compute_levels_from, from attempts.jsonl); level_basis names it.
@@ -707,6 +721,8 @@ def cmd_grade_record(args):
     out("Levels: " + (fmt_changes(changes, subj) if changes else "no change"))
     if closed:
         out("2-day recheck done: " + ", ".join("%s (%s)" % (t, b) for t, b in closed))
+    for bid, done_ts, open_ts in kept:
+        out("Recheck %s stays open for %s (%s served)." % (bid, ", ".join(open_ts), ", ".join(done_ts)))
     if contaminated_topics:
         dirty = [a["ask"] for a in attempts if a.get("contaminated")]
         out("Not counted (seen too recently, in the 24 h before the sitting): %s on %s. Its 2-day recheck "
