@@ -206,7 +206,7 @@ With `vocab: plain` the learner sees:
 | contaminated | not counted (seen too recently) |
 | level | mastery 0–5 |
 
-Also "fix sheet" (repair), "short check" (probe), "the sheet checker" (lint), "the answers" (key). Never show ids (`E-…`, `B-…`, `S-…`, `L-…`) or rule codes.
+Also "fix sheet" (repair), "short check" (probe), "the sheet checker" (lint), "the answers" (key). Never show ids (`E-…`, `B-…`, `S-…`, `L-…`) or rule codes. The sheet code printed in a sheet's header (`IELTS-07`) is not an id: it is the learner's label for the page, so name it when handing over or matching a photo.
 
 ## 13. Access layout (on request)
 
