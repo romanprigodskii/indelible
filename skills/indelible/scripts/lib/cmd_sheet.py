@@ -686,8 +686,9 @@ def _definitions_not_out(subj, spec):
 
 def _issue_checks(ws, subj, spec, row, block_id):
     """Law 4 and Law 3 at the moment of issue: never over the block's budget, never
-    a recheck that is not eligible at the time it will be sat, and never a second
-    cold or mixed sheet for a recheck or mistake already in hand. Refuses (exit 1)."""
+    a recheck or re-served mistake (L7, on cold and mixed sheets) that is not
+    eligible at the time it will be sat, and never a second cold or mixed sheet
+    for a recheck or mistake already in hand. Refuses (exit 1)."""
     probs = []
     if spec.get("type") in RESERVE_TYPES:
         probs += _in_hand_clashes(subj, spec, row)
@@ -703,11 +704,13 @@ def _issue_checks(ws, subj, spec, row, block_id):
                 "cut questions and rebuild it"
             probs.append("~%s min is over the budget of %s min (%s): %s"
                          % (_num(est), _num(round(budget, 1)), basis, fix))
-    if spec.get("type") == "cold":
-        results = lint.run(ws, subj, spec, row, block=block_id)
-        for r in results:
+    if spec.get("type") in lint.RECHECK_TYPES:
+        # A sheet built ahead was judged at build time or at its block's start; the
+        # learner may have met a topic since, so L7 runs again at the sitting time.
+        what = "the recheck is" if spec.get("type") == "cold" else "a recheck or mistake item is"
+        for r in lint.run(ws, subj, spec, row, block=block_id):
             if r["rule"] == "L7" and r["status"] == "FAIL":
-                probs.append("the recheck is not valid when it will be sat: " + r["detail"])
+                probs.append("%s not valid when it will be sat: %s" % (what, r["detail"]))
     if probs:
         raise CheckFailed("Refused: %s was not issued.\n  %s" % (spec.get("id") or row.get("id"), "\n  ".join(probs)))
 

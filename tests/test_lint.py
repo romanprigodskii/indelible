@@ -7,6 +7,7 @@ L8 the sealed key) are also run through the CLI.
 
 import json
 import os
+import re
 import shutil
 import tempfile
 import unittest
@@ -840,6 +841,57 @@ class CliLintTests(Base):
         self.assertEqual(run(["sheet", "void", SUBJECT, one["id"], "--reason", "not sat"], ws=self.ws,
                              now=NOW).returncode, 0)
         self.assertEqual(run(["sheet", "issue", SUBJECT, two["id"], "--block", bid], ws=self.ws, now=NOW).returncode, 0)
+
+    def test_a_sheet_built_for_a_block_takes_its_minutes_only_once_issued(self):
+        # The builder links each sheet to its block at build. A practice sheet built at
+        # the close and waiting as rendered may still be cut, so the sheet issued first
+        # (the recheck, at the open) is never refused for it; the one issued last is.
+        bid = self.plan_block("teach", "2026-10-13T07:00+01:00", 60)   # 48 min
+        ahead = drills_spec("ielts-x-01", est_min=40)
+        first = drills_spec("ielts-x-02", est_min=10)
+        for spec in (ahead, first):
+            self.assertEqual(new_sheet(self.ws, spec, extra=["--block", bid]).returncode, 0)
+            self.assertEqual(self.lint(spec["id"], "--budget-min", "40").returncode, 0)
+            self.assertEqual(run(["sheet", "build", SUBJECT, spec["id"], "--format", "md"], ws=self.ws,
+                                 now=NOW).returncode, 0)
+        self.assertEqual(sheet_row(self.ws, ahead["id"])["block"], bid)
+        r = run(["sheet", "issue", SUBJECT, first["id"], "--block", bid], ws=self.ws, now=NOW)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        r = run(["sheet", "issue", SUBJECT, ahead["id"], "--block", bid], ws=self.ws, now=NOW)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("over the budget of 38 min (0.8 × block %s of 60 min, less 10 min on ielts-x-02)" % bid,
+                      r.stdout + r.stderr)
+
+    def test_a_mixed_sheet_built_ahead_is_judged_at_its_block_and_again_at_issue(self):
+        # Built at Monday's close for Wednesday's block: a slip due Tuesday on T04, a
+        # topic drilled an hour ago. Judged now it fails; at the block's start it holds.
+        add_exposure(self.ws, "T04", "2026-10-10T08:00+01:00")
+        add_exposure(self.ws, "T04", "2026-10-12T08:00+01:00", kind="drill")
+        r = run(["error", "add", SUBJECT, "--topic", "T04", "--kind", "slip", "--mode", "C",
+                 "--belief", "copied the wrong line", "--account", "slip"], ws=self.ws, now=NOW)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        eid = re.search(r"E-ielts-\d+", r.stdout).group(0)
+        spec = cold_spec("ielts-mixed-01", type="mixed", title="Part A")
+        for it in spec["items"]:
+            it["origin"] = "new"
+        spec["items"][0]["origin"] = "error:%s" % eid
+        self.assertEqual(new_sheet(self.ws, spec).returncode, 0)
+        l7 = self.line(self.lint(spec["id"], "--budget-min", "20"), "L7")
+        self.assertTrue(l7.startswith("L7 FAIL"), l7)
+        self.assertIn("not due until", l7)
+        bid = self.plan_block("teach", "2026-10-14T07:00+01:00", 30)
+        r = self.lint(spec["id"], "--budget-min", "20", "--block", bid)
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertIn("eligible at the start of block %s" % bid, self.line(r, "L7"))
+        self.assertEqual(run(["sheet", "build", SUBJECT, spec["id"], "--format", "md"], ws=self.ws,
+                             now=NOW).returncode, 0)
+        # T04 is drilled again the evening before: issue judges the mixed sheet again.
+        add_exposure(self.ws, "T04", "2026-10-13T20:00+01:00", kind="drill")
+        r = run(["sheet", "issue", SUBJECT, spec["id"], "--block", bid], ws=self.ws, now="2026-10-14T06:30+01:00")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("a recheck or mistake item is not valid when it will be sat", r.stdout + r.stderr)
+        self.assertIn("less than 24 h", r.stdout + r.stderr)
+        self.assertEqual(sheet_row(self.ws, spec["id"])["status"], "rendered")
 
     def test_the_open_sessions_minutes_count_on_its_own_block(self):
         bid = self.plan_block("teach", "2026-10-12T09:15+01:00", 45)   # a slot split: 15 recheck + 45

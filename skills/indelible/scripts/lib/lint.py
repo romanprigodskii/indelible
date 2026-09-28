@@ -8,14 +8,15 @@ sheets show, the sealed key, and the time the sheet will be sat). ``run(...)``
 does both.
 
 When the sheet is linked to a block (``sheet new/lint --block``, or the
-sheet row's block), L5 uses that block's minutes, less the other sheets on it,
-and L7 judges cold items at the block's start while the block is still ahead:
-the time the sheet will be sat, not build time (``--at`` names another time).
-``sheet issue`` checks both again. The skill builds a recheck only at the
-open, inside its window, so this is a safety net for a sheet issued before
-its block. L5 also recomputes the builder's own estimate from the
-subject's ``pace_s`` (``pace_floor``) and fails a lower ``est_min``, since the
-estimate is written by the party whose sizing it checks. W5 adds the reading
+sheet row's block), L5 uses that block's minutes, less the sheets already
+issued on it, and L7 judges cold and mixed items at the block's start while
+the block is still ahead: the time the sheet will be sat, not build time
+(``--at`` names another time). The builder links every sheet to its block, so
+a mixed sheet built at the close is judged at the next block. ``sheet issue``
+checks both again, since the learner may meet a topic in between. L5 also
+recomputes the builder's own estimate from the subject's ``pace_s``
+(``pace_floor``) and fails a lower ``est_min``, since the estimate is written
+by the party whose sizing it checks. W5 adds the reading
 a theory, example or repair sheet asks for (``reading_words``, at a fast 150
 words a minute), which the pace floor leaves out. A measurement
 (diagnostic, mock, checkpoint) is exempt from the session's question budget,
@@ -95,6 +96,7 @@ VERBAL_LAYERS = ("verbal", "reading")
 MIN_LEAK_LEN = 3
 BUDGET_FRACTION = 0.8
 RECORD_MIN = 10     # a measurement block holds the exam clock plus 10–15 minutes to record (measure.md §4)
+HANDED_OVER = ("issued", "sat", "graded")   # the sheets on a block that take its minutes
 # W5: the sheets read in full before their pencils, and the reading pace it allows. builder.md budgets
 # 120 words a minute (90 in a second language); 150 is a fast reader, so W5 warns only when even
 # that reader could not finish.
@@ -1007,15 +1009,17 @@ def format_line(r):
 # ==========================================================================
 
 def _block_siblings(subject, block_id, sheet_id):
-    """(minutes, ids) of the other sheets linked to a block and not void: graded ones
-    too, since a sheet already marked in the block used its minutes."""
+    """(minutes, ids) of the other sheets already handed over on a block (issued, sat
+    or graded: a sheet already marked in the block used its minutes). A sheet built
+    for the block and not issued yet is left out: it may still be cut, and the sheet
+    issued last is the one refused, never the recheck that opens the session."""
     try:
         rows = subject.load_sheets()
     except Exception:
         return 0.0, []
     total, ids = 0.0, []
     for r in rows:
-        if r.get("block") != block_id or r.get("id") == sheet_id or r.get("status") == "void":
+        if r.get("block") != block_id or r.get("id") == sheet_id or r.get("status") not in HANDED_OVER:
             continue
         est = r.get("est_min")
         if isinstance(est, bool) or not isinstance(est, (int, float)):
@@ -1047,8 +1051,9 @@ def budget_for(ws, subject, spec, row=None, budget_min=None, block=None):
     it keeps for recording (measure.md §4: the exam clock plus 10–15 minutes).
     A practice sheet on the block of the open session uses the session's planned
     minutes (with its extension) when they are longer: a slot split into a
-    recheck block and a session block is one session. Every other sheet on the
-    block, not void, is taken off, so sheets are sized together, not one by one.
+    recheck block and a session block is one session. Every other sheet already
+    issued on the block (sat and graded too) is taken off, so sheets are sized
+    together, not one by one.
     Else 0.8 × the default session; a measurement never uses that, and a mock or
     checkpoint falls back to the exam's own minutes (``format.minutes``).
     """

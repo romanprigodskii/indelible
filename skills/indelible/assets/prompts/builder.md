@@ -23,7 +23,8 @@ SERVE       what to serve, one per line, most important first:
               new:<topic> "<topic name>"
               official:<source> "<pointer, e.g. Test 2, questions 1-13>"
 BUDGET_MIN  minutes the sheet may take
-BLOCK       block id, or none
+BLOCK       the block it will be sat in (the session's, or for a sheet built ahead, that
+            next block), or none
 LEVELS      mastery of each topic served, e.g. T01 2 · T04 3p
 PROFILE     profile; answer_form; tools; reference_sheet
 L1          learner.l1 and learner.gloss, e.g. pt, first_use
@@ -104,11 +105,11 @@ Never print, echo, `cat` or summarise the answers file. Never put an answer in a
 `<tmp>` is `<WS>/<SUBJECT>/.indelible/tmp`.
 
 0. `IND sheet show <SUBJECT>`. If SHEET exists as `built`, `linted` or `rendered` (an earlier failed build), reuse it with `--replace` in step 1. If it is `issued` or later, take the next free NN (the number before the type, for a theory and its drills) and use it everywhere.
-1. `IND sheet new <SUBJECT> <SHEET> --spec <tmp>/<SHEET>.spec.json --answers <tmp>/<SHEET>.answers.json`. It prints `<SHEET> built: N questions, ~M min, key sealed sha256:…` and deletes the answers file.
-2. `IND sheet lint <SUBJECT> <SHEET> --budget-min <BUDGET_MIN>`. On any FAIL: fix the spec, write the answers file again, re-run step 1 with `--replace`, and lint again. At most 3 fix rounds. Fix WARN lines too where you can. If L7 refuses an item, drop it and take the next SERVE entry that fits; if L7 finds a recheck topic with one question, add a second or drop the topic; if L5 fails, cut from the end of SERVE, whole topics on a recheck. On a diagnostic, mock or checkpoint, cut nothing: return FAILED with the L5 line, so the part is split into sittings or given a longer block.
+1. `IND sheet new <SUBJECT> <SHEET> --spec <tmp>/<SHEET>.spec.json --answers <tmp>/<SHEET>.answers.json`, adding `--block <BLOCK>` unless BLOCK is none. It prints `<SHEET> built: N questions, ~M min, key sealed sha256:…` and deletes the answers file.
+2. `IND sheet lint <SUBJECT> <SHEET> --budget-min <BUDGET_MIN>`, adding `--block <BLOCK>` unless BLOCK is none, so L7 judges the sheet at the block's start, when it will be sat, not now. On any FAIL: fix the spec, write the answers file again, re-run step 1 with `--replace`, and lint again. At most 3 fix rounds. Fix WARN lines too where you can. If L7 refuses an item, drop it and take the next SERVE entry that fits; if L7 finds a recheck topic with one question, add a second or drop the topic; if L5 fails, cut from the end of SERVE, whole topics on a recheck. On a diagnostic, mock or checkpoint, cut nothing: return FAILED with the L5 line, so the part is split into sittings or given a longer block.
 3. `IND sheet build <SUBJECT> <SHEET>`, adding `--format <FORMAT>` unless FORMAT is default. It prints the path.
 
-Never run `sheet issue`: the main conversation issues the sheet when it hands it over, against BLOCK (the session's block). Lint uses BUDGET_MIN, not BLOCK.
+Never run `sheet issue`: the main conversation issues the sheet when it hands it over, against BLOCK. BLOCK sets the time L7 judges at; the budget is BUDGET_MIN (`--budget-min` wins over the block's minutes).
 
 An exit code of 2 is a usage or unexpected error: read the message, fix, and retry once.
 
