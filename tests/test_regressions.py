@@ -395,7 +395,7 @@ class SheetRegressions(TmpCase):
         text = u"1a: Ação ≤ 3\n2a: Ñandú\n"
         self.cli(["scan", "ingest", SUBJECT, sid, "--transcript", "-"], stdin=text,
                  env={"PYTHONUTF8": None, "PYTHONIOENCODING": "cp1252"})
-        saved = subject_dir(self.ws) / "scans" / ("2026-10-12-%s-answers.txt" % sid)
+        saved = subject_dir(self.ws) / "scans" / ("2026-10-12-%s-transcript.txt" % sid)
         self.assertEqual(saved.read_text(encoding="utf-8"), text)
 
     def test_scan_ingest_dir_keeps_a_code_projects_layout(self):

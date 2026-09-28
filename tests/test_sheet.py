@@ -619,13 +619,49 @@ class ScanTests(SheetBase):
                          "1a: shut\n")
         r = self.ok(self.cli("scan", "ingest", SUBJECT, spec["id"], "--transcript", "-",
                              stdin="1a: shut\n2a: rose\nLeast sure of: 2\n"))
-        self.assertIn("2026-10-12-ielts-drills-01-answers.txt", r.stdout)
-        saved = subject_dir(self.ws) / "scans" / "2026-10-12-ielts-drills-01-answers.txt"
+        self.assertIn("2026-10-12-ielts-drills-01-transcript.txt", r.stdout)
+        saved = subject_dir(self.ws) / "scans" / "2026-10-12-ielts-drills-01-transcript.txt"
         self.assertIn("Least sure of: 2", saved.read_text(encoding="utf-8"))
         kinds = [e["kind"] for e in sheet_row(self.ws, spec["id"])["evidence"]]
         self.assertEqual(kinds, ["typed", "chat-image+transcript"])
         r = self.cli("scan", "ingest", SUBJECT, spec["id"], "--transcript", "-", stdin="   \n")
         self.assertEqual(r.returncode, 2, "an empty transcript is refused")
+
+    def test_photos_and_their_transcript_in_one_call(self):
+        # The main photo route: the pages by path, and Claude's per-question transcript on stdin.
+        spec = drills_spec()
+        self.to_issued(spec)
+        p1, p2 = tiny_png(self.tmp / "IMG_0412.png"), tiny_png(self.tmp / "IMG_0413.png")
+        text = "1a: the bridge shut\n2a: [blank]\n3a: [not found]\nLeast sure of: 2\n"
+        r = self.ok(self.cli("scan", "ingest", SUBJECT, spec["id"], p1, p2, "--transcript", "-", stdin=text))
+        self.assertIn("Filed 3 evidence files", r.stdout)
+        self.assertEqual(r.stdout.count("marked as taken"), 1)
+        scans = subject_dir(self.ws) / "scans"
+        self.assertEqual((scans / "2026-10-12-ielts-drills-01-transcript.txt").read_text(encoding="utf-8"), text)
+        row = sheet_row(self.ws, spec["id"])
+        self.assertEqual(row["status"], "sat")
+        self.assertEqual(row["sat"]["date"], "2026-10-12")
+        self.assertEqual([(e["kind"], e["file"]) for e in row["evidence"]], [
+            ("scan", "scans/2026-10-12-ielts-drills-01-answers-p1.png"),
+            ("scan", "scans/2026-10-12-ielts-drills-01-answers-p2.png"),
+            ("chat-image+transcript", "scans/2026-10-12-ielts-drills-01-transcript.txt")])
+        index = fio.read_jsonl(scans / "index.jsonl")
+        self.assertEqual([x["kind"] for x in index], ["scan", "scan", "chat-image+transcript"])
+        # A page that turns up later, with its own transcript: the next page, and the next transcript.
+        late = tiny_png(self.tmp / "IMG_0414.png")
+        self.ok(self.cli("scan", "ingest", SUBJECT, spec["id"], late, "--transcript", "-", stdin="3a: few came\n"))
+        files = [e["file"] for e in sheet_row(self.ws, spec["id"])["evidence"]]
+        self.assertEqual(files[3:], ["scans/2026-10-12-ielts-drills-01-answers-p3.png",
+                                     "scans/2026-10-12-ielts-drills-01-transcript-2.txt"])
+
+    def test_one_photo_and_its_transcript_keep_their_own_names(self):
+        spec = drills_spec()
+        self.to_issued(spec)
+        self.ok(self.cli("scan", "ingest", SUBJECT, spec["id"], tiny_png(self.tmp / "a.png"),
+                         "--transcript", "-", stdin="1a: shut\n"))
+        files = [e["file"] for e in sheet_row(self.ws, spec["id"])["evidence"]]
+        self.assertEqual(files, ["scans/2026-10-12-ielts-drills-01-answers.png",
+                                 "scans/2026-10-12-ielts-drills-01-transcript.txt"])
 
     def test_each_typed_file_is_kept(self):
         spec = drills_spec()

@@ -147,7 +147,8 @@ def register(subparsers):
     a.add_argument("paths", nargs="*", metavar="PATH")
     a.add_argument("--typed", default=None, metavar="FILE", help="typed answers (a file, or - for stdin)")
     a.add_argument("--transcript", default=None, metavar="-",
-                   help="Claude's transcript of a photo pasted into chat (- for stdin, or a file)")
+                   help="Claude's transcript of a photo pasted into chat, or of the pages filed in the same call "
+                        "(- for stdin, or a file)")
     a.add_argument("--dir", dest="project", default=None, metavar="PROJECT",
                    help="a code project: its files are copied, with their folder layout, to answers/<id>/")
     a.add_argument("--date", default=None, metavar="YYYY-MM-DD", help="the date the sheet was taken")
@@ -896,6 +897,15 @@ def _free_stem(folder, base, numbered, start=1):
     return "%s-p%d" % (base, k), k + 1
 
 
+def _free_transcript_stem(folder, base):
+    """``base``, or ``base-N`` with the first free N from 2: a transcript is never named like a page."""
+    stem, n = base, 1
+    while _taken(folder, stem):
+        n += 1
+        stem = "%s-%d" % (base, n)
+    return stem
+
+
 def convert_heic(src, dest):
     """HEIC/HEIF -> JPEG with sips (macOS) or heif-convert. Returns (ok, tool)."""
     src, dest = Path(src), Path(dest)
@@ -1066,7 +1076,8 @@ def cmd_scan_ingest(args):
             entries.append({"kind": "typed", "file": _subject_rel(subj, dest), "original": None,
                             "sha256": _sha256(dest)})
         if transcript is not None:
-            stem, k = _free_stem(scans, base, False, k)
+            # Its own name, so a transcript filed with the pages never reads as one more page.
+            stem = _free_transcript_stem(scans, "%s-%s-transcript" % (day.isoformat(), args.id))
             dest = scans / (stem + ".txt")
             fio.write_text(dest, transcript, backup=False)
             entries.append({"kind": "chat-image+transcript", "file": _subject_rel(subj, dest), "original": None,
