@@ -14,15 +14,16 @@ const install = [
   'claude plugin marketplace add romanprigodskii/indelible',
   'claude plugin install indelible@indelible',
 ];
-const PAGES = 7;
 
-// A decorative barcode, drawn from a fixed string so it never changes.
-const bars = [...'INDELIBLE-PAPER-1-V0.1'].flatMap((ch, i) => {
-  const c = ch.charCodeAt(0) + i * 7;
-  return [1 + (c % 3), 1 + ((c >> 2) % 2), 1 + ((c >> 1) % 3), 1 + ((c >> 3) % 2)];
-});
-let bx = 0;
-const barRects = bars.map((w, i) => { const r = { x: bx, w, on: i % 2 === 0 }; bx += w; return r; });
+// The method, in the README's words and order.
+const rules = [
+  { title: 'Read it, then close it.', text: 'Theory comes on its own sheet. You read it and put it away before the drills, because an explanation left in view turns a test into a lookup.' },
+  { title: 'One kind at a time, then all mixed.', text: 'Drills come in blocks of one question type. Anything that measures you is shuffled and unlabelled, like the real exam.' },
+  { title: 'Nothing counts until it survives 48 hours.', text: 'Every new skill comes back cold two days later, on fresh problems. Same-day scores are practice.' },
+  { title: 'Check backwards, in writing.', text: 'Beside every answer you write one check that runs the other way. Solving it again in your head repeats the same slip. A written check catches it.' },
+  { title: 'Every miss comes back.', text: 'Each mistake goes in an error log and returns after 1 day, 3 days, 1 week and 3 weeks, until it stays.' },
+  { title: 'You do the work.', text: 'You get the smallest hint that unblocks you, never an answer you could reach yourself. When an answer is wrong, you see where, and the fix is yours.' },
+];
 
 // The recheck timeline: indelible's default intervals, not measured results.
 const stops = [
@@ -41,11 +42,11 @@ const pos = (i: number) => `${((i / (stops.length - 1)) * 100).toFixed(2)}%`;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>indelible · learning that survives the cold test</title>
-    <meta name="description" content="An open-source Claude skill that runs your self-study like an exam you set yourself: theory you read and close, drills checked backwards on paper, and a cold recheck two days later." />
+    <meta name="description" content="An open-source Claude skill that runs your self-study like a strict, kind tutor: theory you read and close, drills checked backwards on paper, and a cold recheck two days later." />
     <meta property="og:title" content="indelible · learning that survives the cold test" />
     <meta property="og:description" content="An open-source Claude skill for self-study. Nothing counts until it survives 48 hours." />
     <meta property="og:type" content="website" />
-    <meta name="theme-color" content="#23293A" />
+    <meta name="theme-color" content="#F8F6F1" />
     <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
     <script is:inline>document.documentElement.classList.remove('no-js');</script>
   </head>
@@ -57,339 +58,319 @@ const pos = (i: number) => `${((i / (stops.length - 1)) * 100).toFixed(2)}%`;
       </filter>
     </svg>
 
-    <a class="skip-link" href="#main">Skip to the questions</a>
+    <a class="skip-link" href="#main">Skip to content</a>
 
-    <header class="desk-top">
-      <a class="brand" href={base} aria-label="indelible, home">
-        <svg class="brand-mark" viewBox="0 0 256 256" aria-hidden="true">
-          <rect width="256" height="256" rx="56" fill="currentColor" />
-          <path d="M58 136 C 64 128, 74 128, 80 134 L 110 166 C 132 128, 160 94, 196 64 C 204 58, 214 62, 212 72 C 186 104, 150 150, 124 196 C 118 206, 104 208, 98 198 L 56 152 C 52 146, 52 140, 58 136 Z" fill="var(--desk)" />
-          <circle cx="206" cy="204" r="9" fill="var(--desk)" />
-        </svg>
-        <span>indelible</span>
-      </a>
-      <nav class="desk-nav" aria-label="Pages">
-        <a href="#try">Sit it</a>
-        <a href="#plan">Plan</a>
-        <a href="#info">Information</a>
-        <a class="star" href={repo} data-star>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z" fill="currentColor"/></svg>
-          <span>GitHub</span><span class="star-count" data-star-count hidden></span>
+    <header class="top">
+      <div class="wrap top-in">
+        <a class="brand" href={base} aria-label="indelible, home">
+          <svg class="brand-mark" viewBox="0 0 256 256" aria-hidden="true">
+            <rect width="256" height="256" rx="56" fill="currentColor" />
+            <path d="M58 136 C 64 128, 74 128, 80 134 L 110 166 C 132 128, 160 94, 196 64 C 204 58, 214 62, 212 72 C 186 104, 150 150, 124 196 C 118 206, 104 208, 98 198 L 56 152 C 52 146, 52 140, 58 136 Z" fill="var(--bg)" />
+            <circle cx="206" cy="204" r="9" fill="var(--bg)" />
+          </svg>
+          <span>indelible</span>
         </a>
-      </nav>
+        <nav class="nav" aria-label="Sections">
+          <a class="nav-link" href="#how">How it works</a>
+          <a class="nav-link nav-link--keep" href="#try">Try it</a>
+          <a class="nav-link" href="#plan">Plan</a>
+          <a class="nav-link" href="#details">Details</a>
+          <a class="gh" href={repo} data-star>
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+            <span>GitHub</span><span class="star-count" data-star-count hidden></span>
+          </a>
+        </nav>
+      </div>
     </header>
 
     <main id="main">
-      <!-- ============================================================ PAGE 1: COVER -->
-      <article class="page cover" id="cover" data-page="1" aria-labelledby="cover-title">
-        <div class="cover-top">
-          <p class="cover-org">indelible</p>
-          <svg class="barcode" viewBox={`0 0 ${bx} 40`} preserveAspectRatio="none" aria-hidden="true">
-            {barRects.map((r) => r.on && <rect x={r.x} y="0" width={r.w} height="40" fill="currentColor" />)}
-          </svg>
+      <!-- ============================================================ HERO -->
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="wrap hero-grid">
+          <div class="hero-copy">
+            <p class="kicker">An open-source skill for Claude Code</p>
+            <h1 id="hero-title">Learning that survives the <span class="u">cold&nbsp;test.<svg class="pen-underline" viewBox="0 0 420 24" preserveAspectRatio="none" aria-hidden="true"><path class="pen" d="M6 14 C 90 6, 200 18, 300 9 S 400 10, 414 12" /></svg></span></h1>
+            <p class="lead">indelible runs your self-study the way a strict, kind tutor would. You read theory on a sheet and then close it. Claude marks your work from photos of your paper. Everything comes back cold two days later, and only what you still know then counts.</p>
+
+            <p class="recheck-ready" data-ready-note hidden>
+              <svg viewBox="0 0 40 40" aria-hidden="true"><circle class="pen" cx="20" cy="20" r="15" /></svg>
+              <span>Your 2-day recheck is ready. <a href="#try">Take it now</a></span>
+            </p>
+
+            <div class="install">
+              <p class="install-label" id="install-hero">Install it in Claude Code</p>
+              <div class="cmd-box" role="group" aria-labelledby="install-hero">
+                <pre><code>{install.map((line) => <span class="cmd"><span class="prompt" aria-hidden="true">$ </span>{line}{'\n'}</span>)}</code></pre>
+                <button class="copy" type="button" data-copy={install.join('\n')}><span class="c-idle">Copy</span><span class="c-done">Copied</span></button>
+              </div>
+              <p class="install-note">Then open Claude Code in an empty folder and say <em>“set me up for…”</em>, naming what you are learning. Needs Python 3.9 or later.</p>
+            </div>
+
+            <p class="hero-alt">Not sure yet? <a href="#try">Try a 2-minute sheet on this page</a> and come back for the recheck.</p>
+          </div>
+
+          <figure class="hero-sheet">
+            <div class="sheet-stack">
+              <span class="sheet-under" aria-hidden="true"></span>
+              <img src={`${base}img/recheck-sheet.webp`} width="900" height="2198" alt="The top of a real 2-day recheck sheet printed by indelible: a rules box, a start time, and questions with an answer box and a Check line under each." />
+            </div>
+            <figcaption>A real 2-day recheck, printed by indelible. Every answer has a Check line under it.</figcaption>
+          </figure>
         </div>
+      </section>
 
-        <div class="cand" aria-hidden="true">
-          <div class="cand-field cand-field--name"><span class="label">Candidate name</span><span class="cand-line"></span></div>
-          <div class="cand-field"><span class="label">Centre number</span><span class="cand-boxes">{[0,1,2,3,4].map(() => <i></i>)}</span></div>
-          <div class="cand-field"><span class="label">Candidate number</span><span class="cand-boxes">{[0,1,2,3].map(() => <i></i>)}</span></div>
-        </div>
-
-        <div class="cover-title">
-          <p class="paper-code">Self-study · Paper 1 · v0.1</p>
-          <h1 id="cover-title">Learning that survives the cold&nbsp;test.</h1>
-          <svg class="pen-underline" viewBox="0 0 420 24" preserveAspectRatio="none" aria-hidden="true"><path class="pen" d="M6 14 C 90 6, 200 18, 300 9 S 400 10, 414 12" /></svg>
-          <p class="cover-sub">indelible is an open-source skill for Claude Code. It runs your self-study the way a good examiner would: it teaches from sheets you read and then close, marks your work from photos, and brings everything back cold two days later.</p>
-        </div>
-
-        <p class="recheck-ready" data-ready-note hidden>
-          <svg viewBox="0 0 40 40" aria-hidden="true"><circle class="pen" cx="20" cy="20" r="15" /></svg>
-          Your 2-day recheck is ready. <a href="#try">Question 3</a>
-        </p>
-
-        <section class="instr" aria-labelledby="instr-title">
-          <h2 id="instr-title" class="instr-title">Read these instructions first</h2>
-          <ol class="instr-list">
-            <li><strong>Read the theory, then close it.</strong> Answers written with the explanation in view are practice, not proof.</li>
-            <li><strong>Practise one question type at a time.</strong> You will be tested on all of them, mixed, with no headings.</li>
-            <li><strong>Nothing counts until it survives 48 hours.</strong> Every topic comes back cold two days after you learn it.</li>
-            <li><strong>Write a check beside every answer, working backwards.</strong> Solving it again in your head repeats the same slip.</li>
-            <li><strong>End each sheet with one line:</strong> <em>Least sure of: ___</em></li>
-            <li><strong>Every mistake returns</strong> after 1 day, 3 days, 1 week and 3 weeks, until it stays.</li>
+      <!-- ============================================================ THE RULES -->
+      <section class="section" id="how" aria-labelledby="how-title">
+        <div class="wrap">
+          <div class="section-head">
+            <h2 id="how-title">Six rules, kept for you</h2>
+            <p>These are the rules a good tutor holds you to. indelible keeps them in every session, including the days you would rather it didn’t.</p>
+          </div>
+          <ol class="rules">
+            {rules.map((r, i) => (
+              <li class="rule">
+                <span class="rule-n" aria-hidden="true">
+                  <svg viewBox="0 0 48 48"><path class="pen" d="M24 5 C 36 4, 44 13, 43 25 C 42 37, 33 44, 22 43 C 11 42, 4 33, 5 22 C 6 12, 14 6, 27 6" /></svg>
+                  <span>{i + 1}</span>
+                </span>
+                <h3>{r.title}</h3>
+                <p>{r.text}</p>
+              </li>
+            ))}
           </ol>
-        </section>
+        </div>
+      </section>
 
-        <section class="materials" aria-labelledby="mat-title">
-          <h2 id="mat-title" class="label">Materials: Claude Code, Python 3.9 or later. To begin, type:</h2>
-          <div class="cmd-box">
-            <pre><code>{install.map((line) => <span class="cmd"><span class="prompt" aria-hidden="true">$ </span>{line}{'\n'}</span>)}</code></pre>
-            <button class="copy" type="button" data-copy={install.join('\n')}><span class="c-idle">Copy</span><span class="c-done">Copied</span></button>
+      <!-- ============================================================ RULE 1, SHOWN -->
+      <section class="section section--tight" id="close" aria-labelledby="close-title">
+        <div class="wrap split">
+          <div class="split-text">
+            <h2 id="close-title">Read it, then close it</h2>
+            <p>With the explanation in view, every answer is a lookup. It feels like knowing, and it isn’t.</p>
+            <p>So theory comes on its own sheet. You read it, close it, and only then get the drills. Reopening is allowed, but it is written down, and those answers count as practice.</p>
           </div>
-          <p class="mat-note">Then open Claude Code in an empty folder and say <em>“set me up for…”</em>, naming what you are learning.</p>
-        </section>
 
-        <footer class="page-foot"><span class="pf-left">This paper has {PAGES} printed pages.</span><span class="pf-num">1</span><span class="pf-turn">[Turn over</span></footer>
-
-        <figure class="loose-sheet">
-          <img src={`${base}img/recheck-sheet.webp`} width="900" height="2198" alt="The top of a real 2-day recheck sheet printed by indelible: a rules box, a start time, and questions with an answer box and a Check line under each." />
-          <figcaption>A real recheck, printed by indelible</figcaption>
-        </figure>
-      </article>
-
-      <!-- ============================================================ PAGE 2: Q1, Q2 -->
-      <article class="page" data-page="2" aria-label="Questions 1 and 2">
-        <section class="q" aria-labelledby="q1-title">
-          <p class="q-num">1</p>
-          <div class="q-body">
-            <h2 id="q1-title" class="q-title">Why does indelible make you close the theory before the drills?</h2>
-            <div class="scheme">
-              <p class="scheme-label">Mark scheme</p>
-              <p><span class="mk">B1</span> With the explanation in view, every answer is a lookup. It feels like knowing, and it isn’t.</p>
-              <p><span class="mk">B1</span> So theory comes on its own sheet. You read it, close it, and only then get the drills. Reopening is allowed, but it is written down, and those answers count as practice.</p>
+          <div class="split-demo closer" data-closer data-state="open">
+            <div class="closer-stack">
+              <article class="loose theory" aria-labelledby="theory-h">
+                <p class="label">Theory sheet</p>
+                <h3 id="theory-h" class="loose-title">The middle number</h3>
+                <p>Sort the list, then take the value in the middle: 3, 9, 4, 12, 7 sorts to 3, 4, <strong>7</strong>, 9, 12.</p>
+                <p>Add 100 to that list and the average jumps from 7 to 22.5. The middle number only moves to 8.</p>
+                <p class="rule-box">Even count: take the average of the two middle values.</p>
+                <p class="close-line">Close this sheet now. The drills come separately.</p>
+              </article>
+              <article class="loose drills" aria-labelledby="drills-h" aria-hidden="true">
+                <p class="label">Drills · block A · six in a row</p>
+                <h3 id="drills-h" class="loose-title">Find the middle number</h3>
+                <ol class="drill-list">
+                  <li><span>5, 1, 9</span><i></i></li>
+                  <li><span>2, 8, 4, 6</span><i></i></li>
+                  <li><span>10, 3, 3, 7, 1</span><i></i></li>
+                </ol>
+                <p class="gate">If your check failed on two of questions 1 to 3, stop and send a photo.</p>
+              </article>
             </div>
-
-            <div class="closer" data-closer data-state="open">
-              <div class="closer-stack">
-                <article class="loose theory" aria-labelledby="theory-h">
-                  <p class="label">Theory sheet</p>
-                  <h3 id="theory-h" class="loose-title">The middle number</h3>
-                  <p>Sort the list, then take the value in the middle: 3, 9, 4, 12, 7 sorts to 3, 4, <strong>7</strong>, 9, 12.</p>
-                  <p>Add 100 to that list and the average jumps from 7 to 22.5. The middle number only moves to 8.</p>
-                  <p class="rule-box">Even count: take the average of the two middle values.</p>
-                  <p class="close-line">Close this sheet now. The drills come separately.</p>
-                </article>
-                <article class="loose drills" aria-labelledby="drills-h" aria-hidden="true">
-                  <p class="label">Drills · block A · six in a row</p>
-                  <h3 id="drills-h" class="loose-title">Find the middle number</h3>
-                  <ol class="drill-list">
-                    <li><span>5, 1, 9</span><i></i></li>
-                    <li><span>2, 8, 4, 6</span><i></i></li>
-                    <li><span>10, 3, 3, 7, 1</span><i></i></li>
-                  </ol>
-                  <p class="gate">If your check failed on two of questions 1 to 3, stop and send a photo.</p>
-                </article>
-              </div>
-              <div class="closer-bar">
-                <button class="btn" type="button" data-closer-toggle><span class="w-open">Close the theory sheet</span><span class="w-closed">Open it again</span></button>
-                <p class="closer-status" aria-live="polite" data-closer-status>The theory is open. The drills wait until you close it.</p>
-              </div>
+            <div class="closer-bar">
+              <button class="btn" type="button" data-closer-toggle><span class="w-open">Close the theory sheet</span><span class="w-closed">Open it again</span></button>
+              <p class="closer-status" aria-live="polite" data-closer-status>The theory is open. The drills wait until you close it.</p>
             </div>
           </div>
-          <p class="q-marks">[2]</p>
-        </section>
+        </div>
+      </section>
 
-        <section class="q" aria-labelledby="q2-title">
-          <p class="q-num">2</p>
-          <div class="q-body">
-            <h2 id="q2-title" class="q-title">Drills come in blocks of one kind. Tests are mixed, with no headings. Why both?</h2>
-            <div class="scheme">
-              <p class="scheme-label">Mark scheme</p>
-              <p><span class="mk">B1</span> Six in a row of one kind makes the step automatic.</p>
-              <p><span class="mk">B1</span> A real exam never says which topic a question is from, so anything that measures you is shuffled and unlabelled. You have to recognise the problem before you can solve it.</p>
+      <!-- ============================================================ RULE 2, SHOWN -->
+      <section class="section section--tight" id="mixed" aria-labelledby="mixed-title">
+        <div class="wrap split split--flip">
+          <div class="split-text">
+            <h2 id="mixed-title">Practise one kind at a time. Get tested on all of them, mixed.</h2>
+            <p>Six in a row of one kind makes the step automatic.</p>
+            <p>But a real exam never says which topic a question is from. So anything that measures you is shuffled and unlabelled, and you have to recognise the problem before you can solve it.</p>
+          </div>
+
+          <div class="split-demo pair">
+            <div class="pair-sheet">
+              <p class="label">Teaching block</p>
+              <p class="pair-head">Block A · the middle number</p>
+              <ol><li>5, 1, 9</li><li>2, 8, 4, 6</li><li>10, 3, 3, 7, 1</li><li>12, 15, 11, 90</li><li>0.5, 0.2, 0.9</li><li>6, 6, 1, 8, 2, 9</li></ol>
+              <p class="pair-foot">One kind, six in a row</p>
             </div>
-            <div class="pair">
-              <div class="pair-col">
-                <p class="label">Teaching block</p>
-                <p class="pair-head">Block A · the middle number</p>
-                <ol><li>5, 1, 9</li><li>2, 8, 4, 6</li><li>10, 3, 3, 7, 1</li><li>12, 15, 11, 90</li><li>0.5, 0.2, 0.9</li><li>6, 6, 1, 8, 2, 9</li></ol>
-              </div>
-              <div class="pair-col">
-                <p class="label">Recheck</p>
-                <p class="pair-head">Sheet 07</p>
-                <ol><li>Average of 2, 4, 9</li><li>Solve 2x − 3 = 11</li><li>Middle number of 4, 10, 6</li><li>20% of 45</li><li>For 1, 2, 3, 50: which is larger, the average or the middle number?</li><li>Solve x ÷ 4 = 2.5</li></ol>
-              </div>
+            <div class="pair-sheet pair-sheet--mixed">
+              <p class="label">Recheck</p>
+              <p class="pair-head">Sheet 07</p>
+              <ol><li>Average of 2, 4, 9</li><li>Solve 2x − 3 = 11</li><li>Middle number of 4, 10, 6</li><li>20% of 45</li><li>For 1, 2, 3, 50: which is larger, the average or the middle number?</li><li>Solve x ÷ 4 = 2.5</li></ol>
+              <p class="pair-foot">Mixed, with no headings</p>
             </div>
           </div>
-          <p class="q-marks">[2]</p>
-        </section>
-        <footer class="page-foot"><span class="pf-left">indelible · Paper 1</span><span class="pf-num">2</span><span class="pf-turn">[Turn over</span></footer>
-      </article>
+        </div>
+      </section>
 
-      <!-- ============================================================ PAGE 3: Q3, SIT IT -->
-      <article class="page" id="try" data-page="3" aria-labelledby="q3-title">
-        <section class="q">
-          <p class="q-num">3</p>
-          <div class="q-body">
-            <h2 id="q3-title" class="q-title">Answer the three questions below. Write a check beside each answer.</h2>
-            <p class="q-lead">This one is real. Sit it now, closed book. It is marked when you hand it in, and your score will not count yet. Come back in two days for the recheck.</p>
+      <!-- ============================================================ TRY IT -->
+      <section class="section band" id="try" aria-labelledby="try-title">
+        <div class="wrap split split--try">
+          <div class="split-text">
+            <h2 id="try-title">Try it: three questions, closed book</h2>
+            <p>This sheet is real. Answer each question, then write a check beside it that works backwards. It is marked when you hand it in.</p>
+            <ol class="steps">
+              <li><strong>Today.</strong> Your score is practice. It does not count yet.</li>
+              <li><strong>In two days.</strong> Come back to this page. You get the same kinds of question with fresh numbers, cold.</li>
+              <li><strong>Then.</strong> That score is the one that counts.</li>
+            </ol>
+            <p class="small">Your answers stay in this browser. Nothing is sent anywhere.</p>
+          </div>
+          <div class="split-demo">
             <Trial />
           </div>
-          <p class="q-marks">[3]</p>
-        </section>
-        <footer class="page-foot"><span class="pf-left">indelible · Paper 1</span><span class="pf-num">3</span><span class="pf-turn">[Turn over</span></footer>
-      </article>
+        </div>
+      </section>
 
-      <!-- ============================================================ PAGE 4: Q4, 48 HOURS -->
-      <article class="page" data-page="4" aria-labelledby="q4-title">
-        <section class="q">
-          <p class="q-num">4</p>
-          <div class="q-body">
-            <h2 id="q4-title" class="q-title">You scored 6 of 6 on the day you learned something. When does that score count?</h2>
-            <div class="scheme">
-              <p class="scheme-label">Mark scheme</p>
-              <p><span class="mk">B1</span> Never. Same-day scores are practice.</p>
-              <p><span class="mk">B1</span> What counts is the 2-day recheck: fresh questions, 44 to 72 hours later, with nothing looked at in the 24 hours before. Every miss then returns after 1 day, 3 days, 1 week and 3 weeks.</p>
-            </div>
-
-            <figure class="chart" data-timeline>
-              <figcaption class="label">Figure 1 · one topic, from lesson to retired. Drag along the line, or use the arrow keys.</figcaption>
-              <div class="track">
-                <div class="axis" aria-hidden="true"></div>
-                <div class="axis-fill" data-fill aria-hidden="true"></div>
-                {stops.map((s, i) => (
-                  <span class={`node${s.counts ? ' node--counts' : ''}`} style={`left:${pos(i)}`} data-node={i} aria-hidden="true">
-                    <span class="node-dot"></span><span class="node-when">{s.when}</span>
-                  </span>
-                ))}
-                <label class="visually-hidden" for="tl-range">Move along the timeline</label>
-                <input id="tl-range" class="range" type="range" min="0" max={stops.length - 1} step="1" value="0" data-range aria-valuetext={`${stops[0].when}: ${stops[0].title}`} />
-              </div>
-              <div class="stop-card" aria-live="polite">
-                {stops.map((s, i) => (
-                  <div class="stop" data-stop={i} hidden={i !== 0}>
-                    <p class="stop-title"><span class="stop-when">{s.when}</span> {s.title}</p>
-                    <p>{s.text}</p>
-                    <p class={`stop-verdict${s.counts ? ' is-counts' : ''}`}>{s.verdict}</p>
-                  </div>
-                ))}
-              </div>
-              <p class="chart-note">These are indelible’s default intervals, not measured results. You can change them.</p>
-            </figure>
+      <!-- ============================================================ 48 HOURS -->
+      <section class="section" id="later" aria-labelledby="later-title">
+        <div class="wrap">
+          <div class="section-head">
+            <h2 id="later-title">Today’s 6 of 6 doesn’t count yet</h2>
+            <p>Same-day scores are practice. What counts is the 2-day recheck: fresh questions 44 to 72 hours later, with nothing looked at in the 24 hours before. Every miss then comes back after 1 day, 3 days, 1 week and 3 weeks.</p>
           </div>
-          <p class="q-marks">[2]</p>
-        </section>
-        <footer class="page-foot"><span class="pf-left">indelible · Paper 1</span><span class="pf-num">4</span><span class="pf-turn">[Turn over</span></footer>
-      </article>
 
-      <!-- ============================================================ PAGE 5: Q5, PLAN -->
-      <article class="page page--wide" id="plan" data-page="5" aria-labelledby="q5-title">
-        <section class="q">
-          <p class="q-num">5</p>
-          <div class="q-body">
-            <h2 id="q5-title" class="q-title">Plan the first two weeks. Fill in the bubbles, then mark any session as missed.</h2>
-            <p class="q-lead">These are four of the eight questions indelible asks when you set it up. The plan follows its rules: a diagnostic before any teaching, and a protected recheck 44 to 72 hours after every lesson. Nothing reaches your calendar until you have seen the changes and said yes.</p>
-            <Planner />
-          </div>
-          <p class="q-marks">[4]</p>
-        </section>
-        <footer class="page-foot"><span class="pf-left">indelible · Paper 1</span><span class="pf-num">5</span><span class="pf-turn">[Turn over</span></footer>
-      </article>
-
-      <!-- ============================================================ PAGE 6: Q6, SESSION -->
-      <article class="page" data-page="6" aria-labelledby="q6-title">
-        <section class="q">
-          <p class="q-num">6</p>
-          <div class="q-body">
-            <h2 id="q6-title" class="q-title">Describe the first eight minutes.</h2>
-            <div class="scheme">
-              <p class="scheme-label">Mark scheme</p>
-              <p><span class="mk">B1</span> A short interview, one question at a time, each with a default: the goal and the date, where you are now, your materials, session length and days, when your head is clearest, when you sleep.</p>
-              <p><span class="mk">B1</span> A two-week plan comes first, the calendar question second, and nothing is written until you say yes to a one-screen summary. Then a diagnostic, before any teaching.</p>
+          <figure class="chart" data-timeline>
+            <figcaption class="chart-cap">One topic, from lesson to retired. Drag along the line, or use the arrow keys.</figcaption>
+            <div class="track">
+              <div class="axis" aria-hidden="true"></div>
+              <div class="axis-fill" data-fill aria-hidden="true"></div>
+              {stops.map((s, i) => (
+                <span class={`node${s.counts ? ' node--counts' : ''}`} style={`left:${pos(i)}`} data-node={i} aria-hidden="true">
+                  <span class="node-dot"></span><span class="node-when">{s.when}</span>
+                </span>
+              ))}
+              <label class="visually-hidden" for="tl-range">Move along the timeline</label>
+              <input id="tl-range" class="range" type="range" min="0" max={stops.length - 1} step="1" value="0" data-range aria-valuetext={`${stops[0].when}: ${stops[0].title}`} />
             </div>
-            <figure class="transcript">
-              <figcaption class="label">Figure 2 · part of the setup, as it appears in Claude Code (a made-up learner)</figcaption>
-              <div class="tr-body">
-                <p class="tr-c">(6 of 8) How long should a normal session be (15–20, 30, 45, 60, 90, or 120–150 min), and on how many days a week?</p>
-                <p class="tr-y">&gt; 60 minutes, four days, never more than 90</p>
-                <p class="tr-c">Your first two weeks: IELTS · ~4 h/week · 60-min sessions · exam 12 Dec</p>
-                <pre class="tr-plan">          Week 1                           Week 2
+            <div class="stop-card" aria-live="polite">
+              {stops.map((s, i) => (
+                <div class="stop" data-stop={i} hidden={i !== 0}>
+                  <p class="stop-title"><span class="stop-when">{s.when}</span> {s.title}</p>
+                  <p>{s.text}</p>
+                  <p class={`stop-verdict${s.counts ? ' is-counts' : ''}`}>{s.verdict}</p>
+                </div>
+              ))}
+            </div>
+            <p class="chart-note">These are indelible’s default intervals, not measured results. You can change them.</p>
+          </figure>
+        </div>
+      </section>
+
+      <!-- ============================================================ PLAN -->
+      <section class="section band" id="plan" aria-labelledby="plan-title">
+        <div class="wrap">
+          <div class="section-head">
+            <h2 id="plan-title">Your first two weeks, planned around the rechecks</h2>
+            <p>These are four of the questions indelible asks when you set it up. Change the answers and the plan follows its rules: a diagnostic before any teaching, and a protected recheck 44 to 72 hours after every lesson. Click a session to mark it missed.</p>
+          </div>
+          <Planner />
+        </div>
+      </section>
+
+      <!-- ============================================================ SETUP -->
+      <section class="section" id="setup" aria-labelledby="setup-title">
+        <div class="wrap split split--setup">
+          <div class="split-text">
+            <h2 id="setup-title">The first eight minutes</h2>
+            <p>A short interview, one question at a time, each with a default: your goal and date, where you are now, your materials, session length and days, when your head is clearest, when you sleep.</p>
+            <p>You see a two-week plan first and the calendar question second. Nothing is written until you say yes to a one-screen summary. Then a diagnostic, before any teaching.</p>
+          </div>
+
+          <figure class="split-demo terminal">
+            <div class="term-bar" aria-hidden="true"><i></i><i></i><i></i><span>claude</span></div>
+            <div class="tr-body">
+              <p class="tr-c">(6 of 8) How long should a normal session be (15–20, 30, 45, 60, 90, or 120–150 min), and on how many days a week?</p>
+              <p class="tr-y">&gt; 60 minutes, four days, never more than 90</p>
+              <p class="tr-c">Your first two weeks: IELTS · ~4 h/week · 60-min sessions · exam 12 Dec</p>
+              <pre class="tr-plan">          Week 1                           Week 2
 Mon 07:00 Diagnostic, part A               New skill + 2-day recheck
 Tue 07:00 Diagnostic, part B + results     rest
 Thu 07:00 First skill: sheet, closed       2-day recheck + fixed mistakes
 Sat 10:00 2-day recheck + second skill     Timed section</pre>
-                <p class="tr-c">Want these in your calendar? I found Google Calendar.</p>
-                <ol class="tr-opts"><li>Yes, and ask me before each batch of changes (recommended)</li><li>Yes, and you may move a missed block within 24 h</li><li>Give me a file to import (.ics)</li><li>No calendar: just tell me what’s next</li></ol>
+              <p class="tr-c">Want these in your calendar? I found Google Calendar.</p>
+              <ol class="tr-opts"><li>Yes, and ask me before each batch of changes (recommended)</li><li>Yes, and you may move a missed block within 24 h</li><li>Give me a file to import (.ics)</li><li>No calendar: just tell me what’s next</li></ol>
+            </div>
+            <figcaption class="term-cap">Part of the setup in Claude Code, with a made-up learner.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- ============================================================ DETAILS -->
+      <section class="section section--details" id="details" aria-labelledby="details-title">
+        <div class="wrap">
+          <h2 id="details-title">Good to know</h2>
+
+          <div class="details-grid">
+            <section aria-labelledby="where-h">
+              <h3 id="where-h">Where it works</h3>
+              <table class="where">
+                <caption class="visually-hidden">Where indelible works in version 0.1</caption>
+                <tbody>
+                  <tr><th scope="row">Claude Code</th><td>Supported, in the terminal, the desktop app and the IDE extensions.</td></tr>
+                  <tr><th scope="row">Cowork</th><td>Should work with a shared folder. Untested in v0.1.</td></tr>
+                  <tr><th scope="row">claude.ai chat and mobile</th><td>Not yet: files don’t persist between chats there. A limited manual mode is offered instead.</td></tr>
+                </tbody>
+              </table>
+            </section>
+
+            <section aria-labelledby="data-h">
+              <h3 id="data-h">Your data</h3>
+              <ul class="plain">
+                <li>Plain files in a folder you choose, on your own computer.</li>
+                <li>The scripts make no network requests. Nothing is sent to the author.</li>
+                <li>Calendar entries only through your own connector, after a preview and your yes.</li>
+                <li>Answer keys stay sealed until your attempt is filed.</li>
+              </ul>
+              <p class="small"><a href={`${blob}/PRIVACY.md`}>Privacy policy</a> · <a href={`${blob}/README.md#what-it-runs-writes-and-sends`}>What it runs, writes and sends</a></p>
+            </section>
+
+            <section class="details-wide" aria-labelledby="limits-h">
+              <h3 id="limits-h">Honest limits</h3>
+              <div class="limits">
+                <p>A skill cannot physically stop the model from breaking its own rules, so the rules that matter most do not rely on instructions alone. The only route to a printable sheet runs a sheet checker. The only route to an answer key needs your attempt filed first. The next session finds anything the last one skipped, and does it first.</p>
+                <p>The method was developed with one learner over about four weeks. That is not a controlled study. The principles come from well-studied effects: retrieval practice (Roediger &amp; Karpicke, 2006), spacing (Cepeda et al., 2006) and interleaving (Rohrer &amp; Taylor, 2007). The numbers, like 48 hours and six questions a block, are defaults you can change.</p>
               </div>
-            </figure>
+            </section>
           </div>
-          <p class="q-marks">[2]</p>
-        </section>
-        <footer class="page-foot"><span class="pf-left">indelible · Paper 1</span><span class="pf-num">6</span><span class="pf-turn">[Turn over</span></footer>
-      </article>
-
-      <!-- ============================================================ PAGE 7: INFORMATION -->
-      <article class="page back" id="info" data-page="7" aria-labelledby="info-title">
-        <h2 id="info-title" class="back-title">Information for candidates</h2>
-
-        <div class="back-grid">
-          <section aria-labelledby="where-h">
-            <h3 id="where-h" class="back-h">Where it works</h3>
-            <table class="where">
-              <caption class="visually-hidden">Where indelible works in version 0.1</caption>
-              <tbody>
-                <tr><th scope="row">Claude Code</th><td>Supported. Terminal, desktop app and IDE extensions.</td></tr>
-                <tr><th scope="row">Cowork</th><td>Should work with a shared folder. Untested in v0.1.</td></tr>
-                <tr><th scope="row">claude.ai chat, mobile</th><td>A limited manual mode for now: files don’t persist between chats there.</td></tr>
-              </tbody>
-            </table>
-          </section>
-
-          <section aria-labelledby="data-h">
-            <h3 id="data-h" class="back-h">Your data</h3>
-            <ul class="plain">
-              <li>Plain files in a folder you choose, on your own computer.</li>
-              <li>The scripts make no network requests. Nothing is sent to the author.</li>
-              <li>Calendar entries only through your own connector, after a preview and your yes.</li>
-              <li>Answer keys stay sealed until your attempt is filed.</li>
-            </ul>
-            <p class="small"><a href={`${blob}/PRIVACY.md`}>Privacy policy</a> · <a href={`${blob}/README.md#what-it-runs-writes-and-sends`}>What it runs, writes and sends</a></p>
-          </section>
-
-          <section class="back-wide" aria-labelledby="limits-h">
-            <h3 id="limits-h" class="back-h">Honest limits</h3>
-            <p>A skill cannot physically stop the model from breaking its own rules, so the rules that matter most do not rely on instructions alone. The only route to a printable sheet runs a sheet checker. The only route to an answer key needs your attempt filed first. The next session finds anything the last one skipped, and does it first.</p>
-            <p>The method was developed with one learner over about four weeks. That is not a controlled study. The principles come from well-studied effects: retrieval practice (Roediger &amp; Karpicke, 2006), spacing (Cepeda et al., 2006) and interleaving (Rohrer &amp; Taylor, 2007). The numbers, like 48 hours and six questions a block, are defaults you can change.</p>
-          </section>
         </div>
+      </section>
 
-        <div class="back-install">
-          <p class="label">To begin, type</p>
-          <div class="cmd-box">
-            <pre><code>{install.map((line) => <span class="cmd"><span class="prompt" aria-hidden="true">$ </span>{line}{'\n'}</span>)}</code></pre>
-            <button class="copy" type="button" data-copy={install.join('\n')}><span class="c-idle">Copy</span><span class="c-done">Copied</span></button>
+      <!-- ============================================================ INSTALL -->
+      <section class="cta" id="install" aria-labelledby="cta-title">
+        <div class="wrap cta-in">
+          <div>
+            <h2 id="cta-title">Start with one subject</h2>
+            <p class="cta-lead">Two commands in Claude Code. Then say <em>“set me up for…”</em> and answer a few questions.</p>
           </div>
-          <p class="small">Or copy <code>skills/indelible</code> into <code>~/.claude/skills/</code>. <a href={repo}>Source on GitHub</a> · <a href={`${blob}/CHANGELOG.md`}>Changelog</a> · <a href={`${blob}/SECURITY.md`}>Security</a> · <a href={`${repo}/issues`}>Issues</a></p>
+          <div class="cta-install">
+            <div class="cmd-box cmd-box--night">
+              <pre><code>{install.map((line) => <span class="cmd"><span class="prompt" aria-hidden="true">$ </span>{line}{'\n'}</span>)}</code></pre>
+              <button class="copy" type="button" data-copy={install.join('\n')}><span class="c-idle">Copy</span><span class="c-done">Copied</span></button>
+            </div>
+            <p class="cta-note">Or copy <code>skills/indelible</code> into <code>~/.claude/skills/</code>.</p>
+            <p class="cta-links"><a href={repo}>Source on GitHub</a><a href={`${blob}/CHANGELOG.md`}>Changelog</a><a href={`${blob}/SECURITY.md`}>Security</a><a href={`${repo}/issues`}>Report an issue</a></p>
+          </div>
         </div>
-
-        <p class="end">End of paper</p>
-        <footer class="page-foot back-foot">
-          <span class="pf-left">Designed and field-tested by <a href="https://github.com/romanprigodskii">@romanprigodskii</a>. Written with Claude.</span>
-          <span class="pf-num">7</span>
-          <span class="pf-fine">MIT or Apache-2.0. Independent; not made, endorsed or supported by Anthropic. This page loads nothing from other sites except the star count, from GitHub.</span>
-        </footer>
-      </article>
+      </section>
     </main>
 
-    <p class="page-meter" aria-hidden="true" data-meter>Page 1 of {PAGES}</p>
+    <footer class="foot">
+      <div class="wrap foot-in">
+        <p>Designed and field-tested by <a href="https://github.com/romanprigodskii">@romanprigodskii</a>. Written with Claude.</p>
+        <p>MIT or Apache-2.0. Independent: not made, endorsed or supported by Anthropic. This page loads nothing from other sites except the star count, from GitHub.</p>
+      </div>
+    </footer>
 
     <script>
-      // Reveals
-      const revealed = document.querySelectorAll('.reveal');
-      if ('IntersectionObserver' in window) {
-        const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); } }), { threshold: 0.1 });
-        revealed.forEach((el) => io.observe(el));
-      } else revealed.forEach((el) => el.classList.add('is-in'));
-
-      // Page meter
-      const meter = document.querySelector<HTMLElement>('[data-meter]');
-      const pages = [...document.querySelectorAll<HTMLElement>('[data-page]')];
-      if (meter && 'IntersectionObserver' in window) {
-        const seen = new Map<Element, number>();
-        const po = new IntersectionObserver((es) => {
-          es.forEach((e) => seen.set(e.target, e.intersectionRatio));
-          let best = pages[0], r = -1;
-          pages.forEach((p) => { const v = seen.get(p) ?? 0; if (v > r) { r = v; best = p; } });
-          meter.textContent = `Page ${best.dataset.page} of ${pages.length}`;
-        }, { threshold: [0, 0.25, 0.5, 0.75, 1] });
-        pages.forEach((p) => po.observe(p));
-      }
-
       // Copy
       document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) => b.addEventListener('click', async () => {
         try { await navigator.clipboard.writeText(b.dataset.copy ?? ''); b.classList.add('is-done'); setTimeout(() => b.classList.remove('is-done'), 1600); } catch { /* stays selectable */ }
       }));
 
-      // Q1: close the theory
+      // Rule 1: close the theory
       const closer = document.querySelector<HTMLElement>('[data-closer]');
       if (closer) {
         const btn = closer.querySelector<HTMLButtonElement>('[data-closer-toggle]')!;
@@ -409,7 +390,7 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
         });
       }
 
-      // Q4: timeline
+      // The 48-hour timeline
       const tl = document.querySelector<HTMLElement>('[data-timeline]');
       if (tl) {
         const range = tl.querySelector<HTMLInputElement>('[data-range]')!;
@@ -426,19 +407,19 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
         show(0);
       }
 
-      // A waiting recheck (set by the Q3 sheet)
+      // A waiting recheck (set by the sheet in "Try it")
       if (document.documentElement.dataset.recheckReady === 'true') {
         document.querySelector<HTMLElement>('[data-ready-note]')?.removeAttribute('hidden');
       }
 
-      // Real star count
+      // Star count, shown once there are enough stars to be worth a number
       const star = document.querySelector<HTMLElement>('[data-star]');
       if (star) {
         fetch('https://api.github.com/repos/romanprigodskii/indelible', { headers: { Accept: 'application/vnd.github+json' } })
           .then((r) => (r.ok ? r.json() : null))
           .then((d) => {
             const n = d && typeof d.stargazers_count === 'number' ? d.stargazers_count : 0;
-            if (n > 0) {
+            if (n >= 20) {
               const out = star.querySelector<HTMLElement>('[data-star-count]')!;
               out.textContent = `★ ${n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : n}`;
               out.hidden = false;
@@ -450,19 +431,21 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
     </script>
 
     <style>
-      /* ------------------------------------------------ desk furniture */
-      .desk-top {
+      /* ------------------------------------------------ header */
+      .top {
         position: sticky;
         top: 0;
         z-index: 20;
+        background: var(--bg);
+        border-bottom: 1px solid var(--rule);
+      }
+
+      .top-in {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: var(--space-md);
-        padding: 0.85rem clamp(0.9rem, 0.4rem + 2vw, 2rem);
-        background: var(--desk);
-        color: var(--desk-ink);
-        font-family: var(--sans);
+        min-height: 3.75rem;
       }
 
       .brand {
@@ -471,184 +454,121 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
         gap: 0.55rem;
         text-decoration: none;
         font-weight: 800;
+        font-size: 1.0625rem;
         letter-spacing: -0.01em;
       }
 
       .brand-mark {
-        width: 1.6rem;
-        height: 1.6rem;
-        color: var(--paper);
+        width: 1.55rem;
+        height: 1.55rem;
+        color: var(--print);
       }
 
-      .desk-nav {
+      .nav {
         display: flex;
         align-items: center;
-        gap: clamp(0.8rem, 0.4rem + 1.5vw, 1.8rem);
+        gap: clamp(0.9rem, 0.4rem + 1.5vw, 1.9rem);
         font-size: var(--text-sm);
         font-weight: 600;
       }
 
-      .desk-nav > a:not(.star) {
+      .nav-link {
         text-decoration: none;
-        color: var(--desk-soft);
+        color: var(--print-soft);
         padding-block: 0.4rem;
       }
 
-      .desk-nav > a:not(.star):hover {
-        color: var(--paper);
+      .nav-link:hover {
+        color: var(--print);
+        text-decoration: underline;
+        text-decoration-color: var(--marker);
       }
 
-      .star {
+      .gh {
         display: inline-flex;
         align-items: center;
         gap: 0.45rem;
-        padding: 0.4rem 0.75rem;
-        border: 1.5px solid var(--desk-soft);
-        border-radius: 3px;
+        min-height: 2.3rem;
+        padding: 0 0.8rem;
+        border: 1px solid var(--box);
+        border-radius: var(--radius);
+        background: var(--paper);
         text-decoration: none;
         font-weight: 700;
       }
 
-      .star svg {
-        width: 0.95rem;
-        height: 0.95rem;
+      .gh svg {
+        width: 1rem;
+        height: 1rem;
       }
 
-      .star:hover {
-        border-color: var(--paper);
-        color: var(--paper);
+      .gh:hover {
+        border-color: var(--print);
       }
 
       .star-count {
         padding-left: 0.45rem;
-        border-left: 1px solid var(--desk-soft);
+        border-left: 1px solid var(--rule);
         font-variant-numeric: tabular-nums;
       }
 
-      .page-meter {
-        position: fixed;
-        right: clamp(0.8rem, 0.4rem + 1.5vw, 1.6rem);
-        bottom: clamp(0.8rem, 0.4rem + 1.5vw, 1.4rem);
-        z-index: 15;
-        padding: 0.35rem 0.7rem;
-        background: var(--desk);
-        color: var(--desk-soft);
-        font-family: var(--sans);
-        font-size: var(--text-xs);
-        font-weight: 700;
-        border-radius: 3px;
-        font-variant-numeric: tabular-nums;
-      }
-
-      main {
-        padding-top: clamp(1rem, 0.5rem + 2vw, 2.5rem);
-        padding-bottom: 4rem;
-      }
-
-      @media (max-width: 40rem) {
-        .desk-nav > a:not(.star) {
-          display: none;
-        }
-
-        .page-meter {
+      @media (max-width: 44rem) {
+        .nav-link:not(.nav-link--keep) {
           display: none;
         }
       }
 
-      /* ------------------------------------------------ cover */
-      .cover-top {
-        display: flex;
-        justify-content: space-between;
+      /* ------------------------------------------------ hero */
+      .hero {
+        padding: clamp(2.5rem, 1.5rem + 5vw, 6rem) 0 clamp(3rem, 2rem + 4vw, 6rem);
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+        gap: clamp(2.5rem, 1rem + 5vw, 5.5rem);
         align-items: center;
-        gap: var(--space-md);
-        padding-bottom: var(--space-sm);
       }
 
-      .cover-org {
-        font-family: var(--sans);
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        font-size: var(--text-sm);
-      }
-
-      .barcode {
-        width: min(13rem, 40%);
-        height: 2.2rem;
-        color: var(--print);
-      }
-
-      .cand {
-        display: grid;
-        grid-template-columns: minmax(0, 1.6fr) auto auto;
-        gap: var(--space-sm) var(--space-lg);
-        align-items: end;
-        padding: var(--space-sm) 0 var(--space-md);
-        border-top: 2px solid var(--print);
-        border-bottom: 1px solid var(--rule);
-      }
-
-      .cand-field {
-        display: grid;
-        gap: 0.35rem;
-      }
-
-      .cand-line {
-        height: 1.9rem;
-        border-bottom: 1.5px solid var(--print);
-      }
-
-      .cand-boxes {
-        display: flex;
-      }
-
-      .cand-boxes i {
-        width: 1.7rem;
-        height: 1.9rem;
-        border: 1.5px solid var(--print);
-      }
-
-      .cand-boxes i + i {
-        border-left-width: 0;
-      }
-
-      .cover-title {
-        position: relative;
-        padding: clamp(2rem, 1rem + 4vw, 4.5rem) 0 clamp(1.5rem, 1rem + 2vw, 3rem);
-        max-width: 38rem;
-      }
-
-      .paper-code {
-        font-family: var(--sans);
+      .kicker {
         font-size: var(--text-sm);
         font-weight: 700;
         color: var(--print-soft);
       }
 
-      .cover h1 {
+      .hero h1 {
         margin-top: var(--space-sm);
-        font-family: var(--serif);
-        font-weight: 700;
         font-size: var(--text-hero);
-        line-height: 0.98;
-        letter-spacing: -0.035em;
+        font-weight: 650;
+        line-height: 1.02;
+        letter-spacing: -0.03em;
+      }
+
+      .u {
+        position: relative;
+        white-space: nowrap;
       }
 
       .pen-underline {
-        width: min(24rem, 70%);
-        height: 1.1rem;
-        margin: 0.35rem 0 0 0.2rem;
+        position: absolute;
+        left: 0;
+        right: 0.3em;
+        bottom: -0.14em;
+        width: calc(100% - 0.3em);
+        height: 0.22em;
+        overflow: visible;
       }
 
       .pen-underline .pen {
         stroke-width: 3.6;
+        vector-effect: non-scaling-stroke;
       }
 
-      .cover-sub {
-        margin-top: var(--space-md);
-        max-width: 34rem;
+      .lead {
+        margin-top: var(--space-lg);
+        max-width: 36rem;
         font-size: var(--text-lg);
-        line-height: 1.5;
+        line-height: 1.55;
         color: var(--print-soft);
       }
 
@@ -656,71 +576,119 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
         display: flex;
         align-items: center;
         gap: var(--space-xs);
-        margin-bottom: var(--space-lg);
-        font-family: var(--sans);
-        font-weight: 800;
+        margin-top: var(--space-md);
+        font-weight: 700;
         color: var(--marker);
       }
 
       .recheck-ready svg {
+        flex: none;
         width: 1.6rem;
         height: 1.6rem;
       }
 
-      .instr {
+      .install {
+        margin-top: var(--space-lg);
         max-width: 40rem;
-        padding: var(--space-md) 0 0;
-        border-top: 2px solid var(--print);
       }
 
-      .instr-title {
+      .install-label {
         font-size: var(--text-sm);
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-weight: 700;
       }
 
-      .instr-list {
-        margin: var(--space-sm) 0 0;
-        padding-left: 1.3rem;
-        display: grid;
-        gap: var(--space-xs);
-        font-size: var(--text-base);
+      .install-note {
+        margin-top: var(--space-xs);
+        font-size: var(--text-sm);
+        color: var(--print-soft);
       }
 
-      .instr-list li::marker {
-        font-family: var(--sans);
-        font-weight: 800;
+      .hero-alt {
+        margin-top: var(--space-md);
+        font-size: var(--text-sm);
+        color: var(--print-soft);
       }
 
-      .materials {
-        max-width: 40rem;
-        margin-top: var(--space-xl);
+      .hero-alt a {
+        color: var(--print);
+        font-weight: 700;
       }
 
+      /* the real sheet, with a blank one under it */
+      .hero-sheet {
+        margin: 0;
+        justify-self: center;
+        width: min(100%, 25rem);
+      }
+
+      .sheet-stack {
+        position: relative;
+      }
+
+      .sheet-under {
+        position: absolute;
+        inset: 0;
+        background: var(--paper);
+        box-shadow: var(--shadow-sheet);
+        transform: rotate(-4deg) translate(-3%, 1.5%);
+      }
+
+      .sheet-stack img {
+        position: relative;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 900 / 1120;
+        object-fit: cover;
+        object-position: top;
+        background: var(--paper);
+        box-shadow: var(--shadow-sheet);
+        transform: rotate(1.5deg);
+      }
+
+      .hero-sheet figcaption {
+        margin-top: var(--space-md);
+        font-size: var(--text-xs);
+        color: var(--print-soft);
+        text-align: center;
+      }
+
+      @media (max-width: 64rem) {
+        .hero-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .hero-sheet {
+          width: min(80%, 22rem);
+        }
+
+        .sheet-stack img {
+          aspect-ratio: 900 / 760;
+        }
+      }
+
+      /* ------------------------------------------------ install boxes */
       .cmd-box {
         display: flex;
         align-items: stretch;
-        margin-top: var(--space-xs);
-        border: 1.5px solid var(--print);
+        margin-top: var(--space-2xs);
+        border: 1px solid var(--box);
+        border-radius: var(--radius);
+        background: var(--paper);
+        overflow: hidden;
       }
 
       .cmd-box pre {
         flex: 1;
+        min-width: 0;
         margin: 0;
-        padding: var(--space-sm) var(--space-md);
+        padding: 0.85rem 1rem;
         overflow-x: auto;
-        font-size: clamp(0.72rem, 0.66rem + 0.25vw, 0.875rem);
+        font-size: clamp(0.75rem, 0.68rem + 0.25vw, 0.875rem);
         line-height: 1.8;
       }
 
       .cmd {
         white-space: pre;
-      }
-
-      .cmd-box,
-      .cmd-box pre {
-        min-width: 0;
       }
 
       @media (max-width: 30rem) {
@@ -740,21 +708,20 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
 
       .copy {
         flex: none;
-        min-width: 5.5rem;
+        min-width: 4.75rem;
         border: 0;
-        border-left: 1.5px solid var(--print);
-        background: var(--print);
-        color: var(--paper);
+        border-left: 1px solid var(--box);
+        background: var(--paper-shade);
+        color: var(--print);
         font-family: var(--sans);
-        font-size: var(--text-xs);
-        font-weight: 800;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
+        font-size: var(--text-sm);
+        font-weight: 700;
         cursor: pointer;
+        transition: background var(--dur-fast) var(--ease-out);
       }
 
       .copy:hover {
-        background: var(--navy);
+        background: var(--rule);
       }
 
       .c-done {
@@ -769,106 +736,151 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
         display: inline;
       }
 
-      .mat-note {
+      /* ------------------------------------------------ sections */
+      .section {
+        padding-block: var(--section);
+      }
+
+      .section--tight {
+        padding-block: calc(var(--section) * 0.6);
+      }
+
+      .band {
+        background: var(--bg-band);
+      }
+
+      .section-head {
+        max-width: 44rem;
+        margin-bottom: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+      }
+
+      .section-head p {
         margin-top: var(--space-sm);
+        font-size: var(--text-lg);
+        line-height: 1.55;
+        color: var(--print-soft);
+      }
+
+      .split {
+        display: grid;
+        grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+        gap: clamp(2rem, 1rem + 4vw, 5rem);
+        align-items: center;
+      }
+
+      .split--flip {
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      }
+
+      .split--flip .split-text {
+        order: 2;
+      }
+
+      .split--try,
+      .split--setup {
+        align-items: start;
+      }
+
+      @media (min-width: 56.01rem) {
+        .split--try .split-text {
+          position: sticky;
+          top: 6rem;
+        }
+      }
+
+      .split-text > * + * {
+        margin-top: var(--space-sm);
+      }
+
+      .split-text > p {
+        max-width: 34rem;
+        color: var(--print-soft);
+      }
+
+      .split-text > p:first-of-type {
+        margin-top: var(--space-md);
+      }
+
+      .small {
         font-size: var(--text-sm);
         color: var(--print-soft);
       }
 
-      /* the real sheet, lying on the desk */
-      .loose-sheet {
-        margin: var(--space-xl) 0 0;
-      }
-
-      .loose-sheet img {
-        width: 100%;
-        height: auto;
-        aspect-ratio: 900 / 1150;
-        object-fit: cover;
-        object-position: top;
-        box-shadow: 0 1px 1px oklch(0.15 0.02 255 / 0.3), 0 16px 34px -14px oklch(0.12 0.02 255 / 0.5);
-      }
-
-      .loose-sheet figcaption {
-        margin-top: var(--space-xs);
-        font-family: var(--sans);
-        font-size: var(--text-xs);
-        font-weight: 700;
-        color: var(--print-soft);
-      }
-
-      @media (min-width: 88rem) {
-        .cover {
-          min-height: 60rem;
+      @media (max-width: 56rem) {
+        .split {
+          grid-template-columns: minmax(0, 1fr);
         }
 
-        .loose-sheet {
-          position: absolute;
-          top: 17rem;
-          right: -15rem;
-          width: 26rem;
-          margin: 0;
-          transform: rotate(3deg);
-          backface-visibility: hidden;
+        .split--flip .split-text {
+          order: 0;
         }
 
-        .loose-sheet figcaption {
-          color: var(--desk-soft);
-          transform: rotate(-4deg);
+        .split--flip {
+          grid-template-columns: minmax(0, 1fr);
         }
       }
 
-      @media (max-width: 40rem) {
-        .cand {
-          grid-template-columns: 1fr;
-        }
-
-        .cand-field:not(.cand-field--name) {
-          display: none;
-        }
-      }
-
-      /* ------------------------------------------------ questions */
-      .q-lead {
-        color: var(--print-soft);
-      }
-
-      .scheme {
-        margin-top: var(--space-md);
-        padding: var(--space-sm) 0 var(--space-sm);
-        border-top: 1px solid var(--rule);
-        border-bottom: 1px solid var(--rule);
+      /* ------------------------------------------------ the six rules */
+      .rules {
+        list-style: none;
+        margin: 0;
+        padding: 0;
         display: grid;
-        gap: var(--space-2xs);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: clamp(2rem, 1.5rem + 2vw, 3.25rem) clamp(1.5rem, 1rem + 2.5vw, 3.5rem);
       }
 
-      .scheme-label {
-        font-family: var(--sans);
-        font-size: var(--text-xs);
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: var(--marker);
+      .rule {
+        padding-top: var(--space-md);
+        border-top: 1px solid var(--rule);
       }
 
-      .scheme p:not(.scheme-label) {
+      .rule h3 {
+        margin-top: var(--space-sm);
+      }
+
+      .rule p {
+        margin-top: var(--space-2xs);
+        color: var(--print-soft);
+      }
+
+      .rule-n {
         position: relative;
-        padding-left: 2.6rem;
-      }
-
-      .mk {
-        position: absolute;
-        left: 0;
-        top: 0.1rem;
-        font-family: var(--sans);
-        font-size: var(--text-xs);
-        font-weight: 800;
+        display: grid;
+        place-items: center;
+        width: 2.6rem;
+        height: 2.6rem;
         color: var(--marker);
+        font-family: var(--serif);
+        font-size: 1.25rem;
+        font-weight: 700;
       }
 
-      /* Q1 */
+      .rule-n svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .rule-n .pen {
+        stroke-width: 2.4;
+      }
+
+      @media (max-width: 60rem) {
+        .rules {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 36rem) {
+        .rules {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+
+      /* ------------------------------------------------ rule 1: close the theory */
       .closer {
-        margin-top: var(--space-lg);
         display: grid;
         gap: var(--space-md);
       }
@@ -880,15 +892,20 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
       .loose {
         grid-area: 1 / 1;
         align-self: start;
-        padding: var(--space-md) var(--space-lg);
+        padding: var(--space-md) var(--space-lg) var(--space-lg);
         background: var(--paper);
-        border: 1px solid var(--rule);
-        box-shadow: 0 10px 24px -16px oklch(0.2 0.02 255 / 0.5);
+        border-radius: 3px;
+        box-shadow: var(--shadow-sheet);
         transition: transform var(--dur-slow) var(--ease-out), opacity var(--dur) var(--ease-out), visibility 0s linear var(--dur-slow);
       }
 
       .loose > * + * {
         margin-top: var(--space-xs);
+      }
+
+      .loose :where(p:not(.label)) {
+        font-family: var(--serif);
+        font-size: 1.0625rem;
       }
 
       .loose-title {
@@ -900,7 +917,7 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
         transform: rotate(-0.6deg);
       }
 
-      .rule-box {
+      .loose .rule-box {
         padding: var(--space-xs) var(--space-sm);
         border: 1.5px solid var(--print);
         font-family: var(--sans);
@@ -908,7 +925,7 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
         font-size: var(--text-sm);
       }
 
-      .close-line {
+      .loose .close-line {
         font-style: italic;
         color: var(--print-soft);
       }
@@ -924,6 +941,7 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
         padding-left: 1.4rem;
         display: grid;
         gap: var(--space-xs);
+        font-family: var(--serif);
       }
 
       .drill-list li {
@@ -936,7 +954,7 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
         border-bottom: 1.5px solid var(--rule);
       }
 
-      .gate {
+      .loose .gate {
         font-family: var(--sans);
         font-size: var(--text-sm);
         font-weight: 700;
@@ -970,7 +988,6 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
       .closer-status {
         font-size: var(--text-sm);
         color: var(--print-soft);
-        font-style: italic;
       }
 
       .w-closed {
@@ -985,27 +1002,28 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
         display: inline;
       }
 
-      /* Q2 */
+      /* ------------------------------------------------ rule 2: blocks vs mixed */
       .pair {
-        margin-top: var(--space-lg);
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        border-top: 1.5px solid var(--print);
-        border-bottom: 1.5px solid var(--print);
+        gap: var(--space-md);
+        align-items: start;
       }
 
-      .pair-col {
-        padding: var(--space-sm) var(--space-md) var(--space-md) 0;
+      .pair-sheet {
+        padding: var(--space-md) var(--space-md) var(--space-sm);
+        background: var(--paper);
+        border-radius: 3px;
+        box-shadow: var(--shadow-sheet);
+        transform: rotate(-0.8deg);
       }
 
-      .pair-col + .pair-col {
-        padding-left: var(--space-md);
-        border-left: 1px solid var(--rule);
+      .pair-sheet--mixed {
+        transform: rotate(0.9deg) translateY(1rem);
       }
 
       .pair-head {
-        margin-top: 0.2rem;
-        font-family: var(--sans);
+        margin-top: 0.15rem;
         font-weight: 800;
       }
 
@@ -1013,33 +1031,88 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
         margin: var(--space-xs) 0 0;
         padding-left: 1.4rem;
         display: grid;
-        gap: 0.35rem;
-        font-size: var(--text-sm);
+        gap: 0.4rem;
+        font-family: var(--serif);
+        font-size: var(--text-base);
       }
 
-      @media (max-width: 40rem) {
+      .pair-foot {
+        margin-top: var(--space-sm);
+        padding-top: var(--space-xs);
+        border-top: 1px solid var(--rule);
+        font-size: var(--text-xs);
+        font-weight: 700;
+        color: var(--print-soft);
+      }
+
+      @media (max-width: 36rem) {
         .pair {
-          grid-template-columns: 1fr;
+          grid-template-columns: minmax(0, 1fr);
         }
 
-        .pair-col + .pair-col {
-          padding-left: 0;
-          border-left: 0;
-          border-top: 1px solid var(--rule);
+        .pair-sheet--mixed {
+          transform: rotate(0.6deg);
         }
       }
 
-      /* Q4 */
+      /* ------------------------------------------------ try it */
+      .steps {
+        margin: var(--space-md) 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: var(--space-xs);
+        counter-reset: step;
+      }
+
+      .steps li {
+        position: relative;
+        padding-left: 2.25rem;
+        color: var(--print-soft);
+        counter-increment: step;
+      }
+
+      .steps li::before {
+        content: counter(step);
+        position: absolute;
+        left: 0;
+        top: 0.05rem;
+        display: grid;
+        place-items: center;
+        width: 1.5rem;
+        height: 1.5rem;
+        border: 1.5px solid var(--print);
+        border-radius: 50%;
+        color: var(--print);
+        font-size: var(--text-xs);
+        font-weight: 800;
+      }
+
+      .steps strong {
+        color: var(--print);
+      }
+
+      /* ------------------------------------------------ 48 hours */
       .chart {
-        margin: var(--space-lg) 0 0;
+        margin: 0;
+        padding: clamp(1.25rem, 0.8rem + 2vw, 2.5rem);
         display: grid;
         gap: var(--space-lg);
+        background: var(--paper);
+        border: 1px solid var(--rule);
+        border-radius: 10px;
+      }
+
+      .chart-cap {
+        font-size: var(--text-sm);
+        font-weight: 700;
+        color: var(--print-soft);
       }
 
       .track {
         position: relative;
         height: 4.5rem;
-        margin: var(--space-sm) 1.2rem 0;
+        margin: 0 1.2rem;
       }
 
       .axis,
@@ -1079,7 +1152,6 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
       }
 
       .node-when {
-        font-family: var(--sans);
         font-size: var(--text-xs);
         font-weight: 700;
         color: var(--print-soft);
@@ -1119,7 +1191,7 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
       }
 
       .stop-card {
-        min-height: 8.5rem;
+        min-height: 8rem;
         padding: var(--space-md) 0 0;
         border-top: 1px solid var(--rule);
       }
@@ -1129,9 +1201,9 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
       }
 
       .stop-title {
-        font-family: var(--sans);
-        font-weight: 800;
-        font-size: var(--text-lg);
+        font-family: var(--serif);
+        font-weight: 650;
+        font-size: var(--text-xl);
       }
 
       .stop-when {
@@ -1140,9 +1212,8 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
       }
 
       .stop-verdict {
-        font-family: var(--sans);
-        font-weight: 800;
         font-size: var(--text-sm);
+        font-weight: 800;
       }
 
       .stop-verdict.is-counts {
@@ -1151,8 +1222,7 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
 
       .chart-note {
         font-size: var(--text-sm);
-        color: var(--print-faint);
-        font-style: italic;
+        color: var(--print-soft);
       }
 
       @media (max-width: 40rem) {
@@ -1167,21 +1237,40 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
         }
       }
 
-      /* Q5 */
-      .page--wide {
-        width: min(100% - 2 * clamp(0.75rem, 0.2rem + 2.5vw, 2rem), 72rem);
+      /* ------------------------------------------------ setup transcript */
+      .terminal {
+        margin: 0;
+        border-radius: 10px;
+        background: var(--night);
+        color: var(--night-ink);
+        overflow: hidden;
+        box-shadow: 0 18px 40px -20px oklch(0.2 0.03 262 / 0.5);
       }
 
-      /* Q6 */
-      .transcript {
-        margin: var(--space-lg) 0 0;
-        display: grid;
-        gap: var(--space-xs);
+      .term-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.7rem 1rem;
+        border-bottom: 1px solid var(--night-hi);
+      }
+
+      .term-bar i {
+        width: 0.65rem;
+        height: 0.65rem;
+        border-radius: 50%;
+        background: var(--night-hi);
+      }
+
+      .term-bar span {
+        margin-left: 0.5rem;
+        font-family: var(--mono);
+        font-size: var(--text-xs);
+        color: var(--night-soft);
       }
 
       .tr-body {
         padding: var(--space-md);
-        border: 1.5px solid var(--print);
         display: grid;
         gap: var(--space-sm);
         font-family: var(--mono);
@@ -1190,14 +1279,15 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
       }
 
       .tr-y {
-        color: var(--marker);
+        color: var(--night-warm);
       }
 
       .tr-plan {
         margin: 0;
         padding: var(--space-sm);
         overflow-x: auto;
-        background: var(--paper-shade);
+        border-radius: 4px;
+        background: var(--night-hi);
         font-size: 0.75rem;
         line-height: 1.7;
       }
@@ -1207,38 +1297,38 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
         padding-left: 1.4rem;
       }
 
-      /* ------------------------------------------------ back page */
-      .back-title {
-        font-size: var(--text-2xl);
-        font-family: var(--serif);
-        font-weight: 700;
-        letter-spacing: -0.03em;
-        padding-bottom: var(--space-md);
-        border-bottom: 2px solid var(--print);
+      .term-cap {
+        padding: 0.7rem var(--space-md);
+        border-top: 1px solid var(--night-hi);
+        font-size: var(--text-xs);
+        color: var(--night-soft);
       }
 
-      .back-grid {
+      /* ------------------------------------------------ details */
+      .section--details {
+        border-top: 1px solid var(--rule);
+      }
+
+      .details-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: var(--space-xl) var(--space-xl);
-        margin-top: var(--space-lg);
+        gap: var(--space-xl) clamp(2rem, 1rem + 4vw, 5rem);
+        margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
       }
 
-      .back-wide {
+      .details-grid h3 {
+        margin-bottom: var(--space-sm);
+      }
+
+      .details-wide {
         grid-column: 1 / -1;
+      }
+
+      .limits {
         display: grid;
-        gap: var(--space-sm);
-      }
-
-      .back-h {
-        font-size: var(--text-sm);
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        margin-bottom: var(--space-xs);
-      }
-
-      .back-wide p {
-        max-width: 70ch;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-md) clamp(2rem, 1rem + 4vw, 5rem);
+        color: var(--print-soft);
       }
 
       .where {
@@ -1255,71 +1345,117 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
         vertical-align: top;
       }
 
+      .where tr:first-child th,
+      .where tr:first-child td {
+        border-top: 1px solid var(--rule);
+      }
+
       .where th {
         width: 38%;
         padding-right: var(--space-sm);
-        font-family: var(--sans);
         font-weight: 700;
+      }
+
+      .where td {
+        color: var(--print-soft);
       }
 
       .plain {
         margin: 0 0 var(--space-sm);
         padding-left: 1.2rem;
         display: grid;
-        gap: 0.35rem;
-        font-size: var(--text-sm);
-      }
-
-      .small {
+        gap: 0.4rem;
         font-size: var(--text-sm);
         color: var(--print-soft);
       }
 
-      .back-install {
-        margin-top: var(--space-xl);
-        display: grid;
-        grid-template-columns: minmax(0, 1fr);
-        gap: var(--space-xs);
-        max-width: 44rem;
-      }
-
-      .end {
-        margin-top: var(--space-2xl);
-        text-align: center;
-        font-family: var(--sans);
-        font-weight: 800;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        font-size: var(--text-sm);
-      }
-
-      .back-foot {
-        grid-template-columns: 1fr auto 1fr;
-      }
-
-      .pf-fine {
-        text-align: right;
-        font-size: 0.6875rem;
-        line-height: 1.5;
-      }
-
       @media (max-width: 48rem) {
-        .back-grid {
-          grid-template-columns: 1fr;
+        .details-grid,
+        .limits {
+          grid-template-columns: minmax(0, 1fr);
         }
+      }
 
-        .back-foot {
-          grid-template-columns: 1fr;
-          text-align: left;
-        }
+      /* ------------------------------------------------ closing install */
+      .cta {
+        padding-block: clamp(3.5rem, 2.5rem + 4vw, 6rem);
+        background: var(--night);
+        color: var(--night-ink);
+      }
 
-        .back-foot .pf-left {
-          display: block;
-        }
+      .cta-in {
+        display: grid;
+        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+        gap: var(--space-lg) clamp(2rem, 1rem + 4vw, 5rem);
+        align-items: center;
+      }
 
-        .pf-fine {
-          text-align: left;
+      .cta-lead {
+        margin-top: var(--space-sm);
+        font-size: var(--text-lg);
+        color: var(--night-soft);
+      }
+
+      .cmd-box--night {
+        margin-top: 0;
+        border-color: var(--night-hi);
+        background: oklch(0.19 0.022 262);
+        color: var(--night-ink);
+      }
+
+      .cmd-box--night .prompt {
+        color: var(--night-soft);
+      }
+
+      .cmd-box--night .copy {
+        border-left-color: var(--night-hi);
+        background: var(--paper);
+        color: var(--print);
+      }
+
+      .cmd-box--night .copy:hover {
+        background: var(--paper-shade);
+      }
+
+      .cta-note {
+        margin-top: var(--space-sm);
+        font-size: var(--text-sm);
+        color: var(--night-soft);
+      }
+
+      .cta-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2xs) var(--space-md);
+        margin-top: var(--space-sm);
+        font-size: var(--text-sm);
+        font-weight: 600;
+      }
+
+      @media (max-width: 56rem) {
+        .cta-in {
+          grid-template-columns: minmax(0, 1fr);
         }
+      }
+
+      /* ------------------------------------------------ footer */
+      .foot {
+        padding-block: var(--space-lg);
+        background: var(--night);
+        border-top: 1px solid var(--night-hi);
+        color: var(--night-soft);
+        font-size: var(--text-xs);
+      }
+
+      .foot-in {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: var(--space-2xs) var(--space-lg);
+      }
+
+      .foot-in p:last-child {
+        max-width: 38rem;
       }
     </style>
   </body>

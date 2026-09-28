@@ -242,9 +242,10 @@
   }
 
   .t-sheet {
-    padding: clamp(1rem, 0.6rem + 2vw, 2rem);
-    border: 1.5px solid var(--print);
+    padding: clamp(1.25rem, 0.8rem + 2vw, 2.25rem);
     background: var(--paper);
+    border-radius: 4px;
+    box-shadow: var(--shadow-sheet);
   }
 
   .t-head {
@@ -258,13 +259,12 @@
   }
 
   .t-title {
-    font-family: var(--sans);
-    font-weight: 800;
-    font-size: var(--text-lg);
+    font-family: var(--serif);
+    font-weight: 650;
+    font-size: var(--text-xl);
   }
 
   .t-meta {
-    font-family: var(--sans);
     font-size: var(--text-xs);
     color: var(--print-soft);
   }
@@ -273,7 +273,6 @@
     margin-top: var(--space-xs);
     font-size: var(--text-sm);
     color: var(--print-soft);
-    font-style: italic;
   }
 
   .t-form :global(.t-items) {
@@ -287,7 +286,8 @@
   .t-form :global(.t-q) {
     display: flex;
     gap: var(--space-xs);
-    font-size: var(--text-base);
+    font-family: var(--serif);
+    font-size: 1.125rem;
   }
 
   .t-form :global(.t-n) {
@@ -317,25 +317,22 @@
   }
 
   .t-form :global(.t-lab) {
-    font-family: var(--sans);
-    font-size: var(--text-xs);
+    font-size: var(--text-sm);
     font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
     color: var(--print-soft);
-    min-width: 4.6rem;
+    min-width: 4.2rem;
   }
 
   .t-form :global(input) {
     min-height: 2.6rem;
     width: 9rem;
-    padding: 0 0.6rem;
-    border: 1.5px solid var(--box);
-    border-radius: 2px;
+    padding: 0 0.7rem;
+    border: 1px solid var(--box);
+    border-radius: var(--radius);
     background: var(--paper);
     color: var(--graphite);
     font-family: var(--serif);
-    font-size: 1.15rem;
+    font-size: 1.125rem;
   }
 
   .t-form :global(.t-field--check input) {
@@ -348,7 +345,11 @@
   .t-form :global(input:focus-visible) {
     outline: none;
     border-color: var(--print);
-    box-shadow: 0 2px 0 var(--print);
+    box-shadow: 0 0 0 1px var(--print);
+  }
+
+  .t-form :global(.t-field--check input:focus-visible) {
+    box-shadow: 0 1.5px 0 var(--print);
   }
 
   .t-form :global(input:disabled) {
@@ -369,7 +370,6 @@
   }
 
   .t-form :global(.t-ls) {
-    font-family: var(--sans);
     font-size: var(--text-xs);
     font-weight: 700;
     color: var(--marker);
@@ -379,8 +379,10 @@
     margin-top: var(--space-2xs);
     padding: var(--space-2xs) var(--space-sm);
     margin-left: 2.15rem;
+    border-radius: 4px;
     background: var(--marker-wash);
     color: var(--print);
+    font-family: var(--serif);
     font-style: italic;
     display: flex;
     flex-wrap: wrap;
@@ -390,6 +392,7 @@
 
   .t-form :global(.t-line .t-lab) {
     min-width: 0;
+    font-family: var(--sans);
     font-style: normal;
     color: var(--marker);
   }
@@ -400,19 +403,19 @@
     gap: var(--space-sm);
     margin-top: var(--space-lg);
     padding-top: var(--space-sm);
-    border-top: 1.5px solid var(--print);
+    border-top: 1px solid var(--rule);
   }
 
   .t-least-label {
-    font-family: var(--sans);
-    font-weight: 800;
+    font-weight: 700;
     font-size: var(--text-sm);
   }
 
   .t-least select {
     min-height: 2.4rem;
-    padding: 0 0.5rem;
-    border: 1.5px solid var(--box);
+    padding: 0 0.6rem;
+    border: 1px solid var(--box);
+    border-radius: var(--radius);
     background: var(--paper);
     font: inherit;
     font-size: var(--text-sm);
@@ -429,14 +432,15 @@
     display: grid;
     gap: var(--space-xs);
     padding: var(--space-md);
-    border: 2px solid var(--marker);
+    border: 1.5px solid var(--marker);
+    border-radius: 4px;
     background: var(--paper);
   }
 
   .t-result :global(.r-big) {
-    font-family: var(--sans);
-    font-weight: 800;
-    font-size: var(--text-lg);
+    font-family: var(--serif);
+    font-weight: 650;
+    font-size: var(--text-xl);
     color: var(--marker);
   }
 
@@ -456,7 +460,7 @@
     }
 
     .t-form :global(.t-lab) {
-      min-width: 4rem;
+      min-width: 3.8rem;
     }
 
     .t-form :global(input) {
