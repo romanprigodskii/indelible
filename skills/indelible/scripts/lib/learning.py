@@ -590,6 +590,7 @@ def _levels_for_topic(sittings, window, untreated=None, least_sure_only=False):
         "l4": None,           # (at, basis)
         "l5": None,           # basis
         "drop": None,         # basis for "back to 2 after a cold fail"
+        "thin": None,         # the latest cold sitting with too few counted questions to count
     }
 
     def current():
@@ -641,6 +642,13 @@ def _levels_for_topic(sittings, window, untreated=None, least_sure_only=False):
         label = "cold %s on %s" % (_frac(ev["pts"], ev["n"]), ev["sheet"])
         if ih is not None:
             label += " at %.0f h" % ih
+        if ev["n"] < MIN_COLD_ASKS:
+            # Too few counted questions to pass or to fail: the sitting counts for nothing,
+            # but level_basis says it was seen, rather than "no evidence yet".
+            st["thin"] = "%s did not count (a recheck needs at least %d counted questions on the topic)" % (
+                label, MIN_COLD_ASKS)
+            continue
+        st["thin"] = None
         if pct < FAIL_PCT:
             before = current()
             if level_rank(before) > 2:
@@ -648,7 +656,7 @@ def _levels_for_topic(sittings, window, untreated=None, least_sure_only=False):
                 st["drop"] = "%s (%s) after level %s: back to 2" % (
                     label.replace("cold ", "cold fail ", 1), dates.fmt_date(at), before)
             continue
-        if pct < PASS_PCT or ev["n"] < MIN_COLD_ASKS:
+        if pct < PASS_PCT:
             continue
         not_warm = ih is None or ih >= NO_EXPOSURE_H
         in_window = ih is not None and lo <= ih <= hi and ih >= NO_EXPOSURE_H
@@ -679,8 +687,12 @@ def _levels_for_topic(sittings, window, untreated=None, least_sure_only=False):
         basis = "latest measurement: " + st["measure"][1]
     elif least_sure_only:
         basis = "only least-sure questions so far (right answers named on the Least-sure line do not count)"
+    elif st["thin"]:
+        basis = st["thin"]
     else:
         basis = "no evidence yet"
+    if st["thin"] and level_rank(lvl) < 3 and basis != st["thin"]:
+        basis = "%s; %s" % (basis, st["thin"])
     if untreated and level_rank(lvl) >= 3:
         held = "3p" if st["m3p"] else 2
         basis = "%s; held at %s while a wrong idea is not fixed (%s)" % (basis, held, ", ".join(untreated))

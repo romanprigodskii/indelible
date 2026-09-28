@@ -623,9 +623,24 @@ class LevelTests(Base):
 
     def test_one_cold_question_is_not_enough_for_level_3(self):
         taught = att("d", "rrrrrr", "practice", 0)
-        self.assertEqual(level(taught + att("c1", "r", "cold", 2, interval_h=49))["level"], 2)
+        lv = level(taught + att("c1", "r", "cold", 2, interval_h=49))
+        self.assertEqual(lv["level"], 2)
+        self.assertIn("cold 1/1 on c1 at 49 h did not count (a recheck needs at least 2 counted questions",
+                      lv["level_basis"])
         self.assertEqual(level(taught + att("c1", "rr", "cold", 2, interval_h=49))["level"], 3)
         self.assertEqual(learning.MIN_COLD_ASKS, 2)
+        # With nothing else on record, the basis names the sitting instead of "no evidence yet".
+        alone = level(att("c1", "r", "cold", 2, interval_h=49))
+        self.assertEqual(alone["level"], 0)
+        self.assertTrue(alone["level_basis"].startswith("cold 1/1 on c1 at 49 h did not count"), alone)
+        # Nor does one counted question fail: a level-3 topic is not dropped by it.
+        three = taught + att("c1", "rrrr", "cold", 2, interval_h=49)
+        self.assertEqual(level(three + att("c2", "w", "cold", 9, interval_h=200))["level"], 3)
+        self.assertEqual(level(three + att("c2", "rw", "cold", 9, interval_h=200, least_sure=(0,)))["level"], 3)
+        # A later sitting that counts clears the note.
+        lv = level(taught + att("c1", "r", "cold", 2, interval_h=49) + att("c2", "rr", "cold", 4, interval_h=49))
+        self.assertEqual(lv["level"], 3)
+        self.assertNotIn("did not count", lv["level_basis"])
 
     def test_an_untreated_wrong_idea_holds_the_topic_below_3(self):
         three = att("d", "rrrrrr", "practice", 0) + att("c1", "rrrr", "cold", 2, interval_h=49)

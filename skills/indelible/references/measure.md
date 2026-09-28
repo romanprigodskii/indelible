@@ -103,7 +103,7 @@ Computed by the CLI (`ind grade record`, `ind topic recompute`), never typed. Th
 | 4 | A second cold pass of 75%+ (at least 2 counted questions), at least 7 days after the first |
 | 5 | 75%+ on the topic in a mock or checkpoint after reaching 4 |
 
-- Least-sure questions never count toward a level, even when right. A cold fail under 50% drops the topic to 2.
+- Least-sure questions never count toward a level, even when right. A cold fail under 50% (over at least 2 counted questions) drops the topic to 2. A recheck with fewer than 2 counted questions on a topic neither passes nor fails it.
 - To confirm a never-taught 3p topic: a short mixed practice set, logged with `ind session expose <subject> <topic> --kind review`, then its 2-day recheck inside the window.
 
 ## 9. Hours needed and feasibility

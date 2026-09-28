@@ -330,7 +330,7 @@ For error re-serves, only 2 and 3 apply, plus `next_due ≤ date(t)`.
 | 5 | ≥75% on the topic's asks in a `mock` or `checkpoint` after reaching 4 |
 
 - The highest satisfied level wins.
-- A later cold fail (<50%) drops the level to 2 and records the fact in `level_basis`.
+- A later cold fail (<50%, over at least 2 counted asks) drops the level to 2 and records the fact in `level_basis`. A cold sitting with fewer than 2 counted asks on the topic neither passes nor fails; `level_basis` names it ("… did not count") while the level is below 3.
 - `level_basis` is a one-line human reason.
 
 ### 6.6 Metrics (`lib/learning.py` + `cmd_stats.py`)
