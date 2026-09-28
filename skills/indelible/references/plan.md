@@ -77,7 +77,7 @@ Plan backwards from `target.date`. For a date range, plan to the earliest date a
 - **Integrity (never broken):**
   - every teach has a protected 2-day recheck inside `cold_window_h` (checked: an unplaced recheck closing within 24 h FAILs; `session close` checks it is booked);
   - no untreated belief (wrong idea) is served cold (the sheet checker and `session close`);
-  - a repair comes at least 12 h before a new belief's recheck (yours);
+  - a repair comes at least 24 h before a new belief's recheck (yours): a repair is an exposure, so one less than 24 h before takes its topic off that recheck;
   - on a day with both, the recheck comes before new material (yours).
 - **Learner-set (hard):** the sleep window, nothing ending within 30 min of bedtime, `time.blocked`, the weekly ceiling (checked). The rest day only WARNs; treat it as hard unless the learner asks.
 - **Validity (hard by default):**
@@ -92,7 +92,7 @@ Plan backwards from `target.date`. For a date range, plan to the earliest date a
 2. Place the anchors: mocks, checkpoints and diagnostics (`--measurement --protected`), and tutor lessons.
 3. Place protected teach/recheck pairs (`--protected`). A teach block needs a slot 44–72 h later (the subject's `cold_window_h`). If the recheck can't fit, move the teach, not the recheck. Place any open obligations.
    - Persona A (60 min on Mon, Tue, Thu and Sat) might plan: Tue new skill → Thu recheck + new skill → Sat recheck + timed section → Mon recheck + fix mistakes.
-4. Place repairs (`--kind repair`, at least 12 h before the recheck they serve). Place a `review` block within 48 h of each mock.
+4. Place repairs (`--kind repair`, at least 24 h before the recheck they serve). Place a `review` block within 48 h of each mock.
 5. Put a weekly discrimination sheet in a `mixed` block for each confusable pair where both topics are at mastery 3, until both reach 4.
 6. Fill each subject toward `target_weekly_min`, in priority order, never below `min_weekly_min`.
 7. Reserve the buffer as `--kind buffer` (`buffer_pct` of the weekly target).

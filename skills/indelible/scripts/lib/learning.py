@@ -129,12 +129,13 @@ add_error = add
 def repair(e, at, deadline=None, today=None):
     """The belief was repaired at time ``at`` (a sheet or discussion).
 
-    repair_at=at, status=spacing, rung=0,
-    next_due = max(date(at) + 1, date(at + 12 h)), then the deadline cap.
+    repair_at=at, status=spacing, rung=0, next_due = date(at) + 1, then the
+    deadline cap. The repair is logged as an exposure, so the 24-hour rule
+    keeps the mistake from coming back cold before at + 24 h.
     """
     e = copy.deepcopy(e)
     t = dates.parse_iso(at)
-    due = max(t.date() + timedelta(days=1), (t + timedelta(hours=12)).date())
+    due = t.date() + timedelta(days=1)
     today = today if today is not None else t.date()
     e["repair_at"] = dates.fmt_iso(t)
     e["status"] = "spacing"

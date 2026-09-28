@@ -535,10 +535,18 @@ class CloseTests(SessionBase):
         self.assertEqual(r.returncode, 1)
         self.assertIn("FAIL C5", r.stdout)
         self.assertIn("E-ielts-0001", r.stdout)
-        # a recheck more than 12 h away is not flagged
+        # 24 h, not 12: a repair now would still take T04 off tomorrow morning's recheck
         self.put("plan/blocks.jsonl", [self.block("B-20261013-ielts-1", "2026-10-13T08:00+01:00",
                                                   "2026-10-13T08:15+01:00", kind="cold", content="cold:T04")])
-        self.assertEqual(self.close().returncode, 0)
+        r = self.close()
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("FAIL C5", r.stdout)
+        # a recheck more than 24 h away is not flagged
+        self.put("plan/blocks.jsonl", [self.block("B-20261013-ielts-2", "2026-10-13T11:00+01:00",
+                                                  "2026-10-13T11:15+01:00", kind="cold", content="cold:T04")])
+        r = self.close()
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertIn("no 2-day recheck in the next 24 h", r.stdout)
 
     def test_fail_on_a_promise_without_a_to_do(self):
         self.open_session(60)

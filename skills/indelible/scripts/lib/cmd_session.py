@@ -55,7 +55,7 @@ PENCIL_TYPES = ("theory", "external", "example", "triage")
 NOTE_MAX = 120
 DEFER_DUE_H = 24
 C2_OWED_H = 24
-C5_HORIZON_H = 12
+C5_HORIZON_H = 24       # a repair less than 24 h before a recheck takes its topic off it (the 24-hour rule)
 PLANNED_MIN, PLANNED_MAX = 5, 720
 EXTENSION_DEFAULT_MIN, EXTENSION_MAX_MIN = 15, 30   # close.md §2: session.extension_max_min, never over 30
 OPEN = brief.OPEN_BLOCK_STATUSES
@@ -632,8 +632,9 @@ def run_checks(ws, subj, lk, now, note):
                 clashes.append((b, s, tid))
     if clashes:
         out.append(Check("C5", "repair before cold", "FAIL", "; ".join(
-            "the 2-day recheck %s (%s) includes %s, which has an unfixed mistake (%s): repair it first or move "
-            "the recheck" % (("at " if b.get("start") else "window opening ") + brief.fmt_when(s, now), b.get("id"),
+            "the 2-day recheck %s (%s) includes %s, which has an unfixed mistake (%s): a repair now comes less "
+            "than 24 h before it and takes the topic off it, so move the recheck inside its window to 24 h or "
+            "more after the repair, or serve it without the topic" % (("at " if b.get("start") else "window opening ") + brief.fmt_when(s, now), b.get("id"),
                              tid, ", ".join(untreated[tid])) for b, s, tid in clashes),
             todo="Fix the mistake before its 2-day recheck, or move the recheck",
             refs=sorted(set([c[0].get("id") for c in clashes] + [i for c in clashes for i in untreated[c[2]]]))))

@@ -272,7 +272,7 @@ A topic's cold passes are not stored: the level rules find them in `attempts.jso
   - `slip`: `status=spacing`, `rung=0`, `next_due=d+1`.
   - `shaky`: `status=spacing`, `rung=1`, `next_due=d+3`.
   - `belief`: `status=untreated`, `next_due=None`.
-- **`repair(e, at)`:** `repair_at=at`, `status=spacing`, `rung=0`, `next_due=max(date(at)+1, date(at + 12h))`.
+- **`repair(e, at)`:** `repair_at=at`, `status=spacing`, `rung=0`, `next_due=date(at)+1`. The repair is logged as an exposure, so the mistake comes back cold no earlier than 24 h after it (§6.4), even when its due date comes first.
 - **`pass_(e, d)`:** append to `passes`. If `rung == 3`: `status=retired`, `next_due=None`. Otherwise `rung += 1` and `next_due = d + LADDER_DAYS[rung]`.
 - **`fail(e, d)`:** append to `fails`.
   - A belief goes to `status=untreated`, `rung=0`, `next_due=None` (it needs repair again).
@@ -457,7 +457,7 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
   | C2 | graded | Every measuring sheet sat today is `graded`. Every other sheet sat today is `graded`, or an open ledger `owed` row mentions its id with a due time within 24 h. Exempt: the read-then-close types `theory`, `external`, `example` and `triage`, whose pencil questions are done with the page open and are never mastery evidence |
   | C3 | errors | Every error opened today has `kind`, `mode`, and `account` (or the literal "no account"). It also has a `next_due`, or `status=untreated` |
   | C4 | cold booked | Every topic with a `teach` exposure today has an open cold obligation or a planned cold block inside its window |
-  | C5 | repair before cold | No planned cold block (or obligation window start) within 12 h of now includes a topic with an untreated belief |
+  | C5 | repair before cold | No planned cold block (or obligation window start) within 24 h of now includes a topic with an untreated belief (a repair less than 24 h before a recheck takes its topic off it, §6.4) |
   | C6 | promises | If the `--note` or any note appended today matches `\b(tomorrow|later|next time|amanhã|mais tarde|mañana|luego|morgen|später)\b` (case-insensitive; English, Portuguese, Spanish and German), there must be an `owed` ledger row created today |
   | C7 | views | Rendered (the close does it) |
   | C8 | next sheets | Whether the next block for this subject has a sheet with status `issued` or better. INFO, except when that block is `solo` (no session with Claude before it) and has none: then it FAILs, and `--defer` turns it into a to-do by Claude |
