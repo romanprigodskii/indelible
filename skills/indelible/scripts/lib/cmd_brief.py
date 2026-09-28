@@ -60,6 +60,14 @@ UNCLOSED_AFTER_H = 2.0
 REENTRY_GAP_DAYS = 5
 OPENS_FORCE = 2
 CLOSING_MIN = 30          # a recheck window closing this soon is marked CLOSING
+# The alarm of plan.md section 7: the last 2 planned blocks missed, or no session
+# in max(5 days, 2 x the planned gap); silent while an "Ask again" to-do is open.
+ALARM_KINDS = ("missed", "gap")
+ALARM_MISSES = 2
+ALARM_MIN_DAYS = 5
+ALARM_GAP_BACK_DAYS = 28
+ALARM_GAP_AHEAD_DAYS = 14
+ASK_AGAIN = "ask again"
 
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -447,6 +455,110 @@ def late_rechecks(ws, subj, now, blocks=None, skip_ids=()):
     return out
 
 
+def _median(values):
+    vals = sorted(values)
+    n = len(vals)
+    if not n:
+        return None
+    mid = n // 2
+    return float(vals[mid]) if n % 2 else (vals[mid - 1] + vals[mid]) / 2.0
+
+
+def starvation_alarm(ws, subj, now, blocks=None, ledger=None, kinds=ALARM_KINDS):
+    """The alarm of plan.md section 7 for one subject, or None (no writes).
+
+    Only in scheduled mode, for a live subject with no session lock. ``missed``:
+    the last 2 planned blocks whose time has passed were both missed (``missed``,
+    a miss recorded on a block rebooked since, or ``missed?``: past, planned or
+    synced, with no session over it), and no session of the subject started
+    after the first of them. ``gap``: no session for max(5 days, 2 x the median
+    gap between the subject's planned days, from 4 weeks back to 2 weeks ahead);
+    with no session on record, counted from the subject's first planned block.
+    Silent while an owed to-do of the subject that starts "Ask again" is open
+    (plan.md section 7, choice 3). Only the kinds in ``kinds`` are looked for.
+
+    Returns {"kind", "blocks": [ids of the missed blocks], "days": whole days
+    without a session, "limit": days, "ever": False when no session is on record}.
+    """
+    if ws.schedule_mode() == "on_demand" or subject_state(ws, subj.id) != "live":
+        return None
+    tz = now.tzinfo
+    blocks = ws.load_blocks() if blocks is None else blocks
+    ledger = ws.load_ledger() if ledger is None else ledger
+    for r in ws.open_ledger_items(kind="owed", subject=subj.id, rows=ledger):
+        if str(r.get("what") or "").strip().lower().startswith(ASK_AGAIN):
+            return None
+    if session_lock_state(subj, now) is not None:
+        return None   # a session is running, or waits for its late close
+    sessions = subj.load_sessions()
+    missed_ids = set(b.get("id") for b in missed_blocks(ws, subj, blocks, sessions, now))
+    mine = []
+    for b in blocks:
+        s = to_local(b.get("start"), tz)
+        if b.get("subject") == subj.id and s is not None and not b.get("soft") and b.get("kind") != "buffer":
+            mine.append((s, b))
+    spans = [session_span(r, tz) for r in sessions]
+    starts = [s for s, _ in spans if s is not None]
+
+    if "missed" in kinds:
+        events = []   # (the slot's start, missed or not, block id)
+        for s, b in mine:
+            for m in b.get("misses") or []:
+                t = to_local(m.get("slot"), tz) if isinstance(m, dict) else None
+                if t is not None and t <= now and t != s:
+                    events.append((t, True, b.get("id")))   # an earlier slot, missed, then rebooked
+            e = to_local(b.get("end"), tz) or s
+            if e > now or b.get("status") in ("cancelled", "moved"):
+                continue
+            events.append((s, b.get("status") == "missed" or b.get("id") in missed_ids, b.get("id")))
+        events.sort(key=lambda x: x[0])
+        last = events[-ALARM_MISSES:]
+        if len(last) == ALARM_MISSES and all(x[1] for x in last) and not any(s >= last[0][0] for s in starts):
+            return {"kind": "missed", "blocks": [x[2] for x in last], "days": None, "limit": None,
+                    "ever": bool(starts)}
+
+    if "gap" in kinds:
+        lo, hi = now - timedelta(days=ALARM_GAP_BACK_DAYS), now + timedelta(days=ALARM_GAP_AHEAD_DAYS)
+        days = sorted(set(s.date() for s, b in mine if b.get("status") != "cancelled" and lo <= s <= hi))
+        gap = _median([(b - a).days for a, b in zip(days, days[1:])])
+        limit = int(max(ALARM_MIN_DAYS, 2 * gap)) if gap is not None else ALARM_MIN_DAYS
+        ends = [e or s for s, e in spans if (e or s) is not None]
+        if ends:
+            ref = max(ends)
+        else:   # no session on record: count from the first planned block
+            past = [s for s, _ in mine if s <= now]
+            ref = min(past) if past else None
+        if ref is not None and now - ref >= timedelta(days=limit):
+            return {"kind": "gap", "blocks": [], "days": int((now - ref).total_seconds() // 86400),
+                    "limit": limit, "ever": bool(ends)}
+    return None
+
+
+def _alarm_flag(al, title, sid, plain):
+    """The FLAGS line for an alarm: in plain words the subject's title, never an id or a topic."""
+    if al["kind"] == "missed":
+        why = "the last two planned sessions didn't happen" if plain else "last 2 planned blocks missed"
+    elif al["ever"]:
+        why = ("no session in %d days" % al["days"]) if plain else ("no session in %d days (limit %s)"
+                                                                   % (al["days"], al["limit"]))
+    else:
+        why = ("no session yet, %d days into the plan" % al["days"]) if plain else (
+            "no session yet, %d days into the plan (limit %s)" % (al["days"], al["limit"]))
+    return ("%s hasn't run lately: %s" % (title, why)) if plain else ("alarm %s: %s" % (sid, why))
+
+
+def _alarm_claude(al, sid, title):
+    if al["kind"] == "missed":
+        what = "last 2 planned blocks missed: %s" % ", ".join(al["blocks"])
+    elif al["ever"]:
+        what = "no session in %d days (limit %s)" % (al["days"], al["limit"])
+    else:
+        what = "no session yet, %d days after its first planned block (limit %s)" % (al["days"], al["limit"])
+    return clip("ALARM %s (plan.md §7): %s. Once per open, offer: 1) re-plan the week 2) pause %s until a date "
+                "3) ask again on a day (ledger add owed --subject %s --by claude --what \"Ask again: %s not running\" "
+                "--due ISO)" % (sid, what, sid, sid, title), 400)
+
+
 # ==========================================================================
 # Due
 # ==========================================================================
@@ -792,8 +904,15 @@ def _lock_line(lk, now, plain, sid):
     return "unclosed session %s (started %s)" % (lk.get("session_id") or "?", s)
 
 
-def brief_sections(ws, subj, now, sheets=None):
-    """Build the brief's sections for one subject (no writes)."""
+def brief_sections(ws, subj, now, sheets=None, overview=False):
+    """Build the brief's sections for one subject (no writes).
+
+    FLAGS carries the alarm of plan.md section 7 (starvation_alarm) for every
+    live subject. For the subject being opened, only missed sessions count:
+    a long gap there is the re-entry session (LAST SESSIONS). With
+    ``overview`` (the brief with no subject), only this subject's alarm is
+    looked for, with both kinds, since the other subjects have their own lines.
+    """
     tz = now.tzinfo
     plain = is_plain(ws)
     cfg = subj.load()
@@ -873,6 +992,19 @@ def brief_sections(ws, subj, now, sheets=None):
             flags.append("missed? " + "; ".join(shown[:4]) + (" +%d more" % (len(shown) - 4) if len(shown) > 4 else ""))
             cflags.append(Section("MISSED?:", [b.get("id") or "?" for b in missed],
                                   more="plan list --subject %s" % sid))
+        # The alarm (plan.md section 7): a subject not running, in this brief or another's.
+        others = [] if overview else [o for o in ws.subjects("live") if o.id != sid]
+        for other in [subj] + others:
+            kinds = ("missed",) if other.id == sid and not overview else ALARM_KINDS
+            try:
+                al = starvation_alarm(ws, other, now, blocks=blocks, ledger=ledger, kinds=kinds)
+            except (DataError, OSError):
+                al = None   # another subject's unreadable record never blocks this brief
+            if al is None:
+                continue
+            title = titles.get(other.id, other.id)
+            flags.append(_alarm_flag(al, title, other.id, plain))
+            cflags.append(Section("", text=_alarm_claude(al, other.id, title)))
         # A recheck whose window passed unsat (skipped in a session, or never
         # placed): counted above the line, named only below it.
         late = late_rechecks(ws, subj, now, blocks=blocks, skip_ids=set(b.get("id") for b in missed))
@@ -1137,7 +1269,7 @@ def build_overview(ws, subjects, now):
     claude = []
     for subj in subjects:
         try:
-            learner, cl = brief_sections(ws, subj, now)
+            learner, cl = brief_sections(ws, subj, now, overview=True)
         except (DataError, OSError) as exc:
             sections.append(Section("", text="%s: could not be read (%s)" % (subj.id, clip(exc, 100))))
             continue
@@ -1146,7 +1278,7 @@ def build_overview(ws, subjects, now):
         sections.extend(keep)
         for s in cl:
             if s.text is not None:
-                if s.text.startswith(("UNCLOSED", "OTHER", "SAFEGUARD")):
+                if s.text.startswith(("UNCLOSED", "OTHER", "SAFEGUARD", "ALARM")):
                     claude.append(s)
             elif s.head in ("MISSED?:", "TO-DO IDS:") or s.head.startswith(("NOT TAKEN", "LATE RECHECK")):
                 s.head = "%s %s" % (subj.id, s.head)

@@ -42,13 +42,14 @@ Ask one question at a time (Law 9). The learner may answer "skip" at steps 2, 3 
 - **FLAGS,** in this order:
   - An unclosed session: close it first ([close.md](close.md)). This takes at most 10 minutes and is logged as late.
   - `missed?` blocks: step 2.
+  - A subject that "hasn't run lately" (the alarm, for this or another subject): step 2, after the missed blocks.
   - A 2-day recheck whose window has passed ("late recheck" in technical words): the late-recheck rule ([plan.md](plan.md) §7) at this session. LATE RECHECK below the line names the block and topics; tier 0 of `ind due <s> --list` lists them for the builder.
   - A sheet issued and not taken after 2 session opens: step 3.
   - Quarantined lines: tell the learner in one line ("A few lines in your record couldn't be read. They're kept aside and nothing is lost.") and edit nothing.
   - An armed safeguard that is due: one line, then handle it in the weekly review ([review.md](review.md)).
 - **NOW/NEXT** gives today's plan. **DUE** gives the size of the recheck. **TO-DO:** anything due today or overdue gets one line in the opener.
 - **LEVELS (headed MASTERY in plain mode), LAST SESSIONS, PACE and NOTES** are for you. NOTES carries the learner's notes, the "do not calibrate on" list and their overrides; follow them.
-- **Everything below `-- for Claude, do not read aloud --`** stays with you: the ids behind the flags (MISSED? block ids for `plan done|move|miss`, NOT TAKEN sheet ids for `sheet void`, TO-DO IDS for `ledger close`), RECHECK NOW (the topics due), LATE RECHECK (a recheck whose window passed), BELIEFS DUE, OTHER DUE, NEEDS REPAIR and OVERRIDES. Naming a mistake before the recheck is marked tells the learner what to avoid, and the recheck stops measuring anything.
+- **Everything below `-- for Claude, do not read aloud --`** stays with you: the ids behind the flags (MISSED? block ids for `plan done|move|miss`, ALARM for the alarm's blocks and its choices, NOT TAKEN sheet ids for `sheet void`, TO-DO IDS for `ledger close`), RECHECK NOW (the topics due), LATE RECHECK (a recheck whose window passed), BELIEFS DUE, OTHER DUE, NEEDS REPAIR and OVERRIDES. Naming a mistake before the recheck is marked tells the learner what to avoid, and the recheck stops measuring anything.
 - **If LAST SESSIONS shows a gap of 5 days or more,** run the re-entry session instead ([session-teach.md](session-teach.md), section 6).
 - **Without Python:** SKILL.md, "Without Python" (no brief; read the learner's own record and mark everything `[unverified]`).
 
@@ -64,9 +65,9 @@ Only if the answer is "skipped", ask in the next message: "What got in the way: 
 - **Record the answer:**
   - It happened without you: `ind plan done <B>`. Ask for photos of any sheets done then; they are filed and marked after today's recheck.
   - It was moved: `ind plan move <B> --start <ISO>`, if a new time was given.
-  - It was skipped: `ind plan miss <B> --reason "<their words>"`. Its content is placed again at the close or in [plan.md](plan.md). A missed recheck is never replaced by a warm review.
+  - It was skipped: `ind plan miss <B> --reason "<their words, or 'no reason given'>"`. Never ask why a second time. Its content is placed again at the close or in [plan.md](plan.md). A missed recheck is never replaced by a warm review.
 - **Never ask** about soft blocks, and never ask anything in on-demand mode.
-- **Two planned blocks missed in a row:** offer the three choices once: re-plan, pause this subject until a date, or "I know, ask me later" ([plan.md](plan.md)).
+- **An alarm in FLAGS** ("<subject> hasn't run lately", for any subject): after the step 2 answers, unless they showed those sessions happened, offer the three choices once per open, in [plan.md](plan.md) §7's words: "1) Re-plan the week 2) Pause IELTS until a date you pick 3) Ask me again on <day>". Record the choice as that section says; choice 3 is a to-do that keeps the alarm quiet until it is closed.
 
 ### Step 3: a sheet issued and not taken after two session opens
 

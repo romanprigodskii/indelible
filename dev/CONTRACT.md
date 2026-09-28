@@ -377,7 +377,7 @@ Invoke as `python3 <skill>/scripts/indelible.py <command> ...`. Every command ac
 
 ```
 <Title> · <profile> · <date or "no date"> (<N days left>)
-FLAGS: unclosed session S-… (started …) | missed? blocks … | late recheck (window passed): 1 | sheet … issued, not taken after 2 sessions | quarantine lines | armed safeguard due …
+FLAGS: unclosed session S-… (started …) | missed? blocks … | alarm <subject>: last 2 planned blocks missed | late recheck (window passed): 1 | sheet … issued, not taken after 2 sessions | quarantine lines | armed safeguard due …
 NOW/NEXT: today's blocks and the next block (kind, time, content)
 DUE: cold serves eligible now: 1 · errors due: 3 beliefs repaired, 2 slips, 1 shaky · untreated beliefs needing repair: 2
 TO-DO (≤3 days): L-0004 Register for … (due Tue 20:00)
@@ -386,12 +386,15 @@ LAST SESSIONS: 3 lines from sessions.jsonl
 PACE: seconds per question by layer (if measured)
 NOTES: the subject CLAUDE.md sections "Learner notes", "Do not calibrate on" and "Overrides" (≤25 lines)
 -- for Claude, do not read aloud --
+ALARM stats (plan.md §7): no session in 18 days (limit 14). Once per open, offer: 1) re-plan the week …
 RECHECK NOW: T01 Matching headings (71 h, window closes today 07:29, CLOSING)
 LATE RECHECK (plan.md §7): B-20261015-ielts-2 T04 Paraphrase (window closed Fri 16 Oct 07:17)
 BELIEFS DUE: E-ielts-0031 T04 "reads 'albeit' as 'because'" (rung 1) …
 ```
 
 In either vocabulary, a 2-day recheck above the line is counted or named by its time, never by its topics: the topics ready now are in RECHECK NOW below the line, and a recheck still to book shows its block id only (`plan list` has its topics). RECHECK NOW gives each topic's hours since its last warm exposure, cut rather than rounded (71.5 h reads 71 h), and the time its window closes (last warm exposure + `cold_window_h[1]`); a window closing within 30 minutes adds `CLOSING`. A late recheck is an open (`planned` or `synced`) cold block, placed or not and not `missed?`, where the window of one of its topics closed before now: the later of its stored window end and, for a topic still waiting for its first recheck, the topic's own window (last warm exposure + `cold_window_h[1]`). A topic served cold or taught again after the block's window (or start) is left out. FLAGS counts late rechecks (plain: "a 2-day recheck's window has passed"); LATE RECHECK below the line names each block and its topics. BELIEFS DUE and OTHER DUE list every mistake due by date. One that can't be served yet (its topic seen in the last 24 h, or an untreated mistake on the topic) ends with `not now: <reason>`, as in `due --list`. `error repair` logs a repair exposure, so a repaired mistake is served no earlier than 24 h after the repair, even when its due date comes first.
+
+**The alarm** (plan.md §7), in scheduled mode, for every `live` subject with no session lock: the last 2 planned blocks whose time has passed (timed, not soft, not `buffer`, not `cancelled` or `moved`; a miss recorded in a block's `misses` counts at its old slot) are both `missed` or `missed?`, and no session of the subject started after the first of them; or no session has ended for max(5 days, 2 × the median gap in days between the subject's planned days that aren't `cancelled`, from 28 days back to 14 ahead), counted from its first planned block when it has no session. FLAGS gives it by the subject's title (plain: "<Title> hasn't run lately: the last two planned sessions didn't happen" or "… no session in N days"); ALARM below the line gives the block ids and the three choices. A subject's own brief looks only for the missed blocks (a long gap there shows as LAST SESSIONS' re-entry); the brief with no subject looks for both kinds, each subject once. An open `owed` row of the subject whose `what` starts "Ask again" silences it.
 
 A brief without `--open` writes nothing. `brief <subject> --open`, run only at session open (session-open step 1), counts a session open: it increments `opens_unsat` for every issued sheet that isn't sat (at most once per subject in 3 hours, never while its session runs, and not for a sheet whose block hasn't started). At 2, FLAGS asks for a decision.
 

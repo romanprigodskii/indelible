@@ -307,6 +307,96 @@ class BriefTests(BriefBase):
         self.assertLessEqual(len(r.stdout.rstrip("\n")), 4500)
 
 
+class AlarmTests(BriefBase):
+    """The alarm of plan.md section 7: a subject that isn't running (Mon 12 Oct 09:00)."""
+
+    def session_row(self, n, start, end, sid=None):
+        sid = sid or self.sid
+        return {"v": 1, "id": "S-%s-%04d" % (sid, n), "block": None, "kind": "teach",
+                "planned": {"start": start, "min": 60},
+                "actual": {"start": start, "end": end, "elapsed_min": 60},
+                "sheets": [], "asks": {"n": 0}, "overrun_min": 0, "note": "",
+                "closed": {"at": end, "status": "same-day"}}
+
+    def two_missed(self):
+        missed = self.block("B-20261008-ielts-1", "2026-10-08T07:00+01:00", "2026-10-08T08:00+01:00",
+                            status="missed")
+        missed["misses"] = [{"at": "2026-10-10T10:00+01:00", "slot": "2026-10-08T07:00+01:00", "reason": "busy"}]
+        return [self.block("B-20261006-ielts-1", "2026-10-06T07:00+01:00", "2026-10-06T08:00+01:00",
+                           status="done"),
+                missed,
+                self.block("B-20261010-ielts-1", "2026-10-10T10:00+01:00", "2026-10-10T11:00+01:00")]
+
+    def test_two_planned_blocks_missed_in_a_row_raise_the_alarm(self):
+        self.put("plan/blocks.jsonl", self.two_missed())
+        learner, claude = self.parts(self.brief())
+        flags = [l for l in learner.splitlines() if l.startswith("FLAGS:")][0]
+        self.assertIn("IELTS Academic hasn't run lately: the last two planned sessions didn't happen", flags)
+        self.assertIsNone(ANY_ID.search(learner))
+        self.assertIn("ALARM ielts (plan.md §7): last 2 planned blocks missed: B-20261008-ielts-1, "
+                      "B-20261010-ielts-1", claude)
+        # "Ask me again on <day>" silences it while that to-do is open.
+        r = self.ind("ledger", "add", "owed", "--subject", "ielts", "--by", "claude", "--what",
+                     "Ask again: IELTS not running", "--due", "2026-10-19T07:00+01:00")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertNotIn("hasn't run lately", self.brief())
+        self.ind("ledger", "close", "L-0001", "--status", "done")
+        self.assertIn("hasn't run lately", self.brief())
+        # A paused subject is silent.
+        self.set_cfg("subjects", [{"id": "ielts", "dir": "ielts", "state": "paused", "priority": 1,
+                                   "target_weekly_min": 240, "min_weekly_min": None}])
+        self.assertNotIn("hasn't run lately", self.brief())
+
+    def test_a_session_since_the_first_miss_or_one_miss_alone_is_no_alarm(self):
+        rows = self.two_missed()
+        rows[2]["status"] = "done"                      # only one miss among the last two
+        self.put("plan/blocks.jsonl", rows)
+        self.assertNotIn("ALARM", self.brief())
+        self.put("plan/blocks.jsonl", self.two_missed())
+        self.put("ielts/data/sessions.jsonl",          # an unplanned session after the first miss
+                 [self.session_row(1, "2026-10-09T18:00+01:00", "2026-10-09T18:30+01:00")])
+        text = self.brief()
+        self.assertIn("missed?", text)
+        self.assertNotIn("ALARM", text)
+        self.assertNotIn("hasn't run lately", text)
+
+    def test_a_subject_with_no_session_for_twice_its_planned_gap_shows_in_every_brief(self):
+        r = self.ind("subject", "add", "stats", "--title", "Statistics final", "--profile", "course")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        # Stats is planned once a week (a 7-day gap, so the limit is 14 days); the last session was 28 Sep.
+        weekly = []
+        for n, (day, status) in enumerate((("2026-09-21", "done"), ("2026-09-28", "done"),
+                                           ("2026-10-05", "missed"), ("2026-10-19", "planned")), 1):
+            weekly.append(self.block("B-%s-stats-%d" % (day.replace("-", ""), n), day + "T18:00+01:00",
+                                     day + "T19:00+01:00", status=status, subject="stats"))
+        self.put("plan/blocks.jsonl", weekly)
+        self.put("stats/data/sessions.jsonl",
+                 [self.session_row(1, "2026-09-21T18:00+01:00", "2026-09-21T19:00+01:00", sid="stats"),
+                  self.session_row(2, "2026-09-28T18:00+01:00", "2026-09-28T19:00+01:00", sid="stats")])
+        self.assertNotIn("ALARM", self.brief())               # 13 days, under 14
+        text = self.brief("2026-10-17T09:00+01:00")           # 18 days
+        learner, claude = self.parts(text)
+        self.assertIn("Statistics final hasn't run lately: no session in 18 days", learner)
+        self.assertIn("ALARM stats (plan.md §7): no session in 18 days (limit 14)", claude)
+        # The subject being opened shows no gap alarm: LAST SESSIONS starts the re-entry session.
+        r = self.ind("brief", "stats", now="2026-10-17T09:00+01:00")
+        self.assertIn("LAST SESSIONS (19 days since the last one)", r.stdout)
+        self.assertNotIn("hasn't run lately", r.stdout)
+        # The overview names it once.
+        r = self.ind("brief", now="2026-10-17T09:00+01:00")
+        self.assertEqual(r.stdout.count("Statistics final hasn't run lately"), 1, r.stdout)
+        self.assertEqual(r.stdout.count("ALARM stats"), 1, r.stdout)
+        self.assertLessEqual(len(r.stdout.rstrip("\n")), 4500)
+        # Dropping its blocks is no protection: with nothing planned, the limit is 5 days.
+        for b in weekly:
+            b["status"] = "cancelled"
+        self.put("plan/blocks.jsonl", weekly)
+        self.assertIn("no session in 13 days (limit 5)", self.brief())
+        # With no session on record, it counts from the first planned block.
+        self.put("stats/data/sessions.jsonl", [])
+        self.assertIn("Statistics final hasn't run lately: no session yet, 20 days into the plan", self.brief())
+
+
 class DueTests(BriefBase):
     def test_due_list_tiers(self):
         exposures = [{"v": 1, "topic": "T02", "at": "2026-10-10T08:00+01:00", "kind": "teach"}]
@@ -488,6 +578,7 @@ class OnDemandTests(BriefBase):
         self.assertTrue(text.startswith("Rust · code · no date"))
         self.assertNotIn("missed?", text)
         self.assertNotIn("MISSED", text)
+        self.assertNotIn("ALARM", self.brief("2026-10-30T09:00+01:00"))   # no alarms on demand either
 
 
 if __name__ == "__main__":
