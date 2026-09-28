@@ -288,7 +288,7 @@ def stats_lines(subj, st):
     if r48["by_topic"]:
         line += " · by topic: " + ", ".join("%s %s" % (k, pct(v)) for k, v in r48["by_topic"].items())
     lines.append(line)
-    lines.append("retention 7 d [measured]: %s" % pct(st["retention_7d"]["overall"]))
+    lines.append("retention 7 d or more [measured]: %s" % pct(st["retention_7d"]["overall"]))
     ex = st["execution"]
     parts = []
     if ex.get("blocks") is not None:
@@ -526,7 +526,7 @@ def _subject_lines(w):
             " (%d rebooked)" % w["rebooked"] if w.get("rebooked") else "",
             ", %d still ahead" % w["ahead"] if w.get("ahead") else ""))
     l1 = "%s: %s" % (w["title"], " · ".join(parts))
-    l2 = "  2-day recheck: %s [measured] · 7-day: %s [measured] · mistakes %d new, %d fixed, %d retired, %d overdue" % (
+    l2 = "  2-day recheck: %s [measured] · a week or more: %s [measured] · mistakes %d new, %d fixed, %d retired, %d overdue" % (
         pct(w["r48"]), pct(w["r7"]), w["opened"], w["repaired"], w["retired"], w["overdue"])
     if w["changes"]:
         l2 += " · levels " + ", ".join("%s %s→%s" % (t, fmt_level(a), fmt_level(b)) for t, a, b in w["changes"])
@@ -561,7 +561,7 @@ def _file_lines(week_label, first, last, now, subject_weeks, hyg):
                             " · %d still ahead" % w["ahead"] if w.get("ahead") else ""))
         lines += ["", "Learning:"]
         lines.append("- 2-day recheck (36-72 h): %s [measured]" % pct(w["r48"]))
-        lines.append("- 7-day recheck (144-216 h): %s [measured]" % pct(w["r7"]))
+        lines.append("- a week or more after teaching (144 h or more): %s [measured]" % pct(w["r7"]))
         lines.append("- Mistakes: %d new, %d fixed, %d retired, %d overdue now"
                      % (w["opened"], w["repaired"], w["retired"], w["overdue"]))
         if w["changes"]:

@@ -354,7 +354,7 @@ For error re-serves, only 2 and 3 apply, plus `next_due ≤ date(t)`.
 | check catches | count of `caught` |
 | failed checks | count of `failed`, with those on right answers counted apart: they point at the check, its tolerance or the key |
 | retention 48 h | right ÷ presented on cold asks with `interval_h` of 36–72 |
-| retention 7 d | right ÷ presented on cold asks with `interval_h` of 144–216 |
+| retention 7 d | right ÷ presented on cold asks with `interval_h` of 144 or more (the level-4 and upkeep rechecks, §6.4, which come a week or more after the last warm exposure) |
 | execution | blocks done ÷ planned (scheduled mode only); actual ÷ planned minutes; overruns |
 
 **Numbers from different instruments are never combined into one trend line.**

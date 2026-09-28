@@ -948,14 +948,14 @@ def check_failed(attempts):
     return {"n": len(rows), "right": len([a for a in rows if a.get("verdict") == "right"])}
 
 
-def retention(attempts, lo_h, hi_h):
-    """right / presented on cold asks with interval_h in [lo_h, hi_h]."""
+def retention(attempts, lo_h, hi_h=None):
+    """right / presented on cold asks with interval_h in [lo_h, hi_h] (no upper bound when hi_h is None)."""
     rows = []
     for a in attempts or []:
         ih = a.get("interval_h")
         if _instrument(a) != "cold" or not isinstance(ih, (int, float)):
             continue
-        if lo_h <= ih <= hi_h:
+        if lo_h <= ih and (hi_h is None or ih <= hi_h):
             rows.append(a)
     return _ratio(len([a for a in rows if a.get("verdict") == "right"]), len(rows))
 
@@ -965,7 +965,9 @@ def retention_48h(attempts):
 
 
 def retention_7d(attempts):
-    return retention(attempts, 144, 216)
+    """A week or more after the last warm exposure: the level-4 and upkeep rechecks, which
+    come 7 days or more after a pass that itself came 44 h or more after teaching."""
+    return retention(attempts, 144)
 
 
 def execution(blocks, sessions=None, until=None):

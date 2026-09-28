@@ -172,7 +172,7 @@ class StatsTests(StatsBase):
         self.assertIn("practice [practice n=12]: accuracy 71% (8.5/12)", out)
         self.assertIn("careless per 10: 2.0 (2 in 10 questions on level-3+ topics)", out)
         self.assertIn("retention 48 h [measured]: 67% (4/6) · by teaching: external 50% (1/2), sheet 75% (3/4)", out)
-        self.assertIn("retention 7 d [measured]: 100% (1/1)", out)
+        self.assertIn("retention 7 d or more [measured]: 100% (1/1)", out)
         self.assert_no_secrets()
 
     def test_since_until_window(self):
@@ -225,7 +225,7 @@ class ReviewWeekTests(StatsBase):
         self.assertIn("IELTS Academic: 2 sessions, 117/120 min · overruns 1 (+2 min) · closed same day 1/2", out)
         self.assertIn("blocks 3/4 done, 1 moved, 1 missed", out)
         self.assertIn("2-day recheck: 67% (4/6) [measured]", out)
-        self.assertIn("7-day: 100% (1/1) [measured]", out)
+        self.assertIn("a week or more: 100% (1/1) [measured]", out)
         self.assertIn("mistakes 2 new, 1 fixed, 1 retired, 1 overdue", out)
         self.assertIn("levels T04 0→3", out)
         self.assertNotIn("T01 0→3", out)   # 1 of 2 on the recheck: the named miss is not hidden

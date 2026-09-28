@@ -787,6 +787,10 @@ class MetricTests(Base):
         r48 = learning.retention_48h(rows)
         self.assertEqual((r48["num"], r48["n"]), (2, 4))
         self.assertIsNone(learning.retention_7d(rows)["value"])
+        # A level-4 or upkeep recheck comes 212 h or more after teaching: it counts, with no upper bound.
+        later = att("c2", "rw", "cold", 10, interval_h=240) + att("c3", "r", "cold", 30, interval_h=700)
+        r7 = learning.retention_7d(later)
+        self.assertEqual((r7["num"], r7["n"]), (2, 3))
         slips = att("m", "rrrw", "mock", 5, topic="T01")
         slips[3]["mode"] = "C"
         c10 = learning.careless_per_10(slips, {"T01": 3})
