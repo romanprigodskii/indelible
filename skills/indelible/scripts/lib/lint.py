@@ -74,9 +74,9 @@ TITLES = {
     "W3": "checks on new topics", "W4": "worked check", "W5": "reading time",
 }
 
-# L2: every ask has a check line on these types. The contract lists "repair"
-# in neither list; sheets.md and builder.md make check lines optional on
-# repair pencils (done with the fix in view), so repair is not required here.
+# L2: every ask has a check line on these types. Repair is exempt (CONTRACT
+# 7.4): sheets.md and builder.md make check lines optional on repair pencils,
+# which are done with the fix in view.
 CHECK_REQUIRED = ("drills", "cold", "mixed", "diagnostic", "mock", "checkpoint", "review")
 UNLABELLED_TYPES = ("cold", "diagnostic", "mock", "checkpoint", "probe", "mixed")
 BUDGET_EXEMPT = ("diagnostic", "mock", "checkpoint")
@@ -371,11 +371,10 @@ def _l2(spec, ctx):
 
 
 def _l3(spec, ctx):
-    """CONTRACT 7.4 L3, with one exemption the contract text lacks: the
-    adjacency test applies only when the sheet has 2 or more topics. A
-    single-topic recheck cannot interleave, and one that also re-serves a
-    mistake on that topic needs two items (a cold:<T> item and an error:<E>
-    item), so under the literal rule it could never pass."""
+    """CONTRACT 7.4 L3. The adjacency test applies only when the sheet has 2
+    or more topics: a single-topic recheck cannot interleave, and one that
+    also re-serves a mistake on that topic needs two items (a cold:<T> item
+    and an error:<E> item), so without the exemption it could never pass."""
     t = spec.get("type")
     if t not in UNLABELLED_TYPES:
         return "PASS", "not a measuring sheet"

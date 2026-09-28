@@ -355,25 +355,28 @@ Invoke as `python3 <skill>/scripts/indelible.py <command> ...`. Every command ac
 
 ### 7.1 Setup (`cmd_setup.py`)
 
-- **`doctor [--json]`**
+- **`doctor [--json] [--quick]`**
   - Reports: the Python version; whether the workspace is writable; whether it sits inside a cloud-synced folder (a path containing `OneDrive`, `iCloud`, `Mobile Documents` or `Dropbox`, which triggers a warning); and the time zone.
   - **Renderers:** `typst` on PATH (a real test compile of a 3-line file into a temp dir); `tectonic`, `xelatex` or `lualatex` on PATH; and Chrome, Chromium or Edge at the usual paths for printing HTML to PDF (also test-printed if found).
   - Records the first working backend in `indelible.json.render` when a workspace exists.
+  - `--quick` checks presence only: no test compile, no test print, and nothing is recorded.
   - **Toolchains:** whether `cargo`, `rustc`, `go`, `node`, `javac`, `gcc`, `python3` and `py` are on PATH (`toolchains` in `--json`, name → true or false). Presence only: none is ever run, so nothing can start a download.
   - Exit 0.
-- **`init <path> [--pointer]`**
+- **`init <path> [--pointer] [--timezone TZ]`**
   - Creates the workspace tree (§4 root part) from `assets/workspace/`.
+  - Sets `timezone` from `--timezone` (an IANA name such as `Europe/Lisbon`; anything else is exit 2), else the zone detected on the computer.
   - Refuses (exit 1) if `indelible.json` already exists.
   - With `--pointer`, it writes `~/.indelible/workspace`.
-- **`subject add <id> --title T --profile P [--from subject.json]`**
+- **`subject add <id> --title T --profile P [--from subject.json] [--state live|shadow|legacy|paused]`**
   - Creates the subject tree and `subject.json`, taking values from `--from` where given.
-  - Appends the subject to `indelible.json.subjects`.
+  - Appends the subject to `indelible.json.subjects` with `--state` (default `live`).
   - Writes the subject CLAUDE.md from its template.
-- **`set <root|subject-id> <dotted.path> <json-value> [--dry-run]`**
+- **`subject list [--json]`:** one line per subject: id, state, title, profile and date.
+- **`set <root|subject-id> <dotted.path> <json-value> [--dry-run] [--force]`**
   - Validates against the known type for known paths and prints the before and after.
   - Setting a subject's `target.date` for the first time or earlier re-applies the deadline cap (§6.1) to each open mistake's `next_due` in `errors.jsonl`, bringing forward only (never before tomorrow, never later), and prints each change; `--dry-run` prints them and writes nothing.
-  - Unknown paths are refused unless `--force`.
-- **`schema <record>`:** prints the example and field notes for `indelible|subject|topics|sheet|attempt|error|session|exposure|block|ledger|sheetspec|answers|grades`.
+  - Unknown or read-only paths are refused unless `--force`.
+- **`schema [<record>] [--json]`:** prints the example and field notes for `indelible|subject|topics|sheet|attempt|error|session|exposure|block|ledger|sheetspec|answers|grades|lock`; `--json` prints only the example.
 
 ### 7.2 Brief, due, views (`cmd_brief.py`)
 
@@ -390,12 +393,25 @@ LAST SESSIONS: 3 lines from sessions.jsonl
 PACE: seconds per question by layer (if measured)
 NOTES: the subject CLAUDE.md sections "Learner notes", "Do not calibrate on" and "Overrides" (≤25 lines)
 -- for Claude, do not read aloud --
+SUBJECT: ielts · vocab plain · schedule scheduled · state live
+TIME ZONE: the time zone Europe/Lisbon cannot be loaded here …
+UNCLOSED: S-ielts-0011 started …, planned end …: close it first: session close ielts (it is logged as late)
+OTHER LOCK: stats S-stats-0004 parked session: ask whether to close it (session close stats) or park it …
+MISSED?: B-20261013-ielts-1
 ALARM stats (plan.md §7): no session in 18 days (limit 14). Once per open, offer: 1) re-plan the week …
-RECHECK NOW: T01 Matching headings (71 h, window closes today 07:29, CLOSING)
 LATE RECHECK (plan.md §7): B-20261015-ielts-2 T04 Paraphrase (window closed Fri 16 Oct 07:17)
+NOT TAKEN (sit now, or sheet void): ielts-headings-01-drills
+SAFEGUARD DUE: L-0005 check_on 2026-11-14: timed accuracy < 0.70 -> revert
+TO-DO IDS: L-0004
+RECHECK NOW: T01 Matching headings (71 h, window closes today 07:29, CLOSING)
 BELIEFS DUE: E-ielts-0031 T04 "reads 'albeit' as 'because'" (rung 1) …
+OTHER DUE: E-ielts-0002 T04 Paraphrase [slip] "copied a different letter into the box" (rung 0, due 2026-10-13)
+NEEDS REPAIR: E-ielts-0001 T02 True, false or not given "treats a point the passage does not mention as contradicted" (rung 0)
+OVERRIDES: R36 = block_size 4 "learner's words"
 MY RULES: L-0006 content_error: builder: list every defensible answer for verbal items · …
 ```
+
+Below the line, each section is also omitted when empty. SUBJECT is always there; TIME ZONE only when the workspace has no time zone, or one this computer can't load; UNCLOSED, OTHER LOCK, MISSED?, ALARM, LATE RECHECK, NOT TAKEN and SAFEGUARD DUE give the ids behind the FLAGS; TO-DO IDS (plain vocabulary only) gives the ids behind TO-DO. With no subject named and no single live subject to pick, the brief is an overview: `SUBJECTS:`, each subject's FLAGS, NOW/NEXT, DUE and TO-DO above the line, and below it only the flag sections and TO-DO IDS (a section that lists ids is headed by its subject id).
 
 In either vocabulary, a 2-day recheck above the line is counted or named by its time, never by its topics: the topics ready now are in RECHECK NOW below the line, and a recheck still to book shows its block id only (`plan list` has its topics). RECHECK NOW gives each topic's hours since its last warm exposure, cut rather than rounded (71.5 h reads 71 h), and the time its window closes (last warm exposure + `cold_window_h[1]`); a window closing within 30 minutes adds `CLOSING`. A late recheck is an open (`planned` or `synced`) cold block, placed or not and not `missed?`, where the window of one of its topics closed before now: the later of its stored window end and, for a topic still waiting for its first recheck, the topic's own window (last warm exposure + `cold_window_h[1]`). A topic served cold or taught again after the block's window (or start) is left out. FLAGS counts late rechecks (plain: "a 2-day recheck's window has passed"); LATE RECHECK below the line names each block and its topics. BELIEFS DUE and OTHER DUE list every mistake due by date. One that can't be served yet (its topic seen in the last 24 h, or an untreated mistake on the topic) ends with `not now: <reason>`, as in `due --list`. `error repair` logs a repair exposure, so a repaired mistake is served no earlier than 24 h after the repair, even when its due date comes first.
 
@@ -413,14 +429,14 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
 4. the oldest due;
 5. untreated beliefs (listed as "needs repair", never as cold material).
 
-**`render [subject|all]`:** regenerates `views/*.md`, `views/week.md` and the generated section of each CLAUDE.md (between `<!-- indelible:begin -->` and `<!-- indelible:end -->`).
+**`render [subject|all] [--force]`:** regenerates `views/*.md`, `views/week.md` and the generated section of each CLAUDE.md (between `<!-- indelible:begin -->` and `<!-- indelible:end -->`).
 - Refuses if a view has been hand-edited since the last render. The sha is kept in `<ws>/.indelible/render.json`.
 - `--force` overwrites and saves a `.bak`.
 - `views/log.md` holds the last 30 sessions, one line of at most 200 characters each.
 
 ### 7.3 Session (`cmd_session.py`)
 
-- **`session open <subject> --planned MIN [--block ID] [--kind K]`**
+- **`session open <subject> --planned MIN [--block ID] [--kind K] [--park-other]`**
   - Refuses (exit 1) if that subject is locked and not stale, and says to carry that session on after reading `session status` and the open `owed` rows (it may be running in another chat). If another subject is locked, it prints a warning with the other lock and proceeds only with `--park-other`, which writes that subject's `.indelible/unclosed`.
   - Writes the lock and prints the budget (§6.3).
 - **`session status <subject>`:** one line, e.g. `[indelible] 47/60 min · close starts 07:55 · questions so far 38`. Questions so far are the asks graded since the start. When sheets are out (status `issued` or `sat`), a second line lists them, oldest issue first, by id, type, sheet code and issue time: `[indelible] sheets out: ielts-cold-02 (cold, sheet IELTS-04, issued today 07:04) · ielts-headings-01-drills (drills, sheet IELTS-03, taken, not graded)`. It never names a recheck's topics.
@@ -437,11 +453,11 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
   | # | Check | Passes when |
   |---|---|---|
   | C1 | evidence | Every sheet with a `sat.date` today has ≥1 evidence entry |
-  | C2 | graded | Every measuring sheet sat today is `graded`. Every other sheet sat today is `graded`, or an open ledger `owed` row mentions its id with a due time within 24 h |
+  | C2 | graded | Every measuring sheet sat today is `graded`. Every other sheet sat today is `graded`, or an open ledger `owed` row mentions its id with a due time within 24 h. Exempt: the read-then-close types `theory`, `external`, `example` and `triage`, whose pencil questions are done with the page open and are never mastery evidence |
   | C3 | errors | Every error opened today has `kind`, `mode`, and `account` (or the literal "no account"). It also has a `next_due`, or `status=untreated` |
   | C4 | cold booked | Every topic with a `teach` exposure today has an open cold obligation or a planned cold block inside its window |
   | C5 | repair before cold | No planned cold block (or obligation window start) within 12 h of now includes a topic with an untreated belief |
-  | C6 | promises | If the `--note` or any note appended today matches `\b(tomorrow|later|next time|amanhã|mañana)\b` (case-insensitive; the learners' languages), there must be an `owed` ledger row created today |
+  | C6 | promises | If the `--note` or any note appended today matches `\b(tomorrow|later|next time|amanhã|mais tarde|mañana|luego|morgen|später)\b` (case-insensitive; English, Portuguese, Spanish and German), there must be an `owed` ledger row created today |
   | C7 | views | Rendered (the close does it) |
   | C8 | next sheets | Whether the next block for this subject has a sheet with status `issued` or better. INFO, except when that block is `solo` (no session with Claude before it) and has none: then it FAILs, and `--defer` turns it into a to-do by Claude |
   | C9 | recheck sat | No placed cold block that overlaps the session (or is its block) is still `planned` or `synced`, unless a sheet issued for it (or a `cold` sheet on its topics) is `issued` or `sat`. With its window still open (`cmd_brief.recheck_close`) in scheduled mode it FAILs with a `plan move` fix; on demand, or once the window has closed, it is INFO (the brief then flags the late recheck) |
@@ -504,13 +520,13 @@ For a rounded number, `check` also gives the tolerance the check holds to, the s
   | Rule | Checks |
   |---|---|
   | L1 structure | ≥1 item. Every item has ≥1 ask. Ask ids are unique. Every ask has a label |
-  | L2 check lines | On `drills`, `cold`, `mixed`, `diagnostic`, `mock`, `checkpoint` and `review`, every ask has `check: true`. Exempt: `theory`, `external`, `example`, `probe`, `triage`, `words`, `explain`, `miss-review` |
-  | L3 unlabelled | On measuring types (`cold`, `diagnostic`, `mock`, `checkpoint`, `probe`, plus `mixed`): no topic name or topic id, case-insensitive whole words, appears in the title, block titles or ask labels, and no two consecutive items share a topic |
+  | L2 check lines | On `drills`, `cold`, `mixed`, `diagnostic`, `mock`, `checkpoint` and `review`, every ask has `check: true`. Exempt: `theory`, `external`, `example`, `repair` (its pencil questions are done with the fix in view, so a check line is optional), `probe`, `triage`, `words`, `explain`, `miss-review` |
+  | L3 unlabelled | On measuring types (`cold`, `diagnostic`, `mock`, `checkpoint`, `probe`, plus `mixed`): no topic name or topic id, case-insensitive whole words, appears in the title, block titles or ask labels, and no two consecutive items share a topic. The adjacency test applies only when the sheet has 2 or more topics: a single-topic recheck cannot interleave, and one that also re-serves a mistake on its topic has two items on it |
   | L4 terms | Every token or 2-gram in item text, labels, check hints, titles and theory sections that appears in `sense_seed.txt`, `subject.sense_list` or `subject.lexicon` (case-insensitive, whole word) must appear in `spec.terms` with a resolution. Inside code (inline spans and fenced blocks) only `subject.sense_list` and `subject.lexicon` entries count, never the seed list. Resolutions: `defined_here` (the term in this sheet's `theory.words`), `defined_on:<id>`, `glossary` (in `data/glossary.jsonl`), `everyday`, `measured_here` (measuring types and `words` only). On `theory` sheets the resolution must be `defined_here` or `everyday`. `everyday` fails for a lexicon term or one in `theory.words`, and on `theory`, `example` and `repair` for a term the sheet teaches: in the title, a theory section title, the name of a topic on the sheet, a pencil question's text or label, or used 3 times or more. `defined_on:<id>` passes only when `<id>` is a sheet of this subject that is not `void` and defines the term (in its `theory.words`, or as a term resolved `defined_here`); `sheet issue` refuses the sheet until `<id>` is `issued`, `sat` or `graded` |
   | L5 budget | `est_min ≥` the pace floor, Σ over asks of `pace_s[layer]` (the item's layer; the subject's `pace_s`, else the defaults) / 60 + 1, on every type but `triage`, even when no budget is known; and `est_min ≤` the budget: `--budget-min`, else the linked block's minutes × 0.8 (the open session's planned minutes plus its extension instead, when the session runs on that block and they are longer), less the `est_min` of every other sheet linked to the block that is not `void`, else the default session's `length_min` × 0.8. For `diagnostic`, `mock` and `checkpoint` (sized by the exam clock, measure.md §4): `--budget-min`, else the linked block's minutes less 10 (kept for recording) and less its other sheets, else for `mock` and `checkpoint` the subject's `format.minutes`, else no budget. Over budget, a measurement's FAIL says to split a part into sittings or book a longer block, never to cut questions |
   | L6 drill blocks | On `drills`, blocks cover every item exactly once, each block has between `block_size.min` and `block_size.max` items, and all items in a block share `op`. A block's `gate_after` is one of its items, with at least 3 items up to it and 2 after it |
   | L7 cold validity | On `cold` and `mixed`, judged at the linked block's start (else now): every `cold:<topic>` item is cold-eligible (§6.4); every `error:<E>` item's error is on file, not `untreated`, due, and its topic has no exposure in the 24 h before; a `sentinel:<E>` item the same without the due date. On `mixed`, a `cold:<topic>` item fails: only a `cold` sheet serves the 2-day recheck. On `cold`, every topic with a `cold:<topic>` item has at least `MIN_COLD_ASKS` (2) asks on it (each ask's `topic`, else its item's; its `error:` and `sentinel:` items count), since a cold pass needs that many counted asks (§6.5). A `words` recheck's timing is not checked |
-  | L8 key leak | No accepted answer string of 3 or more characters from the key appears (case-insensitive) in the visible text. The key is read in-process and nothing from it is printed; the FAIL line names the ask id only |
+  | L8 key leak | No accepted answer string of 3 or more characters from the key appears (case-insensitive, whitespace normalised, inside a longer word too) in the visible text. Exempt: an accepted string that is a printed option label (a roman numeral or a letter at the start of an option line, such as `iii.` or `(B)`); and on an ask marked `answer_in_passage` (on the ask or its item: the answer is words copied from the item's own passage), a match inside the item texts, though never in titles, labels, check hints or theory. The key is read in-process and nothing from it is printed; the FAIL line names the ask id only |
   | L9 least-sure | `least_sure` is true on every type except `theory`, `external`, `example` and `triage` |
   | L10 check hints | No `check_hint` on an ask with `check: true` sends the learner to find their own mistake ("find the mistake", "check your work for mistakes", "where did you go wrong?", "is there a mistake?"), asks for a re-solve ("redo", "rework", "do it again", "double-check") or a confidence rating ("are you sure?"), or is only "check your answer". "Error" counts only when the phrase ends there or points at the learner's own work, so subject words pass: "the standard error", "the error term", "error bars", "the error message", "a confidence interval". Detection matches English wording only |
   | L11 worked case first | On `theory` and `repair`: `theory.sections` has a section of kind `worked`, and no `rule` section comes before the first one |
@@ -522,15 +538,16 @@ For a rounded number, `check` also gives the tolerance the check holds to, the s
   - W3: on a sheet with check lines (the L2 types plus `repair`), an ask with `check: true` on a topic below mastery 3p (the ask's own `topic`, else its item's; from `data/topics.json`; no state counts as 0) has no `check_hint`, or a hint that needs a second method or a sense of the weakest step ("another way", "a different method", "the weakest step", "would you be pushed on"). Subject words pass ("the weakest acid");
   - W4: on `theory` and `repair`, no `worked` section has a step labelled "Check:" in its body: the worked case ends with the check the drills will ask for;
   - W5: on `theory`, `example` and `repair`, `est_min` is under the pace floor plus the sheet's words to read (`theory.floor`, `theory.words`, `theory.sections`) at 150 a minute: the builder adds reading time at 120 words a minute, 90 in a second language.
-- **`sheet build <subject> <id> [--format pdf|html|md]`**
+- **`sheet build <subject> <id> [--format pdf|html|md] [--date YYYY-MM-DD]`**
   - Requires `lint=PASS`.
   - Renders through the chain: typst, then Chrome/Edge headless on the HTML (PDF), then HTML, then Markdown. It uses the backend recorded by `doctor`, or tries in order.
   - Output goes to `sheets/YYYY-MM/<id>.<ext>`, and the source `.typ` or `.html` is kept beside it.
+  - The date printed in the header is `--date`, else the linked block's day, else the spec's `date`, else today while a session is open; otherwise the date line is left blank.
   - Sets `status=rendered` and `files` (and `code`, on a row that has none). Prints the path.
 - **`sheet issue <subject> <id> [--block ID]`:** sets `status=issued` and `issued_at`, and links the block. It prints `<id> issued for block <B> · sheet <code>`. It refuses (exit 1) a sheet whose `est_min` is over the block's budget, worked out as L5 does without `--budget-min` (a measurement's included), and a `cold` sheet whose L7 fails at the block's start. It refuses a `cold` or `mixed` sheet with a `cold:`, `error:` or `sentinel:` origin that another `cold` or `mixed` sheet with status `issued` or `sat` also has, naming that sheet (sit and grade it, or `sheet void` it first). For a `cold` sheet it prints, for each first-serve `cold:` topic, the latest start that still counts: `Start by <time>: the 44–72 h window of T01 closes then …` (the level rules judge a sitting by its start).
 - **`sheet sat <subject> <id> [--start HH:MM] [--stop HH:MM] [--date YYYY-MM-DD]`:** sets `status=sat` and `sat.*` (the date defaults to today). With no `--date` and no date on record, a sheet issued on an earlier day is refused (exit 1) when its sitting time matters (a `cold` sheet, or any `cold:`, `error:` or `sentinel:` item); any other sheet keeps today with a note.
 - **`sheet void <subject> <id> --reason TEXT`**
-- **`sheet show <subject> [--status S]`:** lists the sheets.
+- **`sheet show <subject> [--status S] [--json]`:** lists the sheets.
 - **`scan ingest <subject> <id> [PATHS...] [--typed FILE] [--transcript -] [--dir PROJECT] [--date YYYY-MM-DD] [--asks 1a,2a,3a]`**
   - Copies files to `scans/<date>-<id>-answers[-pN].<ext>`. For HEIC it tries `sips` (macOS) or `heif-convert` to JPG and keeps the original.
   - `--typed` copies to `answers/<id>.txt`, or to `answers/<id>-N.txt` (the next free N from 2) when that is taken: a later typed file never replaces an earlier one.
@@ -566,7 +583,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
 
 ### 7.5 Grading and learning (`cmd_grade.py`, `cmd_learning.py`)
 
-**`grade record <subject> <id> --from grades.json`**:
+**`grade record <subject> <id> --from grades.json [--shaky]`**:
 
 ```json
 {"start":"07:05","stop":"07:17","date":"2026-10-15",
@@ -596,18 +613,20 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
 - **For a `cold:<topic>` item on a measuring sheet** (a `cold` sheet, or a `words` recheck): closes the topic's cold obligation block (`status=done`) if one is open, and sets `last_cold`. On a practice sheet it closes nothing and sets nothing, and a note says the booked recheck stays open.
 
 **Other commands:**
-- `error list <subject> [--status S] [--due]` · `error repair <subject> <E> [--sheet ID]` · `error pass <subject> <E>` · `error fail <subject> <E>` · `error add <subject> --topic T --kind K --mode M --belief TEXT --account TEXT [--sheet ID --item N]`. The ladder rules are in §6.1.
-- `topic add <subject> <T-id> --name N --layer L [--weight W] [--floor T..] [--confusable T..]` · `topic show <subject>` (levels with basis) · `topic recompute <subject>`.
+- `error list <subject> [--status S] [--due] [--topic T] [--json]` · `error repair <subject> <E> [--sheet ID]` · `error pass <subject> <E>` · `error fail <subject> <E>` · `error add <subject> --topic T --kind K --mode M --belief TEXT --account TEXT [--sheet ID --item N [--ask A]]`. With `--sheet` and `--item`, `error add` copies that item's key entries (only ask A's, with `--ask`) to the mistake's key file, as grading does. The ladder rules are in §6.1.
+- `topic add <subject> <T-id> --name N --layer L [--weight W] [--floor T..] [--confusable T..] [--scope in|out]` · `topic show <subject> [--json]` (levels with basis) · `topic recompute <subject>`. An `out` topic stays on file, but the brief, the views and the dominant layer leave it out, and `topic show` marks it "out of scope".
+- `glossary add <subject> <term> [--def TEXT] [--gloss TEXT] [--sheet ID]` adds a word the learner owns to `data/glossary.jsonl`, or updates it (matched case-insensitively), so a sheet may resolve it `glossary` (L4) · `glossary list [subject] [--json]`.
 
 ### 7.6 Plan and calendar (`cmd_plan.py`, `ics.py`)
 
 - **`plan add <subject> --kind K --start ISO --min N [--protected] [--measurement] [--soft] [--solo] [--content TEXT] [--pair B-…]`** prints the new block id. `--solo` marks a block the learner works alone, with no Claude session (`"solo": true`); a `cold` block or an obligation can't be solo (exit 2).
+- **`plan add <subject> --kind cold --content cold:<T> [--pair B-…] [--window-from ISO --window-to ISO]`**, with no `--start` and no `--min`, adds an obligation (§5.9). Its window is `--window-from`/`--window-to` when given (both, the second after the first; any kind may then be an obligation), else, for a `cold` block only, the `--pair` block's window or the last warm exposure of its `cold:<T>` topics (`basis: pair` or `exposure`); with none of these it is a usage error (exit 2). `--start` with a window is exit 2.
 - **`plan place <block-id> --start ISO --min N`:** turns an obligation into a timed block. It must fall inside the window; otherwise exit 1 with the window shown.
 - `plan move <block-id> --start ISO [--min N] [--solo | --not-solo]`: sets `moved_from`. A synced block keeps its `cal`. With `--solo` or `--not-solo` and no `--start`, it changes only the mark (no move is recorded).
 - `plan cancel <block-id> --reason TEXT` · `plan done <block-id>` · `plan miss <block-id> --reason TEXT`.
   - **Moving a teach moves its paired cold** by the same delta and re-checks the window.
 - **`plan list [--subject S] [--from DATE] [--to DATE] [--json]`:** blocks that are past their end, `planned` or `synced`, with no overlapping session, display as `missed?`. Nothing is written.
-- **`plan week [--start DATE]`:** writes `views/week.md` (Mon–Sun table, all subjects) and prints it.
+- **`plan week [--start DATE] [--force]`:** writes `views/week.md` (Mon–Sun table, all subjects) and prints it. A hand-edited `views/week.md` is refused as `render` refuses a view; `--force` overwrites it and keeps a `.bak`.
 - **`plan check [--json]`:** validates every future block and obligation.
 
   Hard (FAIL, exit 1):
@@ -628,7 +647,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
   - an `armed` checkpoint or an `assigned` rationed test (`materials.ration`) of a live subject is dated on or after its `target.date` (`checkpoint_after_date`, no block).
 
   Each finding carries one suggested fix. The ceiling fix prints the drop order and names a `buffer` block first, then an unprotected block of the lowest-priority subject (the highest `priority` number; a higher-priority subject only when the lower ones have none): the smallest that covers the minutes over, else the largest. The outside-window fix names the first start in that day's windows where the block fits clear of other blocks and blocked time, or says there is none.
-- **`plan diff [--json]`:** neutral operations against the recorded calendar state.
+- **`plan diff [--subject S] [--json]`:** neutral operations against the recorded calendar state (one subject's blocks with `--subject`).
   - `create` for `planned` blocks with a start and no `cal`;
   - `move` for blocks whose `start` ≠ `cal.start`;
   - `cancel` for `cancelled` blocks whose `cal` is not null.
@@ -648,13 +667,13 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
 
 - **Ledger:**
   - `ledger add owed --subject S --what TEXT --due ISO [--by learner|claude]`
-  - `ledger add decision --subject S --summary TEXT --why TEXT [--check-on DATE --rule TEXT --action TEXT]`
+  - `ledger add decision --subject S --summary TEXT --why TEXT [--by learner|claude] [--check-on DATE --rule TEXT --action TEXT]`
   - `ledger add defect --subject S --category C --what TEXT --fix-type T --fix TEXT`. If the same category was already logged with `fix_type=rule`, the command refuses `fix_type=rule` (exit 1).
   - `ledger add hypothesis --subject S --statement TEXT --rule TEXT`
   - `ledger close <L-id> [--status done|dropped|scored] [--note TEXT]`
-  - `ledger list [--kind K] [--open] [--subject S]`
+  - `ledger list [--kind K] [--open] [--subject S] [--json]`
 - **`note append <subject> <name>`:** reads stdin and appends it to `notes/<name>.md` under a timestamp heading.
-- **`stats <subject> [--json]`:** the metrics in §6.6, each labelled with its instrument.
+- **`stats <subject> [--since DATE] [--until DATE] [--json]`:** the metrics in §6.6, each labelled with its instrument. `--since` and `--until` keep only the questions answered on or after, and on or before, those dates.
 - **`review week [subject|all] [--week YYYY-Www]`:**
   - execution: blocks run, moved or missed; minutes planned vs actual; overruns; same-day closes;
   - learning: 48 h retention, errors in, out and overdue, level changes, careless per 10, unnamed-wrong %, check coverage and catches;
