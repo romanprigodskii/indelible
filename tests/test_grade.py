@@ -261,12 +261,18 @@ class ColdSheetTests(GradeBase):
         self.assertIn("held at 2 while a wrong idea is not fixed (E-ielts-0001)", topics["T04"]["level_basis"])
         self.assertEqual(topics["T04"]["last_cold"], "2026-10-14T08:00+01:00")
         self.assertNotIn("cold_passes", topics["T04"])   # cold passes live in attempts.jsonl only
-        # T01's right answers were all on the Least-sure line, so they never count.
+        # T01's right answers were all on the Least-sure line, so they never count: one counted
+        # question is too few for a cold pass, so T01's recheck stays open and last_cold unset.
         self.assertEqual(topics["T01"]["level"], 0)
+        self.assertIsNone(topics["T01"]["last_cold"])
+        self.assertIn("T01: 1 counted question; a cold pass needs at least 2, so this sitting can't raise "
+                      "mastery. Its 2-day recheck stays open: serve it again, with at least 2 questions, "
+                      "before Thu 15 Oct 07:40.", out)
+        self.assertIn("2-day recheck done: T04 (B-20261014-ielts-1)", out)
 
         blocks = dict((b["id"], b) for b in read_rows(self.ws / "plan" / "blocks.jsonl"))
         self.assertEqual(blocks["B-20261014-ielts-1"]["status"], "done")
-        self.assertEqual(blocks["B-20261014-ielts-2"]["status"], "done")
+        self.assertEqual(blocks["B-20261014-ielts-2"]["status"], "planned")
 
         sheet = self.sheet("ielts-cold-01")
         self.assertEqual(sheet["status"], "graded")
@@ -610,11 +616,11 @@ class GradingRegressionTests(GradeBase):
             timed("B-20261021-ielts-1", "2026-10-21T07:00+01:00", "2026-10-21T07:20+01:00", "cold:T04"),
         ])
         items = [make_item(1, "T04", ["1a", "1b"], origin="cold:T04"),
-                 make_item(2, "T02", ["2a"], origin="cold:T02", layer="reading")]
+                 make_item(2, "T02", ["2a", "2b"], origin="cold:T02", layer="reading")]
         key = write_sheet(self.ws, self.sid, "ielts-cold-01", "cold", items)
         self.remember_key(key)
         r = self.grade("ielts-cold-01", {"date": "2026-10-14", "start": "07:02", "stop": "07:14", "asks": [
-            {"ask": a, "verdict": "right", "check": "filled"} for a in ("1a", "1b", "2a")]})
+            {"ask": a, "verdict": "right", "check": "filled"} for a in ("1a", "1b", "2a", "2b")]})
         self.assertIn("2-day recheck done: T04 (B-20261014-ielts-1), T02 (B-20261014-ielts-1)", r.stdout)
         blocks = dict((b["id"], b) for b in read_rows(self.ws / "plan" / "blocks.jsonl"))
         self.assertEqual(blocks["B-20261014-ielts-1"]["status"], "done")
@@ -653,6 +659,47 @@ class GradingRegressionTests(GradeBase):
         # Still a first serve: once the sheet's drill is 44 h old, T01 is offered as a 2-day recheck.
         r = self.cli(["due", self.sid, "--list"], now="2026-10-16T08:00+01:00")
         self.assertIn("T01", r.stdout.split("1. 2-day rechecks", 1)[1].split("2. ", 1)[0])
+        self.assert_no_secrets()
+
+    def test_a_recheck_topic_with_one_counted_question_uses_nothing_up(self):
+        # A one-question recheck on T01 (lint L7 refuses one now; a sheet built before still grades).
+        add_exposure(self.ws, self.sid, "T01", "2026-10-12T07:40+01:00")
+        add_blocks(self.ws, [cold_obligation("B-20261014-ielts-2", self.sid, "T01",
+                                             "2026-10-14T03:40+01:00", "2026-10-15T07:40+01:00")])
+        items = [make_item(1, "T01", ["1a"], origin="cold:T01", layer="reading")]
+        key = write_sheet(self.ws, self.sid, "ielts-cold-09", "cold", items, block="B-20261014-ielts-2")
+        self.remember_key(key)
+        r = self.grade("ielts-cold-09", {"date": "2026-10-14", "start": "08:00", "stop": "08:03", "asks": [
+            {"ask": "1a", "verdict": "right", "check": "filled"}]})
+        self.assertIn("graded: 1/1 (100%) [measured n=1]", r.stdout)
+        self.assertNotIn("2-day recheck done", r.stdout)
+        self.assertIn("T01: 1 counted question; a cold pass needs at least 2", r.stdout)
+        self.assertIn("before Thu 15 Oct 07:40", r.stdout)
+        blocks = dict((b["id"], b) for b in read_rows(self.ws / "plan" / "blocks.jsonl"))
+        self.assertEqual(blocks["B-20261014-ielts-2"]["status"], "planned")   # still booked
+        self.assertIsNone(self.topics()["T01"]["last_cold"])
+        # Still a first serve, so a later sitting inside the window is the 2-day recheck.
+        r = self.cli(["due", self.sid, "--list"], now="2026-10-15T07:00+01:00")
+        self.assertIn("T01", r.stdout.split("1. 2-day rechecks", 1)[1].split("2. ", 1)[0])
+        items = [make_item(n, "T01", ["%da" % n], origin="cold:T01", layer="reading") for n in (1, 2)]
+        key = write_sheet(self.ws, self.sid, "ielts-cold-10", "cold", items, block="B-20261014-ielts-2",
+                          issued="2026-10-15T06:55+01:00")
+        self.remember_key(key)
+        r = self.grade("ielts-cold-10", {"date": "2026-10-15", "start": "07:00", "stop": "07:05", "asks": [
+            {"ask": "%da" % n, "verdict": "right", "check": "filled"} for n in (1, 2)]},
+            now="2026-10-15T07:10+01:00")
+        self.assertIn("Levels: T01 0 → 3", r.stdout)
+        self.assertIn("2-day recheck done: T01 (B-20261014-ielts-2)", r.stdout)
+        # A right answer named on the Least-sure line leaves one counted question, and the window has passed.
+        items = [make_item(n, "T02", ["%da" % n], origin="cold:T02", layer="reading") for n in (1, 2)]
+        add_exposure(self.ws, self.sid, "T02", "2026-10-12T07:40+01:00")
+        key = write_sheet(self.ws, self.sid, "ielts-probe-02", "probe", items, issued="2026-10-16T06:55+01:00")
+        self.remember_key(key)
+        r = self.grade("ielts-probe-02", {"date": "2026-10-16", "start": "07:00", "stop": "07:05", "asks": [
+            {"ask": "1a", "verdict": "right", "check": "n/a", "least_sure": True},
+            {"ask": "2a", "verdict": "right", "check": "n/a"}]}, now="2026-10-16T07:10+01:00")
+        self.assertIn("T02: 1 counted question; a cold pass needs at least 2, so this sitting can't raise mastery. "
+                      "Its window has passed: it is a late recheck (plan.md §7).", r.stdout)
         self.assert_no_secrets()
 
     def test_a_words_recheck_still_closes_its_booking(self):

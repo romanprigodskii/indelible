@@ -192,6 +192,7 @@ Run `ind grade record stats stats-cold-04 --from <ws>/stats/.indelible/tmp/stats
 - Omit it on drills (the topic's own 2-day recheck covers them), and on diagnostics and probes ([measure.md](measure.md)).
 - On a non-zero exit, read the message, fix the file and run it again. Never edit a data file by hand.
 - **Words the learner owns go in the glossary,** so later sheets may use them with the resolution `glossary`: after a triage sheet, each word marked "use"; after a words recheck, each word right and not on the Least-sure line. Run `ind glossary add <s> <term> --def "<meaning>" --sheet <id>` for each.
+- **"1 counted question; a cold pass needs at least 2"** means a recheck topic kept fewer than 2 counted questions (a right answer on the Least-sure line doesn't count, nor a question left out). The sitting can't raise mastery and used nothing up: the topic's recheck stays open. Serve it again, with at least 2 questions, at a session before the window closes that the line names; past it, the late-recheck rule applies ([plan.md](plan.md) §7). The card says "too few questions on one topic to count; it comes back soon", never which topic.
 - **"Not counted toward level 3"** means a first recheck was started outside its window. The card calls it a late recheck with its real interval ("late recheck, 72 h"), and you book a fresh recheck from now, as [plan.md](plan.md) §7 step 3 says.
 
 Turn the output into a result card of at most 6 lines. Every number carries its label, and IDs never appear:

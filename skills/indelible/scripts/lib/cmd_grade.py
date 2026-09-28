@@ -33,7 +33,9 @@ What it does, in order:
      ``cold:`` items: a cold sheet, a words recheck, the late-recheck probe of
      plan.md section 7 (a diagnostic, mock or checkpoint too). A ``cold:``
      item on a practice sheet serves nothing: it leaves the recheck open and
-     the topic's ``last_cold`` unset. A practice sheet
+     the topic's ``last_cold`` unset. Nor does a topic with fewer than
+     MIN_COLD_ASKS counted questions (a words recheck excepted): it can't be a
+     cold pass, so the note says so and its recheck stays open. A practice sheet
      logs a ``drill`` exposure per topic, timed at the sitting; a measuring
      sheet logs none (feedback given afterwards is logged with ``session
      expose``). Then the sheet is marked graded and the levels are recomputed.
@@ -51,7 +53,7 @@ from lib import CheckFailed, DataError, UsageError
 from lib import dates, learning, schema
 from lib import io as fio
 from lib import ws as wsmod
-from lib.cmd_brief import block_topics
+from lib.cmd_brief import block_topics, fmt_when
 from lib.cmd_sheet import filed_asks
 from lib.cmd_learning import (
     add_parser_once, error_status_phrase, fmt_changes, fmt_num, leaks_answer, new_error, out,
@@ -526,6 +528,17 @@ def cmd_grade_record(args):
                 subj.append_exposure({"v": 1, "topic": t, "at": dates.fmt_iso(sit_end), "kind": "drill"})
 
         served = [t for t in cold_topics if t not in contaminated_topics]
+        # A cold pass counts toward a level only with MIN_COLD_ASKS counted questions on the
+        # topic (learning.py). A sitting with fewer uses nothing up: its booking stays open and
+        # last_cold stays as it was, so a 2-day recheck is still one in its window. Words
+        # sheets don't feed levels, so they keep closing their booking.
+        thin = []
+        if instrument != "words":
+            for t in served:
+                n_counted = len([a for a in attempts if a["topic"] == t and learning.counts_toward_level(a)])
+                if n_counted < learning.MIN_COLD_ASKS:
+                    thin.append((t, n_counted, learning.is_first_serve(topics_state.get(t))))
+            served = [t for t in served if t not in [x[0] for x in thin]]
         closed = close_cold_obligations(ws, subj.id, served, sit_at=sit_at, sheet_block=sheet.get("block"))
 
         # Which sittings count as cold passes is decided only by the level rules
@@ -592,6 +605,17 @@ def cmd_grade_record(args):
         dirty = [a["ask"] for a in attempts if a.get("contaminated")]
         out("Not counted (seen too recently, in the 24 h before the sitting): %s on %s. Its 2-day recheck "
             "stays open." % (", ".join(dirty), ", ".join(contaminated_topics)))
+    for t, n_counted, window_serve in thin:
+        why = "%s: %d counted question%s; a cold pass needs at least %d, so this sitting can't raise mastery" % (
+            t, n_counted, "" if n_counted == 1 else "s", learning.MIN_COLD_ASKS)
+        if window_serve:
+            closes = learning.window_closes(t, now, exposures, subj.cold_window())
+            if closes is not None and closes > now:
+                why += (". Its 2-day recheck stays open: serve it again, with at least %d questions, before %s"
+                        % (learning.MIN_COLD_ASKS, fmt_when(closes.astimezone(now.tzinfo), now)))
+            else:
+                why += ". Its window has passed: it is a late recheck (plan.md §7)"
+        out(why + ".")
     for t, ih in late:
         out("Not counted toward level 3: %s was sat at %s h, outside its %s–%s h window. Treat it as a late "
             "recheck [measured] and book a fresh one from now (plan.md §7)." % (t, fmt_num(ih), fmt_num(lo),
