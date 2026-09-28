@@ -688,15 +688,27 @@ def _definitions_not_out(subj, spec):
     return out
 
 
+def _stops_for_marking(spec):
+    """True for drills with a block whose gate stops every time (a topic at mastery 0-1)."""
+    return spec.get("type") == "drills" and any(
+        isinstance(b, dict) and b.get("gate") == "always" for b in spec.get("blocks") or [])
+
+
 def _issue_checks(ws, subj, spec, row, block_id):
     """Law 4 and Law 3 at the moment of issue: never over the block's budget, never
     a recheck or re-served mistake (L7, on cold and mixed sheets) that is not
     eligible at the time it will be sat, and never a second cold or mixed sheet
-    for a recheck or mistake already in hand. Refuses (exit 1)."""
+    for a recheck or mistake already in hand. Drills that stop for marking (a
+    gate "always") never go to a solo block, which has no one to mark them.
+    Refuses (exit 1)."""
     probs = []
     if spec.get("type") in RESERVE_TYPES:
         probs += _in_hand_clashes(subj, spec, row)
     probs += _definitions_not_out(subj, spec)
+    if block_id and _stops_for_marking(spec) and (ws.get_block(block_id) or {}).get("solo"):
+        probs.append("its blocks stop for marking after the gate (gate \"always\": a topic at mastery 0-1), so it "
+                     "is sat in a session with Claude, never in a solo block: issue it at a session, or mark the "
+                     "block with Claude: plan move %s --not-solo" % block_id)
     if block_id:
         budget, basis = lint.budget_for(ws, subj, spec, row, block=block_id)
         try:

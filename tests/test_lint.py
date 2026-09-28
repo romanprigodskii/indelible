@@ -631,6 +631,22 @@ class RuleTests(Base):
         spec["blocks"][0]["gate_after"] = 3
         self.assertEqual(self.status(spec, "L6"), "PASS", "the default place, written out")
 
+    def test_l6_below_mastery_2_the_gate_stops_every_time(self):
+        spec = drills_spec()                                   # T04, no level on file: both gates "always"
+        self.assertEqual(self.status(spec, "L6"), "PASS")
+        for b in spec["blocks"]:
+            b.pop("gate")
+        r = result(spec, "L6")
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn('block 1: T04 is below mastery 2, so its gate stops every time: set gate "always"', r["detail"])
+        self.assertEqual(self.status(spec, "L6", topics_state={"T04": {"level": 1}}), "FAIL")
+        for level in (2, "3p", 3):
+            self.assertEqual(self.status(spec, "L6", topics_state={"T04": {"level": level}}), "PASS", level)
+        spec["blocks"][0]["gate"] = "sometimes"
+        r = result(spec, "L6", topics_state={"T04": {"level": 2}})
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn('gate must be "always" or left out', r["detail"])
+
     def test_w5_a_reading_sheet_allows_time_to_read(self):
         self.assertEqual(self.status(theory_spec(), "W5"), "PASS")
         # 451 words to read and one pencil question: the pace floor alone (3 min) passes L5.

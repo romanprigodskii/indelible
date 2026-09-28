@@ -291,6 +291,13 @@ def gate_text(three):
             "stop and send a photo of %s." % (r, r))
 
 
+def gate_text_always(three):
+    """The stop at mastery 0-1 (a block's gate "always"): every learner sends these three for marking,
+    so a wrong idea is caught before it is practised through the rest of the block."""
+    r = _range_text(three)
+    return "Stop here and send a photo of items %s. Go on once I've marked them." % r
+
+
 def gate_position(block, its):
     """Where a drills block's failure gate goes: after the block's ``gate_after`` item (lint L6 keeps
     it at the third item or later, with 2 after it), else after its third item. It covers the three
@@ -465,7 +472,8 @@ def build_model(spec, date=None, tools=None, fmt="html", profile=None, reference
         gate, gate_at = None, None
         if t == "drills" and len(its) >= 3:
             gate_at = gate_position(b, its)
-            gate = gate_text([it.get("n") for it in its[gate_at - 3:gate_at]])
+            three = [it.get("n") for it in its[gate_at - 3:gate_at]]
+            gate = gate_text_always(three) if b.get("gate") == "always" else gate_text(three)
         groups.append({"title": _s(b.get("title")).strip() or None, "items": its, "gate": gate, "gate_at": gate_at})
     rest = [it for it in items if it.get("n") not in used]
     if rest:

@@ -401,9 +401,10 @@ DRILLS_SPEC = {
              "C. The end of the keepers, and new uses for their homes\nD. The best hotels on the coast",
              [ask("6a", HEADING_LABEL, DRILL_CHECK)]),
     ],
-    # Item 1 is worked and item 2 faded (mastery 0–1), so the failure gate follows item 4 and watches 2–4.
+    # Item 1 is worked and item 2 faded (mastery 0–1), so the failure gate follows item 4 and watches 2–4;
+    # at mastery 0–1 it stops every time, for marking (gate "always").
     "blocks": [{"title": "Block A: choose the heading from the whole paragraph", "items": [1, 2, 3, 4, 5, 6],
-                "gate_after": 4}],
+                "gate_after": 4, "gate": "always"}],
     "terms": [], "theory": None, "least_sure": True,
 }
 
@@ -486,6 +487,13 @@ Start time: 07:19
 6. C | check: keepers gone, houses used for new things
 Stop time: 07:29
 Least sure I chose the right idea: 5
+"""
+
+# The stop after item 4: items 2-4, sent on their own and marked before the learner goes on.
+DRILLS_GATE_TYPED = """Drills: choose the heading, items 2-4
+2. B | check: read it again under B, all of it belongs
+3. B (first wrote D) | check: under D only one sentence belonged, so I changed to B
+4. A | check: farms, forest and cottages all sit under A
 """
 
 DRILLS_GRADES = {
@@ -688,6 +696,11 @@ class Builder(object):
         self.run("2026-10-13T07:17+01:00", "session", "taught", SUBJECT, "T01", "--by", "sheet",
                  "--block", ids["tue"])
         self.run("2026-10-13T07:18+01:00", "sheet", "issue", SUBJECT, DRILLS, "--block", ids["tue"])
+        # A new topic's gate stops every time: items 2-4 are filed on their own, only their key opens,
+        # and once they are marked the learner goes on to 5 and 6.
+        gf = write_text(self.typed_dir / (DRILLS + "-gate.txt"), DRILLS_GATE_TYPED)
+        self.run("2026-10-13T07:24+01:00", "scan", "ingest", SUBJECT, DRILLS, "--typed", gf, "--asks", "2a,3a,4a")
+        self.run("2026-10-13T07:24+01:00", "key", "open", SUBJECT, DRILLS)
         r = self.file_and_grade("2026-10-13T07:33+01:00", "2026-10-13T07:40+01:00", DRILLS, DRILLS_TYPED,
                                 DRILLS_GRADES)
         if "[practice]" not in r.stdout:

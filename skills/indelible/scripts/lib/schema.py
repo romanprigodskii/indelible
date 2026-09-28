@@ -594,6 +594,9 @@ def validate_sheet(s):
     return p
 
 
+# blocks[].gate on drills: "always" stops the learner at the gate every time, for marking (a topic at
+# mastery 0-1); left out, the gate stops only on 2 failed checks, "I don't know"s or blanks.
+GATE_VALUES = ("always",)
 SCAFFOLD_MAX_LINES = 12
 SCAFFOLD_MAX_COLUMNS = 8
 SCAFFOLD_MAX_ROWS = 20
@@ -663,6 +666,8 @@ def validate_sheetspec(spec):
     for i, b in enumerate(spec.get("blocks") or []):
         if not isinstance(b, dict) or not isinstance(b.get("items"), list):
             p.append("spec.blocks[%d] needs a title and an items list" % i)
+        elif b.get("gate") is not None and b.get("gate") not in GATE_VALUES:
+            p.append("spec.blocks[%d].gate must be %s (or left out)" % (i, " or ".join(GATE_VALUES)))
     for i, t in enumerate(spec.get("terms") or []):
         if not isinstance(t, dict) or not t.get("term") or not t.get("resolution"):
             p.append("spec.terms[%d] needs term and resolution" % i)
@@ -1021,7 +1026,9 @@ RECORDS = {
                        "useful)"),
             ("blocks[]", "{title, items}; on drills, optional gate_after (an item of the block): the failure gate "
                          "follows it, covering the 3 items that end there (default: the block's 3rd item; at "
-                         "mastery 0-1, a block of 6 or more sets its 4th, so the gate skips the worked item)"),
+                         "mastery 0-1, a block of 6 or more sets its 4th, so the gate skips the worked item); "
+                         "and gate \"always\", required on a block with a topic below mastery 2 (lint L6): the "
+                         "learner stops there every time and sends those 3 items for marking"),
             ("items[].scaffold", "optional, on a practice sheet: printed working lines, [\"u =\", \"u′ =\"], "
                          "or an empty table, {columns: [labels], rows: N}, between its text and its first box; "
                          "never graded, keyed or counted. Lint L14 refuses one on cold, mixed and measuring "

@@ -167,7 +167,7 @@ Rough figures at the default paces (estimates): 20 minutes verbal gives about 12
 
 - **Short sessions (30 minutes or less):**
   - A teach and its recheck may span sessions: the theory card one day, drills the next, and the recheck 44–72 h after the last warm exposure.
-  - Marking of new material may carry over to the next open, for at most 3 minutes; name each question then by its gist and the learner's answer, not its number alone ([session-grade.md](session-grade.md) §3). A recheck is always marked the same day.
+  - Drills on a topic whose first recheck is still ahead are marked in the session they are sat: when drills and their marking don't both fit, cut drill questions, not the marking. If marking still carries over, do it in the open, before the recheck is built: the verdicts and the standard for each miss, naming each question by its gist and the learner's answer, not its number alone ([session-grade.md](session-grade.md) §3). For each topic with a miss, run `ind session expose <s> <T> --kind review`, then `ind plan check`: lint L7 then keeps that topic off today's recheck, and its window restarts 44–72 h from this marking. A recheck is always marked the same day.
 - **A quick session** is an unplanned drop-in, or one shorter than the learner's usual length. It serves due items only: nothing new and no measurement.
 - **Measurement sittings** (diagnostic, mock, checkpoint) are sized by the exam clock, not this table ([measure.md](measure.md)).
 

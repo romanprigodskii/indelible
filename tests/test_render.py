@@ -37,6 +37,15 @@ CLOSE = ("Send me your pencil answers and keep this sheet open until I've marked
          "Then put it away and tell me “closed”. The drills come on their own sheet.")
 
 
+def practised_drills(**over):
+    """Drills on a topic at mastery 2 or above: the failure gate stops only on 2 failed checks,
+    "I don't know"s or blanks (the fixture's own blocks, at mastery 0, stop every time)."""
+    spec = drills_spec(**over)
+    for b in spec["blocks"]:
+        b.pop("gate", None)
+    return spec
+
+
 def visible_text(page):
     """The text a reader sees in an HTML page (tags dropped, entities decoded, spaces collapsed)."""
     body = page.split("<body>", 1)[-1]
@@ -94,7 +103,7 @@ class Base(unittest.TestCase):
 class HtmlTemplateTests(Base):
     def setUp(self):
         Base.setUp(self)
-        self.page = render.render_html(drills_spec(), date=DAY, tools="none")
+        self.page = render.render_html(practised_drills(), date=DAY, tools="none")
         self.text = visible_text(self.page)
 
     def test_header_has_title_date_weekday_minutes_count_and_provenance(self):
@@ -250,7 +259,7 @@ class HtmlTemplateTests(Base):
     def test_gate_after_moves_the_gate_past_the_worked_item(self):
         # At mastery 0–1 item 1 of a block is worked: gate_after 4 covers the faded item and two
         # independent ones.
-        spec = drills_spec(n=12)
+        spec = practised_drills(n=12)
         spec["blocks"][0]["gate_after"] = 4
         gate = ("If 2 of items 2–4 have a failed check, an “I don't know” or an empty box: "
                 "stop and send a photo of 2–4.")
@@ -266,6 +275,24 @@ class HtmlTemplateTests(Base):
         for bad in (2, 99):
             spec["blocks"][0]["gate_after"] = bad
             self.assertIn("items 1–3", visible_text(render.render_html(spec, date=DAY)), bad)
+
+    def test_at_mastery_0_1_the_gate_stops_every_time(self):
+        spec = drills_spec(n=12)                               # blocks marked gate "always"
+        spec["blocks"][0]["gate_after"] = 4
+        stop_1 = "Stop here and send a photo of items 2–4. Go on once I've marked them."
+        stop_2 = "Stop here and send a photo of items 7–9. Go on once I've marked them."
+        t = visible_text(render.render_html(spec, date=DAY))
+        self.assertTrue(t.index("Question 4.") < t.index(stop_1) < t.index("Question 5."))
+        self.assertTrue(t.index("Question 9.") < t.index(stop_2) < t.index("Question 10."))
+        self.assertNotIn("have a failed check", t)
+        md = render.render_markdown(spec, date=DAY)
+        self.assertIn("> **%s**" % stop_1, md)
+        self.assertIn('#"%s"' % stop_2, render.render_typst(spec, date=DAY))
+        # Another block on the same sheet keeps the conditional gate.
+        spec["blocks"][1].pop("gate")
+        t = visible_text(render.render_html(spec, date=DAY))
+        self.assertIn(stop_1, t)
+        self.assertIn("If 2 of items 7–9 have a failed check", t)
 
     def test_end_lines(self):
         t = self.text
@@ -380,7 +407,7 @@ class HtmlTemplateTests(Base):
 
 class TypstAndMarkdownTests(Base):
     def test_typst_source_is_well_formed_and_complete(self):
-        src = render.render_typst(drills_spec(), date=DAY)
+        src = render.render_typst(practised_drills(), date=DAY)
         self.assertEqual(typst_balance_problems(src), [])
         self.assertIn('counter(page).display("1 of 1", both: true)', src)
         self.assertIn('paper: "a4"', src)
@@ -412,7 +439,7 @@ class TypstAndMarkdownTests(Base):
         self.assertTrue(src.rstrip().endswith('[#strong[#"%s"]]' % CLOSE))
 
     def test_markdown_has_every_element(self):
-        md = render.render_markdown(drills_spec(), date=DAY)
+        md = render.render_markdown(practised_drills(), date=DAY)
         self.assertTrue(md.startswith("# Other words, same idea\n"))
         for s in ("**Thursday 15 October 2026** · About 12 min · 6 questions · Practice — written by Claude",
                   "> **Rules**", "Closed book", "Write the check beside each answer.", "Stop after 12 minutes.",

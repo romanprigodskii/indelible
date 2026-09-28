@@ -83,7 +83,7 @@ Step 2. The headings that name only a detail: ______________________
   Answer: ______________________  
   Check: ______________________ *(Read the whole paragraph again under your heading.)*
 
-> **If 2 of items 2–4 have a failed check, an “I don't know” or an empty box: stop and send a photo of 2–4.**
+> **Stop here and send a photo of items 2–4. Go on once I've marked them.**
 
 **5.** Paragraph: At the start of the school year, the pupils at Harlow Road asked for a quieter lunch hall. The teachers split lunch into two sittings, added a wall of plants and asked the older pupils to eat outside on dry days. By December the noise had halved, and fewer pupils skipped lunch.
 

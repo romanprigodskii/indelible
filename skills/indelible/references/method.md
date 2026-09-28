@@ -81,7 +81,7 @@ IDs are stable, so `overrides[].rule` in `subject.json` can name one (for exampl
 | R29 | Sleep is protected: nothing in the sleep window or within 30 minutes of bedtime | core | [lit-strong] | Mazza et al., 2016 |
 | R31 | Claude's own mistakes are logged; a repeat in one category forces a structural fix | core | [design] | |
 | R34 | Claude makes the call; the learner can override it, predicting specific questions | core | [lit-mixed] | Patall et al., 2008 |
-| R36 | Teaching drills in blocks of one question type (3–8, default 6), with a stop after question 3 (question 4 in a block of 6 or more whose question 1 is worked) if two of the three gated questions have a failed check, an "I don't know" or a blank | core (one type) / default (size) | [lit-mixed] | Carvalho & Goldstone, 2014 |
+| R36 | Teaching drills in blocks of one question type (3–8, default 6), with a stop after question 3 (question 4 in a block of 6 or more whose question 1 is worked) if two of the three gated questions have a failed check, an "I don't know" or a blank; at mastery 0–1, a stop every time, for marking | core (one type) / default (size) | [lit-mixed] | Carvalho & Goldstone, 2014; Shute, 2008 |
 | R38 | Explaining it back is a test: captured word for word, critiqued, model answer after | core (interview, verbal) | [lit-strong] | Bisra et al., 2018 |
 | R39 | Hard words glossed in the first language the first time they appear | default | [lit-mixed] | Yanagisawa et al., 2020 |
 | R40 | The learner writes every line of their own solutions; worked code and line-ordering puzzles at mastery 0–1 | core | [lit-mixed] | Ericson et al., 2017 |
@@ -126,6 +126,7 @@ Graded [lit-mixed] for the principle; the details are [one-learner]. An earlier 
 
 ## 6. Where the defaults bend
 
+- **Feedback comes sooner on a new topic.** Immediate feedback suits novices and procedural skills, while delayed feedback can help transfer (Shute, 2008). A wrong idea passes its own check, so a gate that waits for failed checks lets a novice practise it through the block: at mastery 0–1 the gate stops every time, and those items are marked before the learner goes on. From mastery 2 the gate waits for trouble.
 - **Six per block is a ceiling, not a target.** Extra same-type questions add little later (Rohrer & Taylor, 2006). Blocking helps when categories differ a lot, mixing when they are easily confused (Carvalho & Goldstone, 2014); blocking can win for word lists (Brunmair & Richter, 2019).
 - **The ladder's shape is a convenience.** Expanding gaps do no better than equal ones (Latimier et al., 2021), and the best gap grows with the time left before the test (Cepeda et al., 2008). Hence the deadline cap and a per-subject recheck window (`cold_window_h`).
 - **Worked examples first, for novices only.** The advantage reverses as expertise grows (Kalyuga, 2007), and struggling first then being taught also works (Sinha & Kapur, 2021). A stuck learner gets a worked example on a separate sheet, never the answer in chat (Koedinger & Aleven, 2007). Fading alone helps most on questions like the worked one; adding a prompt to name the principle behind each worked step carried the method to unfamiliar questions too, with no extra time on task (Atkinson, Renkl & Merrill, 2003). Hence R12's principle prompt: a choice among the sheet's own reasons, answered by letter.
@@ -212,6 +213,7 @@ Why no "sure / not sure" beside each answer? People stop filling it in, and the 
 - Rohrer & Taylor (2006), *Applied Cognitive Psychology*. Rohrer & Taylor (2007), *Instructional Science*. Rohrer et al. (2020), *Journal of Educational Psychology*.
 - Rosenshine (2012), *American Educator*.
 - Rozenblit & Keil (2002), *Cognitive Science*.
+- Shute (2008), *Review of Educational Research*.
 - Simonsmeier et al. (2022), *Educational Psychologist*.
 - Sinha & Kapur (2021), *Review of Educational Research*.
 - Slamecka & Graf (1978), *JEP: Human Learning and Memory*.

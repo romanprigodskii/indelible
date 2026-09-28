@@ -661,6 +661,7 @@ def _l6(spec, ctx):
     if spec.get("type") != "drills":
         return "PASS", "not a drills sheet"
     lo, hi = ctx.get("block_size") or (3, 8)
+    state = ctx.get("topics_state") or {}
     items = _items(spec)
     by_n = dict((it.get("n"), it) for it in items)
     blocks = [b for b in (spec.get("blocks") or []) if isinstance(b, dict)]
@@ -690,6 +691,19 @@ def _l6(spec, ctx):
                 ops.append(op)
         if len(ops) > 1:
             probs.append("%s mixes operations (%s)" % (name, _listed(ops)))
+        # At mastery 0-1 the stop is every time (gate "always"): a wrong idea passes its own
+        # check, so waiting for failed checks lets it be practised through the block.
+        gate = b.get("gate")
+        if gate is not None and gate != "always":
+            probs.append("%s: gate must be \"always\" or left out (got %s)" % (name, _s(gate)))
+        new_topics = []
+        for it in known:
+            t = _s(it.get("topic")).strip()
+            if t and t not in new_topics and _below_2(state.get(t)):
+                new_topics.append(t)
+        if new_topics and gate != "always" and len(its) >= 3:
+            probs.append("%s: %s is below mastery 2, so its gate stops every time: set gate \"always\""
+                         % (name, _listed(new_topics)))
         # The failure gate covers the 3 items that end at gate_after, and stops something only
         # when at least 2 items come after it.
         if b.get("gate_after") is not None:
@@ -884,6 +898,15 @@ def _l10(spec, ctx):
                         "definition used against the question's words)" % ("s" if len(bad) > 1 else "",
                                                                              _listed(bad)))
     return "PASS", "every check hint names a check"
+
+
+def _below_2(topic_state):
+    """A topic at mastery 0 or 1 (no state counts as 0): its drills stop at every gate."""
+    level = topic_state.get("level") if isinstance(topic_state, dict) else 0
+    try:
+        return learning.level_rank(level if level is not None else 0) < 2
+    except Exception:  # an unreadable level counts as new
+        return True
 
 
 def _owned(level):

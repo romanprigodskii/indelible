@@ -136,8 +136,9 @@ class PersonaAFullCycle(E2EBase):
         return {"v": 1, "id": "ielts-drills-01", "type": "drills", "subject": "ielts",
                 "title": "Other words, same idea", "est_min": 15, "tools": "none", "answer_form": "short",
                 "items": items,
-                "blocks": [{"title": "Block A: swap one word", "items": [1, 2, 3]},
-                           {"title": "Block B: pick a heading", "items": [4, 5, 6]}],
+                # New topics (mastery 0-1): each block stops at its gate every time (lint L6).
+                "blocks": [{"title": "Block A: swap one word", "items": [1, 2, 3], "gate": "always"},
+                           {"title": "Block B: pick a heading", "items": [4, 5, 6], "gate": "always"}],
                 "terms": [], "theory": None, "least_sure": True}
 
     def cold_spec(self, slip_id):

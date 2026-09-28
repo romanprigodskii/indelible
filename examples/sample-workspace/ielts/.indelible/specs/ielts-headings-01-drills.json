@@ -127,7 +127,8 @@
         5,
         6
       ],
-      "gate_after": 4
+      "gate_after": 4,
+      "gate": "always"
     }
   ],
   "terms": [],

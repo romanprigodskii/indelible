@@ -7,6 +7,7 @@ Synthetic learner A (IELTS Academic) only. The fixture keys use made-up words
 import hashlib
 import json
 import os
+import re
 import shutil
 import struct
 import subprocess
@@ -55,8 +56,9 @@ def drills_spec(sheet_id="ielts-drills-01", n=6, est_min=12, **over):
                       "check_hint": "Read the new sentence aloud with your answer in it"}],
         })
     half = n // 2
-    blocks = [{"title": "Block A: swap one word", "items": list(range(1, half + 1))},
-              {"title": "Block B: swap one word", "items": list(range(half + 1, n + 1))}]
+    # T04 has no level on file (mastery 0), so each block stops at its gate every time (lint L6).
+    blocks = [{"title": "Block A: swap one word", "items": list(range(1, half + 1)), "gate": "always"},
+              {"title": "Block B: swap one word", "items": list(range(half + 1, n + 1)), "gate": "always"}]
     spec = {"v": 1, "id": sheet_id, "type": "drills", "subject": SUBJECT, "title": "Other words, same idea",
             "est_min": est_min, "tools": "none", "answer_form": "short", "items": items, "blocks": blocks,
             "terms": [], "theory": None, "least_sure": True}
@@ -440,6 +442,30 @@ class SheetFlowTests(SheetBase):
         r = self.cli("sheet", "lint", SUBJECT, "ielts-nope-01")
         self.assertEqual(r.returncode, 2)
         self.assertIn("No sheet", r.stderr)
+
+
+class SoloIssueTests(SheetBase):
+    def test_drills_that_stop_for_marking_never_go_to_a_solo_block(self):
+        # pedagogy-4: at mastery 0-1 the gate stops every time and Claude marks items 1-3, so such
+        # drills are sat in a session with Claude.
+        r = self.ok(self.cli("plan", "add", SUBJECT, "--kind", "teach", "--start", "2026-10-13T19:00+01:00",
+                             "--min", "45", "--solo"))
+        bid = re.search(r"B-\d{8}-ielts-\d+", r.stdout).group(0)
+        spec = drills_spec()                                  # both blocks gate "always"
+        self.to_rendered(spec)
+        r = self.cli("sheet", "issue", SUBJECT, spec["id"], "--block", bid)
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("never in a solo block", r.stdout)
+        self.assertIn("plan move %s --not-solo" % bid, r.stdout)
+        self.assertEqual(sheet_row(self.ws, spec["id"])["status"], "rendered")
+        # Drills on a topic at mastery 2 or above keep the conditional gate and may go solo.
+        from lib import ws as wsmod
+        wsmod.Workspace(self.ws).subject(SUBJECT).save_topics_state({"T04": {"level": 2}})
+        other = drills_spec("ielts-drills-02")
+        for b in other["blocks"]:
+            b.pop("gate")
+        self.to_rendered(other)
+        self.ok(self.cli("sheet", "issue", SUBJECT, other["id"], "--block", bid))
 
 
 class KeyTests(SheetBase):

@@ -878,6 +878,13 @@ class SchemaTests(Base):
         self.assertTrue(any("used twice" in p for p in schema.validate_sheetspec(spec)))
         self.assertTrue(schema.validate_grades({"asks": [{"ask": "1a", "verdict": "maybe"}]}))
 
+    def test_a_drills_gate_is_always_or_left_out(self):
+        spec = schema.example("sheetspec")
+        spec["blocks"][0]["gate"] = "always"
+        self.assertEqual(schema.validate_sheetspec(spec), [])
+        spec["blocks"][0]["gate"] = "sometimes"
+        self.assertTrue(any("gate must be always" in p for p in schema.validate_sheetspec(spec)))
+
     def test_a_scaffold_is_working_lines_or_an_empty_table(self):
         spec = schema.example("sheetspec")
         for good in (["u =", "u′ ="], {"columns": ["line", "i", "total"], "rows": 4}):
