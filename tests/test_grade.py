@@ -293,6 +293,19 @@ class ColdSheetTests(GradeBase):
         self.assertEqual(topics["T04"]["last_cold"], "2026-10-14T08:00+01:00")
         self.assertNotIn("cold_passes", topics["T01"])
 
+    def test_a_question_left_out_of_the_grades_file_is_named_in_a_note(self):
+        # A page read as missing: 5a and 6a never reached the grades file. The rest is
+        # recorded, and the note names both, so a missed page can't pass silently.
+        self.grades["asks"] = [g for g in self.grades["asks"] if g["ask"] not in ("5a", "6a")]
+        out = self.record().stdout
+        self.assertIn("Note: no entry for 5a, 6a in the grades file, so they were not recorded.", out)
+        self.assertIn("session-grade.md §8", out)
+        self.assertEqual(sorted(a["ask"] for a in self.attempts()), ["1a", "2a", "3a", "4a", "7a", "8a"])
+        self.assert_no_secrets()
+
+    def test_a_complete_grades_file_gets_no_left_out_note(self):
+        self.assertNotIn("no entry for", self.record().stdout)
+
     def test_graded_once_only(self):
         self.record()
         r = self.record(expect=1)

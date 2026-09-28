@@ -534,7 +534,7 @@ For a rounded number, `check` also gives the tolerance the check holds to, the s
 - **`scan ingest <subject> <id> [PATHS...] [--typed FILE] [--transcript -] [--dir PROJECT] [--date YYYY-MM-DD] [--asks 1a,2a,3a]`**
   - Copies files to `scans/<date>-<id>-answers[-pN].<ext>`. For HEIC it tries `sips` (macOS) or `heif-convert` to JPG and keeps the original.
   - `--typed` copies to `answers/<id>.txt`, or to `answers/<id>-N.txt` (the next free N from 2) when that is taken: a later typed file never replaces an earlier one.
-  - `--transcript -` reads stdin and saves `scans/<date>-<id>-answers.txt` with evidence kind `chat-image+transcript`.
+  - `--transcript -` reads stdin and saves `scans/<date>-<id>-answers.txt` with evidence kind `chat-image+transcript`. It combines with photo or PDF paths in one call: the per-question transcript Claude writes of those pages (`session-grade.md` §2).
   - `--dir PROJECT` copies a code project, with its folder layout, to `answers/<id>/` (`answers/<id>-N/` when that is taken), skipping build output (`target`, `build`, `dist`, `node_modules`, …), hidden files and folders, links and files over 1 MB, and notes how many files it skipped. A folder inside the workspace is refused (exit 2). It combines with `--typed` in one call.
   - Appends to `scans/index.jsonl` and to the sheet's `evidence`. Sets `status=sat` if the sheet was `issued`, with the taken date from `--date`, else today; without `--date`, it refuses (exit 1, nothing filed) a sheet issued on an earlier day whose sitting time matters, as `sheet sat` does.
   - **`--asks`** files a failure-gate photo: only on an `issued` `drills` sheet (otherwise exit 1, nothing filed), with ask ids that are on the sheet (otherwise exit 2). Each evidence entry and index row carries `asks`, and the sheet stays `issued` with no taken date.
@@ -592,6 +592,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
   - the level changes;
   - the cold obligations passed;
   - on a `cold` sheet, for each first-serve topic sat outside its window (and not confirming a 3p level): `Not counted toward level 3: T01 was sat at 72.1 h, outside its 44–72 h window. Treat it as a late recheck …`.
+  - a note naming any question of the spec with no entry in the grades file (`no entry for 5a, 6a in the grades file, so they were not recorded …`). It is a note, not a refusal: a block cut for time and a question not counted are left out on purpose.
 - **For a `cold:<topic>` item on a measuring sheet** (a `cold` sheet, or a `words` recheck): closes the topic's cold obligation block (`status=done`) if one is open, and sets `last_cold`. On a practice sheet it closes nothing and sets nothing, and a note says the booked recheck stays open.
 
 **Other commands:**

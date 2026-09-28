@@ -37,15 +37,16 @@ No part of the key reaches chat for a question until its account is in (step 6).
 
 | Evidence arrives as | Run |
 |---|---|
-| Photos in `<ws>/inbox/` or at a path | `ind scan ingest stats stats-cold-04 <ws>/inbox/IMG_0412.jpg <ws>/inbox/IMG_0413.jpg` (one path per page) |
+| Photos or a PDF in `<ws>/inbox/` or at a path | Transcribe them (below), then file the pages and the transcript in one call: `ind scan ingest stats stats-cold-04 <ws>/inbox/IMG_0412.jpg <ws>/inbox/IMG_0413.jpg --transcript - <<'EOF'` … `EOF` (one path per page) |
 | The learner says "sent" | List the image and PDF files newer than the sheet's issue time in `<ws>/inbox/`, in `~/Downloads` (where AirDrop puts them) and in the photos folder named under "About the learner" in the root `CLAUDE.md`, if any; names only, nothing else there. Name them to the learner ("IMG_0412 and IMG_0413: those two?") and file them only after a yes |
 | A typed-answers file | `ind scan ingest stats stats-cold-04 --typed <file>` |
 | A photo pasted into chat | Transcribe it, then pipe the text in: `ind scan ingest stats stats-cold-04 --transcript - <<'EOF'` … `EOF` |
 | A sheet sat on an earlier day (solo block), or a photo sent on a later day than the sheet was issued | Add `--date YYYY-MM-DD`. Without it, ingest refuses a recheck, or a sheet with mistakes re-served, issued on an earlier day: their sitting date decides the 2-day window and the 24-hour rule |
 
-Transcribing a chat photo:
-- Transcribe before the key is open, one line per question: the answer, then the check line, exactly as written. Keep crossed-out answers (`[crossed out: -4] 4`), because they show a check that caught something. Add the start and stop times and the Least-sure line.
+Transcribing photos and PDFs (pasted into chat or given by path; a typed file or a code project needs none):
+- Transcribe before the key is open, one line for every question number on the sheet: the answer, then the check line, exactly as written; `[blank]` for an empty box, `[not found]` for a question you can't find on any page. Keep crossed-out answers (`[crossed out: -4] 4`), because they show a check that caught something. Add the start and stop times and the Least-sure line. A missed page otherwise turns answered questions into blanks, and blanks open no mistake and can send a topic to a probe.
 - Never correct spelling or arithmetic. If something is unreadable, write `[unreadable]` and ask a neutral question: "What did you write for question 6?", never "Did you write 14?"
+- **Any `[not found]` line:** ask one neutral question before filing: "I can't find 29 and 30: left blank, or on a page I didn't get?" A page that turns up joins the same call; one that turns up after filing gets a second `ind scan ingest`. Note the reply beside the line (`[not found; learner: left blank]`).
 - Answers typed straight into chat are treated the same way. Once, suggest a typed file next time.
 - If ingest can't convert a HEIC photo, ask for a JPEG (on iPhone: Settings, Camera, Formats, Most Compatible), or transcribe it from chat.
 - A failure-gate photo of questions 1–3 is filed the same way, plus `--asks` with the questions it shows (`--asks 1a,2a,3a`). The sheet stays issued, and `ind key open` prints only those questions until the finished sheet is filed. Record grades once, when the whole sheet is back; `ind grade record` refuses a gate photo alone.
@@ -80,6 +81,8 @@ Wrong: 4 (median of six waiting times; you wrote 11.2) · 7 (share of late buses
 Doesn't match my answer: 14 (what the 95% in an interval refers to; you wrote "95% of the data…")
 Let's go through them one at a time, starting with 4.
 ```
+
+Blanks, when there are any, get a line of their own, numbers only (on a longer sheet, `Blank: 29, 30`), so a page you missed shows up while a challenge can still change the mark (§9), not after `ind grade record`.
 
 ## 4. Accounts before classifying
 
@@ -165,6 +168,8 @@ Persona C, question 4: "Your check confirmed the arithmetic of the mean, so it c
 Write the input file at `<subject>/.indelible/tmp/<id>.grades.json`. Run `ind schema grades` if you are unsure of a field. Include one entry per question the learner was given. Leave out only:
 - questions from a block cut for time before it started ([close.md](close.md));
 - questions not counted (§10).
+
+`ind grade record` names any question left out in a note. If one was left out by mistake, it can't be added after the record: tell the learner and log a `misclassification` defect.
 
 ```json
 {"start":"13:04","stop":"13:19","date":"2026-10-15",

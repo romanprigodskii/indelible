@@ -400,6 +400,16 @@ def cmd_grade_record(args):
         if practised_cold:
             notes.append("%s: a 2-day recheck item on a %s sheet is practice, so it serves no recheck; the "
                          "booked recheck stays open." % (", ".join(practised_cold), stype))
+        # A question with no entry is simply not recorded. That is right for a block cut
+        # for time or a question not counted, never for a page missed when transcribing;
+        # a note, not a refusal, since the leaving out is often deliberate.
+        graded = set(g["ask"] for g in grades["asks"])
+        left_out = [aid for aid in ask_index if aid not in graded]
+        if left_out:
+            notes.append("no entry for %s in the grades file, so %s not recorded. Leaving a question out is "
+                         "right only in the cases session-grade.md §8 lists; one left out by mistake can't be "
+                         "added now: tell the learner and log a defect."
+                         % (", ".join(left_out), "it was" if len(left_out) == 1 else "they were"))
         if leaks:
             raise CheckFailed("Not recorded: the belief line of %s contains an accepted answer from the key. "
                               "Describe the wrong idea without the answer." % ", ".join(leaks))

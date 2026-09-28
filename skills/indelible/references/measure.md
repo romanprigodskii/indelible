@@ -58,7 +58,7 @@ Item rules (lint L2, L3 and L9 enforce the first three):
 
 ## 5. Scoring
 
-1. **Evidence first:** `ind sheet sat <subject> <id> --start HH:MM --stop HH:MM`, then `ind scan ingest <subject> <id> <photos>` (or `--typed FILE`, or `--transcript -` for a chat photo you transcribed). Only then `ind key open <subject> <id>`.
+1. **Evidence first:** `ind sheet sat <subject> <id> --start HH:MM --stop HH:MM`, then `ind scan ingest <subject> <id> <photos> --transcript -` with your transcript, a line for every question number ([session-grade.md](session-grade.md) §2) (or `--typed FILE`, or `--transcript -` alone for a chat photo). Only then `ind key open <subject> <id>`.
 2. **Between Part A and Part B,** give verdicts only; explain nothing on a topic going into Part B.
 3. **Per question:** verdict `right`, `half`, `wrong`, `dont_know` (wrote "I don't know") or `skip` (blank); check `filled`, `missing` or `caught`; `least_sure` from the closing line.
 4. **Accounts before classifying,** one miss at a time, unnamed wrong answers first (wrong and not on the Least-sure line): "Question 7 (<gist>; you wrote <answer>): how did you get your answer? 1) I did it this way: ___ 2) a word stopped me 3) I guessed 4) I can see my slip: ___", naming each question by its number, a gist and the learner's answer, as [session-grade.md](session-grade.md) §3 says. An account is how they got it, never a hunt for the error ([session-grade.md](session-grade.md) §4). Any language is fine. Cap at about 5 minutes per paper; the rest get "no account", never counted as blanks.

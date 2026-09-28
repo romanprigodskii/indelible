@@ -156,7 +156,7 @@ File it before opening the key; it settles any dispute about a mark.
 
 | Evidence | Command | Notes |
 |---|---|---|
-| Photos or scans (jpg, png, pdf, heic) | `ind scan ingest <s> <id> <path> [<path> …]`, a path per page | Copied into `scans/`; HEIC converted where possible |
+| Photos or scans (jpg, png, pdf, heic) | transcribe exactly, then `ind scan ingest <s> <id> <path> [<path> …] --transcript -`, a path per page, the text on stdin | Copied into `scans/`; HEIC converted where possible. The transcript has a line for every question number: the answer, `[blank]`, `[unreadable]` or `[not found]` ([session-grade.md](session-grade.md) §2) |
 | Typed or dictated answers | a text file from the learner (e.g. `inbox/<id>.txt`), answer then check per line; `ind scan ingest <s> <id> --typed <file>` | Copied into `answers/`, one file per filing. A file, never chat |
 | A photo pasted into chat | transcribe exactly, then `ind scan ingest <s> <id> --transcript -` with the text on stdin | `chat-image+transcript`; enough for `key open`; the original only in a dispute |
 | Code | the project and the learner's own test or compiler output, in one call: `ind scan ingest <s> <id> --dir <project folder> --typed <output file>` | Copied to `answers/<id>/` with its folder layout (build output, hidden files and files over 1 MB skipped); the folder must be outside the workspace. Hidden tests run only on a temp copy of that snapshot |
