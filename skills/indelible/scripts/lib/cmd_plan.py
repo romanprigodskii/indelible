@@ -44,7 +44,10 @@ A solo block (``"solo": true``, set by ``plan add|move --solo``) is one the
 learner works alone, with no Claude session before it: its practice sheets are
 issued at the close before it (close check C8 fails until one is), and its
 calendar card says where the sheets are instead of "open Claude". A 2-day
-recheck is never solo: it is built at the open of a session.
+recheck is never solo: it is built at the open of a session. So a block whose
+content names a recheck can't be solo either, and nor can the kinds with no
+practice sheets to issue ahead or that need Claude (oral, tutor_lesson,
+buffer, admin).
 
 Fields this module adds to a block record: ``moves`` (the ics SEQUENCE),
 ``cancel_reason`` and ``cancelled_at``, ``misses`` (every ``plan miss``:
@@ -157,6 +160,9 @@ CARD_FALLBACK = {
 DEFAULT_FALLBACK = "Short on time: do the first half and tell Claude where you stopped."
 RECHECK_STEP = "Sit the 2-day recheck first."
 RECHECK_FALLBACK = "Short on time: do the recheck only; it is the part that can't move."
+# Kinds that can't be solo: no practice sheets to issue ahead, or Claude is needed.
+NOT_SOLO_KINDS = ("cold", "oral", "tutor_lesson", "buffer", "admin")
+SOLO_STEP = "Work through your sheets in order."
 
 
 # ==========================================================================
@@ -666,7 +672,7 @@ def cmd_plan_add(args):
     elif args.minutes is not None:
         raise UsageError("--min needs --start (an obligation has a window, not a time)")
     if args.solo:
-        _check_solo(kind)
+        _check_solo(kind, content, added=True)
         if start is None:
             raise UsageError("--solo needs --start: a solo block has a time")
 
@@ -714,10 +720,20 @@ def cmd_plan_add(args):
     return 0
 
 
-def _check_solo(kind):
+def _check_solo(kind, content, added=False):
+    """Refuse a solo mark on a block that has no practice sheets to issue ahead, or needs Claude."""
     if kind == "cold":
         raise UsageError("A 2-day recheck is never solo: it is built at the open of a session, inside its window "
                          "(session-open.md §2)")
+    if kind in NOT_SOLO_KINDS:
+        raise UsageError("A %s block can't be solo: it has no practice sheets to issue ahead, or needs Claude. "
+                         "Solo kinds: %s" % (KIND_WORDS.get(kind, kind),
+                                              ", ".join(k for k in schema.BLOCK_KINDS if k not in NOT_SOLO_KINDS)))
+    if RECHECK_WORD_RE.search(content or ""):
+        raise UsageError("A solo block carries practice sheets only, and its content names a 2-day recheck, which is "
+                         "built at the open of a session with Claude. %s"
+                         % ("Take the recheck out of --content, or keep the block with Claude." if added
+                            else "Keep the block with Claude, or plan the recheck as a block of its own."))
 
 
 def _set_solo(b, solo):
@@ -801,7 +817,7 @@ def cmd_plan_move(args):
             raise CheckFailed("Refused: %s has no time yet. Use: plan place %s --start ISO --min N"
                               % (b["id"], b["id"]))
         if solo:
-            _check_solo(b.get("kind"))
+            _check_solo(b.get("kind"), b.get("content"))
         old_s, old_e = b_start(b, tz), b_end(b, tz)
         if old_s is None:
             raise DataError("%s has an unreadable start" % b["id"])
@@ -884,7 +900,7 @@ def _mark_solo(ws, ctx, block_id, solo):
             raise CheckFailed("Refused: %s is %s; only a planned block with a time can be marked."
                               % (b["id"], b.get("status") if b.get("start") else "not placed yet"))
         if solo:
-            _check_solo(b.get("kind"))
+            _check_solo(b.get("kind"), b.get("content"))
         _set_solo(b, solo)
         _save(ws, blocks, [b])
     s, e = b_start(b, ctx.tz), b_end(b, ctx.tz)
@@ -1770,9 +1786,10 @@ def card_notes(ctx, b):
         steps.insert(1 if steps and steps[0] in (_DESK, _TEST_DESK) else 0, RECHECK_STEP)
         fallback = RECHECK_FALLBACK
     if b.get("solo"):
-        steps = [s for s in steps if not s.startswith("Open Claude")]
+        # The learner works alone: the sheets take the place of the "open Claude" step.
+        steps = [SOLO_STEP if s.startswith("Open Claude") else s for s in steps]
         if len(steps) < 3:   # a card has at least 3 steps
-            steps.insert(max(0, len(steps) - 1), "Work through your sheets in order.")
+            steps.insert(max(0, len(steps) - 1), SOLO_STEP)
         entry = ctx.ws.subject_entry(b.get("subject")) or {}
         start_line = ("On your own: your sheets are in %s/%s/sheets. Send photos of your answers at your next "
                       "session." % (ws_display(ctx.ws), entry.get("dir") or b.get("subject")))

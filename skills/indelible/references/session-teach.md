@@ -130,7 +130,7 @@ On demand, after 7 days or more away, the opener carries the three lines of [rev
 
 - Mark the block solo (`ind plan add … --solo`, or `ind plan move <B> --solo` for one already planned), ideally before it is in the calendar: its card then carries the steps, a fallback and where the sheets are, instead of "open Claude" ([calendar.md](calendar.md)).
 - Build and issue its sheets at the close before it, before the close message, which gives their paths ([close.md](close.md) §6 step 5); the learner works through them alone. A theory and its drills go as a pair: read the theory, close it, then the drills.
-- A solo block carries practice sheets only: a recheck is built at the open of a session with Claude, inside its window, since what is due is known only then and a recheck handed over ahead could be looked at before it is sat ([session-open.md](session-open.md) §2).
+- A solo block carries practice sheets only (the CLI refuses `--solo` on a recheck, on a block whose content names one, and on oral, tutor-lesson, buffer and admin blocks): a recheck is built at the open of a session with Claude, inside its window, since what is due is known only then and a recheck handed over ahead could be looked at before it is sat ([session-open.md](session-open.md) §2).
 - If the failure gate fires, they stop that block and move on to the next one.
 - At the next session, step 2 of [session-open.md](session-open.md) records "happened without me" with `ind plan done <B>`. The photos are filed and marked after the recheck; the sheets were sat on an earlier day, so name each question by its gist and the learner's answer, never its number alone ([session-grade.md](session-grade.md) §3).
 

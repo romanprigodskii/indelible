@@ -244,7 +244,7 @@ A topic's cold passes are not stored: the level rules find them in `attempts.jso
 - **`kind`:** `teach` | `cold` | `repair` | `review` | `mixed` | `mock` | `diagnostic` | `checkpoint` | `words` | `oral` | `project` | `long` | `tutor_lesson` | `buffer` | `admin`.
 - **An obligation** is a block with `start: null` and `window: {"from","to"}`. `topic taught` creates one for the cold serve (`kind: cold`, `protected: true`, `pair: <teach block id or null>`, `content: "cold:T04"`).
 - **`status`:** `planned` | `synced` | `done` | `missed?` | `missed` | `moved` | `cancelled`.
-- **`solo`** (optional, only ever `true`): the learner works the block alone, with no Claude session before it. Its practice sheets are issued at the close before it (close check C8), `plan list` and the brief say so, and its calendar card names the sheets folder in place of "open Claude".
+- **`solo`** (optional, only ever `true`): the learner works the block alone, with no Claude session before it. Never on a recheck, a block whose content names one, or an `oral`, `tutor_lesson`, `buffer` or `admin` block (§7.6). Its practice sheets are issued at the close before it (close check C8), `plan list` and the brief say so, and its calendar card names the sheets folder in place of "open Claude".
 - **`cal`:** `{"provider":"google","id":"<event id>","etag":null,"start":"<start at last ack>"}`.
 
 ### 5.10 `ledger.jsonl` (root; append-only; the latest `status` event for a ref wins)
@@ -619,10 +619,10 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
 
 ### 7.6 Plan and calendar (`cmd_plan.py`, `ics.py`)
 
-- **`plan add <subject> --kind K --start ISO --min N [--protected] [--measurement] [--soft] [--solo] [--content TEXT] [--pair B-…]`** prints the new block id. `--solo` marks a block the learner works alone, with no Claude session (`"solo": true`); a `cold` block or an obligation can't be solo (exit 2).
+- **`plan add <subject> --kind K --start ISO --min N [--protected] [--measurement] [--soft] [--solo] [--content TEXT] [--pair B-…]`** prints the new block id. `--solo` marks a block the learner works alone, with no Claude session (`"solo": true`). Only a block with practice sheets to issue ahead can be solo: `teach`, `repair`, `review`, `mixed`, `mock`, `diagnostic`, `checkpoint`, `words`, `project` or `long`. A `cold`, `oral`, `tutor_lesson`, `buffer` or `admin` block, an obligation, or a block whose `--content` names a recheck (`recheck` or `cold:`) can't be solo (exit 2).
 - **`plan add <subject> --kind cold --content cold:<T> [--pair B-…] [--window-from ISO --window-to ISO]`**, with no `--start` and no `--min`, adds an obligation (§5.9). Its window is `--window-from`/`--window-to` when given (both, the second after the first; any kind may then be an obligation), else, for a `cold` block only, the `--pair` block's window or the last warm exposure of its `cold:<T>` topics (`basis: pair` or `exposure`); with none of these it is a usage error (exit 2). `--start` with a window is exit 2.
 - **`plan place <block-id> --start ISO --min N`:** turns an obligation into a timed block. It must fall inside the window; otherwise exit 1 with the window shown.
-- `plan move <block-id> --start ISO [--min N] [--solo | --not-solo]`: sets `moved_from`. A synced block keeps its `cal`. With `--solo` or `--not-solo` and no `--start`, it changes only the mark (no move is recorded).
+- `plan move <block-id> --start ISO [--min N] [--solo | --not-solo]`: sets `moved_from`. A synced block keeps its `cal`. With `--solo` or `--not-solo` and no `--start`, it changes only the mark (no move is recorded). `--solo` is refused (exit 2) for the same blocks as in `plan add`.
 - `plan cancel <block-id> --reason TEXT` · `plan done <block-id>` · `plan miss <block-id> --reason TEXT`.
   - **Moving a teach moves its paired cold** by the same delta and re-checks the window.
 - **`plan list [--subject S] [--from DATE] [--to DATE] [--json]`:** blocks that are past their end, `planned` or `synced`, with no overlapping session, display as `missed?`. Nothing is written.

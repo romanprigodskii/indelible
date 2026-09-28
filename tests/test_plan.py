@@ -587,6 +587,34 @@ class SoloTests(PlanCase):
         self.assertEqual(self.cli("plan", "move", cold, "--solo").returncode, 2)
         self.assertNotIn("solo", self.blocks()[cold])
 
+    def test_a_block_with_a_recheck_in_its_content_is_never_solo(self):
+        r = self.cli("plan", "add", SID, "--kind", "review", "--start", "2026-10-15T19:00+01:00", "--min", 30,
+                     "--content", "2-day recheck, then review", "--solo")
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertIn("Take the recheck out of --content", r.stderr)
+        bid = self.add("review", "2026-10-15T19:00+01:00", 30, "--content", "2-day recheck, then review")
+        for extra in ((), ("--start", "2026-10-16T19:00+01:00")):
+            r = self.cli("plan", "move", bid, "--solo", *extra)
+            self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+            self.assertIn("names a 2-day recheck", r.stderr)
+        b = self.blocks()[bid]
+        self.assertNotIn("solo", b)
+        self.assertEqual(b["start"], "2026-10-15T19:00+01:00")   # a refused move moves nothing
+
+    def test_kinds_with_no_sheets_ahead_are_never_solo(self):
+        for kind in ("tutor_lesson", "buffer", "admin", "oral"):
+            r = self.cli("plan", "add", SID, "--kind", kind, "--start", "2026-10-17T10:00+01:00", "--min", 60,
+                         "--solo")
+            self.assertEqual(r.returncode, 2, kind + r.stdout + r.stderr)
+            self.assertIn("can't be solo", r.stderr)
+        lesson = self.add("tutor_lesson", "2026-10-17T10:00+01:00", 60, "--protected")
+        self.assertEqual(self.cli("plan", "move", lesson, "--solo").returncode, 2)
+        self.assertNotIn("solo", self.blocks()[lesson])
+        long_block = self.add("long", "2026-10-18T10:00+01:00", 120, "--solo")
+        notes = dict((x["block"], x["notes"]) for x in json.loads(self.ok("plan", "diff", "--json").stdout))
+        self.assertIn("Work through your sheets in order.", notes[long_block])
+        self.assertNotIn("Open Claude", notes[long_block])
+
 
 # ==========================================================================
 # list and week
