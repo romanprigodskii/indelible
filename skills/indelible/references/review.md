@@ -14,12 +14,12 @@ Load for `review`, "weekly review" and "how am I doing". Run it in the main conv
 ## 1. When
 
 - **Scheduled mode:** once a week, about 10 minutes. Offer it in one line at the close of the first session of a new week if `reviews/<last week>.md` doesn't exist yet, and run it whenever the learner asks. Review the week just ended: pass `--week YYYY-Www` when the default isn't that week.
-- **On-demand mode** (persona D): at the first open after 7 days or more away, show 3 lines and ask nothing that needs an answer:
+- **On-demand mode** (persona D): at the first open after 7 days or more away, show 3 lines inside the re-entry opener ([session-teach.md](session-teach.md) §6), never as a separate routine. They ask nothing, and never count what is due (re-entry step 3):
 
   ```
   Since last time: 3 sessions · 2-day rechecks 4/5 [measured] · 2 mistakes fixed
-  Due now: one 2-day recheck and 3 reviews
-  Anything you'd like to change? (skipping is fine)
+  Today: a short check on your last two topics, then a few older items, riskiest first
+  Say "change …" any time.
   ```
 
 ## 2. Run it

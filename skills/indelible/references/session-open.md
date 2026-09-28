@@ -50,7 +50,7 @@ Ask one question at a time (Law 9). The learner may answer "skip" at steps 2, 3 
 - **NOW/NEXT** gives today's plan. **DUE** gives the size of the recheck. **TO-DO:** anything due today or overdue gets one line in the opener.
 - **LEVELS (headed MASTERY in plain mode), LAST SESSIONS, PACE and NOTES** are for you. NOTES carries the learner's notes, the "do not calibrate on" list and their overrides; follow them.
 - **Everything below `-- for Claude, do not read aloud --`** stays with you: the ids behind the flags (MISSED? block ids for `plan done|move|miss`, ALARM for the alarm's blocks and its choices, NOT TAKEN sheet ids for `sheet void`, TO-DO IDS for `ledger close`), RECHECK NOW (the topics due), LATE RECHECK (a recheck whose window passed), BELIEFS DUE, OTHER DUE, NEEDS REPAIR, OVERRIDES and MY RULES (the rules you set yourself after a mistake: follow them, and give the builder those that start "builder:" in NOTES). Naming a mistake before the recheck is marked tells the learner what to avoid, and the recheck stops measuring anything.
-- **If LAST SESSIONS shows a gap of 5 days or more,** run the re-entry session instead ([session-teach.md](session-teach.md), section 6).
+- **If LAST SESSIONS shows a gap of 5 days or more,** run the re-entry session instead ([session-teach.md](session-teach.md), section 6). On demand, after 7 days or more, its opener carries the three lines of [review.md](review.md) §1; they appear nowhere else.
 - **Without Python:** SKILL.md, "Without Python" (no brief; read the learner's own record and mark everything `[unverified]`).
 
 ### Step 2: missed blocks (scheduled mode only)

@@ -118,11 +118,13 @@ The per-profile defaults are in [profiles.md](profiles.md).
 
 No backlog dump and no guilt.
 
-1. **Their "why", in one line:** "You said this matters because <their words>." Setup puts it in the learner notes, which the brief prints under NOTES. If it is missing there, read `target.why` in `<s>/subject.json` (read only, never edit).
+1. **Their "why", in one line, in their own words:** "You said this matters because <their words>." ("You're doing this for fun.") Setup puts it in the learner notes, which the brief prints under NOTES. If it is missing there, read `target.why` in `<s>/subject.json` (read only, never edit). When all there is is a one-word label ("hobby"), skip the line.
 2. **Their if-then plan,** from the same learner notes, if there is one.
 3. **Backlog amnesty.** Never list or count what was missed. Say: "A few things are waiting. I'll bring them back over the next sessions, riskiest first." Serve what fits the question budget, in `ind due <s> --list` tier order; the rest waits its turn.
 4. **A 10-minute cold check on the last two topics taught.** Use a `cold` sheet if lint accepts it. A topic whose first 2-day window has passed gets the late-recheck rule instead ([plan.md](plan.md) §7): a `probe`, `[measured]` with its real interval, that can't raise mastery, then a fresh recheck booked after grading.
-5. **Re-plan the week** before the close ([plan.md](plan.md)).
+5. **Re-plan the week** before the close ([plan.md](plan.md)). On demand ([plan.md](plan.md) §2), skip this step: there is no week to plan, and the close names the next window as usual.
+
+On demand, after 7 days or more away, the opener carries the three lines of [review.md](review.md) §1: what happened since last time, what today holds (never counted, as step 3 says), and "Say 'change …' any time." Nothing in them needs an answer.
 
 ### Solo blocks (no Claude)
 
