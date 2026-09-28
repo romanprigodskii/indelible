@@ -44,7 +44,9 @@ What it does, in order:
      window of a 2-day recheck still to come, as session expose does; a
      measuring sheet logs none (feedback given afterwards is logged with
      ``session expose``). Then the sheet is marked graded and the levels are
-     recomputed.
+     recomputed. A drills sheet under half right on a topic whose 2-day
+     recheck is still ahead is named as a new topic that didn't land
+     (session-teach.md section 4): it is taught again before any recheck.
 
 Output: the score with its label, the unnamed-wrong count (on a sheet with
 the Least-sure line; "left blank" when it was), check lines, the mistakes
@@ -79,6 +81,9 @@ LEAST_SURE_MODE = "least-sure"
 LADDER_TYPES = ("cold", "mixed") + tuple(schema.MEASURING_TYPES)
 SERVED_SLACK_H = 2.0      # a sitting this close to a recheck block's time or window serves it
 JUST_SAT_H = 3.0          # with no start or stop, a sheet graded this soon after its issue was sat just now
+# A new topic that didn't land (session-teach.md section 4): drills under half right, "I don't know"
+# and blanks counted as misses, on a topic whose 2-day recheck is still ahead.
+NOT_LANDED_FRACTION = 0.5
 
 
 def register(subparsers):
@@ -616,6 +621,23 @@ def cmd_grade_record(args):
                 rebooked = rebook_first_recheck(ws, subj, t, at)
                 moved_lines += [ln for ln in exposure_lines(ws, subj, t, sit_end, rebooked) if ln.startswith("WARN")]
 
+        # A new topic that didn't land: drills under half right on a topic whose 2-day recheck is
+        # still ahead. It is taught again from a new worked case before any recheck on it; this
+        # only names it, since the re-teach and its to-do are Claude's.
+        not_landed = []
+        if stype == "drills":
+            logged = subj.load_exposures()
+            for t in graded_topics:
+                rows = [a for a in attempts if a["topic"] == t]
+                got = sum(a["score"] for a in rows)
+                st = merged.get(t) or {}
+                if (not rows or got / float(len(rows)) >= NOT_LANDED_FRACTION
+                        or learning.level_rank(st.get("level")) >= 3
+                        or not learning.has_first_serve_basis(t, logged, st)
+                        or not learning.needs_window(t, st, logged)):
+                    continue
+                not_landed.append((t, got, len(rows)))
+
         # A 2-day recheck sat outside its window is a late recheck: the level
         # rules ignore it for level 3, but it still uses up the serve.
         late, again = [], []
@@ -690,6 +712,12 @@ def cmd_grade_record(args):
             "stays open." % (", ".join(dirty), ", ".join(contaminated_topics)))
     for line in moved_lines:
         out(line)
+    names = dict((x["id"], x.get("name") or x["id"]) for x in subj.topics())
+    for t, got, n_t in not_landed:
+        out("%s: %s/%d on these drills [practice], and its 2-day recheck is still ahead: it hasn't landed yet. "
+            "Teach it again from a new worked case before any recheck on it (session-teach.md §4): ledger add "
+            "owed --subject %s --what \"re-teach %s from a new worked case\" --due <the next session> --by claude"
+            % (t, fmt_num(got), n_t, subj.id, names.get(t, t)))
     for t, fp in confirmed:
         out("%s: its recheck of %s counts now that the right answers named on its Least-sure line came back "
             "right." % (t, fmt_when(fp.astimezone(now.tzinfo), now)))

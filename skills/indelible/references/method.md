@@ -96,6 +96,7 @@ IDs are stable, so `overrides[].rule` in `subject.json` can name one (for exampl
 | R52 | A theory sheet says what the object is and why the rule follows from it, after the worked case and before the rule, in at most 5 lines | default | [lit-mixed] | Rittle-Johnson, Schneider & Star, 2015 |
 | R53 | A new topic's theory sheet opens with one or two guesses, which the sheet then answers; never marked | default | [lit-mixed] | Pan & Carpenter, 2023 |
 | R54 | A step the learner is to write gets a printed place on practice sheets (a working line or an empty table), faded before the block ends; never on a measuring sheet | default | [one-learner] | section 6 |
+| R55 | A new topic whose drills come back under half right is taught again from a different worked case before its recheck, which moves to after the re-teach | default | [lit-mixed] | Rosenshine, 2012 |
 | Law 10 | Feedback names the error, states the standard, says it is within reach, gives the next step; no person-level praise, and no tally of the learner's repeats | core | [lit-mixed] | Yeager et al., 2014 |
 | breaks | One 10-minute break per 75 minutes in long sessions | default | [lit-mixed] | Biwer et al., 2023 |
 | if-then | One if-then plan for the obstacle the learner names | default | [lit-strong] | Gollwitzer & Sheeran, 2006 |
@@ -126,6 +127,7 @@ Graded [lit-mixed] for the principle; the details are [one-learner]. An earlier 
 
 ## 6. Where the defaults bend
 
+- **A topic that didn't land is taught again, not rechecked.** Guided practice should run at a high success rate, and material that didn't take is retaught (Rosenshine, 2012). A cold recheck of a topic whose drills came back under half right measures nothing and costs a sitting, and "I don't know" leaves no wrong idea for a fix sheet to contrast, so R55 re-teaches it from a different worked case, and the recheck moves to 44–72 h after that.
 - **Feedback comes sooner on a new topic.** Immediate feedback suits novices and procedural skills, while delayed feedback can help transfer (Shute, 2008). A wrong idea passes its own check, so a gate that waits for failed checks lets a novice practise it through the block: at mastery 0–1 the gate stops every time, and those items are marked before the learner goes on. From mastery 2 the gate waits for trouble.
 - **Six per block is a ceiling, not a target.** Extra same-type questions add little later (Rohrer & Taylor, 2006). Blocking helps when categories differ a lot, mixing when they are easily confused (Carvalho & Goldstone, 2014); blocking can win for word lists (Brunmair & Richter, 2019).
 - **The ladder's shape is a convenience.** Expanding gaps do no better than equal ones (Latimier et al., 2021), and the best gap grows with the time left before the test (Cepeda et al., 2008). Hence the deadline cap and a per-subject recheck window (`cold_window_h`).

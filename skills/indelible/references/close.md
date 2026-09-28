@@ -96,7 +96,7 @@ Start at the close start from the lock (after the extension, if one was taken). 
 
 1. **Everything sat today is filed and graded** ([session-grade.md](session-grade.md)). A 2-day recheck is always graded today. A practice sheet that can't be graded now needs a to-do: `ind ledger add owed --subject <s> --what "grade <sheet id>" --due <ISO within 24 h> --by claude`.
 2. **Every topic taught today** has had `ind session taught <subject> <topic>`.
-   - For a scheduled learner, place each new recheck in the first session inside its window, as [plan.md](plan.md) describes (`ind plan place`), then run `ind plan check`.
+   - For a scheduled learner, place each new recheck in the first session inside its window, as [plan.md](plan.md) describes (`ind plan place`), then run `ind plan check`. Not a topic owed a re-teach because it didn't land ([session-teach.md](session-teach.md) §4): the re-teach books its new window.
    - For an on-demand learner, leave it unplaced; the close message names the window.
 3. **Every promise made today** ("I'll…", "we'll do it next time") already has its to-do, written when it was made. Check with `ind ledger list --kind owed --open --subject <s>`, and add any that is missing: `ind ledger add owed --subject <s> --what "<text>" --due <ISO>`.
 4. **An overrun over 20%** is logged (§2).

@@ -541,6 +541,42 @@ class PracticeAndLadderTests(GradeBase):
         self.assertEqual([(x["topic"], x["kind"], x["at"]) for x in exp], [("T02", "drill", "2026-10-14T07:30+01:00")])
         self.assert_no_secrets()
 
+    def test_drills_under_half_on_a_new_topic_are_named_as_not_landed(self):
+        # session-teach.md §4: "I don't know" and blanks count as misses; the topic is taught again
+        # from a new worked case before any recheck on it.
+        add_exposure(self.ws, self.sid, "T02", "2026-10-13T19:00+01:00")
+        items = [make_item(n, "T02", ["%da" % n], layer="reading") for n in range(1, 5)]
+        items += [make_item(5, "T01", ["5a"], layer="reading")]
+        self.remember_key(write_sheet(self.ws, self.sid, "ielts-tfng-01-drills", "drills", items))
+        grades = {"date": "2026-10-14", "start": "07:10", "stop": "07:30", "least_sure_line": "none", "asks": [
+            {"ask": "1a", "verdict": "right", "check": "filled"},
+            {"ask": "2a", "verdict": "dont_know"},
+            {"ask": "3a", "verdict": "dont_know"},
+            {"ask": "4a", "verdict": "skip"},
+            {"ask": "5a", "verdict": "wrong", "check": "filled"}]}
+        r = self.cli(["grade", "record", self.sid, "ielts-tfng-01-drills", "--from",
+                      write_grades(self.tmp, "g.json", grades)])
+        self.assertIn("T02: 1/4 on these drills [practice], and its 2-day recheck is still ahead: it hasn't "
+                      "landed yet.", r.stdout)
+        self.assertIn('ledger add owed --subject ielts --what "re-teach True, false or not given from a new '
+                      'worked case"', r.stdout)
+        self.assertNotIn("T01:", r.stdout, "T01 was never taught: nothing to land")
+        self.assertEqual(self.errors(), [], "no wrong idea in the work: no mistake opened")
+        self.assert_no_secrets()
+
+    def test_drills_at_half_or_more_have_landed(self):
+        add_exposure(self.ws, self.sid, "T02", "2026-10-13T19:00+01:00")
+        items = [make_item(n, "T02", ["%da" % n], layer="reading") for n in range(1, 5)]
+        write_sheet(self.ws, self.sid, "ielts-tfng-01-drills", "drills", items)
+        grades = {"date": "2026-10-14", "start": "07:10", "stop": "07:30", "least_sure_line": "none", "asks": [
+            {"ask": "1a", "verdict": "right", "check": "filled"},
+            {"ask": "2a", "verdict": "right", "check": "filled"},
+            {"ask": "3a", "verdict": "dont_know"},
+            {"ask": "4a", "verdict": "skip"}]}
+        r = self.cli(["grade", "record", self.sid, "ielts-tfng-01-drills", "--from",
+                      write_grades(self.tmp, "g.json", grades)])
+        self.assertNotIn("hasn't landed", r.stdout)
+
     def test_error_ladder_moves_through_grade_record(self):
         # A slip and a belief, opened by hand on Wed 14 Oct.
         self.cli(["error", "add", self.sid, "--topic", "T02", "--kind", "slip", "--mode", "C",
