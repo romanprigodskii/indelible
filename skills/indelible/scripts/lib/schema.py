@@ -851,7 +851,7 @@ RECORDS = {
         "notes": [
             ("verdict", "right (1) | half (0.5) | wrong (0) | dont_know (0) | skip (0)"),
             ("check", "filled | missing | caught (answer changed after a failed check) | failed (the check didn't hold and the answer was kept: marked ✗) | head (checked in the head, no line written: self-report) | n/a"),
-            ("least_sure", "true if the ask is on the sheet's closing 'Least sure of' line"),
+            ("least_sure", "true if the ask is on the sheet's closing Least-sure line"),
             ("instrument", " | ".join(INSTRUMENTS) + "; drills, mixed, repair, review, example -> practice"),
             ("interval_h", "hours since the topic's last warm exposure"),
             ("mode", "a code from the subject taxonomy; account = the learner's own words"),
@@ -987,7 +987,7 @@ RECORDS = {
                        "never in titles, labels, check hints or theory)"),
             ("check", "a written backwards check beside the answer (put the answer back in, rebuild the total, or test the definition used); required on drills, cold, mixed, diagnostic, checkpoint, review; none on a mock, or on an "
              "official: item of a diagnostic or checkpoint (exam conditions)"),
-            ("least_sure", "true on every type except theory, external, example, triage: one closing line 'Least sure of: ___'. There are no per-answer confidence marks"),
+            ("least_sure", "true on every type except theory, external, example, triage: one closing line 'Least sure I chose the right idea (item numbers): ___'. There are no per-answer confidence marks"),
             ("terms[]", "every sense-list word used on the sheet (code spans and fenced code are scanned only "
                         "for the subject's own lexicon and sense_list; check hints and theory bodies are), with its resolution: defined_here (in theory.words), "
                         "defined_on:<sheet-id> (a sheet on file that defines it), glossary (the learner owns it: glossary add), everyday (its plain "

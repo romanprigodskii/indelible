@@ -97,7 +97,7 @@ One table, one row per hand-run rule that differs from a skill default, with cla
 
 | # | Current rule | Skill default | Evidence | Recommendation |
 |---|---|---|---|---|
-| 1 | Rate 1–3 beside every answer | A written check beside every answer; one "Least sure of" line | core · [one-learner] | Switch: the skill has no per-answer marks |
+| 1 | Rate 1–3 beside every answer | A written check beside every answer; one Least-sure line | core · [one-learner] | Switch: the skill has no per-answer marks |
 | 2 | Right answer written beside each mistake | Answers sealed; a mistake records only the wrong idea | core · [integrity] | Switch: the old file stays in the frozen copy |
 | 3 | Re-test a mistake the next day; drop it once right | Back after 1, 3, 7 and 21 days, capped before the final | core · [lit-strong] | Switch |
 | 4 | A new topic re-tested the next day | 2-day recheck, 44–72 h | core · [lit-strong]; window [one-learner] | Switch |

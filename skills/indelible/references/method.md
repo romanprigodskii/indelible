@@ -22,7 +22,7 @@ The README's method (keep the two in step), with the mechanism each relies on.
 1. **Read it, then close it.** Theory comes on a sheet that is read and put away before the drills. People judge their learning too high while the answer is in view (Koriat & Bjork, 2005), and expecting an open book lowers later closed-book recall (Agarwal & Roediger, 2011). What matters is recall with the source closed, not paper as such.
 2. **One thing at a time, then all mixed up.** Teaching drills come in blocks of one question type; anything that measures mixes topics and hides their names. Blocks help first contact. Mixing makes the learner choose the method, which the exam demands and a heading gives away (Rohrer et al., 2020; Brunmair & Richter, 2019).
 3. **Nothing counts until it survives 48 hours.** Performance during learning is a poor guide to learning (Soderstrom & Bjork, 2015). Retrieval after a gap, repeated across days, is what lasts (Roediger & Karpicke, 2006; Cepeda et al., 2006; Rawson et al., 2013), so a topic comes back cold again: after a recheck it didn't pass, a week after its first pass, then every 3 weeks until the date.
-4. **Check backwards, in writing.** Beside every answer, a check that runs the other way, including the definition used. On a new topic it is the check the theory sheet worked, because a check has to be one the learner can run. A mock copies the exam, so it has no check column. Each sheet ends with one line: "Least sure of: ___". See section 4.
+4. **Check backwards, in writing.** Beside every answer, a check that runs the other way, including the definition used. On a new topic it is the check the theory sheet worked, because a check has to be one the learner can run. A mock copies the exam, so it has no check column. Each sheet ends with one line: "Least sure I chose the right idea: ___". See section 4.
 5. **Every miss goes in the error log** and returns after 1 day, 3 days, 1 week and 3 weeks. Errors need corrective feedback (Pashler et al., 2005; Metcalfe, 2017), and corrected errors made with confidence can come back (Butler, Fazio & Marsh, 2011), so each one returns on a spaced schedule until it has survived several returns.
 6. **You do the work.** The smallest hint that unblocks, never an answer the learner could reach. Generating beats reading (Slamecka & Graf, 1978; Bertsch et al., 2007), explaining exposes gaps (Chi et al., 1994; Rozenblit & Keil, 2002), and unrestricted AI answers can lower later unaided performance (Bastani et al., 2025). When an answer is wrong, the error is pointed to and the fix is the learner's: hunting for a mistake in a method not yet owned is work they can't do (section 5).
 
@@ -100,10 +100,10 @@ IDs are stable, so `overrides[].rule` in `subject.json` can name one (for exampl
 
 ## 4. Why a written check replaced confidence marks
 
-Graded [one-learner]. An earlier version asked for a confidence mark beside every answer. The skill now asks for a written backwards check beside every answer and one closing line per sheet, "Least sure of: ___". The reasons were observed during development, not tested:
+Graded [one-learner]. An earlier version asked for a confidence mark beside every answer. The skill now asks for a written backwards check beside every answer and one closing line per sheet, "Least sure I chose the right idea (item numbers): ___". The reasons were observed during development, not tested:
 
 - **Friction.** A mark on every answer costs a moment each time, and learners stop filling it in. A half-filled record measures compliance, not doubt.
-- **Doubt fires on the wrong thing.** Unease tends to attach to arithmetic, while the costly errors are confident misreadings of a definition: reading "per person" as "per group", or "excluding tax" as "including tax". A "sure" mark beside those hides exactly the errors that matter.
+- **Doubt fires on the wrong thing.** Unease tends to attach to arithmetic, while the costly errors are confident misreadings of a definition: reading "per person" as "per group", or "excluding tax" as "including tax". A "sure" mark beside those hides exactly the errors that matter. So the closing line asks where the learner is least sure they chose the right idea, not where a slip might be: a plain "least sure of" was read as a question about slips, and it named answers that were right.
 - **A written check catches what re-solving replays.** Re-solving in your head repeats the same reading of the question, and so the same slip. A check that runs the other way (the answer put back in, the total rebuilt, the definition used written out and tested against the question's words) puts a misreading on paper.
 - **One line keeps the useful part.** Naming a few questions separates known doubts from surprises. Named questions never count toward mastery, and right-but-unsure ones come back, where feedback helps most (Butler, Karpicke & Roediger, 2008). Wrong answers not named are the confident errors: their accounts come first and they return first, the job confidence marks were meant to do.
 
@@ -150,7 +150,7 @@ Why wait two days? If you get it right two days later, with nothing looked at in
 ```
 
 ```
-Why no "sure / not sure" beside each answer? People stop filling it in, and the mistakes that cost most are the ones you felt sure about. A check written beside each answer catches those, and one closing line, "Least sure of", covers the rest.
+Why no "sure / not sure" beside each answer? People stop filling it in, and the mistakes that cost most are the ones you felt sure about. A check written beside each answer catches those, and one closing line, "Least sure I chose the right idea", covers the rest.
 ```
 
 ## 9. Changing a rule

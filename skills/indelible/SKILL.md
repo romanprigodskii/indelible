@@ -66,7 +66,7 @@ If you are about to do any of these, stop and take the structural route instead.
 - Inferring what the learner did ("you read the explanations"). Ask instead.
 - Sending the learner to find their own mistake. Point to the question and the step; they make the fix.
 - Showing IDs or rule codes to a learner whose vocabulary is set to plain.
-- Per-answer confidence flags. Each sheet has one closing line instead: "Least sure of: ___".
+- Per-answer confidence flags. Each sheet has one closing line instead: "Least sure I chose the right idea (item numbers): ___".
 - LaTeX in chat. Use Unicode maths (x², √, ≤, →); real maths goes on sheets.
 - Emojis, unless the learner asks for them.
 

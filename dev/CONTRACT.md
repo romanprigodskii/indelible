@@ -585,13 +585,13 @@ For a rounded number, `check` also gives the tolerance the check holds to, the s
   - write the check beside each answer ("… where a Check line is printed" when some asks have none); on a `mock`, or a sheet whose items are all `official:`, with no check line, *Check your answers as you would in the exam: there is no check line on this sheet.* instead;
   - on sheets with check lines and a Least-sure line, one line: a failed check the learner can't resolve within a minute is marked ✗ or "no", the answer and the check are left as they are, its number goes on the Least-sure line, and the learner goes on ("I'll show you where at marking");
   - "I don't know" is always an accepted answer; on the sheets that get hints (`theory`, `external`, `example`, `repair`, `drills`) the same line adds "Stuck on a question after a real try? Tell me its number: you get a small hint, never the answer";
-  - stop after N minutes; on `theory`, `external`, `example` and `repair`, which are read in full, "Allow about N minutes, and read it all even if it takes longer";
+  - stop after N minutes; on `theory`, `external`, `example` and `repair`, which are read in full, "Allow about N minutes, and read it all even if it takes longer"; when `least_sure`, the same line adds "Then fill in the Least-sure line: item numbers, or “none”." (a line left blank would read as "none");
   - tools allowed;
   - "If a word here was never explained to you, on this sheet or an earlier one, write it beside that answer: that's my mistake, not yours" (marking looks the word up: a word defined on an earlier sheet is the learner's miss);
 - **item 0:** `Start time: ____`;
 - **items:** each ask shows its label, an answer box and, when `check`, a line `Check: ____` with the `check_hint` in small text;
 - **drills:** block titles, plus after item 3 of each block (or its `gate_after` item, covering the 3 items that end there) the failure gate: *If 2 of items 1–3 have a failed check, an “I don't know” or an empty box: stop and send a photo of 1–3*;
-- **the last line:** `Stop time: ____` and, when `least_sure`, `Least sure of (item numbers): ____`;
+- **the last line:** `Stop time: ____` and, when `least_sure`, `Least sure I chose the right idea (item numbers): ____` (one wording for every subject: it asks about the idea chosen, not a possible slip);
 - **theory sheets:** a rules box starting *Read this sheet, then do the pencil questions at the end with it open. The drills that follow are closed book.*; floor box, words (with glosses), sections in order, the pencil questions, and a final line *Send me your pencil answers and keep this sheet open until I've marked them. Then put it away and tell me “closed”. The drills come on their own sheet.* (`external` sheets end with the same line; `example` sheets with *Close this sheet now, then go back to your question.*);
 - **page footer:** `page X of Y` where the backend supports it.
 

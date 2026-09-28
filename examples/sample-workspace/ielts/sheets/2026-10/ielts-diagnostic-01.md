@@ -9,7 +9,7 @@
 > - Write the check beside each answer. Work backwards from it: put it back in, rebuild the total, or test the definition you used against the question's words.
 > - If a check fails and you can't see why within a minute, mark it ✗ or “no”, leave your answer and the check as they are, put its number on the Least-sure line and go on: I'll show you where at marking.
 > - “I don't know” is always an accepted answer.
-> - Stop after 15 minutes.
+> - Stop after 15 minutes. Then fill in the Least-sure line: item numbers, or “none”.
 > - Tools allowed: none.
 > - If a word here was never explained to you, on this sheet or an earlier one, write it beside that answer: that's my mistake, not yours.
 
@@ -87,4 +87,4 @@ D. Few people saw the fire.
 
 Stop time: ____
 
-Least sure of (item numbers): ____
+Least sure I chose the right idea (item numbers): ____

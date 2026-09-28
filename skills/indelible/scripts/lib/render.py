@@ -106,7 +106,12 @@ CLOSE_LINE_THEORY = ("Send me your pencil answers and keep this sheet open until
 CLOSE_LINE_EXAMPLE = "Close this sheet now, then go back to your question."
 START_LABEL = "Start time:"
 STOP_LABEL = "Stop time:"
-LEAST_SURE_LABEL = "Least sure of (item numbers):"
+# The closing line asks about the idea the learner chose, not a possible slip: doubt tends to fire on
+# arithmetic, while the costly misses are confident misreadings (method.md §4). One wording for every subject.
+LEAST_SURE_LABEL = "Least sure I chose the right idea (item numbers):"
+# Joined to the time line, not a line of its own (the rules box stays at 8 lines at most): a line left
+# blank reads the same as "none", so the learner is told that "none" is an answer.
+LEAST_SURE_RULE = "Then fill in the Least-sure line: item numbers, or “none”."
 CHECK_LABEL = "Check:"
 
 # Answer-box heights (mm) by layer; generous, for handwriting.
@@ -375,12 +380,15 @@ def rules(spec, tools, fmt="html", profile=None, reference_sheet=False):
     if minutes and t in THEORY_BEARING:
         # A sheet read with the page open is read in full: a first reading of a new topic that
         # stops at the estimate leaves the drills with nothing to stand on.
-        out.append("Allow about %d minute%s, and read it all even if it takes longer."
-                   % (minutes, "" if minutes == 1 else "s"))
+        timing = "Allow about %d minute%s, and read it all even if it takes longer." % (
+            minutes, "" if minutes == 1 else "s")
     elif minutes:
-        out.append("Stop after %d minute%s." % (minutes, "" if minutes == 1 else "s"))
+        timing = "Stop after %d minute%s." % (minutes, "" if minutes == 1 else "s")
     else:
-        out.append("Stop when the time set for this sheet is up.")
+        timing = "Stop when the time set for this sheet is up."
+    if spec.get("least_sure") is True:
+        timing += " " + LEAST_SURE_RULE
+    out.append(timing)
     allowed = _s(tools).strip().rstrip(".") or "none"
     if formula_sheet:
         allowed = "the exam's formula sheet" if allowed.lower() == "none" else allowed + ", the exam's formula sheet"

@@ -834,7 +834,7 @@ def _l9(spec, ctx):
         return "PASS", "not required on %s sheets" % t
     if spec.get("least_sure") is True:
         return "PASS", "the sheet ends with the Least-sure line"
-    return "FAIL", "least_sure must be true on %s sheets (one closing line: Least sure of)" % t
+    return "FAIL", "least_sure must be true on %s sheets (one closing line: the Least-sure line)" % t
 
 
 def _hint_words(hint):

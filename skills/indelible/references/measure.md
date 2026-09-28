@@ -41,7 +41,7 @@ Brief the builder subagent with a blueprint only (topics, part, counts, formats,
 Item rules (lint L2, L3 and L9 enforce the first three):
 - Unlabelled and interleaved: no topic name in titles or labels, no two adjacent items on one topic. Per-topic counts are uneven and never stated.
 - One labelled blank per question, each with a check line (not on an official question: an unseen official test is sat as the exam sets it, with no check column). For a definition: "write the definition you used and test it against the question's words".
-- Item 0 records the start time; the last line records the stop time and "Least sure of: ___". No per-answer confidence marks.
+- Item 0 records the start time; the last line records the stop time and "Least sure I chose the right idea (item numbers): ___" (the rules box asks for item numbers or "none"). No per-answer confidence marks.
 - The rules box says "I don't know" is always an accepted answer.
 - Mixed formats: compute, reverse the question, which rule applies, a one-line "why", and the exam's own answer form. No "find the error" items unless the exam itself asks them (a grammar "identify the error" question, say): spotting an error takes the knowledge the item tests. Form, tools and accommodations match `subject.json.format`.
 - Two questions per topic hinge on a key term (the Part A core item and one Part B item). Every other item says what it means in plain words, so a word failure shows apart from a concept failure. Topics that stop after Part A get the second from the vocabulary probe (§7).

@@ -166,7 +166,7 @@ class PersonaAFullCycle(E2EBase):
         built = Path(r.stdout.strip().splitlines()[-1])
         self.assertTrue(built.is_file(), r.stdout)
         sheet_text = built.read_text(encoding="utf-8")
-        self.assertIn("Least sure of", sheet_text)
+        self.assertIn("Least sure I chose the right idea", sheet_text)
         self.assertIn("Check:", sheet_text)
         for word in ALL_ACCEPTED:
             self.assertNotIn(word, sheet_text, "key text on the printed sheet")

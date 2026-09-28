@@ -414,7 +414,7 @@ Start time: 07:05
 7. In 2020, 45% went to work by car and 25% by bicycle, so cars went down. | check: the numbers match the chart
 8. C
 Stop time: 07:24
-Least sure of: 7
+Least sure I chose the right idea: 7
 """
 
 DIAG_GRADES = {
@@ -459,7 +459,7 @@ Start time: 07:19
 5. C | check: every sentence is about making lunch quieter
 6. C | check: keepers gone, houses used for new things
 Stop time: 07:29
-Least sure of: 5
+Least sure I chose the right idea: 5
 """
 
 DRILLS_GRADES = {

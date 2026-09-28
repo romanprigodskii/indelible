@@ -147,7 +147,7 @@ Exit 2: stop, say so in one line. Exit 1: fix what it names, go on.
 IELTS Academic · target 7.5 (floor 7.0) · Sat 12 Dec 2026 (62 days)
 Week: ~4 h · 60-min sessions · clearest before work
 Me: I name mistakes exactly, tell you the next step, and give a small hint when you're stuck on practice. "I don't know" is always an accepted answer.
-You: turn up, work on paper, write the check beside each answer, name what you're least sure of, and tell me honestly how you got each answer.
+You: turn up, work on paper, write the check beside each answer, name where you're least sure you chose the right idea, and tell me honestly how you got each answer.
 What I keep: your answers, sheets and marks, all in ~/Study. Say "what do you keep?" to see it.
 Photos of your work: AirDrop them to this Mac (they land in Downloads) or save them in ~/Study/inbox, then say "sent". Pasting a photo here works too.
 Next time: open Claude in ~/Study and say "start ielts".

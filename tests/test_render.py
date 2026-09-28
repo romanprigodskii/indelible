@@ -269,9 +269,19 @@ class HtmlTemplateTests(Base):
 
     def test_end_lines(self):
         t = self.text
-        self.assertTrue(t.index("Question 6.") < t.index("Stop time:") < t.index("Least sure of (item numbers):"))
+        self.assertTrue(t.index("Question 6.") < t.index("Stop time:") < t.index("Least sure I chose the right idea (item numbers):"))
         page = render.render_html(drills_spec(least_sure=False), date=DAY)
-        self.assertNotIn("Least sure of", visible_text(page))
+        self.assertNotIn("Least sure", visible_text(page))
+
+    def test_the_least_sure_line_asks_about_the_idea_and_the_rules_ask_for_it(self):
+        # One wording for every subject: the idea chosen, not a possible slip. The rules box asks
+        # for item numbers or "none" on the time line, so a blank never reads as "none".
+        self.assertEqual(render.LEAST_SURE_LABEL, "Least sure I chose the right idea (item numbers):")
+        rule = "Then fill in the Least-sure line: item numbers, or “none”."
+        lines = render.rules(drills_spec(), "none")
+        self.assertIn("Stop after 12 minutes. " + rule, lines)
+        self.assertFalse(any(rule in r for r in render.rules(drills_spec(least_sure=False), "none")))
+        self.assertFalse(any(rule in r for r in render.rules(theory_spec(), "none")))
 
     def test_print_css_a4_and_page_x_of_y(self):
         self.assertIn("size: A4", self.page)
@@ -317,7 +327,7 @@ class HtmlTemplateTests(Base):
         self.assertTrue(t.endswith(CLOSE))
         self.assertIn("Read this sheet, then do the pencil questions at the end with it open. "
                       "The drills that follow are closed book.", t)
-        self.assertNotIn("Least sure of", t)
+        self.assertNotIn("Least sure", t)
 
 
 class TypstAndMarkdownTests(Base):
@@ -328,7 +338,7 @@ class TypstAndMarkdownTests(Base):
         self.assertIn('paper: "a4"', src)
         self.assertIn('"Noto Serif", "Libertinus Serif", "New Computer Modern"', src)
         for s in ('#"Thursday 15 October 2026"', '#"Start time:"', '#"Stop time:"',
-                  '#"Least sure of (item numbers):"', '#"%s."' % V_RULE, '#"%s"' % GATE_1, '#"%s"' % GATE_2,
+                  '#"Least sure I chose the right idea (item numbers):"', '#"%s."' % V_RULE, '#"%s"' % GATE_1, '#"%s"' % GATE_2,
                   '#"About 12 min · 6 questions · Practice — written by Claude"'):
             self.assertIn(s, src)
         self.assertEqual(src.count("#checkline()"), 6)
@@ -359,7 +369,7 @@ class TypstAndMarkdownTests(Base):
         for s in ("**Thursday 15 October 2026** · About 12 min · 6 questions · Practice — written by Claude",
                   "> **Rules**", "Closed book", "Write the check beside each answer.", "Stop after 12 minutes.",
                   "Tools allowed: none.", V_RULE, "**0.** Start time: ____", "## Block A: swap one word",
-                  "> **%s**" % GATE_1, "> **%s**" % GATE_2, "Stop time: ____", "Least sure of (item numbers): ____"):
+                  "> **%s**" % GATE_1, "> **%s**" % GATE_2, "Stop time: ____", "Least sure I chose the right idea (item numbers): ____"):
             self.assertIn(s, md)
         self.assertEqual(md.count("Check: "), 6)
         self.assertLess(md.index(GATE_1), md.index("**4.**"))

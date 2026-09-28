@@ -62,7 +62,7 @@ For each question, record the following.
 |---|---|
 | `verdict` | `right` · `half` · `wrong` · `dont_know` (they wrote "I don't know") · `skip` (left blank) |
 | `check` | `filled` · `missing` · `caught` (the answer changed after a failed check) · `failed` (the check didn't hold and the answer was kept, usually marked ✗) · `head` (the line is empty and the learner says they checked in their head: [self-report], §7) · `n/a` (no check line printed for the question, or no answer to check) |
-| `least_sure` | `true` for every question of an item named on the "Least sure of" line |
+| `least_sure` | `true` for every question of an item named on the Least-sure line |
 
 **A word written beside an answer** is the learner flagging a word they were never given (the rules box asks for it). Look it up in the record before any account: the sheet's `terms`, the sheets they read, the glossary. Never defined: §5's "an undefined word is my mistake", even when the answer is right. Defined, on an earlier sheet or in the glossary: on a miss, that is the account "a word stopped me", so don't ask which word again.
 
