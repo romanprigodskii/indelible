@@ -54,7 +54,7 @@ IDs are stable, so `overrides[].rule` in `subject.json` can name one (for exampl
 
 | ID | Rule, in plain words | Class | Grade | Key citation |
 |---|---|---|---|---|
-| R1 | Measure before teaching; plan from measurement, not self-report or old homework | core | [lit-strong] | Simonsmeier et al., 2022 |
+| R1 | Measure before teaching; plan from measurement, not self-report or old homework | core | [lit-strong] | Zell & Krizan, 2014; Simonsmeier et al., 2022 |
 | R3a | An answer given with the explanation in view is practice, never evidence | core | [lit-strong] | Koriat & Bjork, 2005 |
 | R3b | Theory on its own sheet (or named book pages), read, then closed; nothing taught in chat right above its own test | core | [lit-mixed] | Agarwal & Roediger, 2011 |
 | R4 | Same-day scores are practice; mastery moves only on a 2-day recheck or a measurement | core | [lit-strong] | Soderstrom & Bjork, 2015 |
@@ -81,7 +81,7 @@ IDs are stable, so `overrides[].rule` in `subject.json` can name one (for exampl
 | R34 | Claude makes the call; the learner can override it, predicting specific questions | core | [lit-mixed] | Patall et al., 2008 |
 | R36 | Teaching drills in blocks of one question type (3–8, default 6), with a stop after question 3 if two fail | core (one type) / default (size) | [lit-mixed] | Carvalho & Goldstone, 2014 |
 | R38 | Explaining it back is a test: captured word for word, critiqued, model answer after | core (interview, verbal) | [lit-strong] | Bisra et al., 2018 |
-| R39 | Hard words glossed in the first language the first time they appear | default | [lit-mixed] | Abedi & Lord, 2001 |
+| R39 | Hard words glossed in the first language the first time they appear | default | [lit-mixed] | Yanagisawa et al., 2020 |
 | R40 | The learner writes every line of their own solutions; worked code and line-ordering puzzles at mastery 0–1 | core | [lit-mixed] | Ericson et al., 2017 |
 | R41 | A written backwards check beside every answer, including the definition used; one the learner can run (on a new topic, the check the theory sheet worked) | core | [one-learner] | section 4 |
 | R42 | Point to the error, and the learner makes the fix: never send them to find their own mistake; error-finding items only on topics they own, or where the exam's own questions are error-finding | core | [lit-mixed] | Große & Renkl, 2007; Baars et al., 2014 |
@@ -126,6 +126,7 @@ Graded [lit-mixed] for the principle; the details are [one-learner]. An earlier 
 - **A same-day failure is real evidence;** only same-day success can't show mastery.
 - **Hypercorrection is shown mostly on facts.** A wrong procedure also needs a contrast with a wrong worked example (Durkin & Rittle-Johnson, 2012), which fix sheets include.
 - **"Careless" needs two things:** the learner's slip account and the same step done right elsewhere.
+- **First-language glosses rest on vocabulary studies.** Glossed reading teaches more new words than unglossed reading, and first-language glosses more than second-language ones (Yanagisawa et al., 2020), but those studies measure words learned, not content understood in a second language: hence R39 is [lit-mixed]. Abedi & Lord (2001) tested plainer wording of test items, which is R9's ground, not glosses.
 - **Predictions are per question, never totals.** [one-learner]: in the lab, estimates of a total can be better calibrated than confidence in single items (Gigerenzer et al., 1991).
 
 ## 7. Honest limits
@@ -173,6 +174,7 @@ Why no "sure / not sure" beside each answer? People stop filling it in, and the 
 - Cepeda et al. (2006), *Psychological Bulletin*. Cepeda et al. (2008), *Psychological Science*.
 - Chi et al. (1994), *Cognitive Science*.
 - Double & Birney (2019), *Frontiers in Psychology*.
+- Dunlosky, Rawson, Marsh, Nathan & Willingham (2013), *Psychological Science in the Public Interest*.
 - Durkin & Rittle-Johnson (2012), *Learning and Instruction*.
 - Ericson, Margulieux & Rick (2017), *Koli Calling* (computing education conference).
 - Gigerenzer, Hoffrage & Kleinbölting (1991), *Psychological Review*.
@@ -189,11 +191,13 @@ Why no "sure / not sure" beside each answer? People stop filling it in, and the 
 - Rawson, Dunlosky & Sciartelli (2013), *Educational Psychology Review*.
 - Renkl & Atkinson (2003), *Educational Psychologist*.
 - Roediger & Karpicke (2006), *Psychological Science*.
-- Rohrer & Taylor (2006), *Applied Cognitive Psychology*. Rohrer et al. (2020), *Journal of Educational Psychology*.
+- Rohrer & Taylor (2006), *Applied Cognitive Psychology*. Rohrer & Taylor (2007), *Instructional Science*. Rohrer et al. (2020), *Journal of Educational Psychology*.
 - Rosenshine (2012), *American Educator*.
 - Rozenblit & Keil (2002), *Cognitive Science*.
 - Simonsmeier et al. (2022), *Educational Psychologist*.
 - Sinha & Kapur (2021), *Review of Educational Research*.
 - Slamecka & Graf (1978), *JEP: Human Learning and Memory*.
 - Soderstrom & Bjork (2015), *Perspectives on Psychological Science*.
+- Yanagisawa, Webb & Uchihara (2020), *Studies in Second Language Acquisition*.
 - Yeager et al. (2014), *JEP: General*.
+- Zell & Krizan (2014), *Perspectives on Psychological Science*.
