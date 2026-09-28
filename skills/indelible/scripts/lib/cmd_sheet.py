@@ -153,7 +153,8 @@ def register(subparsers):
                    help="a code project: its files are copied, with their folder layout, to answers/<id>/")
     a.add_argument("--date", default=None, metavar="YYYY-MM-DD", help="the date the sheet was taken")
     a.add_argument("--asks", default=None, metavar="1a,2a,3a",
-                   help="a failure-gate photo of drills: the questions it covers (the sheet stays issued)")
+                   help="a failure-gate photo of drills, or one stuck question's work for a hint: the questions "
+                        "it covers (the sheet stays issued)")
     a.set_defaults(func=cmd_scan_ingest)
 
     p = subparsers.add_parser("key", help="open a sealed key (only after the attempt is filed)")

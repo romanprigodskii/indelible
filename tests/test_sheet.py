@@ -534,6 +534,21 @@ class KeyTests(SheetBase):
         opened = fio.read_jsonl(subject_dir(self.ws) / ".indelible" / "keys" / "opened.jsonl")
         self.assertEqual(opened[-1]["asks"], ["1a", "2a", "3a", "4a", "5a", "6a"])
 
+    def test_a_hint_files_one_stuck_question_and_opens_only_its_key(self):
+        # session-teach.md §3: rungs 3-4 of the hint ladder point from the key's solution, so the
+        # stuck question's work is filed first, alone, and nothing else on the sheet opens.
+        spec = drills_spec()
+        answers = answers_for(spec)
+        self.to_issued(spec)
+        stuck = self.tmp / "stuck.txt"
+        stuck.write_text("5a: [blank] (stuck after trying 'arrived')\n", encoding="utf-8")
+        self.ok(self.cli("scan", "ingest", SUBJECT, spec["id"], "--typed", stuck, "--asks", "5a"))
+        self.assertEqual(sheet_row(self.ws, spec["id"])["status"], "issued")
+        r = self.ok(self.cli("key", "open", SUBJECT, spec["id"]))
+        self.assertEqual(json.loads(r.stdout), {"5a": answers["5a"]})
+        for k in ("1a", "2a", "3a", "4a", "6a"):
+            self.assertNotIn(answers[k]["accept"][0], r.stdout + r.stderr)
+
     def test_gate_asks_are_checked(self):
         spec = drills_spec()
         self.to_issued(spec)
