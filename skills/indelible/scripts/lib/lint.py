@@ -1,4 +1,4 @@
-"""The sheet checker: rules L1-L14 and warnings W1-W6 (CONTRACT section 7.4).
+"""The sheet checker: rules L1-L14 and warnings W1-W7 (CONTRACT section 7.4).
 
 ``check(spec, ctx)`` is pure: it takes the visible spec and a context dict and
 returns one result per rule, in order. ``gather(ws, subject, spec, row)``
@@ -82,7 +82,7 @@ from lib import io as fio
 from lib import render
 
 RULES = ["L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L9", "L10", "L11", "L12", "L13", "L14",
-         "W1", "W2", "W3", "W4", "W5", "W6"]
+         "W1", "W2", "W3", "W4", "W5", "W6", "W7"]
 TITLES = {
     "L1": "structure", "L2": "check lines", "L3": "unlabelled", "L4": "terms", "L5": "budget",
     "L6": "drill blocks", "L7": "cold validity", "L8": "key leak", "L9": "least-sure",
@@ -90,6 +90,7 @@ TITLES = {
     "L14": "scaffolds",
     "W1": "formula in block title", "W2": "sentences after their numbers",
     "W3": "checks on new topics", "W4": "worked check", "W5": "reading time", "W6": "meaning box",
+    "W7": "recheck operations",
 }
 
 # L2: every ask has a check line on these types. Repair is exempt (CONTRACT
@@ -184,6 +185,8 @@ ORDER_RULES = ("r12 order", "r12")
 # L12: the sheets that show an operation before the drills ask for it (pencil questions' op,
 # and a worked section's ops).
 SHOWING_TYPES = ("theory", "external", "example", "repair")
+# W7: the sheets whose operations a recheck may ask for: shown, or practised on drills.
+PRACTISED_TYPES = SHOWING_TYPES + ("drills",)
 # L13: the layers whose theory must say what the object is and why the rule follows (a procedure
 # learned without its meaning fades); W6 asks for it on the others. The box is about 5 lines.
 MEANING_LAYERS = ("procedural", "conceptual", "code")
@@ -982,14 +985,15 @@ def _op_key(op):
     return _s(op).strip().lower()
 
 
-def shown_ops(specs):
+def shown_ops(specs, types=SHOWING_TYPES):
     """{topic: the operations its theory, external, example and repair sheets show}: their
-    pencil questions' ``op`` and their worked sections' ``ops``. None when unknown."""
+    pencil questions' ``op`` and their worked sections' ``ops``. None when unknown. With
+    ``types`` including drills, the operations practised too (W7)."""
     if specs is None:
         return None
     out = {}
     for _row, spec in specs:
-        if spec.get("type") not in SHOWING_TYPES:
+        if spec.get("type") not in types:
             continue
         topics = []
         for it in _items(spec):
@@ -1014,7 +1018,15 @@ def _l12(spec, ctx):
     """Drills ask only for operations a sheet on the topic has shown: each new item's op is
     a pencil question's op or a worked section's op on a theory, external, example or
     repair sheet of that topic (any not void, so a theory built ahead with its drills
-    counts). A topic with no such sheet (taught by a tutor, from a migration) is skipped."""
+    counts). A topic with no such sheet (taught by a tutor, from a migration) is skipped.
+    On those teaching sheets, every pencil question names its op, so the drills have one
+    to match."""
+    if spec.get("type") in SHOWING_TYPES:
+        no_op = [_s(it.get("n")) for it in _items(spec) if not _op_key(it.get("op"))]
+        if no_op:
+            return "FAIL", ("pencil question %s has no op: name the operation it practises, under the name the "
+                            "drills will use" % _listed(no_op))
+        return "PASS", "every pencil question names its operation"
     if spec.get("type") != "drills":
         return "PASS", "not a drills sheet"
     shown = ctx.get("shown_ops")
@@ -1038,6 +1050,33 @@ def _l12(spec, ctx):
     if not checked:
         return "PASS", "no topic here has a teaching sheet on file"
     return "PASS", "every new item's operation was shown on a sheet of its topic"
+
+
+def _w7(spec, ctx):
+    """A 2-day recheck asks for operations the learner was shown or practised: a ``cold:<T>``
+    item whose op no earlier sheet of T (theory, external, example, repair or drills, not
+    void) used is likely a case never taught. A warning only: a recheck is never blocked, and
+    a topic with no teaching sheet on file (a tutor's, a migrated one) is skipped."""
+    if spec.get("type") != "cold":
+        return "PASS", "not a 2-day recheck"
+    seen = ctx.get("practised_ops")
+    if seen is None:
+        return "PASS", "not checked (no sheets read)"
+    shown = ctx.get("shown_ops") or {}
+    missing = []
+    for it in _items(spec):
+        origin = _s(it.get("origin"))
+        if not origin.startswith("cold:"):
+            continue
+        topic = origin[len("cold:"):]
+        op = _op_key(it.get("op"))
+        if topic in shown and op and op not in seen.get(topic, set()):
+            missing.append("item %s (%s): '%s'" % (_s(it.get("n")), topic, op))
+    if missing:
+        return "WARN", ("an operation no earlier sheet of the topic showed or practised: %s. A case never taught "
+                        "is my mistake at marking: swap the item for one the topic's sheets worked"
+                        % _listed(missing, 4))
+    return "PASS", "each recheck item's operation was shown or practised"
 
 
 def _sections(spec):
@@ -1173,7 +1212,7 @@ def _w2(spec, ctx):
 
 CHECKS = {"L1": _l1, "L2": _l2, "L3": _l3, "L4": _l4, "L5": _l5, "L6": _l6, "L7": _l7,
           "L8": _l8, "L9": _l9, "L10": _l10, "L11": _l11, "L12": _l12, "L13": _l13, "L14": _l14,
-          "W1": _w1, "W2": _w2, "W3": _w3, "W4": _w4, "W5": _w5, "W6": _w6}
+          "W1": _w1, "W2": _w2, "W3": _w3, "W4": _w4, "W5": _w5, "W6": _w6, "W7": _w7}
 
 
 def check(spec, ctx=None):
@@ -1414,6 +1453,8 @@ def gather(ws, subject, spec, row=None, budget_min=None, now=None, block=None, a
         "sheet_words": _sheet_words(specs),
         "shown_ops": shown_ops([(r, s) for r, s in specs if r.get("id") != spec.get("id")]
                                if specs is not None else None),
+        "practised_ops": shown_ops([(r, s) for r, s in specs if r.get("id") != spec.get("id")]
+                                   if specs is not None else None, types=PRACTISED_TYPES),
         "block_size": block_size,
         "overrides": cfg.get("overrides") if isinstance(cfg.get("overrides"), list) else [],
         "pace_s": cfg.get("pace_s") if isinstance(cfg.get("pace_s"), dict) else {},

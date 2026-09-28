@@ -1,4 +1,4 @@
-"""The sheet checker: every rule L1-L14 and W1-W6 has a failing and a passing fixture.
+"""The sheet checker: every rule L1-L14 and W1-W7 has a failing and a passing fixture.
 
 Most rules are checked in-process with ``lint.check(spec, ctx)``; the rules
 that read the workspace (L4 sense words, L5 blocks, L7 exposures and errors,
@@ -798,6 +798,38 @@ class RuleTests(Base):
             it["origin"] = "official:book"
         self.assertEqual(self.status(spec, "L12", shown_ops={"T04": set()}), "PASS", "only new items")
         self.assertEqual(self.status(cold_spec(), "L12", shown_ops={"T04": set()}), "PASS", "drills only")
+
+    def test_l12_every_pencil_question_names_its_operation(self):
+        self.assertEqual(self.status(theory_spec(), "L12"), "PASS")
+        for t in ("theory", "external", "example", "repair"):
+            spec = theory_spec(type=t)
+            spec["items"][0]["op"] = " "
+            r = result(spec, "L12")
+            self.assertEqual(r["status"], "FAIL", t)
+            self.assertIn("pencil question 1 has no op", r["detail"])
+
+    def test_w7_a_recheck_asks_for_operations_the_topic_showed_or_practised(self):
+        spec = cold_spec()                                     # op 'recall' on T04 and T01
+        self.assertEqual(self.status(spec, "W7"), "PASS", "no sheets read")
+        shown = {"T04": {"complete"}}
+        r = result(spec, "W7", shown_ops=shown, practised_ops={"T04": {"complete"}})
+        self.assertEqual(r["status"], "WARN")
+        self.assertIn("item 1 (T04): 'recall'", r["detail"])
+        self.assertNotIn("(T01)", r["detail"], "T01 has no teaching sheet on file: skipped")
+        self.assertEqual(self.status(spec, "W7", shown_ops=shown, practised_ops={"T04": {"complete", "recall"}}),
+                         "PASS", "practised on drills")
+        self.assertTrue(lint.passed(lint.check(spec, ctx(key=answers_for(spec), shown_ops=shown,
+                                                         practised_ops={"T04": set()}))),
+                        "a warning never blocks a recheck")
+        self.assertEqual(self.status(drills_spec(), "W7", shown_ops=shown, practised_ops={}), "PASS")
+
+    def test_practised_ops_add_the_drills(self):
+        shown = lint.shown_ops([({}, theory_spec()), ({}, drills_spec(n=3))], types=lint.PRACTISED_TYPES)
+        self.assertEqual(shown, {"T04": {"complete", "swap-word"}})
+        drills = drills_spec(n=3)
+        for it in drills["items"]:
+            it["op"] = "new-op"
+        self.assertEqual(lint.shown_ops([({}, drills)], types=lint.PRACTISED_TYPES), {"T04": {"new-op"}})
 
     def test_shown_ops_come_from_pencils_and_worked_sections(self):
         theory = theory_spec()
