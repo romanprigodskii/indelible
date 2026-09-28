@@ -593,7 +593,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
 
 - **Requires** `status` `sat` (sets it if evidence exists and the status is `issued`) and evidence of the finished sheet on file: a failure-gate photo alone (`scan ingest --asks`) is refused (exit 1).
 - **`check`** may be left out on an ask with no check line, or for `skip` and `dont_know`: it is then `n/a`. On an ask printed without a check line, any value but `n/a` is refused (exit 2), so check coverage counts only questions that asked for a check.
-- **The sitting time** is `start` (else `stop`) on `date`, from the grades file, then `sat.*`. With neither time it is now (a sitting today) or 12:00 (an earlier day). For a `cold` sheet, or one with a graded `cold:`, `error:` or `sentinel:` item, that guess is made only when the sheet was issued today and is graded within max(3 h, 3 × `est_min`) of its issue; otherwise it refuses (exit 2) and asks for `date` and `start`.
+- **The sitting time** is `start` (else `stop`) on `date`, from the grades file, then `sat.*`. With neither time it is now (a sitting today) or 12:00 (an earlier day), but never before `issued_at`. For a `cold` sheet, or one with a graded `cold:`, `error:` or `sentinel:` item, that guess is made only when the sheet was issued today and is graded within max(3 h, 3 × `est_min`) of its issue; otherwise it refuses (exit 2) and asks for `date` and `start`. A sitting more than 5 minutes before `issued_at` is refused (exit 2): a wrong date, or a 12-hour clock.
 - **Appends one attempt per ask:**
   - `topic` and `layer` come from the spec;
   - `instrument` comes from the sheet type (`drills`, `mixed`, `repair`, `review` and `example` → `practice`);

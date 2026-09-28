@@ -64,6 +64,7 @@ OPEN_BLOCK_STATUSES = ("planned", "synced", "missed?")
 MISS_VERDICTS = ("wrong", "half", "dont_know")
 SCORES = {"right": 1, "half": 0.5, "wrong": 0, "dont_know": 0, "skip": 0}
 FUTURE_SLACK_MIN = 5
+ISSUE_SLACK_MIN = 5       # a sitting time this far before the issue is a clock difference, not a slip
 LEAST_SURE_MODE = "least-sure"
 # Sheet types whose error:/sentinel: questions move the ladder (a measuring serve).
 LADDER_TYPES = ("cold", "mixed") + tuple(schema.MEASURING_TYPES)
@@ -120,9 +121,11 @@ def sitting_time(ws, sheet, grades, now, needs_time=False):
     """(aware datetime of the sitting, sitting fields, end of the sitting) from the grades file, then the sheet row.
 
     With no start or stop time, the sitting is taken as now (today) or 12:00 (an
-    earlier day). When ``needs_time`` (a recheck, or a re-served mistake: the
-    time decides the 2-day window and the 24-hour rule), that guess is made only
-    for a sheet plainly sat in this session; otherwise it refuses (exit 2).
+    earlier day), never before the sheet was issued. When ``needs_time`` (a
+    recheck, or a re-served mistake: the time decides the 2-day window and the
+    24-hour rule), that guess is made only for a sheet plainly sat in this
+    session; otherwise it refuses (exit 2). A sitting more than ISSUE_SLACK_MIN
+    minutes before the issue is refused too (a wrong date, or a 12-hour clock).
     """
     taken = sheet.get("sat") or {}
     day_s = grades.get("date") or taken.get("date")
@@ -143,10 +146,10 @@ def sitting_time(ws, sheet, grades, now, needs_time=False):
     if start_dt is not None and stop_dt is not None and stop_dt < start_dt:
         stop_dt += timedelta(days=1)
     at = start_dt or stop_dt
+    issued = dates.try_parse_iso(sheet.get("issued_at"))
+    sid = sheet.get("id") or "?"
     if at is None:
         if needs_time and not _sat_just_now(sheet, day, now):
-            issued = dates.try_parse_iso(sheet.get("issued_at"))
-            sid = sheet.get("id") or "?"
             raise UsageError(
                 "Not recorded: %s was issued %s and has no start or stop time. The sitting time decides the "
                 "2-day window and the 24-hour rule. Ask the learner when they started it, then add \"date\" and "
@@ -154,6 +157,11 @@ def sitting_time(ws, sheet, grades, now, needs_time=False):
                 % (sid, dates.fmt_iso(issued.astimezone(tz)) if issued else "earlier",
                    sheet.get("subject") or "<subject>", sid))
         at = now if day == now.date() else dates.at_time(day, "12:00", tz)
+        if issued is not None and at < issued and issued.astimezone(tz).date() == day:
+            at = issued.astimezone(tz)  # a guess, so never before the sheet existed
+    if issued is not None and at < dates.plus(issued, minutes=-ISSUE_SLACK_MIN):
+        raise UsageError("The sitting time %s is before %s was issued (%s). Check the date and the start time "
+                         "(24-hour clock)." % (dates.fmt_iso(at), sid, dates.fmt_iso(issued.astimezone(tz))))
     if at > dates.plus(now, minutes=FUTURE_SLACK_MIN):
         raise UsageError("The sitting time %s is later than now (%s)." % (dates.fmt_iso(at), dates.fmt_iso(now)))
     end = stop_dt or at

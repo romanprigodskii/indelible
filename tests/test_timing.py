@@ -219,6 +219,27 @@ class SittingTimeTests(TimingCase):
                       "2026-10-15. If it was sat on another day, run: sheet sat ielts ielts-drills-01 --date",
                       r.stdout)
 
+    def test_a_sitting_before_the_issue_is_refused(self):
+        # "7:00" for a recheck issued at 20:50 the same day: a 12-hour-clock slip, not a sitting
+        self.sheet(evidence=True)
+        r = self.grade("ielts-cold-01", {"date": "2026-10-15", "start": "07:00", "stop": "07:10", "asks": self.ASKS},
+                       code=2)
+        self.assertIn("The sitting time 2026-10-15T07:00+01:00 is before ielts-cold-01 was issued "
+                      "(2026-10-15T20:50+01:00). Check the date and the start time (24-hour clock).",
+                      r.stdout + r.stderr)
+        self.assertEqual(sheet_row(self.ws, "ielts-cold-01")["status"], "issued")
+        # a few minutes early is a clock difference, not a slip
+        r = self.grade("ielts-cold-01", {"date": "2026-10-15", "start": "20:47", "stop": "20:57", "asks": self.ASKS})
+        self.assertIn("T01 0 → 3", r.stdout)
+
+    def test_a_guessed_sitting_time_is_never_before_the_issue(self):
+        # practice with no times, sat on the day it was issued: the guess is the issue time, not 12:00
+        self.sheet("ielts-drills-01", stype="drills", origin="new", evidence=True,
+                   sitting={"start": None, "stop": None, "date": "2026-10-15"})
+        self.grade("ielts-drills-01", {"asks": self.ASKS})
+        attempt = fio.read_jsonl(self.sdir / "data" / "attempts.jsonl")[0]
+        self.assertEqual(attempt["at"], self.ISSUED)
+
     def test_a_mistake_re_served_on_a_sheet_sent_later_needs_its_date(self):
         self.sheet("ielts-mixed-01", stype="mixed", origin="error:E-ielts-0001")
         r = self.cli(["sheet", "sat", self.sid, "ielts-mixed-01"], code=1)

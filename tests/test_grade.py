@@ -48,7 +48,7 @@ def make_key(items):
 
 
 def write_sheet(ws, sid, sheet_id, stype, items, status="issued", evidence=True, key=None, sitting=None,
-                block=None):
+                block=None, issued="2026-10-13T19:20+01:00"):
     """Sealed spec, key and sheets row for a sheet, written directly."""
     root = Path(ws) / sid
     spec = {"v": 1, "id": sheet_id, "type": stype, "subject": sid, "title": "Sheet %s" % sheet_id,
@@ -60,7 +60,7 @@ def write_sheet(ws, sid, sheet_id, stype, items, status="issued", evidence=True,
     row = {"v": 1, "id": sheet_id, "subject": sid, "type": stype, "measures": stype in MEASURING,
            "topics": sorted(set(it["topic"] for it in items)), "asks": sum(len(it["asks"]) for it in items),
            "est_min": 12, "status": status, "created": "2026-10-13T19:00+01:00", "lint": "PASS", "files": [],
-           "key_sha": "0" * 64, "issued_at": "2026-10-13T19:20+01:00",
+           "key_sha": "0" * 64, "issued_at": issued,
            "sat": sitting or {"start": None, "stop": None, "date": None},
            "evidence": [{"path": "scans/%s-answers.jpg" % sheet_id, "kind": "photo"}] if evidence else [],
            "graded_at": None, "opens_unsat": 0, "block": block}
@@ -493,7 +493,8 @@ class GradingRegressionTests(GradeBase):
     def test_a_diagnostic_logs_no_exposure_so_untaught_topics_are_never_rechecks(self):
         items = [make_item(n, ("T01", "T02", "T03", "T04")[(n - 1) % 4], ["%da" % n], layer="reading")
                  for n in range(1, 9)]
-        key = write_sheet(self.ws, self.sid, "ielts-diagnostic-01", "diagnostic", items)
+        key = write_sheet(self.ws, self.sid, "ielts-diagnostic-01", "diagnostic", items,
+                          issued="2026-10-12T06:55+01:00")
         self.remember_key(key)
         self.grade("ielts-diagnostic-01", {"date": "2026-10-12", "start": "07:00", "stop": "07:40", "asks": [
             {"ask": "%da" % n, "verdict": "right" if n % 3 else "dont_know", "check": "filled"} for n in range(1, 9)]},

@@ -771,7 +771,7 @@ class RenderRegressions(unittest.TestCase):
 class ReportingRegressions(TmpCase):
     def test_pace_of_a_mixed_layer_sheet_is_labelled_mixed(self):
         items = [make_item(1, "T01", ["1a", "1b"], layer="reading"), make_item(2, "T04", ["2a", "2b"])]
-        write_sheet(self.ws, SUBJECT, "ielts-diagnostic-01", "diagnostic", items)
+        write_sheet(self.ws, SUBJECT, "ielts-diagnostic-01", "diagnostic", items, issued="2026-10-12T07:55+01:00")
         g = self.tmp / "g.json"
         g.write_text(json.dumps({"date": "2026-10-12", "start": "08:00", "stop": "08:10", "asks": [
             {"ask": a, "verdict": "right", "check": "filled"} for a in ("1a", "1b", "2a", "2b")]}), encoding="utf-8")
