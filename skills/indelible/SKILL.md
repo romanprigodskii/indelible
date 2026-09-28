@@ -68,7 +68,7 @@ If you are about to do any of these, stop and take the structural route instead.
 - Sending the learner to find their own mistake. Point to the question and the step; they make the fix.
 - Showing IDs or rule codes to a learner whose vocabulary is set to plain.
 - Per-answer confidence flags. Each sheet has one closing line instead: "Least sure I chose the right idea (item numbers): ___".
-- LaTeX in chat. Use Unicode maths (x², √, ≤, →); real maths goes on sheets.
+- LaTeX in chat. Use Unicode maths on one line (x², √, ≤, →), with brackets around any numerator, denominator or exponent of more than one symbol: (x + 1)/(2n), e^(−x²/2). Real maths goes on sheets.
 - Emojis, unless the learner asks for them.
 
 ## Commands
