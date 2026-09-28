@@ -29,9 +29,11 @@ What it does, in order:
      ``.indelible/keys/errors/<E-id>.json``.
   6. Closes the 2-day recheck block this sheet served (the sheet's linked
      block, else the open recheck whose window or time holds the sitting);
-     later rechecks stay open. Only a measuring sheet serves one (a cold
-     sheet, or a words recheck): a ``cold:`` item on a practice sheet leaves
-     the recheck open and the topic's ``last_cold`` unset. A practice sheet
+     later rechecks stay open. Any measuring sheet serves one through its
+     ``cold:`` items: a cold sheet, a words recheck, the late-recheck probe of
+     plan.md section 7 (a diagnostic, mock or checkpoint too). A ``cold:``
+     item on a practice sheet serves nothing: it leaves the recheck open and
+     the topic's ``last_cold`` unset. A practice sheet
      logs a ``drill`` exposure per topic, timed at the sitting; a measuring
      sheet logs none (feedback given afterwards is logged with ``session
      expose``). Then the sheet is marked graded and the levels are recomputed.

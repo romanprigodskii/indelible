@@ -87,8 +87,9 @@ RESOLUTIONS = ("defined_here", "defined_on:<sheet-id>", "glossary", "everyday", 
 TEACHING_TYPES = ("theory", "example", "repair")
 TAUGHT_USES = 3
 LEAST_SURE_EXEMPT = ("theory", "external", "example", "triage")
-# L7: the types whose re-served mistakes move the ladder at grading, so they get
-# the recheck timing checks. A words recheck is not checked here (profiles.md).
+# L7: the types whose timing is checked: a 2-day recheck in its window, and the mixed
+# sheets whose re-served mistakes move the ladder at grading. A words recheck
+# (profiles.md) and a late-recheck probe (plan.md section 7) are not checked here.
 RECHECK_TYPES = ("cold", "mixed")
 VERBAL_LAYERS = ("verbal", "reading")
 MIN_LEAK_LEN = 3
@@ -657,12 +658,14 @@ def _l7(spec, ctx):
     sentinel:<E> (a retired mistake, possibly archived): the same without the
     due date. A mixed sheet is practice, but grading moves the ladder for its
     error: and sentinel: items, so they get the same checks; a cold:<topic>
-    item there fails, since only a cold sheet serves the 2-day recheck. On a
-    cold sheet, every cold:<topic> topic needs MIN_COLD_ASKS questions.
+    item there fails, since a recheck in its window is a cold sheet. Other
+    types are not timed here, though a words recheck or the late-recheck
+    probe of plan.md section 7 carries cold:<topic> items too. On a cold
+    sheet, every cold:<topic> topic needs MIN_COLD_ASKS questions.
     """
     stype = spec.get("type")
     if stype not in RECHECK_TYPES:
-        return "PASS", "no recheck items on a %s sheet" % (stype or "untyped")
+        return "PASS", "timing not checked on a %s sheet" % (stype or "untyped")
     at = ctx.get("at") or ctx.get("now") or dates.now()
     when = ctx.get("at_label") or "now"
     exposures = ctx.get("exposures") or []

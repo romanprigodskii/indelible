@@ -971,7 +971,8 @@ RECORDS = {
         "notes": [
             ("type", " | ".join(SHEET_TYPES)),
             ("origin", "new | cold:<topic> | error:<E-id> | sentinel:<E-id> | official:<source>; cold: serves "
-                       "the 2-day recheck only on a cold sheet (or a words recheck); error:/sentinel: move the "
+                       "the 2-day recheck on any measuring sheet (a cold sheet in its window, a words recheck, "
+                       "the late-recheck probe), never on practice; error:/sentinel: move the "
                        "ladder only on cold, mixed and measuring sheets, and lint L7 checks their timing on cold "
                        "and mixed, so repair, theory and drill pencils use new (name the E-id in op or text if "
                        "useful)"),

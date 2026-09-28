@@ -167,8 +167,12 @@ class LintRuleRegressions(unittest.TestCase):
         self.assertEqual(r["status"], "FAIL")
         self.assertIn("belongs on a cold sheet", r["detail"])
         self.assertEqual(result(cold_spec(), "L7")["status"], "PASS")
-        # Other practice types serve no recheck and move no ladder: nothing to check.
-        self.assertEqual(result(cold_spec(type="drills"), "L7", exposures=[drilled])["status"], "PASS")
+        # Other types are not timed: practice moves no ladder, and a words recheck or a
+        # late-recheck probe carries cold: items outside L7.
+        r = result(cold_spec(type="drills"), "L7", exposures=[drilled])
+        self.assertEqual((r["status"], r["detail"]), ("PASS", "timing not checked on a drills sheet"))
+        r = result(cold_spec(type="probe", title="Part A"), "L7", exposures=[drilled])
+        self.assertEqual((r["status"], r["detail"]), ("PASS", "timing not checked on a probe sheet"))
 
     def test_l7_a_topic_never_taught_is_not_recheck_material(self):
         spec = cold_spec()

@@ -47,7 +47,8 @@ def make_key(items):
     return key
 
 
-def write_sheet(ws, sid, sheet_id, stype, items, status="issued", evidence=True, key=None, sitting=None):
+def write_sheet(ws, sid, sheet_id, stype, items, status="issued", evidence=True, key=None, sitting=None,
+                block=None):
     """Sealed spec, key and sheets row for a sheet, written directly."""
     root = Path(ws) / sid
     spec = {"v": 1, "id": sheet_id, "type": stype, "subject": sid, "title": "Sheet %s" % sheet_id,
@@ -62,7 +63,7 @@ def write_sheet(ws, sid, sheet_id, stype, items, status="issued", evidence=True,
            "key_sha": "0" * 64, "issued_at": "2026-10-13T19:20+01:00",
            "sat": sitting or {"start": None, "stop": None, "date": None},
            "evidence": [{"path": "scans/%s-answers.jpg" % sheet_id, "kind": "photo"}] if evidence else [],
-           "graded_at": None, "opens_unsat": 0, "block": None}
+           "graded_at": None, "opens_unsat": 0, "block": block}
     path = root / "data" / "sheets.jsonl"
     rows = [r for r in fio.read_jsonl(path) if r.get("id") != sheet_id] + [row]
     fio.write_jsonl(path, rows)
@@ -665,6 +666,27 @@ class GradingRegressionTests(GradeBase):
         self.assertIn("[measured n=3]", r.stdout)
         self.assertIn("2-day recheck done: T01 (B-20261014-ielts-2)", r.stdout)
         self.assertEqual(self.topics()["T01"]["last_cold"], "2026-10-14T08:00+01:00")
+        self.assert_no_secrets()
+
+    def test_a_late_recheck_probe_closes_the_expired_booking(self):
+        # plan.md section 7: the window passed, so the late recheck is a probe on the same
+        # topic, issued on the expired block. Grading it closes that block.
+        add_exposure(self.ws, self.sid, "T01", "2026-10-12T07:40+01:00")
+        add_blocks(self.ws, [cold_obligation("B-20261014-ielts-2", self.sid, "T01",
+                                             "2026-10-14T03:40+01:00", "2026-10-15T07:40+01:00")])
+        items = [make_item(n, "T01", ["%da" % n], origin="cold:T01") for n in (1, 2, 3)]
+        key = write_sheet(self.ws, self.sid, "ielts-probe-01", "probe", items, block="B-20261014-ielts-2")
+        self.remember_key(key)
+        r = self.grade("ielts-probe-01", {"date": "2026-10-16", "start": "08:00", "stop": "08:06", "asks": [
+            {"ask": "%da" % n, "verdict": "right", "check": "n/a"} for n in (1, 2, 3)]},
+            now="2026-10-16T09:00+01:00")
+        self.assertIn("[measured n=3]", r.stdout)
+        self.assertIn("2-day recheck done: T01 (B-20261014-ielts-2)", r.stdout)
+        self.assertNotIn("is practice", r.stdout)
+        blocks = dict((b["id"], b) for b in read_rows(self.ws / "plan" / "blocks.jsonl"))
+        self.assertEqual(blocks["B-20261014-ielts-2"]["status"], "done")
+        self.assertEqual(self.topics()["T01"]["last_cold"], "2026-10-16T08:00+01:00")
+        self.assertEqual(self.exposures()[1:], [])   # a measuring sheet logs no exposure
         self.assert_no_secrets()
 
     def test_a_question_can_carry_its_own_topic(self):
