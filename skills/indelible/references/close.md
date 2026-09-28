@@ -19,7 +19,7 @@ Re-read this file every time a session nears its end, and again after a context 
 
 `ind session open` wrote the lock with the planned end and the close start (planned end minus 2, 5 or 8 minutes, for sessions of up to 30, up to 75, or more minutes).
 
-- **Status line.** Run `ind session status <subject>` at each returned photo and before each block. It prints one line, for example `[indelible] 47/60 min · close starts 07:55 · questions so far 38`, and a second one naming the sheets out (issued or taken, not graded yet), if any. Use it to decide what still fits. Tell the learner the minutes left when you start a block: "About 20 minutes left: drills block B, then closing."
+- **Status line.** Run `ind session status <subject>` at each returned photo and before each block. It prints one line, for example `[indelible] 47/60 min · close starts 07:55 · questions so far 38`, and a second one naming the sheets out (issued or taken, not graded yet, not counting read-then-close sheets already taken), if any. Use it to decide what still fits. Tell the learner the minutes left when you start a block: "About 20 minutes left: drills block B, then closing."
 - **Budget.** Never hand out a sheet whose estimated minutes exceed the time left before the close starts. Cut instead (§3).
 - **Breaks.** In sessions over 75 minutes, call each break at the time `session open` printed: "Break: 10 minutes. Back at 19:25."
 

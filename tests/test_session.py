@@ -153,14 +153,27 @@ class OpenStatusTests(SessionBase):
         cold = dict(self.sheet("ielts-cold-02", "cold", status="issued", sat_date=None, evidence=False),
                     issued_at="2026-10-12T09:04+01:00")
         drills = dict(self.sheet("ielts-paraphrase-01-drills", status="sat"), issued_at="2026-10-12T09:20+01:00")
+        # A read-then-close sheet already taken needs no grading (C2), so it is not out;
+        # one issued and not taken yet still is.
+        theory_sat = dict(self.sheet("ielts-paraphrase-01-theory", "theory", status="sat"),
+                          issued_at="2026-10-05T09:00+01:00")
+        theory_issued = dict(self.sheet("ielts-headings-01-theory", "theory", status="issued", sat_date=None,
+                                        evidence=False), issued_at="2026-10-12T09:25+01:00")
         self.put("ielts/data/sheets.jsonl", [drills, cold, self.sheet("ielts-cold-01", "cold"),
-                                             dict(self.sheet("ielts-cold-03", "cold", status="void"))])
+                                             dict(self.sheet("ielts-cold-03", "cold", status="void")),
+                                             theory_sat, theory_issued])
         r = self.ind("session", "status", "ielts", now="2026-10-12T09:30+01:00")
         self.assertEqual(r.returncode, 0)
         lines = r.stdout.strip().splitlines()
         self.assertEqual(len(lines), 2, r.stdout)
         self.assertEqual(lines[1], "[indelible] sheets out: ielts-cold-02 (cold, issued today 09:04) · "
-                                   "ielts-paraphrase-01-drills (drills, taken, not graded)")
+                                   "ielts-paraphrase-01-drills (drills, taken, not graded) · "
+                                   "ielts-headings-01-theory (theory, issued today 09:25)")
+        self.assertNotIn("ielts-paraphrase-01-theory", r.stdout)
+        # only read-then-close sheets taken: the one line only
+        self.put("ielts/data/sheets.jsonl", [theory_sat])
+        r = self.ind("session", "status", "ielts", now="2026-10-12T09:30+01:00")
+        self.assertEqual(len(r.stdout.strip().splitlines()), 1, r.stdout)
         self.assertNotIn("T04", r.stdout)
         # nothing out: the one line only
         self.put("ielts/data/sheets.jsonl", [self.sheet("ielts-cold-01", "cold")])

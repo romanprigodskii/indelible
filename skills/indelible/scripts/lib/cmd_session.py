@@ -315,8 +315,10 @@ def cmd_extend(args):
 def _sheets_out(subj, now):
     """One phrase per sheet issued or sat and not graded yet, oldest issue first: its id,
     type, sheet code (printed on it, to match a photo) and issue time. A recheck shows its
-    id only, never its topics."""
-    rows = [s for s in subj.load_sheets() if s.get("status") in ("issued", "sat")]
+    id only, never its topics. A read-then-close sheet already taken is left out: it needs
+    no grading (C2), so it would stay "taken, not graded" for good."""
+    rows = [s for s in subj.load_sheets() if s.get("status") == "issued"
+            or (s.get("status") == "sat" and s.get("type") not in PENCIL_TYPES)]
     rows.sort(key=lambda s: str(s.get("issued_at") or ""))
     out = []
     for s in rows:
