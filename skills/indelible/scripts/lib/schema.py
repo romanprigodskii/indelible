@@ -1024,7 +1024,7 @@ RECORDS = {
         "notes": [
             ("start / stop", "HH:MM from items 0 and N; date YYYY-MM-DD"),
             ("verdict", "right | half | wrong | dont_know | skip ('I don't know' is always an accepted answer)"),
-            ("check", "filled | missing | caught | failed (marked ✗, answer kept) | n/a"),
+            ("check", "filled | missing | caught | failed (marked ✗, answer kept) | n/a; always n/a when no check line was printed"),
             ("least_sure", "true if the learner named this ask on the Least-sure line"),
             ("kind", "belief | slip | shaky: creates an error for wrong, half or dont_know asks"),
             ("account", "the learner's own words, asked before classifying; or 'no account'"),

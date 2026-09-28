@@ -193,7 +193,7 @@ A topic's cold passes are not stored: the level rules find them in `attempts.jso
 ```
 
 - **`verdict`:** `right` (1) | `half` (0.5) | `wrong` (0) | `dont_know` (0) | `skip` (0).
-- **`check`:** `filled` | `missing` | `caught` | `failed` | `n/a`. `caught` means the answer was changed after a failed check; `failed` means the check was written and didn't hold, and the answer was kept (the learner marks it ✗).
+- **`check`:** `filled` | `missing` | `caught` | `failed` | `n/a`. `caught` means the answer was changed after a failed check; `failed` means the check was written and didn't hold, and the answer was kept (the learner marks it ✗). A question printed without a check line (its spec ask has no `check: true`) is always `n/a`.
 - **`instrument`:** `practice` | `cold` | `diagnostic` | `mock` | `checkpoint` | `probe` | `words`.
 - **`prov`:** `practice` | `measured`. `measured` iff the instrument measures.
 
@@ -564,6 +564,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
 ```
 
 - **Requires** `status` `sat` (sets it if evidence exists and the status is `issued`) and evidence of the finished sheet on file: a failure-gate photo alone (`scan ingest --asks`) is refused (exit 1).
+- **`check`** may be left out on an ask with no check line, or for `skip` and `dont_know`: it is then `n/a`. On an ask printed without a check line, any value but `n/a` is refused (exit 2), so check coverage counts only questions that asked for a check.
 - **The sitting time** is `start` (else `stop`) on `date`, from the grades file, then `sat.*`. With neither time it is now (a sitting today) or 12:00 (an earlier day). For a `cold` sheet, or one with a graded `cold:`, `error:` or `sentinel:` item, that guess is made only when the sheet was issued today and is graded within max(3 h, 3 × `est_min`) of its issue; otherwise it refuses (exit 2) and asks for `date` and `start`.
 - **Appends one attempt per ask:**
   - `topic` and `layer` come from the spec;

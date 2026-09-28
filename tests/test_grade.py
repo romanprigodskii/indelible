@@ -538,6 +538,30 @@ class GradingRegressionTests(GradeBase):
         self.assertTrue(all(a["sheet_type"] == "theory" for a in self.attempts()))
         self.assert_no_secrets()
 
+    def test_a_question_printed_without_a_check_line_takes_only_n_a(self):
+        # A probe prints no check line: `missing` would lower check coverage for a check never asked for.
+        items = [make_item(n, "T04", ["%da" % n]) for n in (1, 2, 3)]
+        for it in items:
+            for a in it["asks"]:
+                a["check"] = False
+                a.pop("check_hint", None)
+        key = write_sheet(self.ws, self.sid, "ielts-probe-01", "probe", items)
+        self.remember_key(key)
+        grades = {"date": "2026-10-14", "start": "07:00", "stop": "07:05", "asks": [
+            {"ask": "1a", "verdict": "right", "check": "missing"},
+            {"ask": "2a", "verdict": "right", "check": "filled"},
+            {"ask": "3a", "verdict": "right"}]}
+        r = self.grade("ielts-probe-01", grades, expect=2)
+        self.assertIn("1a: this question had no check line; give check n/a", r.stderr)
+        self.assertIn("2a: this question had no check line", r.stderr)
+        self.assertNotIn("3a:", r.stderr)
+        self.assertEqual(self.attempts(), [])
+        grades["asks"][0]["check"] = "n/a"
+        del grades["asks"][1]["check"]
+        self.grade("ielts-probe-01", grades)
+        self.assertEqual([a["check"] for a in self.attempts()], ["n/a", "n/a", "n/a"])
+        self.assert_no_secrets()
+
     def test_a_recheck_seen_in_the_24_hours_before_is_not_counted(self):
         add_exposure(self.ws, self.sid, "T04", "2026-10-12T07:20+01:00")
         add_exposure(self.ws, self.sid, "T04", "2026-10-13T20:00+01:00", kind="chat")   # 12 h before the sitting

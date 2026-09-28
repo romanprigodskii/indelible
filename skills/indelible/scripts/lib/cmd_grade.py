@@ -313,6 +313,11 @@ def cmd_grade_record(args):
                 else:
                     bad.append("%s: give check (filled, missing, caught, failed or n/a)" % aid)
                     continue
+            elif check != "n/a" and not ask.get("check"):
+                # No check line was printed (probe, words, theory ...): a `missing`
+                # here would count against check coverage for a check never asked for.
+                bad.append("%s: this question had no check line; give check n/a (or leave it out)" % aid)
+                continue
             origin = str(item.get("origin") or "new")
             kind = g.get("kind")
             mode = g.get("mode")
