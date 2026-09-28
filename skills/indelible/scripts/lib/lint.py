@@ -627,7 +627,8 @@ def _l7(spec, ctx):
     sentinel:<E> (a retired mistake, possibly archived): the same without the
     due date. A mixed sheet is practice, but grading moves the ladder for its
     error: and sentinel: items, so they get the same checks; a cold:<topic>
-    item there fails, since only a cold sheet serves the 2-day recheck.
+    item there fails, since only a cold sheet serves the 2-day recheck. On a
+    cold sheet, every cold:<topic> topic needs MIN_COLD_ASKS questions.
     """
     stype = spec.get("type")
     if stype not in RECHECK_TYPES:
@@ -675,11 +676,31 @@ def _l7(spec, ctx):
                 res = learning.cold_eligibility(e.get("topic"), at, exposures, errors, first_serve=False)
                 if not res.get("eligible"):
                     probs.append("item %s (%s, %s): %s" % (n, eid, e.get("topic"), res.get("reason")))
+    if stype == "cold":
+        probs += _thin_rechecks(spec)
     if probs:
         return "FAIL", "; ".join(probs[:MAX_LISTED]) + ("" if when == "now" else " (judged %s)" % when)
     if not checked:
         return "PASS", "no recheck items"
     return "PASS", "%d recheck item%s eligible %s" % (checked, "" if checked == 1 else "s", when)
+
+
+def _thin_rechecks(spec):
+    """A cold pass counts toward a level only with MIN_COLD_ASKS counted questions on the
+    topic in one sitting (learning.py), so a recheck topic served once is used up for
+    nothing. Every question on the topic counts, its error: and sentinel: items too."""
+    counts, order = {}, []
+    for it in _items(spec):
+        origin = _s(it.get("origin"))
+        if origin.startswith("cold:") and origin[len("cold:"):] not in order:
+            order.append(origin[len("cold:"):])
+        for a in _asks(it):
+            t = _s(a.get("topic") or it.get("topic"))
+            counts[t] = counts.get(t, 0) + 1
+    return ["topic %s has %d question%s: a 2-day recheck counts only with at least %d questions on the topic; "
+            "add one or drop the topic" % (t, counts.get(t, 0), "" if counts.get(t, 0) == 1 else "s",
+                                           learning.MIN_COLD_ASKS)
+            for t in order if counts.get(t, 0) < learning.MIN_COLD_ASKS]
 
 
 def _passage_asks(spec):

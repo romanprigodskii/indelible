@@ -330,6 +330,26 @@ class RuleTests(Base):
         self.assertEqual(self.status(spec, "L7", errors=[]), "FAIL")  # an unknown error id
         self.assertEqual(self.status(drills_spec(), "L7", exposures=taught_10h_ago), "PASS")
 
+    def test_l7_a_recheck_topic_needs_two_questions(self):
+        spec = cold_spec()
+        del spec["items"][3]                                   # T04, T01, T04: T01 once
+        r = result(spec, "L7")
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("topic T01 has 1 question: a 2-day recheck counts only with at least 2", r["detail"])
+        self.assertNotIn("T04 has", r["detail"])
+        spec["items"][1]["asks"].append({"id": "2b", "label": "Your second answer:", "check": True,
+                                         "check_hint": "Read the sentence again with your answer in it"})
+        self.assertEqual(self.status(spec, "L7"), "PASS", "every question on the topic counts")
+        # A fixed mistake on the topic is pooled with it at marking, so it counts too.
+        spec = cold_spec()
+        del spec["items"][3]
+        spec["items"].append({"n": 5, "topic": "T01", "layer": "reading", "op": "recall",
+                              "origin": "error:E-ielts-0001", "text": "Heavy rain delayed the trains.",
+                              "asks": [{"id": "5a", "label": "Your answer:", "check": True}]})
+        fixed = {"v": 1, "id": "E-ielts-0001", "topic": "T01", "kind": "belief", "status": "spacing",
+                 "repair_at": "2026-10-10T08:00+01:00", "next_due": "2026-10-12"}
+        self.assertEqual(self.status(spec, "L7", errors=[fixed]), "PASS")
+
     def test_l8_key_leak_names_only_the_ask(self):
         spec = drills_spec()
         key = answers_for(spec)

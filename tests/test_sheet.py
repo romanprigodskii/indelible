@@ -363,7 +363,9 @@ class SheetFlowTests(SheetBase):
         self.assertEqual(sheet_row(self.ws, "ielts-cold-02")["status"], "rendered")
         # a recheck on another topic is fine
         other = cold_spec("ielts-cold-03")
-        other["items"] = [dict(other["items"][0], topic="T02", layer="reading", origin="cold:T02")]
+        base = other["items"][0]      # one item, two questions: a recheck topic needs 2 (lint L7)
+        other["items"] = [dict(base, topic="T02", layer="reading", origin="cold:T02",
+                               asks=base["asks"] + [dict(base["asks"][0], id="1b")])]
         self.to_issued(other)
         # taken but not graded still counts as in hand; dropped does not
         self.ok(self.cli("sheet", "sat", SUBJECT, "ielts-cold-01", "--start", "09:00"))

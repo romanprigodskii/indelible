@@ -104,6 +104,8 @@ class LintRuleRegressions(unittest.TestCase):
     def two_item_cold(self, second_origin, second_topic="T01"):
         spec = cold_spec()
         spec["items"] = spec["items"][:2]
+        # two questions on the recheck topic: one alone could never count (lint L7)
+        spec["items"][0]["asks"].append(dict(spec["items"][0]["asks"][0], id="1b"))
         spec["items"][1]["origin"] = second_origin
         spec["items"][1]["topic"] = second_topic
         return spec
@@ -172,6 +174,7 @@ class LintRuleRegressions(unittest.TestCase):
         spec = cold_spec()
         spec["items"] = [spec["items"][0]]
         spec["items"][0].update({"topic": "T02", "origin": "cold:T02"})
+        spec["items"][0]["asks"].append(dict(spec["items"][0]["asks"][0], id="1b"))
         drilled = [{"topic": "T02", "at": "2026-10-10T08:00+01:00", "kind": "drill"}]
         r = result(spec, "L7", exposures=drilled)
         self.assertEqual(r["status"], "FAIL")

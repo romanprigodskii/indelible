@@ -99,8 +99,8 @@ Computed by the CLI (`ind grade record`, `ind topic recompute`), never typed. Th
 | 1 | Latest measurement 25–74% |
 | 2 | 75%+ on practice on some day |
 | 3p | 75%+ on diagnostic, mock or checkpoint questions, at least 4 of them; becomes 3 after a cold pass within 14 days |
-| 3 | 75%+ on a 2-day recheck inside the window, no exposure in the prior 24 h |
-| 4 | A second cold pass of 75%+, at least 7 days after the first |
+| 3 | 75%+ on a 2-day recheck inside the window, no exposure in the prior 24 h, with at least 2 counted questions on the topic |
+| 4 | A second cold pass of 75%+ (at least 2 counted questions), at least 7 days after the first |
 | 5 | 75%+ on the topic in a mock or checkpoint after reaching 4 |
 
 - Least-sure questions never count toward a level, even when right. A cold fail under 50% drops the topic to 2.
