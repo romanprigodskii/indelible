@@ -89,10 +89,11 @@ RESOLUTIONS = ("defined_here", "defined_on:<sheet-id>", "glossary", "everyday", 
 TEACHING_TYPES = ("theory", "example", "repair")
 TAUGHT_USES = 3
 LEAST_SURE_EXEMPT = ("theory", "external", "example", "triage")
-# L7: the types whose timing is checked: a 2-day recheck in its window, and the mixed
-# sheets whose re-served mistakes move the ladder at grading. A words recheck
-# (profiles.md) and a late-recheck probe (plan.md section 7) are not checked here.
-RECHECK_TYPES = ("cold", "mixed")
+# L7: the types whose timing is checked: a 2-day recheck in its window, a words recheck
+# (profiles.md: its cold:<topic> items close the booking), and the mixed sheets whose
+# re-served mistakes move the ladder at grading. A late-recheck probe (plan.md
+# section 7) is sat outside its window on purpose, so it is not checked here.
+RECHECK_TYPES = ("cold", "mixed", "words")
 VERBAL_LAYERS = ("verbal", "reading")
 MIN_LEAK_LEN = 3
 BUDGET_FRACTION = 0.8
@@ -676,10 +677,12 @@ def _l7(spec, ctx):
     sentinel:<E> (a retired mistake, possibly archived): the same without the
     due date. A mixed sheet is practice, but grading moves the ladder for its
     error: and sentinel: items, so they get the same checks; a cold:<topic>
-    item there fails, since a recheck in its window is a cold sheet. Other
-    types are not timed here, though a words recheck or the late-recheck
-    probe of plan.md section 7 carries cold:<topic> items too. On a cold
-    sheet, every cold:<topic> topic needs MIN_COLD_ASKS questions.
+    item there fails, since a recheck in its window is a cold sheet. A words
+    recheck is judged as a cold sheet, but only its first serve by the window:
+    words sheets don't feed levels, and their later rungs are placed by hand.
+    Other types are not timed here, though the late-recheck probe of plan.md
+    section 7 carries cold:<topic> items too. On a cold sheet, every
+    cold:<topic> topic needs MIN_COLD_ASKS questions.
     """
     stype = spec.get("type")
     if stype not in RECHECK_TYPES:
@@ -698,12 +701,15 @@ def _l7(spec, ctx):
         if origin.startswith("cold:"):
             checked += 1
             topic = origin[len("cold:"):]
-            if stype != "cold":
+            if stype == "mixed":
                 probs.append("item %s (%s): a 2-day recheck item belongs on a cold sheet, not on %s practice; "
                              "build the recheck as type cold" % (n, topic, stype))
                 continue
             state = topics_state.get(topic)
-            first = learning.needs_window(topic, state, exposures)
+            if stype == "words":
+                first = learning.is_first_serve(state)
+            else:
+                first = learning.needs_window(topic, state, exposures)
             if first and not learning.has_first_serve_basis(topic, exposures, state):
                 probs.append("item %s (%s): not taught yet (no teaching on record), so it is not recheck "
                              "material" % (n, topic))

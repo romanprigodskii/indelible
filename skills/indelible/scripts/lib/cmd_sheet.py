@@ -710,7 +710,7 @@ def _issue_checks(ws, subj, spec, row, block_id):
     if spec.get("type") in lint.RECHECK_TYPES:
         # A sheet built ahead was judged at build time or at its block's start; the
         # learner may have met a topic since, so L7 runs again at the sitting time.
-        what = "the recheck is" if spec.get("type") == "cold" else "a recheck or mistake item is"
+        what = "the recheck is" if spec.get("type") in ("cold", "words") else "a recheck or mistake item is"
         for r in lint.run(ws, subj, spec, row, block=block_id):
             if r["rule"] == "L7" and r["status"] == "FAIL":
                 probs.append("%s not valid when it will be sat: %s" % (what, r["detail"]))

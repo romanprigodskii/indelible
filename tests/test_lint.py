@@ -383,6 +383,25 @@ class RuleTests(Base):
         self.assertIn("the recheck window closed at 72 h", r["detail"])
         self.assertEqual(self.status(cold_spec(), "L7", exposures=exposures, topics_state=owned), "PASS")
 
+    def test_l7_times_a_words_recheck_too(self):
+        spec = dict(cold_spec(), type="words")
+        self.assertEqual(self.status(spec, "L7"), "PASS")
+        taught_10h_ago = [{"topic": "T04", "at": "2026-10-11T23:00+01:00", "kind": "teach"},
+                          {"topic": "T01", "at": "2026-10-10T08:00+01:00", "kind": "teach"}]
+        r = result(spec, "L7", exposures=taught_10h_ago)
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("T04): seen 10 h ago (less than 24 h)", r["detail"])
+        # A later rung (placed by hand) has no window, even after a fix since: only the 24-hour rule.
+        rung = {"T04": {"level": 0, "last_cold": "2026-10-05T08:00+01:00", "taught_at": "2026-10-03T08:00+01:00"},
+                "T01": {"level": 0, "last_cold": "2026-10-05T08:00+01:00", "taught_at": "2026-10-03T08:00+01:00"}}
+        fixed = [{"topic": "T04", "at": "2026-10-03T08:00+01:00", "kind": "teach"},
+                 {"topic": "T04", "at": "2026-10-11T07:00+01:00", "kind": "repair"},
+                 {"topic": "T01", "at": "2026-10-03T08:00+01:00", "kind": "teach"}]
+        self.assertEqual(self.status(spec, "L7", exposures=fixed, topics_state=rung), "PASS")
+        # One word on a topic is fine: words sheets don't feed levels.
+        del spec["items"][3]
+        self.assertEqual(self.status(spec, "L7"), "PASS")
+
     def test_l7_a_recheck_topic_needs_two_questions(self):
         spec = cold_spec()
         del spec["items"][3]                                   # T04, T01, T04: T01 once
