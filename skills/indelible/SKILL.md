@@ -92,8 +92,8 @@ Sheets, check lines, the checker (lint), keys and evidence are covered in [sheet
 1. **No argument and no clear intent:** run `ind brief`, then offer the next useful action in one line (usually "start <subject>").
 2. **The first word is a command:** load its reference and follow it. `teach` runs only when there is no workspace, when the learner asks to set up, or when the subject is unknown. "Teach me <topic>" goes to the new-material block of a session, not to `teach`.
 3. **Otherwise,** work out the command from the trigger words; the default is `session`. Take the subject from the first of these that applies:
-   1. the current folder;
-   2. a subject named in the message;
+   1. a subject the message names: its id, its title, or an obvious short name ("spanish");
+   2. the current folder, when it is inside a subject folder;
    3. the block that is on now or next;
    4. otherwise, numbered options.
 
