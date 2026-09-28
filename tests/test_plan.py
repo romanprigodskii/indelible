@@ -14,9 +14,9 @@ import unittest
 from pathlib import Path
 
 try:
-    from helpers import make_ws, run
+    from helpers import HAS_TZDB, make_ws, run
 except ImportError:  # run as part of the tests package
-    from tests.helpers import make_ws, run
+    from tests.helpers import HAS_TZDB, make_ws, run
 
 from lib import io as fio
 
@@ -429,6 +429,41 @@ class MoveTests(PlanCase):
             r = self.cli(*args)
             self.assertEqual(r.returncode, 2, (args, r.stdout, r.stderr))
         self.assertEqual(self.blocks(), {})
+
+
+# ==========================================================================
+# Local times and offsets (Lisbon leaves summer time on 25 Oct)
+# ==========================================================================
+
+@unittest.skipUnless(HAS_TZDB, "no tz database")
+class LocalTimeTests(PlanCase):
+    def test_a_time_with_no_offset_is_local_across_the_clock_change(self):
+        r = self.ok("plan", "add", SID, "--kind", "teach", "--start", "2026-10-27T07:00", "--min", 60)
+        bid = r.stdout.split()[0]
+        self.assertIn("Tue 27 Oct 07:00", r.stdout)
+        self.assertEqual(r.stderr.strip(), "")
+        self.assertEqual(self.blocks()[bid]["start"], "2026-10-27T07:00+00:00")
+
+    def test_a_copied_offset_gets_a_note_on_stderr(self):
+        r = self.ok("plan", "add", SID, "--kind", "teach", "--start", "2026-10-27T07:00+01:00", "--min", 60)
+        bid = r.stdout.split()[0]                     # stdout still starts with the id
+        self.assertRegex(bid, r"^B-20261027-ielts-\d+$")
+        self.assertIn("Tue 27 Oct 06:00", r.stdout)   # kept as given: 06:00 local
+        self.assertIn("note: +01:00 is not the offset of Europe/Lisbon on Tue 27 Oct (+00:00), so this is "
+                      "06:00 local time; for 07:00 local, write 2026-10-27T07:00 with no offset (--start)", r.stderr)
+        r = self.ok("plan", "move", bid, "--start", "2026-10-29T07:00+01:00")
+        self.assertIn("Thu 29 Oct", r.stderr)
+
+    def test_a_matching_offset_or_utc_that_matches_gets_no_note(self):
+        for start in ("2026-10-13T07:00+01:00", "2026-10-30T07:00Z"):
+            r = self.ok("plan", "add", SID, "--kind", "review", "--start", start, "--min", 30)
+            self.assertEqual(r.stderr.strip(), "", start)
+
+    def test_help_and_errors_show_times_with_no_offset(self):
+        r = self.cli("plan", "add", SID, "--kind", "teach", "--start", "2026-10-13", "--min", 60)
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("like 2026-10-15T07:00 (got", r.stderr)
+        self.assertNotIn("+01:00", r.stderr)
 
 
 # ==========================================================================

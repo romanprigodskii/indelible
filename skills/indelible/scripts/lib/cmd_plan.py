@@ -164,7 +164,8 @@ def register(subparsers):
     a = sp.add_parser("add", help="add a block (prints its id); without --start, a recheck obligation")
     a.add_argument("subject")
     a.add_argument("--kind", required=True, choices=schema.BLOCK_KINDS)
-    a.add_argument("--start", default=None, help="ISO time, e.g. 2026-10-15T07:00+01:00")
+    a.add_argument("--start", default=None,
+                   help="local time with no offset, e.g. 2026-10-15T07:00 (the workspace time zone applies)")
     a.add_argument("--min", dest="minutes", type=int, default=None, help="length in minutes")
     a.add_argument("--protected", action="store_true")
     a.add_argument("--measurement", action="store_true")
@@ -338,14 +339,21 @@ def _local(value, tz):
 
 
 def parse_when(ctx, value, what="--start"):
-    """An ISO time with a clock part; no offset means the workspace time zone."""
+    """An ISO time with a clock part; no offset means the workspace time zone.
+
+    An explicit offset that is not the zone's at that instant (copied across a
+    clock change) is kept, with a note on stderr saying where the time lands.
+    """
     text = str(value or "").strip()
     if not HAS_TIME_RE.search(text):
-        raise UsageError("%s needs a date and a time, like 2026-10-15T07:00+01:00 (got %r)" % (what, value))
+        raise UsageError("%s needs a date and a time, like 2026-10-15T07:00 (got %r)" % (what, value))
     try:
         dt = dates.parse_iso(text, tz=ctx.tz)
     except ValueError:
-        raise UsageError("%s is not an ISO time like 2026-10-15T07:00+01:00 (got %r)" % (what, value))
+        raise UsageError("%s is not an ISO time like 2026-10-15T07:00 (got %r)" % (what, value))
+    note = dates.offset_note(text, ctx.tz, ctx.cfg.get("timezone"))
+    if note:
+        sys.stderr.write("%s (%s)\n" % (note, what))
     return dt.astimezone(ctx.tz)
 
 

@@ -121,7 +121,7 @@ Preview first: counts per kind and three sample lines in plain words. On a yes, 
 |---|---|---|
 | Topic or chapter | `ind topic add stats T04 --name "Standard deviation" --layer procedural` | Old confidence or mastery goes to a note, never to a level |
 | Mistake | `ind error add stats --topic T04 --kind belief --mode M --belief "divides by n for a sample standard deviation" --account "no account"` | Rules below |
-| Dated promise | `ind ledger add owed --subject stats --what "Redo past final A, question 6" --due 2026-10-16T20:00-04:00 --by learner` | An undated "later": ask for a date, or drop it after a yes |
+| Dated promise | `ind ledger add owed --subject stats --what "Redo past final A, question 6" --due 2026-10-16T20:00 --by learner` | An undated "later": ask for a date, or drop it after a yes |
 | Session log entry | `ind note append stats legacy-log`, text on stdin | Not a session row |
 | Old score | `ind note append stats legacy-scores`, labelled `[unverified]` with its instrument | Never on a new trend |
 | Seen practice test | "Do not calibrate on" in `<ws>/stats/CLAUDE.md` | Learner-owned text |

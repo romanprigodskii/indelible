@@ -25,6 +25,7 @@ In v0.1 you propose the blocks and the CLI stores and validates them. There is n
    - `ind plan move <block-id> --start ISO [--min N]`; moving a teach moves its paired recheck by the same amount.
    - `ind plan cancel <block-id> --reason TEXT`
    - `--content` is plain words ("2-day recheck, then new skill"), except a recheck you add by hand: `cold:<topic-id>`, like the CLI's obligations (cards never show it).
+   - **Times are local, with no offset:** `--start 2026-10-27T07:00`, and the same for `--due`, `--window-from` and `--window-to`. The CLI applies the workspace time zone, clock changes included. Never copy an offset from an earlier block or from today: after a clock change it moves the block by an hour (the CLI prints a note when an offset doesn't match).
 3. **Check:** `ind plan check` must PASS (exit 0) before any preview. On FAIL, apply each finding's suggested fix and re-run. Never show a failed plan. Each WARN becomes one preview line.
 4. **Show** the load line, the week (`ind plan week`, which also writes `views/week.md`) and the WARNs; one day per line on a phone. The load line sets planned study against the ceiling, with work or school hours alongside (`time.blocked`). It is information only; propose a cut only on a re-baseline trigger (section 8).
 

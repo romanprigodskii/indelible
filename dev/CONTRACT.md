@@ -50,6 +50,7 @@ dev/CONTRACT.md  dev/privacy_grep.py
 - **Exit codes:** `0` OK. `1` a gate or check FAILED (expected, self-describing message on stdout). `2` usage error or unexpected error (message on stderr).
 - **Clock:** `lib.dates.now()` returns an aware local datetime. If the env var `INDELIBLE_NOW` is set (ISO 8601 with offset), that value is used instead. All tests set it.
 - **Times** are stored as `YYYY-MM-DDTHH:MM±HH:MM` (seconds allowed on read). Dates are stored as `YYYY-MM-DD`. `lib.dates.parse_iso` normalises `Z`, `±HHMM` and fractional seconds for Python 3.9.
+- **Command input** (`--start`, `--due`, `--window-from`, `--window-to`) is local wall-clock time; with no offset, the workspace time zone applies, clock changes included. An explicit offset is accepted; when it is not the zone's offset at that instant, the command prints a one-line note on stderr saying the local time it lands at (help and error examples carry no offset).
 - **Writes:**
   - Snapshot files (`*.json`, and `.jsonl` files marked "snapshot" below) are written to a temp file, then `os.replace`, retried up to 5 times at 100 ms. The previous version is kept as `<name>.bak`.
   - Append files are written with one `write()` per line plus a newline, then flushed.

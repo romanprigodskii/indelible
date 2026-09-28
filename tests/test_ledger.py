@@ -8,9 +8,9 @@ import unittest
 from pathlib import Path
 
 try:
-    from helpers import make_ws, run
+    from helpers import HAS_TZDB, make_ws, run
 except ImportError:  # run as part of the tests package
-    from tests.helpers import make_ws, run
+    from tests.helpers import HAS_TZDB, make_ws, run
 
 from lib import io as fio
 
@@ -82,6 +82,25 @@ class LedgerTests(LedgerBase):
         self.assertEqual(r.returncode, 2)
         r = self.ind("ledger", "close", "nonsense")
         self.assertEqual(r.returncode, 2)
+
+    def test_a_date_only_due_suggests_a_local_time_with_no_offset(self):
+        # The hint once carried today's offset, which is wrong for a date after the clock change.
+        r = self.ind("ledger", "add", "owed", "--subject", "ielts", "--what", "x", "--due", "2026-10-27")
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("e.g. 2026-10-27T20:00", r.stderr)
+        self.assertNotIn("+01:00", r.stderr)
+
+    @unittest.skipUnless(HAS_TZDB, "no tz database")
+    def test_a_due_time_with_a_copied_offset_gets_a_note(self):
+        r = self.ind("ledger", "add", "owed", "--subject", "ielts", "--what", "x", "--due", "2026-10-27T20:00")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(r.stderr.strip(), "")
+        self.assertEqual(self.rows()[-1]["due"], "2026-10-27T20:00+00:00")
+        r = self.ind("ledger", "add", "owed", "--subject", "ielts", "--what", "y", "--due", "2026-10-27T20:00+01:00")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("so this is 19:00 local time", r.stderr)
+        self.assertIn("(--due)", r.stderr)
+        self.assertEqual(self.rows()[-1]["due"], "2026-10-27T19:00+00:00")
 
     def test_ids_are_never_reused(self):
         for i in range(3):

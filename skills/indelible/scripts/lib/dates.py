@@ -28,6 +28,7 @@ from lib import UsageError
 
 WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 WEEKDAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 _ISO_RE = re.compile(
     r"^(?P<y>\d{4})-(?P<mo>\d{2})-(?P<d>\d{2})"
@@ -220,6 +221,34 @@ def parse_iso(value, tz=None, aware=True):
     if aware and dt.tzinfo is None:
         dt = dt.replace(tzinfo=tz if tz is not None else local_tz())
     return dt
+
+
+def offset_note(value, tz, zone=None):
+    """A one-line note when ``value`` carries an explicit UTC offset that is not the
+    workspace zone's offset at that instant, else None.
+
+    Command input is meant as local wall-clock time with no offset. An offset
+    copied from an earlier block or from today is an hour off after a clock
+    change; the time is still accepted (a UTC time from a connector is right),
+    but the note says where it really lands.
+    """
+    text = str(value or "").strip()
+    m = _ISO_RE.match(text)
+    if not m or not m.group("tz") or not m.group("h"):
+        return None
+    try:
+        given = parse_iso(text)
+    except ValueError:
+        return None
+    local = given.astimezone(tz)
+    if local.utcoffset() == given.utcoffset():
+        return None
+    d = local.date()
+    return ("note: %s is not the offset of %s on %s %d %s (%s), so this is %s local time; for %s local, "
+            "write %s with no offset" % (
+                fmt_offset(given), zone or "the workspace time zone", WEEKDAYS[d.weekday()], d.day,
+                MONTHS[d.month - 1], fmt_offset(local), local.strftime("%H:%M"), given.strftime("%H:%M"),
+                given.strftime("%Y-%m-%dT%H:%M")))
 
 
 def try_parse_iso(value, tz=None):

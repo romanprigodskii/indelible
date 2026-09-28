@@ -464,7 +464,7 @@ def cmd_lint(args):
         try:
             at = dates.parse_iso(args.at, tz=ws.tzinfo())
         except ValueError:
-            raise UsageError("--at must be an ISO time like 2026-10-14T07:00+01:00 (got %r)" % args.at)
+            raise UsageError("--at must be an ISO time like 2026-10-14T07:00 (got %r)" % args.at)
     with ws.lock():
         rows, i, row = _require_row(subj, args.id)
         if args.block:

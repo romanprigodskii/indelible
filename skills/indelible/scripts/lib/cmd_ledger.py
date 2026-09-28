@@ -21,7 +21,7 @@ import json
 import re
 import sys
 
-from lib import CheckFailed, UsageError
+from lib import CheckFailed, DataError, UsageError
 from lib import dates, schema
 from lib import io as fio
 from lib import ws as wsmod
@@ -40,7 +40,8 @@ def register(subparsers):
     a = asp.add_parser("owed", help="a dated to-do (a promise)")
     a.add_argument("--subject", default=None)
     a.add_argument("--what", required=True)
-    a.add_argument("--due", required=True, help="date and time, e.g. 2026-10-20T20:00+01:00")
+    a.add_argument("--due", required=True,
+                   help="local date and time with no offset, e.g. 2026-10-20T20:00 (the workspace time zone applies)")
     a.add_argument("--by", choices=BY, default="learner")
     a.set_defaults(func=cmd_add_owed)
 
@@ -102,6 +103,14 @@ def _now(ws):
     return cmd_brief.now_in(ws)
 
 
+def _zone_name(ws):
+    """The workspace time zone's name, or None (for notes only)."""
+    try:
+        return ws.timezone()
+    except (DataError, OSError):
+        return None
+
+
 def _text(value, name, max_len=None):
     v = " ".join((value or "").split())
     if not v:
@@ -161,14 +170,19 @@ def add_defect(ws, subject, category, what, fix_type, fix, at=None, extra=None):
     return append_row(ws, row)
 
 
-def _parse_due(value, now):
+def _parse_due(value, now, zone=None):
+    """A local due time; an offset that is not the zone's at that instant gets a note on stderr."""
     text = (value or "").strip()
     if dates.is_date(text):
-        raise UsageError("--due needs a time as well as a date, e.g. %sT20:00%s" % (text, dates.fmt_offset(now)))
+        raise UsageError("--due needs a time as well as a date, e.g. %sT20:00" % text)
     try:
-        return dates.parse_iso(text, tz=now.tzinfo).astimezone(now.tzinfo)
+        due = dates.parse_iso(text, tz=now.tzinfo).astimezone(now.tzinfo)
     except ValueError:
-        raise UsageError("--due must be an ISO date and time, e.g. 2026-10-20T20:00+01:00 (got %r)" % value)
+        raise UsageError("--due must be an ISO date and time, e.g. 2026-10-20T20:00 (got %r)" % value)
+    note = dates.offset_note(text, now.tzinfo, zone)
+    if note:
+        sys.stderr.write("%s (--due)\n" % note)
+    return due
 
 
 def _fmt(dt_str, now):
@@ -186,7 +200,7 @@ def cmd_add_owed(args):
     now = _now(ws)
     sid = _subject_id(ws, args.subject)
     what = _text(args.what, "what", 300)
-    due = _parse_due(args.due, now)
+    due = _parse_due(args.due, now, _zone_name(ws))
     with ws.lock():
         row = add_owed(ws, sid, what, due, by=args.by, at=now)
     note = " (already past)" if due < now else ""
