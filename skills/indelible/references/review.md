@@ -25,10 +25,10 @@ Load for `review`, "weekly review", "review my week", a pace question ("am I on 
 
   On a yes, carry on from section 2, step 2 (the check-in questions come only then, at step 3). On a no, settle any safeguard that is due (section 4) and stop.
 - **A pace question** ("am I on track?", "is this the right speed?", "too slow?"), at any time: give the runway line (section 2, step 2) and the figures behind it, then "Full weekly review? (yes/no)". With no date, say what fits in the rest of this 4-week cycle ([measure.md](measure.md) §9).
-- **On-demand mode** (persona D): at the first open after 7 days or more away, show 3 lines inside the re-entry opener ([session-teach.md](session-teach.md) §6), never as a separate routine. They ask nothing, and never count what is due (re-entry step 3):
+- **On-demand mode** (persona D): at the first open after 7 days or more away, show 3 lines inside the re-entry opener ([session-teach.md](session-teach.md) §6), never as a separate routine. They ask nothing, and never count what is due (re-entry step 3). The first line comes from the brief's LAST SESSIONS only, since the open runs no `ind stats` or `ind review week` (Law 6): the sessions it lists and their questions, with no score, recheck rate or count of mistakes fixed.
 
   ```
-  Since last time: 3 sessions · 2-day rechecks 4/5 [measured] · 2 mistakes fixed
+  Before the break: 3 sessions, the last on Tue 13 Oct · 24 questions
   Today: a short check on your last two topics, then a few older items, riskiest first
   Say "change …" any time.
   ```

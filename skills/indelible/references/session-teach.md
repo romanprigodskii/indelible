@@ -124,7 +124,7 @@ No backlog dump and no guilt.
 4. **A 10-minute cold check on the last two topics taught.** Use a `cold` sheet if lint accepts it. A topic whose first 2-day window has passed gets the late-recheck rule instead ([plan.md](plan.md) §7): a `probe`, `[measured]` with its real interval, that can't raise mastery, then a fresh recheck booked after grading.
 5. **Re-plan the week** before the close ([plan.md](plan.md)). On demand ([plan.md](plan.md) §2), skip this step: there is no week to plan, and the close names the next window as usual.
 
-On demand, after 7 days or more away, the opener carries the three lines of [review.md](review.md) §1: what happened since last time, what today holds (never counted, as step 3 says), and "Say 'change …' any time." Nothing in them needs an answer.
+On demand, after 7 days or more away, the opener carries the three lines of [review.md](review.md) §1: the sessions before the break, from the brief's LAST SESSIONS only (no score or recheck rate), what today holds (never counted, as step 3 says), and "Say 'change …' any time." Nothing in them needs an answer.
 
 ### Solo blocks (no Claude)
 
