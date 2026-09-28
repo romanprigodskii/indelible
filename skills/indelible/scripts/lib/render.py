@@ -27,7 +27,8 @@ Public API::
 a blank date line to fill in, for a sheet built ahead with no block), ``tools``
 (default ``spec.tools`` or "none"), ``lang`` (an ISO 639 code for
 hyphenation), ``profile`` (the subject profile: ``code`` sheets get the code
-wording in the rules box).
+wording in the rules box), ``reference_sheet`` (the exam gives a formula sheet:
+closed-book sheets allow a clean copy of it).
 
 Code: item text and theory bodies may hold fenced code blocks (lines between
 ```` ``` ```` fences) and inline `code spans`. They are printed verbatim in a
@@ -75,6 +76,7 @@ BROWSER_OFFLINE_FLAGS = (
 )
 
 READ_THEN_CLOSE = ("theory", "external", "example")
+IN_VIEW_TYPES = READ_THEN_CLOSE + ("repair",)   # read with the page open; every other type is closed book
 THEORY_BEARING = ("theory", "external", "example", "repair")
 BLANK_DATE = "Date: ____________"
 NO_LEAST_SURE = ("theory", "external", "example", "triage")
@@ -280,13 +282,18 @@ def is_code_sheet(spec, profile=None):
 # The document model (shared by every format)
 # ==========================================================================
 
-def rules(spec, tools, fmt="html", profile=None):
-    """The rules box lines, in order (the wording depends on the sheet type and profile)."""
+def rules(spec, tools, fmt="html", profile=None, reference_sheet=False):
+    """The rules box lines, in order (the wording depends on the sheet type and profile).
+
+    ``reference_sheet`` (the subject's ``format.reference_sheet``): the exam hands out a
+    formula sheet, so a closed-book sheet allows a clean copy of it, as the exam does.
+    """
     t = spec.get("type")
     items = _items(spec)
     code = is_code_sheet(spec, profile)
     any_check = any(a.get("check") for it in items for a in _asks(it))
     minutes = _minutes_int(spec.get("est_min"))
+    formula_sheet = reference_sheet and t not in IN_VIEW_TYPES   # the closed-book sheets
     out = []
     if t in ("theory", "example"):
         out.append("Read this sheet once, doing the pencil items as you meet them. Then close it: "
@@ -298,7 +305,10 @@ def rules(spec, tools, fmt="html", profile=None):
         out.append("Read the fix once, with the page open, doing its pencil items as you meet them. "
                    "Then close it: anything after it is closed book.")
     else:
-        out.append("Closed book: no notes, no book, no search, no AI.")
+        closed = "Closed book: no notes, no book, no search, no AI."
+        if formula_sheet:
+            closed += " You may use a clean copy of the exam's formula sheet, with nothing written on it."
+        out.append(closed)
     if code:
         out.append("Write your code in your editor, one file or answer for each question; send the files "
                    "(or paste them) when you stop.")
@@ -324,12 +334,15 @@ def rules(spec, tools, fmt="html", profile=None):
         out.append("Stop after %d minute%s." % (minutes, "" if minutes == 1 else "s"))
     else:
         out.append("Stop when the time set for this sheet is up.")
-    out.append("Tools allowed: %s." % (_s(tools).strip().rstrip(".") or "none"))
+    allowed = _s(tools).strip().rstrip(".") or "none"
+    if formula_sheet:
+        allowed = "the exam's formula sheet" if allowed.lower() == "none" else allowed + ", the exam's formula sheet"
+    out.append("Tools allowed: %s." % allowed)
     out.append(V_RULE)
     return out
 
 
-def build_model(spec, date=None, tools=None, fmt="html", profile=None):
+def build_model(spec, date=None, tools=None, fmt="html", profile=None, reference_sheet=False):
     """Everything a template shows, as plain strings. No key content ever enters here.
 
     ``date`` None means today; ``False`` prints a blank date line to fill in.
@@ -413,7 +426,7 @@ def build_model(spec, date=None, tools=None, fmt="html", profile=None):
         "date": "" if d is None else d.isoformat(),
         "meta": meta,
         "provenance": provenance(spec),
-        "rules": rules(spec, tools, fmt=fmt, profile=profile),
+        "rules": rules(spec, tools, fmt=fmt, profile=profile, reference_sheet=reference_sheet),
         "theory": theory,
         "groups": model_groups,
         "least_sure": bool(spec.get("least_sure")),
@@ -494,8 +507,8 @@ def _slug(text):
     return re.sub(r"[^a-z0-9]+", "-", _s(text).lower()).strip("-") or "x"
 
 
-def render_html(spec, date=None, tools=None, lang="en", profile=None):
-    m = build_model(spec, date=date, tools=tools, fmt="html", profile=profile)
+def render_html(spec, date=None, tools=None, lang="en", profile=None, reference_sheet=False):
+    m = build_model(spec, date=date, tools=tools, fmt="html", profile=profile, reference_sheet=reference_sheet)
     o = []
     o.append('<main aria-labelledby="sheet-title">\n')
     o.append('<header class="sheet-head">\n')
@@ -621,8 +634,8 @@ def _typ_paras(paras):
     return "".join(out)
 
 
-def render_typst(spec, date=None, tools=None, lang="en", profile=None):
-    m = build_model(spec, date=date, tools=tools, fmt="pdf", profile=profile)
+def render_typst(spec, date=None, tools=None, lang="en", profile=None, reference_sheet=False):
+    m = build_model(spec, date=date, tools=tools, fmt="pdf", profile=profile, reference_sheet=reference_sheet)
     o = []
     o.append("#grid(columns: (1fr, auto), column-gutter: 12pt, align: (left + bottom, right + bottom),\n")
     o.append("  [#heading(level: 1)[%s]],\n" % _tl(m["title"]).strip())
@@ -730,8 +743,8 @@ def _md_paras(paras):
     return "".join(out)
 
 
-def render_markdown(spec, date=None, tools=None, lang="en", profile=None):
-    m = build_model(spec, date=date, tools=tools, fmt="md", profile=profile)
+def render_markdown(spec, date=None, tools=None, lang="en", profile=None, reference_sheet=False):
+    m = build_model(spec, date=date, tools=tools, fmt="md", profile=profile, reference_sheet=reference_sheet)
     o = []
     o.append("**0.** %s ____\n\n" % START_LABEL)
     th = m["theory"]
@@ -1043,7 +1056,8 @@ def backend_order(fmt=None, preferred=None):
     return chain
 
 
-def render_sheet(spec, out_dir, base, fmt=None, preferred=None, date=None, tools=None, lang="en", profile=None):
+def render_sheet(spec, out_dir, base, fmt=None, preferred=None, date=None, tools=None, lang="en", profile=None,
+                 reference_sheet=False):
     """Render through the chain. Returns ``{"backend", "files", "notes"}``.
 
     ``files`` lists the printable output first, then its kept source
@@ -1055,7 +1069,7 @@ def render_sheet(spec, out_dir, base, fmt=None, preferred=None, date=None, tools
     out_dir = Path(out_dir)
     fio.ensure_dir(out_dir)
     notes = []
-    kw = {"date": date, "tools": tools, "lang": lang, "profile": profile}
+    kw = {"date": date, "tools": tools, "lang": lang, "profile": profile, "reference_sheet": reference_sheet}
     for b in backend_order(fmt, preferred):
         if b == "typst":
             exe = find_typst()

@@ -530,7 +530,7 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
 **Templates** (`assets/templates/typ/sheet.typ`, `html/sheet.html`, `md/sheet.md`): Python fills them with `string.Template`-style `$placeholders`, or builds the body in code. Every rendered sheet has:
 - **header:** title, date and weekday, estimated minutes, number of questions, and the provenance line `Practice — written by Claude`, `Measurement — written by Claude`, or `Measurement — official`;
 - **a rules box:**
-  - closed book;
+  - closed book; with the subject's `format.reference_sheet` true, a closed-book sheet (any type but `theory`, `external`, `example` and `repair`) adds "You may use a clean copy of the exam's formula sheet, with nothing written on it", and its tools line names the formula sheet;
   - answer on paper, one answer in each box;
   - write the check beside each answer;
   - on sheets with check lines and a Least-sure line: a failed check the learner can't resolve within a minute is kept, named on the Least-sure line, and left ("I'll show you where at marking");

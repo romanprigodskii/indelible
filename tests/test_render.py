@@ -107,6 +107,26 @@ class HtmlTemplateTests(Base):
                   "If a check fails and you can't see why within a minute, keep your answer"):
             self.assertIn(s, rules)
 
+    def test_the_exams_formula_sheet_is_allowed_where_the_exam_gives_one(self):
+        from lib import render
+        clean = "You may use a clean copy of the exam's formula sheet, with nothing written on it."
+        for spec in (drills_spec(), cold_spec(), drills_spec(type="mock")):
+            lines = render.rules(spec, "calculator", reference_sheet=True)
+            self.assertTrue(any(line.startswith("Closed book") and clean in line for line in lines), spec["type"])
+            self.assertIn("Tools allowed: calculator, the exam's formula sheet.", lines)
+            self.assertFalse(any(clean in line for line in render.rules(spec, "calculator")))
+        self.assertIn("Tools allowed: the exam's formula sheet.",
+                      render.rules(drills_spec(), "none", reference_sheet=True))
+        # A sheet read with the page open says nothing about it.
+        for spec in (theory_spec(), drills_spec(type="repair")):
+            lines = render.rules(spec, "calculator", reference_sheet=True)
+            self.assertFalse(any("formula sheet" in line for line in lines), spec["type"])
+        # The rest of the box is unchanged.
+        lines = render.rules(drills_spec(), "calculator", reference_sheet=True)
+        self.assertTrue(any(line.startswith("If a check fails and you can't see why within a minute")
+                            for line in lines))
+        self.assertIn(V_RULE, " ".join(lines))
+
     def test_a_failed_check_is_a_flag_not_a_hunt_only_where_there_are_checks(self):
         from lib import render
         line = "If a check fails and you can't see why within a minute"

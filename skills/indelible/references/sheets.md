@@ -45,7 +45,7 @@ Load this for anything that builds, renders, issues, files or marks a sheet. Mar
 
 The templates print these:
 - **Header:** title, date and weekday, estimated minutes, number of questions, and `Practice — written by Claude`, `Measurement — written by Claude` or `Measurement — official`.
-- **Rules box:** closed book; one answer in each box, on paper; the check beside each answer; a failed check the learner can't resolve within a minute: keep the answer, name it on the Least-sure line, go on; "I don't know" is always an accepted answer; stop after N minutes; tools allowed; "If a word here was never defined for you, that's my mistake: mark the question V".
+- **Rules box:** closed book (with `format.reference_sheet`, a clean copy of the exam's formula sheet is allowed, and the tools line names it); one answer in each box, on paper; the check beside each answer; a failed check the learner can't resolve within a minute: keep the answer, name it on the Least-sure line, go on; "I don't know" is always an accepted answer; stop after N minutes; tools allowed; "If a word here was never defined for you, that's my mistake: mark the question V".
 - **Item 0** `Start time: ____`. **Last line** `Stop time: ____`, plus the Least-sure line when `least_sure` is true.
 - **Each question:** label, answer box, and `Check: ____` with the hint in small text. **Drills** add block titles and, after item 3 of each block: "If your check failed on 2 of items 1–3, or you left 2 blank: stop and send a photo of 1–3."
 - **Theory:** floor box, words, sections, then "Put this sheet away now. The drills come on their own sheet." **Footer:** page X of Y where the format has pages.

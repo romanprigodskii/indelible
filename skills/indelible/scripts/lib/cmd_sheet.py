@@ -525,7 +525,8 @@ def cmd_build(args):
         lang = (cfg.get("learner") or {}).get("instruction_lang") or "en"
         res = render.render_sheet(spec, subj.sheet_month_dir(day or ws.today()), args.id, fmt=args.format,
                                   preferred=preferred, date=day if day is not None else False, tools=tools,
-                                  lang=lang, profile=subj.load().get("profile"))
+                                  lang=lang, profile=subj.load().get("profile"),
+                                  reference_sheet=subj_fmt.get("reference_sheet") is True)
         row["files"] = [_subject_rel(subj, f) for f in res["files"]]
         row["status"] = "rendered"
         _save_row(subj, rows, i, row)

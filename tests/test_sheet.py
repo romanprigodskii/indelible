@@ -298,6 +298,22 @@ class SheetNewTests(SheetBase):
 
 
 class SheetFlowTests(SheetBase):
+    def test_build_allows_the_exams_formula_sheet_when_the_subject_has_one(self):
+        spec = drills_spec()
+        self.to_rendered(spec, fmt="md")
+        clean = "You may use a clean copy of the exam's formula sheet, with nothing written on it."
+        path = subject_dir(self.ws) / sheet_row(self.ws, spec["id"])["files"][0]
+        self.assertNotIn(clean, path.read_text(encoding="utf-8"))
+        from lib import ws as wsmod
+        subj = wsmod.Workspace(self.ws).subject(SUBJECT)
+        cfg = subj.load()
+        cfg["format"] = dict(cfg.get("format") or {}, reference_sheet=True)
+        subj.save(cfg)
+        r = self.ok(self.cli("sheet", "build", SUBJECT, spec["id"], "--format", "md"))
+        text = Path(r.stdout.strip().splitlines()[0]).read_text(encoding="utf-8")
+        self.assertIn(clean, text)
+        self.assertIn("Tools allowed: the exam's formula sheet.", text)
+
     def test_build_requires_lint_pass(self):
         spec = drills_spec()
         self.ok(new_sheet(self.ws, spec))
