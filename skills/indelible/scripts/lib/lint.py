@@ -11,7 +11,9 @@ When the sheet is linked to a block (``sheet new/lint --block``, or the
 sheet row's block), L5 uses that block's minutes (the open session's work
 minutes, when it runs on that block), less the sheets already issued on it, and L7 judges cold and mixed items at the block's start while
 the block is still ahead: the time the sheet will be sat, not build time
-(``--at`` names another time). The builder links every sheet to its block, so
+(``--at`` names another time). Once the subject's session is open on that
+block, L7 judges at now, even before the block's start: a slot split into a
+recheck block and a session block opens its session on the later block. The builder links every sheet to its block, so
 a mixed sheet built at the close is judged at the next block. ``sheet issue``
 checks both again, since the learner may meet a topic in between. L5 also
 recomputes the builder's own estimate from the subject's ``pace_s``
@@ -1359,10 +1361,28 @@ def read_key(subject, sheet_id):
     return data if isinstance(data, dict) else None
 
 
-def sitting_time(ws, block_id, now, at=None):
+def _session_under_way(subject, block_id, now):
+    """True when this subject's open session runs on the block and has started: a slot split
+    into a recheck block and a session block opens its session on the later session block, so
+    the sheets issued in it are sat from now, not from that block's start."""
+    if subject is None or not block_id:
+        return False
+    try:
+        lock = subject.read_session_lock()
+    except Exception:
+        return False
+    if not isinstance(lock, dict) or lock.get("block") != block_id:
+        return False
+    start = dates.try_parse_iso(lock.get("start"))
+    return start is not None and start <= now
+
+
+def sitting_time(ws, block_id, now, at=None, subject=None):
     """(time the sheet will be sat, label) for L7: ``at``, else the block's start, else now.
 
-    For an unplaced recheck obligation, the later of now and its window's start.
+    Now, too, when the subject's open session runs on the block and has started, even
+    before the block's own start (a split slot). For an unplaced recheck obligation,
+    the later of now and its window's start.
     """
     if at is not None:
         return at, "at %s" % dates.fmt_iso(at)
@@ -1370,6 +1390,8 @@ def sitting_time(ws, block_id, now, at=None):
         b = ws.get_block(block_id)
         if b is not None:
             s = dates.try_parse_iso(b.get("start"))
+            if s is not None and s > now and _session_under_way(subject, block_id, now):
+                return now, "now (the session on block %s is under way)" % block_id
             if s is not None and s > now:
                 return s, "at the start of block %s (%s)" % (block_id, dates.fmt_iso(s))
             if s is not None:
@@ -1442,7 +1464,7 @@ def gather(ws, subject, spec, row=None, budget_min=None, now=None, block=None, a
         block_size = (3, 8)
     now = now or ws.now()
     block_id = block or (row or {}).get("block") or spec.get("block")
-    sit_at, sit_label = sitting_time(ws, block_id, now, at)
+    sit_at, sit_label = sitting_time(ws, block_id, now, at, subject=subject)
     specs = _sealed_specs(subject)
     return {
         "topics": dict((t["id"], _s(t.get("name")).strip()) for t in subject.topics()),

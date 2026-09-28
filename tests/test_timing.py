@@ -119,6 +119,32 @@ class ClosingWindowTests(TimingCase):
             "and can't raise mastery).",
         ])
 
+    def test_a_split_slot_judges_the_recheck_when_its_session_opened(self):
+        # 07:00-07:15 recheck block, 07:15-08:00 session block; the session opens at 07:00 on the
+        # session block and the recheck is issued against it. Both windows close at 07:05: valid now,
+        # though not at the session block's start (the G1 edge).
+        self.teach("T01", "2026-10-13T07:05+01:00")
+        self.teach("T04", "2026-10-13T07:05+01:00")
+        now = "2026-10-16T07:00+01:00"
+        window = {"from": "2026-10-15T03:05+01:00", "to": "2026-10-16T07:05+01:00"}
+        session = dict(self.cold_block("B-20261016-ielts-2", "2026-10-16T07:15+01:00", "2026-10-16T08:00+01:00"),
+                       kind="teach", content="new topic", protected=False)
+        self.save_blocks([self.cold_block("B-20261016-ielts-1", "2026-10-16T07:00+01:00",
+                                          "2026-10-16T07:15+01:00", window=window, content="cold:T01,T04"),
+                          session])
+        spec = cold_spec()
+        self.assertEqual(new_sheet(self.ws, spec, now=now).returncode, 0)
+        self.cli(["sheet", "build", SUBJECT, spec["id"], "--format", "md"], now=now, code=None)
+        # Before the session opens, the sheet is judged at the session block's start: refused.
+        r = self.cli(["sheet", "lint", SUBJECT, spec["id"], "--block", session["id"]], now=now, code=1)
+        self.assertIn("at the start of block B-20261016-ielts-2", r.stdout)
+        self.cli(["session", "open", self.sid, "--block", session["id"], "--planned", "60"], now=now)
+        r = self.cli(["sheet", "lint", SUBJECT, spec["id"], "--block", session["id"]], now=now)
+        self.assertIn("L7 PASS", r.stdout)
+        self.cli(["sheet", "build", SUBJECT, spec["id"], "--format", "md"], now=now)
+        r = self.cli(["sheet", "issue", SUBJECT, spec["id"], "--block", session["id"]], now=now)
+        self.assertIn("issued for block B-20261016-ielts-2", r.stdout)
+
     def test_a_first_recheck_sat_after_its_window_says_it_did_not_count(self):
         self.teach()
         items = [make_item(1, "T01", ["1a"], origin="cold:T01", layer="reading"),
