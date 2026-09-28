@@ -39,7 +39,7 @@ Load this for anything that builds, renders, issues, files or marks a sheet. Mar
 
 - Measured types are labelled `[measured n=…]` by `ind grade record`. The rest are `[practice]` and never count toward mastery.
 - No `code` or `oral` type: code tasks are `drills` or `cold` items with layer `code`; speech is saved with `ind note append`.
-- Theory and its drills are two sheets in two messages; the drills are handed over (and issued) only after "closed".
+- Theory and its drills are two sheets in two messages; the drills are handed over (and issued) only after "closed". A solo block is the exception: both are issued at the close before it, and its card says read, close, then drills ([session-teach.md](session-teach.md) §6).
 
 ## 2. What every sheet carries
 

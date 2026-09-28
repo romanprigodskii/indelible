@@ -20,10 +20,11 @@ In v0.1 you propose the blocks and the CLI stores and validates them. There is n
 
 1. **Read the state:** `ind brief`, `ind plan list --from <today> --json`, `ind due <subject>` per live subject. Limits come from `indelible.json` (`time`, `session`, `policies`, `subjects`, `drop_order`) and each `subject.json` (`target.date`, `format.time_of_day`, `cold_window_h`, `checkpoints`).
 2. **Propose the blocks** in the placement order (section 5), and write them:
-   - `ind plan add <subject> --kind K --start ISO --min N [--protected] [--measurement] [--soft] [--content TEXT] [--pair B-…]`
+   - `ind plan add <subject> --kind K --start ISO --min N [--protected] [--measurement] [--soft] [--solo] [--content TEXT] [--pair B-…]`
    - `ind plan place <block-id> --start ISO --min N` times an obligation (the recheck `ind session taught` opened); it refuses a time outside the window.
    - `ind plan move <block-id> --start ISO [--min N]`; moving a teach moves its paired recheck by the same amount.
    - `ind plan cancel <block-id> --reason TEXT`
+   - `--solo` marks a block the learner will work alone, with no session with Claude ([session-teach.md](session-teach.md) §6); `ind plan move <block-id> --solo` (or `--not-solo`) changes only the mark. Its sheets are issued at the close before it, and its card names the sheets folder instead of "open Claude". A 2-day recheck is never solo.
    - `--content` is plain words ("2-day recheck, then new skill"), except a recheck you add by hand: `cold:<topic-id>`, like the CLI's obligations (cards never show it).
    - **Times are local, with no offset:** `--start 2026-10-27T07:00`, and the same for `--due`, `--window-from` and `--window-to`. The CLI applies the workspace time zone, clock changes included. Never copy an offset from an earlier block or from today: after a clock change it moves the block by an hour (the CLI prints a note when an offset doesn't match).
 3. **Check:** `ind plan check` must PASS (exit 0) before any preview. On FAIL, apply each finding's suggested fix and re-run. Never show a failed plan. Each WARN becomes one preview line.

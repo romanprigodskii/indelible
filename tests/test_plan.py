@@ -541,6 +541,49 @@ class LocalTimeTests(PlanCase):
 
 
 # ==========================================================================
+# Solo blocks (the learner works alone, with no Claude session)
+# ==========================================================================
+
+class SoloTests(PlanCase):
+    def test_a_solo_block_is_marked_listed_and_carded(self):
+        solo = self.add("teach", "2026-10-13T07:00+01:00", 60, "--solo")
+        with_claude = self.add("teach", "2026-10-15T07:00+01:00", 60)
+        self.assertIs(self.blocks()[solo]["solo"], True)
+        self.assertNotIn("solo", self.blocks()[with_claude])
+        line = [l for l in self.ok("plan", "list").stdout.splitlines() if solo in l][0]
+        self.assertIn("solo", line)
+        notes = dict((x["block"], x["notes"]) for x in json.loads(self.ok("plan", "diff", "--json").stdout))
+        self.assertIn("On your own: your sheets are in", notes[solo])
+        self.assertIn("/ielts/sheets. Send photos of your answers at your next session.", notes[solo])
+        self.assertNotIn("open Claude", notes[solo])
+        self.assertIn("Start: open Claude in", notes[with_claude])
+        self.assertIn("(on your own)", self.ok("brief", SID).stdout)
+
+    def test_mark_and_clear_solo_without_moving(self):
+        bid = self.add("review", "2026-10-13T07:00+01:00", 30)
+        r = self.ok("plan", "move", bid, "--solo")
+        self.assertIn("Marked %s solo" % bid, r.stdout)
+        b = self.blocks()[bid]
+        self.assertIs(b["solo"], True)
+        self.assertEqual((b["start"], b["moved_from"], b.get("moves")), ("2026-10-13T07:00+01:00", None, None))
+        self.ok("plan", "move", bid, "--start", "2026-10-14T07:00+01:00")
+        self.assertIs(self.blocks()[bid]["solo"], True)             # a move keeps the mark
+        self.ok("plan", "move", bid, "--not-solo")
+        self.assertNotIn("solo", self.blocks()[bid])
+        self.assertEqual(self.cli("plan", "move", bid).returncode, 2)
+        self.assertEqual(self.cli("plan", "move", bid, "--solo", "--not-solo").returncode, 2)
+
+    def test_a_recheck_is_never_solo(self):
+        r = self.cli("plan", "add", SID, "--kind", "cold", "--start", "2026-10-14T07:00+01:00", "--min", 20,
+                     "--content", "cold:T01", "--solo")
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertIn("never solo", r.stderr)
+        cold = self.add("cold", "2026-10-14T07:00+01:00", 20, "--content", "cold:T01")
+        self.assertEqual(self.cli("plan", "move", cold, "--solo").returncode, 2)
+        self.assertNotIn("solo", self.blocks()[cold])
+
+
+# ==========================================================================
 # list and week
 # ==========================================================================
 

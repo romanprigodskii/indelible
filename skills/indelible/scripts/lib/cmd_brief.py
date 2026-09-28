@@ -284,7 +284,9 @@ def block_what(block, plain=True, names=None):
                 c = c[len(words):].strip(" ,;:")
         c = clip(c, 80)
         if c:
-            return "%s: %s" % (words, c)
+            words = "%s: %s" % (words, c)
+    if block.get("solo"):
+        words += " (on your own)" if plain else " (solo)"
     return words
 
 

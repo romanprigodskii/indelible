@@ -376,6 +376,46 @@ class CloseTests(SessionBase):
         self.assertEqual(r.returncode, 1)
         self.assertIn("nothing to close", r.stdout)
 
+    def test_c8_fails_before_a_solo_block_until_a_sheet_is_issued(self):
+        # No session with Claude comes before a solo block, so its sheets go out before the close message.
+        solo = self.block("B-20261015-ielts-1", "2026-10-15T19:00+01:00", "2026-10-15T19:45+01:00")
+        solo["solo"] = True
+        self.put("plan/blocks.jsonl", [
+            self.block("B-20261012-ielts-1", "2026-10-12T09:00+01:00", "2026-10-12T10:00+01:00"), solo])
+        self.open_session(60, NOW, "--block", "B-20261012-ielts-1")
+        r = self.close()
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertIn("FAIL C8 next sheets", r.stdout)
+        self.assertIn("B-20261015-ielts-1) is solo and has no sheet issued", r.stdout)
+        self.assertIn("sheet issue ielts <id> --block B-20261015-ielts-1", r.stdout)
+        self.assertIsNotNone(self.lock())
+        self.put("ielts/data/sheets.jsonl", [self.sheet("ielts-drills-02", status="issued", sat_date=None,
+                                                        evidence=False, block="B-20261015-ielts-1")])
+        r = self.close()
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertIn("INFO C8 next sheets", r.stdout)
+        self.assertIn("B-20261015-ielts-1, solo) has 1 sheet ready: ielts-drills-02", r.stdout)
+
+    def test_c8_before_a_solo_block_defers_to_a_to_do_and_other_blocks_stay_info(self):
+        solo = self.block("B-20261015-ielts-1", "2026-10-15T19:00+01:00", "2026-10-15T19:45+01:00")
+        solo["solo"] = True
+        self.put("plan/blocks.jsonl", [solo])
+        self.open_session(60)
+        r = self.close("--defer", "the build stalled")
+        self.assertEqual(r.returncode, 0, r.stdout)
+        owed = [x for x in self.jsonl("ledger.jsonl") if x["kind"] == "owed"]
+        self.assertEqual(len(owed), 1)
+        self.assertEqual((owed[0]["check"], owed[0]["by"]), ("C8", "claude"))
+        self.assertIn("solo block", owed[0]["what"])
+        self.assertIsNone(ANY_ID.search(owed[0]["what"]))
+        # The same block with Claude: C8 is information only.
+        solo.pop("solo")
+        self.put("plan/blocks.jsonl", [solo])
+        self.open_session(30, "2026-10-12T18:00+01:00")
+        r = self.close(now="2026-10-12T18:25+01:00")
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertIn("INFO C8 next sheets", r.stdout)
+
     def test_overrun_is_recorded(self):
         self.open_session(60)
         r = self.close(now="2026-10-12T10:12+01:00")

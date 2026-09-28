@@ -93,6 +93,7 @@ Detect from the tool list alone: names, descriptions and schemas. Make no connec
   Short on time: do the recheck only; it's the part that can't move.
   Start: open Claude in ~/Study and say "start ielts"
   ```
+  A solo block's card has no "open Claude" step and ends "On your own: your sheets are in ~/Study/ielts/sheets. Send photos of your answers at your next session."
 - **A card that breaks these rules.** If a card names a recheck's topic or quotes a rule, don't write it. Log `ind ledger add defect --subject S --category contamination --what "card named the recheck topic" --fix-type script --fix "<what the diff must change>"`, then tell the learner that item waits.
 
 ## 5. Providers

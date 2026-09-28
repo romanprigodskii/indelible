@@ -100,6 +100,7 @@ Start at the close start from the lock (after the extension, if one was taken). 
    - For an on-demand learner, leave it unplaced; the close message names the window.
 3. **Every promise made today** ("I'll…", "we'll do it next time") already has its to-do, written when it was made. Check with `ind ledger list --kind owed --open --subject <s>`, and add any that is missing: `ind ledger add owed --subject <s> --what "<text>" --due <ISO>`.
 4. **An overrun over 20%** is logged (§2).
+5. **The next block of this subject is solo** (`solo` in `ind plan list`, "on your own" in the brief; no session with Claude comes before it, however far off): build its practice sheets now with the builder ([sheets.md](sheets.md) §6), then issue each: `ind sheet issue <s> <id> --block <B>`. A theory and its drills go as a pair; the block's card says read the theory, close it, then the drills. Check C8 fails until one is issued. If the build fails, the close message says so and offers to move the block; don't leave it to an owed `--by claude` to-do, which nobody will act on before the block.
 
 Then run:
 
@@ -124,7 +125,7 @@ ind session close <subject> --note "recheck 11/14; taught matching headings; dri
 | C5 fix before recheck | A recheck within 12 h includes a topic with an unfixed mistake. Ask: "Your 2-day recheck is at 07:00, but one mistake on that topic isn't fixed yet. Shall I move the recheck to <time>, still inside its window?" On a yes, `ind plan move`, with [calendar.md](calendar.md) for the calendar. Otherwise `--defer` |
 | C6 promises | `ind ledger add owed …` for each real promise, with a due time |
 | C7 views | A view was hand-edited. Say: "Your edit to the progress page will be replaced; I'll keep a backup copy." On a yes, `ind render <subject> --force`, then close again |
-| C8 next sheets | INFO only. Build after the message (§9) |
+| C8 next sheets | INFO: build after the message (§9). FAIL only before a solo block with no sheet issued: build and issue its sheets now (§6 step 5), or `--defer` and name the to-do in the message |
 | C9 recheck sat | A 2-day recheck booked in this session's time wasn't sat (skipped, or the time ran out). Move it to the next slot inside its window with the command the line prints, then `ind plan check`, and preview it for the calendar ([calendar.md](calendar.md)). No time left in the window, or on demand: INFO only. Name the window in the close message; past its window it is a late recheck, which the next brief flags ([plan.md](plan.md) §7) |
 
 **`--defer "<reason>"`** is for a fix that can't happen now: the photo isn't available, the learner has to leave, or the fix would overrun.
@@ -146,6 +147,7 @@ Next: <day time> · <plain content> · <min> min. You can go; I'm preparing the 
 - **Persona B:** "Saved: 6 of 8 words right [measured]; the other 2 are scheduled to come back. Next: Fri 07:40 · words + ordering food · 20 min. You can go; I'm preparing the next sheets."
 - **Persona D** (on demand, no calendar): "Saved: ownership drills 5/6 [practice]; the 2-day recheck is booked. Next: 2-day recheck, best between Thu 14:00 and Fri 18:00 · 15 min. You can go; I'm preparing the next sheets."
 - **Before the first teach**, the close message also carries the theory-source question ([session-open.md](session-open.md) §6), since the sheets are built after it.
+- **Next block solo:** its sheets are already issued (§6 step 5), so the message gives their paths instead of "I'm preparing the next sheets": "Next: Thu 19:00 · on your own · 45 min. Your sheets: sheets/2026-10/ielts-theory-04.pdf, then ielts-drills-04.pdf (read the first, close it, then the drills). Send photos at your next session. You can go."
 
 If blocks were added or moved today and the learner's calendar provider is not `none`, run `ind plan diff` before the message and follow [calendar.md](calendar.md): preview, a yes, write, then `ind cal ack`.
 
@@ -153,7 +155,7 @@ If blocks were added or moved today and the learner's calendar provider is not `
 
 The learner may already be gone. Work silently:
 
-1. Build the next block's practice sheets (theory, drills, repair) with the builder subagent, as [sheets.md](sheets.md) §6 describes: built, linted and rendered. Build a theory before the drills that point at it: lint checks their words and operations against it. They are issued at hand-over, in that block. Include any work cut today. The recheck is not built now: it is built at the next open, inside its window ([session-open.md](session-open.md) §2).
+1. Build the next block's practice sheets (theory, drills, repair) with the builder subagent, as [sheets.md](sheets.md) §6 describes: built, linted and rendered (a solo block's were built and issued before the message, §6 step 5). Build a theory before the drills that point at it: lint checks their words and operations against it. They are issued at hand-over, in that block. Include any work cut today. The recheck is not built now: it is built at the next open, inside its window ([session-open.md](session-open.md) §2).
 2. Run `ind compact <subject>`.
 3. If a sheet fails lint or can't be finished, add `ind ledger add owed --subject <s> --what "build sheets for <day> <time> block" --due <ISO at least 2 h before the block> --by claude`.
 

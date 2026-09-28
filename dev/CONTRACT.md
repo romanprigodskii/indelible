@@ -244,6 +244,7 @@ A topic's cold passes are not stored: the level rules find them in `attempts.jso
 - **`kind`:** `teach` | `cold` | `repair` | `review` | `mixed` | `mock` | `diagnostic` | `checkpoint` | `words` | `oral` | `project` | `long` | `tutor_lesson` | `buffer` | `admin`.
 - **An obligation** is a block with `start: null` and `window: {"from","to"}`. `topic taught` creates one for the cold serve (`kind: cold`, `protected: true`, `pair: <teach block id or null>`, `content: "cold:T04"`).
 - **`status`:** `planned` | `synced` | `done` | `missed?` | `missed` | `moved` | `cancelled`.
+- **`solo`** (optional, only ever `true`): the learner works the block alone, with no Claude session before it. Its practice sheets are issued at the close before it (close check C8), `plan list` and the brief say so, and its calendar card names the sheets folder in place of "open Claude".
 - **`cal`:** `{"provider":"google","id":"<event id>","etag":null,"start":"<start at last ack>"}`.
 
 ### 5.10 `ledger.jsonl` (root; append-only; the latest `status` event for a ref wins)
@@ -442,7 +443,7 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
   | C5 | repair before cold | No planned cold block (or obligation window start) within 12 h of now includes a topic with an untreated belief |
   | C6 | promises | If the `--note` or any note appended today matches `\b(tomorrow|later|next time|amanhã|mañana)\b` (case-insensitive; the learners' languages), there must be an `owed` ledger row created today |
   | C7 | views | Rendered (the close does it) |
-  | C8 | next sheets | INFO only: whether the next block for this subject has a sheet with status `issued` or better |
+  | C8 | next sheets | Whether the next block for this subject has a sheet with status `issued` or better. INFO, except when that block is `solo` (no session with Claude before it) and has none: then it FAILs, and `--defer` turns it into a to-do by Claude |
   | C9 | recheck sat | No placed cold block that overlaps the session (or is its block) is still `planned` or `synced`, unless a sheet issued for it (or a `cold` sheet on its topics) is `issued` or `sat`. With its window still open (`cmd_brief.recheck_close`) in scheduled mode it FAILs with a `plan move` fix; on demand, or once the window has closed, it is INFO (the brief then flags the late recheck) |
 
   **On PASS:**
@@ -599,9 +600,9 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
 
 ### 7.6 Plan and calendar (`cmd_plan.py`, `ics.py`)
 
-- **`plan add <subject> --kind K --start ISO --min N [--protected] [--measurement] [--soft] [--content TEXT] [--pair B-…]`** prints the new block id.
+- **`plan add <subject> --kind K --start ISO --min N [--protected] [--measurement] [--soft] [--solo] [--content TEXT] [--pair B-…]`** prints the new block id. `--solo` marks a block the learner works alone, with no Claude session (`"solo": true`); a `cold` block or an obligation can't be solo (exit 2).
 - **`plan place <block-id> --start ISO --min N`:** turns an obligation into a timed block. It must fall inside the window; otherwise exit 1 with the window shown.
-- `plan move <block-id> --start ISO [--min N]`: sets `moved_from`. A synced block keeps its `cal`.
+- `plan move <block-id> --start ISO [--min N] [--solo | --not-solo]`: sets `moved_from`. A synced block keeps its `cal`. With `--solo` or `--not-solo` and no `--start`, it changes only the mark (no move is recorded).
 - `plan cancel <block-id> --reason TEXT` · `plan done <block-id>` · `plan miss <block-id> --reason TEXT`.
   - **Moving a teach moves its paired cold** by the same delta and re-checks the window.
 - **`plan list [--subject S] [--from DATE] [--to DATE] [--json]`:** blocks that are past their end, `planned` or `synced`, with no overlapping session, display as `missed?`. Nothing is written.
@@ -633,7 +634,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
 
   JSON rows: `{"op","block","subject","title","start","end","notes"}`.
   - **title:** `<Subject title> · <kind in plain words> · <min>m`. A cold block's title never names a topic: it reads `2-day recheck (mixed)`.
-  - **notes** (≤600 characters): 3–6 steps, what stays closed, a fallback, and `Start: open Claude in <ws> and say "start <subject>"`, plus the marker `[ind:<block-id>]` on the first line.
+  - **notes** (≤600 characters): 3–6 steps, what stays closed, a fallback, and `Start: open Claude in <ws> and say "start <subject>"` (a solo block: `On your own: your sheets are in <ws>/<subject>/sheets. Send photos of your answers at your next session.`, with no "Open Claude" step), plus the marker `[ind:<block-id>]` on the first line.
 - **`cal ack --from results.json`:** takes a list of `{"block","provider","id","etag","start"}` rows, sets `cal`, and sets `status=synced` (or `cancelled` stays).
 - **`cal ics <out.ics> [--from DATE] [--to DATE] [--subject S] [--ops all|create]`** writes an RFC 5545 VCALENDAR (the output path must be `<ws>/plan/ics/<name>.ics`; any other path is refused with exit 2 and nothing is written):
   - one VEVENT per timed, non-cancelled block; with `--ops create`, only the blocks `plan diff` would create (a file can't move an event already imported, so it never re-sends one);

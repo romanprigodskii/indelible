@@ -20,7 +20,9 @@ second extension, or one over min(``session.extension_max_min`` (default 15,
 at most 30), a quarter of the planned minutes), is refused.
 
 ``session close`` runs checks C1-C9 about the session since the lock start
-and prints one PASS, FAIL or INFO line per check. C2 does not ask for the
+and prints one PASS, FAIL or INFO line per check. C8 (the next block's sheets)
+is INFO, except before a solo block, which has no session with Claude before
+it: with no sheet issued for it, C8 fails. C2 does not ask for the
 grading of read-then-close sheets (theory, external, example, triage): their
 pencil items are done with the page open and are never mastery evidence.
 Recheck windows and the 24-hour rule use elapsed hours (``dates.plus``), so
@@ -720,7 +722,8 @@ def run_checks(ws, subj, lk, now, note):
         else:
             out.append(Check("C7", "views", "PASS", "rendered by this close"))
 
-    # C8 next sheets (INFO)
+    # C8 next sheets: INFO, except before a solo block. No session with Claude comes
+    # before one, so its sheets must be issued now, before the close message.
     nxt = _next_block(ws, subj, now, exclude=lk.get("block"), blocks=blocks)
     if nxt is None:
         out.append(Check("C8", "next sheets", "INFO", "no next block planned for %s" % subj.id))
@@ -729,8 +732,16 @@ def run_checks(ws, subj, lk, now, note):
                  and s.get("status") in ("issued", "sat", "graded")]
         s, _ = brief.block_times(nxt, tz)
         if ready:
-            out.append(Check("C8", "next sheets", "INFO", "the next block (%s, %s) has %d sheet%s ready: %s" % (
-                brief.fmt_when(s, now), nxt.get("id"), len(ready), "" if len(ready) == 1 else "s", ", ".join(ready))))
+            out.append(Check("C8", "next sheets", "INFO", "the next block (%s, %s%s) has %d sheet%s ready: %s" % (
+                brief.fmt_when(s, now), nxt.get("id"), ", solo" if nxt.get("solo") else "", len(ready),
+                "" if len(ready) == 1 else "s", ", ".join(ready))))
+        elif nxt.get("solo"):
+            out.append(Check("C8", "next sheets", "FAIL",
+                             "the next block (%s, %s) is solo and has no sheet issued: build its practice sheets "
+                             "now and issue them (sheet issue %s <id> --block %s) before the close message"
+                             % (brief.fmt_when(s, now), nxt.get("id"), subj.id, nxt.get("id")),
+                             todo="Build and issue the sheets for the solo block of %s"
+                             % brief.fmt_when(s, now), refs=[nxt.get("id")]))
         else:
             out.append(Check("C8", "next sheets", "INFO",
                              "the next block (%s, %s) has no sheet issued yet: build after the close message"

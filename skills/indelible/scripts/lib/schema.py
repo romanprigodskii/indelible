@@ -927,6 +927,8 @@ RECORDS = {
             ("cal", "{provider, id, etag, start at last ack} or null"),
             ("misses", "[{at, slot, reason}] from plan miss; kept when the block is rebooked, so it still "
                        "counts as missed"),
+            ("solo", "optional, true only: the learner works it alone, with no Claude session before it "
+                     "(plan add|move --solo); its practice sheets are issued at the close before it (C8)"),
             ("title rule", "a cold block's calendar title never names a topic: '2-day recheck (mixed)'"),
         ],
     },

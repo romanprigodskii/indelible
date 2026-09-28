@@ -1,11 +1,11 @@
 """Plan blocks, their checks, and calendar operations (contract section 7.6).
 
-    plan add <subject> --kind K --start ISO --min N [--protected] [--measurement] [--soft]
+    plan add <subject> --kind K --start ISO --min N [--protected] [--measurement] [--soft] [--solo]
              [--content TEXT] [--pair B-...]
     plan add <subject> --kind cold --content cold:<T> [--pair B-...] [--window-from ISO --window-to ISO]
              (no --start: an obligation, a recheck with a window and no time yet)
     plan place <block-id> --start ISO --min N
-    plan move <block-id> --start ISO [--min N]
+    plan move <block-id> [--start ISO] [--min N] [--solo | --not-solo]
     plan cancel <block-id> --reason TEXT
     plan done <block-id>
     plan miss <block-id> --reason TEXT
@@ -39,6 +39,12 @@ confusable-topics warning): ``teach:<T>``, ``repair:<T>``, ``review:<T>``,
 ``drill:<T>`` or ``chat:<T>`` in its content, plus the ``cold:<T>`` topics
 of the rechecks paired to it. Hours are elapsed hours, so windows stay right
 across a clock change.
+
+A solo block (``"solo": true``, set by ``plan add|move --solo``) is one the
+learner works alone, with no Claude session before it: its practice sheets are
+issued at the close before it (close check C8 fails until one is), and its
+calendar card says where the sheets are instead of "open Claude". A 2-day
+recheck is never solo: it is built at the open of a session.
 
 Fields this module adds to a block record: ``moves`` (the ics SEQUENCE),
 ``cancel_reason`` and ``cancelled_at``, ``misses`` (every ``plan miss``:
@@ -170,6 +176,8 @@ def register(subparsers):
     a.add_argument("--protected", action="store_true")
     a.add_argument("--measurement", action="store_true")
     a.add_argument("--soft", action="store_true")
+    a.add_argument("--solo", action="store_true",
+                   help="the learner works it alone, with no Claude session: its sheets are issued at the close before it")
     a.add_argument("--content", default=None, help="plain words; a recheck added by hand uses cold:<topic-id>")
     a.add_argument("--pair", default=None, help="the block this one belongs to (a recheck's teach block)")
     a.add_argument("--window-from", dest="window_from", default=None, help="obligation window start (no --start)")
@@ -182,10 +190,15 @@ def register(subparsers):
     a.add_argument("--min", dest="minutes", type=int, required=True)
     a.set_defaults(func=cmd_plan_place)
 
-    a = sp.add_parser("move", help="move a block (its paired rechecks move by the same amount)")
+    a = sp.add_parser("move", help="move a block (its paired rechecks move by the same amount), or mark it solo")
     a.add_argument("block")
-    a.add_argument("--start", required=True)
+    a.add_argument("--start", default=None, help="local time with no offset, e.g. 2026-10-15T07:00")
     a.add_argument("--min", dest="minutes", type=int, default=None)
+    g = a.add_mutually_exclusive_group()
+    g.add_argument("--solo", dest="solo", action="store_const", const=True, default=None,
+                   help="the learner works it alone, with no Claude session")
+    g.add_argument("--not-solo", dest="solo", action="store_const", const=False,
+                   help="a session with Claude after all")
     a.set_defaults(func=cmd_plan_move)
 
     a = sp.add_parser("cancel", help="cancel a block (it stays on file, marked cancelled)")
@@ -652,6 +665,10 @@ def cmd_plan_add(args):
         end = plus(start, minutes=_check_minutes(args.minutes))
     elif args.minutes is not None:
         raise UsageError("--min needs --start (an obligation has a window, not a time)")
+    if args.solo:
+        _check_solo(kind)
+        if start is None:
+            raise UsageError("--solo needs --start: a solo block has a time")
 
     with ws.lock():
         blocks = ws.load_blocks()
@@ -676,12 +693,15 @@ def cmd_plan_add(args):
             row["window"] = {"from": iso(window[0]), "to": iso(window[1])}
             if window[2]:
                 row["window"]["basis"] = window[2]
+        if args.solo:
+            row["solo"] = True
         blocks.append(row)
         _save(ws, blocks, [row])
 
     _out(bid)
     if start is not None:
-        _out("  %s · %s · %s · %dm" % (span_label(start, end), subj.id, kind, b_minutes(row)))
+        _out("  %s · %s · %s · %dm%s" % (span_label(start, end), subj.id, kind, b_minutes(row),
+                                         " · solo: issue its sheets at the close before it" if args.solo else ""))
         if kind == "cold":
             w = cold_window_for(ctx, row, dict((b.get("id"), b) for b in blocks))
             if w is not None and not (w[0] <= start <= w[1]):
@@ -692,6 +712,20 @@ def cmd_plan_add(args):
     else:
         _out("  obligation · %s · %s · window %s" % (subj.id, kind, window_text(window)))
     return 0
+
+
+def _check_solo(kind):
+    if kind == "cold":
+        raise UsageError("A 2-day recheck is never solo: it is built at the open of a session, inside its window "
+                         "(session-open.md §2)")
+
+
+def _set_solo(b, solo):
+    """Mark a block solo, or clear the mark (the key is left out when false)."""
+    if solo:
+        b["solo"] = True
+    else:
+        b.pop("solo", None)
 
 
 def _obligation_window(ctx, args, kind, content, sid, by_id):
@@ -746,6 +780,13 @@ def cmd_plan_place(args):
 def cmd_plan_move(args):
     ws = wsmod.from_args(args)
     ctx = Ctx(ws)
+    solo = getattr(args, "solo", None)
+    if args.start is None:
+        if solo is None:
+            raise UsageError("Give --start ISO (a move), or --solo / --not-solo")
+        if args.minutes is not None:
+            raise UsageError("--min needs --start")
+        return _mark_solo(ws, ctx, args.block, solo)
     new_start = parse_when(ctx, args.start)
     if args.minutes is not None:
         _check_minutes(args.minutes)
@@ -759,6 +800,8 @@ def cmd_plan_move(args):
         if is_obligation(b):
             raise CheckFailed("Refused: %s has no time yet. Use: plan place %s --start ISO --min N"
                               % (b["id"], b["id"]))
+        if solo:
+            _check_solo(b.get("kind"))
         old_s, old_e = b_start(b, tz), b_end(b, tz)
         if old_s is None:
             raise DataError("%s has an unreadable start" % b["id"])
@@ -808,6 +851,8 @@ def cmd_plan_move(args):
                               " or pick a time that keeps it inside.")
 
         _apply_move(b, new_start, new_end)
+        if solo is not None:
+            _set_solo(b, solo)
         for c, ns, ne, new_w in cascade:
             if ns is not None:
                 _apply_move(c, ns, ne)
@@ -815,7 +860,8 @@ def cmd_plan_move(args):
                 c["window"] = dict(c["window"], **{"from": iso(new_w[0]), "to": iso(new_w[1])})
         _save(ws, blocks, [b] + [x[0] for x in cascade])
 
-    _out("Moved %s: %s → %s (%dm)." % (b["id"], when_label(old_s), when_label(new_start), minutes))
+    _out("Moved %s: %s → %s (%dm)%s." % (b["id"], when_label(old_s), when_label(new_start), minutes,
+                                        "" if solo is None else (", solo" if solo else ", with Claude")))
     for c, ns, ne, new_w in cascade:
         if ns is not None:
             _out("  Its 2-day recheck %s moved too: %s → %s (inside its window)."
@@ -826,6 +872,28 @@ def cmd_plan_move(args):
     if b.get("cal"):
         _out("  It is in the calendar: plan diff lists the move.")
     _out("Next: plan check")
+    return 0
+
+
+def _mark_solo(ws, ctx, block_id, solo):
+    """plan move <B> --solo | --not-solo with no --start: change only the mark."""
+    with ws.lock():
+        blocks = ws.load_blocks()
+        b = find_block(blocks, block_id)
+        if b.get("status") not in OPEN or not b.get("start"):
+            raise CheckFailed("Refused: %s is %s; only a planned block with a time can be marked."
+                              % (b["id"], b.get("status") if b.get("start") else "not placed yet"))
+        if solo:
+            _check_solo(b.get("kind"))
+        _set_solo(b, solo)
+        _save(ws, blocks, [b])
+    s, e = b_start(b, ctx.tz), b_end(b, ctx.tz)
+    if solo:
+        _out("Marked %s solo: %s. Issue its sheets at the close before it (close.md §6)." % (b["id"], span_label(s, e)))
+    else:
+        _out("Marked %s as a session with Claude: %s." % (b["id"], span_label(s, e)))
+    if b.get("cal"):
+        _out("  It is already in the calendar: its card keeps its old start line until the block moves.")
     return 0
 
 
@@ -1046,6 +1114,8 @@ def cmd_plan_list(args):
             extra.append("measurement")
         if b.get("soft"):
             extra.append("soft")
+        if b.get("solo"):
+            extra.append("solo")
         if b.get("pair"):
             extra.append("pair " + b["pair"])
         misses = [m for m in (b.get("misses") or []) if isinstance(m, dict)]
@@ -1699,8 +1769,14 @@ def card_notes(ctx, b):
     if kind != "cold" and RECHECK_WORD_RE.search(content or ""):
         steps.insert(1 if steps and steps[0] in (_DESK, _TEST_DESK) else 0, RECHECK_STEP)
         fallback = RECHECK_FALLBACK
+    if b.get("solo"):
+        steps = [s for s in steps if not s.startswith("Open Claude")]
+        entry = ctx.ws.subject_entry(b.get("subject")) or {}
+        start_line = ("On your own: your sheets are in %s/%s/sheets. Send photos of your answers at your next "
+                      "session." % (ws_display(ctx.ws), entry.get("dir") or b.get("subject")))
+    else:
+        start_line = 'Start: open Claude in %s and say "start %s"' % (ws_display(ctx.ws), b.get("subject"))
     steps = steps[:6]
-    start_line = 'Start: open Claude in %s and say "start %s"' % (ws_display(ctx.ws), b.get("subject"))
 
     def build(steps, start_line):
         lines = ["[ind:%s]" % b.get("id")]
@@ -1713,7 +1789,9 @@ def card_notes(ctx, b):
         steps = steps[:-1]
         text = build(steps, start_line)
     if len(text) > NOTES_MAX:
-        text = build(steps, 'Start: open Claude in your study folder and say "start %s"' % b.get("subject"))
+        text = build(steps, ("On your own: your sheets are in your study folder. Send photos of your answers at "
+                             "your next session.") if b.get("solo")
+                     else 'Start: open Claude in your study folder and say "start %s"' % b.get("subject"))
     return text[:NOTES_MAX]
 
 
