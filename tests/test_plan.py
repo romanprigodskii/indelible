@@ -378,12 +378,18 @@ class HardRuleTests(PlanCase):
         dated = self.findings(data, "WARN", "checkpoint_after_date")
         self.assertEqual(len(dated), 2, data)                               # the 31 Oct checkpoint is fine
         self.assertIn("set ielts checkpoints.0.date", dated[0]["fix"])
+        self.assertIn("drop it (set ielts checkpoints '<the list without it>')", dated[0]["fix"])
         self.assertIn("mirror decision", dated[0]["fix"])
         self.assertIn("set ielts materials.ration.0.date", dated[1]["fix"])
+        self.assertIn("drop it (set ielts materials.ration '<the list without it>')", dated[1]["fix"])
         self.assertNotIn("mirror decision", dated[1]["fix"])
         self.ok("set", SID, "checkpoints.0.status", '"passed"')
         rc, data = self.check()
         self.assertEqual(len(self.findings(data, "WARN", "checkpoint_after_date")), 1)
+        # Dropping one is writing its list again without it: neither list has a dropped status.
+        self.ok("set", SID, "materials.ration", "[]")
+        rc, data = self.check()
+        self.assertEqual(self.findings(data, "WARN", "checkpoint_after_date"), [])
         self.assertFalse([f for f in data["findings"] if f["block"] in (on_the_day, admin)
                           and f["rule"] == "after_date"])
 

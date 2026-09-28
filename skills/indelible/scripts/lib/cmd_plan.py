@@ -1732,9 +1732,10 @@ def run_checks(ctx, blocks):
             name = row.get("instrument") or row.get("unit") or row.get("job") or what
             f.add("WARN", "checkpoint_after_date", None, "%s: the %s %s (%s) is on or after the date (%s)."
                   % (sid, what, name, day_label(cd), day_label(d)),
-                  "re-date it before the date (set %s %s.%d.date '\"YYYY-MM-DD\"') or drop it%s "
-                  "(plan.md §11, \"The date moves\")"
-                  % (sid, path, i, ", and replace its mirror decision" if what == "checkpoint" else ""),
+                  "re-date it before the date (set %s %s.%d.date '\"YYYY-MM-DD\"') or drop it (set %s %s "
+                  "'<the list without it>')%s (plan.md §11, \"The date moves\")"
+                  % (sid, path, i, sid, path,
+                     ", and replace or close its mirror decision" if what == "checkpoint" else ""),
                   when=dates.fmt_date(cd), subject=sid)
 
     order = {"FAIL": 0, "WARN": 1}
