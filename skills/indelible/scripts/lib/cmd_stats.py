@@ -600,7 +600,7 @@ def _file_lines(week_label, first, last, now, subject_weeks, hyg):
                             " · %d still ahead" % w["ahead"] if w.get("ahead") else ""))
         lines += ["", "Learning:"]
         lines.append("- 2-day recheck (36-72 h): %s [measured]" % pct(w["r48"]))
-        lines.append("- a week or more after teaching (144 h or more): %s [measured]" % pct(w["r7"]))
+        lines.append("- a week or more after last seen (144 h or more): %s [measured]" % pct(w["r7"]))
         lines.append("- Mistakes: %d new, %d fixed, %d retired, %d overdue now"
                      % (w["opened"], w["repaired"], w["retired"], w["overdue"]))
         if w["changes"]:

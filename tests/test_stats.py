@@ -320,6 +320,8 @@ class ReviewWeekTests(StatsBase):
         self.assertLessEqual(len(text.rstrip("\n").split("\n")), 60)
         self.assertIn("# Weekly review 2026-W42", text)
         self.assertIn("- 2-day recheck (36-72 h): 67% (4/6) [measured]", text)
+        # Counted from the last warm exposure, which is seldom the teaching for a later recheck.
+        self.assertIn("- a week or more after last seen (144 h or more): 100% (1/1) [measured]", text)
         self.assertIn("- practice [practice n=12]", text)
         self.assertIn("careless per 10 2.0 (2 in 10 questions on level-3+ topics)", text)
         self.assertNotIn("L-000", text)
