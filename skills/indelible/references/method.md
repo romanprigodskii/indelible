@@ -93,6 +93,7 @@ IDs are stable, so `overrides[].rule` in `subject.json` can name one (for exampl
 | R49 | Distress stops the study frame | core | [integrity] | |
 | R50 | The learner owns the data; nothing is deleted without a preview and a yes (a `forget` command comes in v0.2) | core | [integrity] | |
 | R51 | A sentence question comes right after the computed questions it is about, as the last question of their item, never cut off from its numbers | default | [one-learner] | section 6 |
+| R52 | A theory sheet says what the object is and why the rule follows from it, after the worked case and before the rule, in at most 5 lines | default | [lit-mixed] | Rittle-Johnson, Schneider & Star, 2015 |
 | Law 10 | Feedback names the error, states the standard, says it is within reach, gives the next step; no person-level praise, and no tally of the learner's repeats | core | [lit-mixed] | Yeager et al., 2014 |
 | breaks | One 10-minute break per 75 minutes in long sessions | default | [lit-mixed] | Biwer et al., 2023 |
 | if-then | One if-then plan for the obstacle the learner names | default | [lit-strong] | Gollwitzer & Sheeran, 2006 |
@@ -128,6 +129,7 @@ Graded [lit-mixed] for the principle; the details are [one-learner]. An earlier 
 - **Worked examples first, for novices only.** The advantage reverses as expertise grows (Kalyuga, 2007), and struggling first then being taught also works (Sinha & Kapur, 2021). A stuck learner gets a worked example on a separate sheet, never the answer in chat (Koedinger & Aleven, 2007).
 - **Concrete first is a default, not a law.** A concrete case that fades into the general rule helps learners connect the two (Fyfe et al., 2014), but generic examples can transfer better than concrete ones (Kaminski, Sloutsky & Heckler, 2008): hence R12 order is [lit-mixed], and the rule box after the case always states the general form. A learner who would rather see the rule first can lock an override of R12 order at review; lint L11 then accepts the rule before the case, but still asks for a worked case on the sheet.
 - **A same-day failure is real evidence;** only same-day success can't show mastery.
+- **A procedure needs its meaning.** Knowing what an object is and knowing how to work with it support each other (Rittle-Johnson, Schneider & Star, 2015), but which to teach first has rarely been tested, hence R52 is [lit-mixed] and comes after the worked case, not before it. In the method's development [one-learner], procedures taught with no picture of what they worked on faded before their 2-day recheck, and the learner's "what is it?" questions were the sign. A text box is only part of the answer: sheets carry no drawings in v0.1.
 - **Sentences come off numbers.** [one-learner]: in the method's development, sentence questions set apart from the numbers they were about, first on the sheet so they met a fresh learner, were missed while the computed questions beside them were right; the same content asked as numbers first, then one sentence inside the same item, landed. What mattered was the sentence following its own numbers, not its place on the page. Hence R51, and lint W2 warns on a sentence item cut off from its numbers.
 - **A mock copies the exam, check column included.** The exam has no check line, and a written check per answer takes time its clock doesn't give. A sitting unlike the exam measures a different task (Morris, Bransford & Franks, 1977), and a checkpoint's threshold is set on the exam's own scoring. So a mock, and an official question on a diagnostic or checkpoint, carries no check line; the miss-review after it carries the why-line.
 - **Hypercorrection is shown mostly on facts.** A wrong procedure also needs a contrast with a wrong worked example (Durkin & Rittle-Johnson, 2012), which fix sheets include.
@@ -198,6 +200,7 @@ Why no "sure / not sure" beside each answer? People stop filling it in, and the 
 - Pashler et al. (2005), *JEP: LMC*.
 - Patall, Cooper & Robinson (2008), *Psychological Bulletin*.
 - Rawson, Dunlosky & Sciartelli (2013), *Educational Psychology Review*.
+- Rittle-Johnson, Schneider & Star (2015), *Educational Psychology Review*.
 - Renkl & Atkinson (2003), *Educational Psychologist*.
 - Roediger & Karpicke (2006), *Psychological Science*.
 - Rohrer & Taylor (2006), *Applied Cognitive Psychology*. Rohrer & Taylor (2007), *Instructional Science*. Rohrer et al. (2020), *Journal of Educational Psychology*.

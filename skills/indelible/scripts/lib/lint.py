@@ -1,4 +1,4 @@
-"""The sheet checker: rules L1-L12 and warnings W1-W5 (CONTRACT section 7.4).
+"""The sheet checker: rules L1-L13 and warnings W1-W6 (CONTRACT section 7.4).
 
 ``check(spec, ctx)`` is pure: it takes the visible spec and a context dict and
 returns one result per rule, in order. ``gather(ws, subject, spec, row)``
@@ -54,6 +54,13 @@ theory, external, example or repair sheet of its topic has shown: a pencil
 question with that ``op``, or a worked section listing it in ``ops``. The theory
 and its drills come from two builder runs, so this is what ties them.
 
+L13 asks a theory sheet on a procedural, conceptual or code topic for a
+``meaning`` section ("What it is and why"): what the object is, and why the
+rule follows from it. A procedure taught without it fades before its 2-day
+recheck. W6 asks the same, as a warning, on other topics (a language or
+reading convention may say in one line that it is learned as given), and
+keeps the box short and before the rule.
+
 The key is read in-process for L8 only. Nothing from it is ever returned or
 printed: an L8 FAIL names the question (ask) ids, never the text.
 
@@ -68,13 +75,14 @@ from lib import LISTS_DIR, dates, learning
 from lib import io as fio
 from lib import render
 
-RULES = ["L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L9", "L10", "L11", "L12", "W1", "W2", "W3", "W4", "W5"]
+RULES = ["L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L9", "L10", "L11", "L12", "L13",
+         "W1", "W2", "W3", "W4", "W5", "W6"]
 TITLES = {
     "L1": "structure", "L2": "check lines", "L3": "unlabelled", "L4": "terms", "L5": "budget",
     "L6": "drill blocks", "L7": "cold validity", "L8": "key leak", "L9": "least-sure",
-    "L10": "check hints", "L11": "worked case first", "L12": "taught operations",
+    "L10": "check hints", "L11": "worked case first", "L12": "taught operations", "L13": "meaning box",
     "W1": "formula in block title", "W2": "sentences after their numbers",
-    "W3": "checks on new topics", "W4": "worked check", "W5": "reading time",
+    "W3": "checks on new topics", "W4": "worked check", "W5": "reading time", "W6": "meaning box",
 }
 
 # L2: every ask has a check line on these types. Repair is exempt (CONTRACT
@@ -169,6 +177,10 @@ ORDER_RULES = ("r12 order", "r12")
 # L12: the sheets that show an operation before the drills ask for it (pencil questions' op,
 # and a worked section's ops).
 SHOWING_TYPES = ("theory", "external", "example", "repair")
+# L13: the layers whose theory must say what the object is and why the rule follows (a procedure
+# learned without its meaning fades); W6 asks for it on the others. The box is about 5 lines.
+MEANING_LAYERS = ("procedural", "conceptual", "code")
+MEANING_MAX_WORDS = 80
 
 _CODE_SPAN = re.compile(r"(`+)(?!`)(.+?)(?<!`)\1(?!`)")
 _FENCE_OPEN = re.compile(r"^[ \t]*(`{3,}|~{3,})")
@@ -988,6 +1000,54 @@ def _l12(spec, ctx):
     return "PASS", "every new item's operation was shown on a sheet of its topic"
 
 
+def _sections(spec):
+    theory = spec.get("theory") if isinstance(spec.get("theory"), dict) else {}
+    return [sec for sec in (theory.get("sections") or []) if isinstance(sec, dict)]
+
+
+def _meaning_layers(spec):
+    """The layers on a theory sheet that need its meaning box (L13)."""
+    return sorted(set(_s(it.get("layer")) for it in _items(spec)) & set(MEANING_LAYERS))
+
+
+def _l13(spec, ctx):
+    """A theory sheet on a procedural, conceptual or code topic says what the object is and why
+    the rule follows from it, in a ``meaning`` section after the worked case."""
+    if spec.get("type") != "theory":
+        return "PASS", "not a theory sheet"
+    if any(_s(sec.get("kind")) == "meaning" for sec in _sections(spec)):
+        return "PASS", "the sheet says what it is and why"
+    need = _meaning_layers(spec)
+    if need:
+        return "FAIL", ("no meaning section on a %s topic: after the worked case, say in at most 5 lines what "
+                        "the object is (one everyday anchor or a picture in words) and why the rule follows "
+                        "from it" % "/".join(need))
+    layers = "/".join(sorted(set(_s(it.get("layer")) for it in _items(spec)) - {""})) or "no"
+    return "PASS", "not required on a %s topic (W6 asks for it)" % layers
+
+
+def _w6(spec, ctx):
+    if spec.get("type") != "theory":
+        return "PASS", "not a theory sheet"
+    secs = _sections(spec)
+    kinds = [_s(sec.get("kind")) for sec in secs]
+    meaning = [sec for sec in secs if _s(sec.get("kind")) == "meaning"]
+    if not meaning:
+        if _meaning_layers(spec):
+            return "PASS", "L13 asks for it"
+        return "WARN", ("no meaning section: say in at most 5 lines what it is and why the rule follows, or, "
+                        "for a convention, that it is one to learn as given")
+    probs = []
+    words = sum(len(_s(sec.get("body")).split()) for sec in meaning)
+    if words > MEANING_MAX_WORDS:
+        probs.append("it runs to %d words: keep it to about 5 lines (%d words)" % (words, MEANING_MAX_WORDS))
+    if "rule" in kinds and kinds.index("rule") < kinds.index("meaning"):
+        probs.append("it comes after the rule: put it between the worked case and the rule")
+    if probs:
+        return "WARN", "the meaning box: " + "; ".join(probs)
+    return "PASS", "a short meaning box before the rule"
+
+
 def _w4(spec, ctx):
     if spec.get("type") not in WORKED_CHECK_TYPES:
         return "PASS", "not a theory or repair sheet"
@@ -1051,8 +1111,8 @@ def _w2(spec, ctx):
 
 
 CHECKS = {"L1": _l1, "L2": _l2, "L3": _l3, "L4": _l4, "L5": _l5, "L6": _l6, "L7": _l7,
-          "L8": _l8, "L9": _l9, "L10": _l10, "L11": _l11, "L12": _l12,
-          "W1": _w1, "W2": _w2, "W3": _w3, "W4": _w4, "W5": _w5}
+          "L8": _l8, "L9": _l9, "L10": _l10, "L11": _l11, "L12": _l12, "L13": _l13,
+          "W1": _w1, "W2": _w2, "W3": _w3, "W4": _w4, "W5": _w5, "W6": _w6}
 
 
 def check(spec, ctx=None):

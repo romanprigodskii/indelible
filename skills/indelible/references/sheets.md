@@ -10,7 +10,7 @@ Load this for anything that builds, renders, issues, files or marks a sheet. Mar
 4. The Least-sure line
 5. Don'ts
 6. Building a sheet
-7. The checker: rules L1–L12
+7. The checker: rules L1–L13
 8. What the learner gets
 9. Keys
 10. Evidence
@@ -22,7 +22,7 @@ Load this for anything that builds, renders, issues, files or marks a sheet. Mar
 
 | Type | What it is | Counts as | Check lines | Least-sure |
 |---|---|---|---|---|
-| `theory` | Read, then closed: floor box, words, a worked case, the rule, a contrast, a warning, then pencil questions marked with the sheet open | practice | no | no |
+| `theory` | Read, then closed: floor box, words, a worked case, what it is and why, the rule, a contrast, a warning, then pencil questions marked with the sheet open | practice | no | no |
 | `external` | Pages in the learner's own book ("pp. 44–47: read, then close"), then 3–5 pencil questions, book closed | practice | no | no |
 | `example` | One worked case: the stuck question's structure on different details | practice | no | no |
 | `drills` | Blocks of one operation (`block_size`), a sentence question last in the item whose numbers it uses, a failure gate after item 3 of each block (item 4 in a block of 6 or more whose item 1 is worked) | practice | yes | yes |
@@ -95,6 +95,7 @@ Every answer on `drills`, `cold`, `mixed`, `review`, `diagnostic` and `checkpoin
 | A formula in a heading | The operation in words |
 | The answer anywhere visible: a hint, an option the key accepts word for word, a worked case on the same details | Choices answered by letter; worked cases on different details |
 | A concept introduced only by its definition | A concrete worked case first, then the rule (lint L11); one for each operation the drills use (L12) |
+| A procedure with no meaning: steps the learner can follow but can't picture | After the worked case, "What it is and why" in at most 5 lines: what the object is, and why the rule follows from it (lint L13, W6) |
 | Hints or worked steps on a measuring sheet | Only question, box and check line |
 | Official questions copied into a spec | A pointer: "Test 2, questions 1–13" (`origin: official:<source>`) |
 
@@ -115,7 +116,7 @@ A builder subagent writes every sheet that has answers, so no answer enters this
 - **Ids:** `<subject>-<type>-NN` (`ielts-cold-05`), or for a theory and its drills a shared stem, `<subject>-<stem>-NN-<type>` (`ielts-headings-01-theory`, `ielts-headings-01-drills`). A new id takes the next free NN.
 - **No Agent tool:** keyed sheets can't be built safely. Say so once, offer `external` pages from the learner's book, and label results `[unverified]`.
 
-## 7. The checker: rules L1–L12
+## 7. The checker: rules L1–L13
 
 `ind sheet lint <s> <id> --budget-min N` prints one PASS, FAIL or WARN line per rule and exits 1 on any FAIL. The builder fixes and re-lints. Never show rule codes to a plain-vocabulary learner.
 
@@ -133,11 +134,13 @@ A builder subagent writes every sheet that has answers, so no answer enters this
 | L10 check hints | a check hint asks the learner to find their own mistake ("find the error", "is there a mistake?"), to re-solve ("redo", "do it again", "double-check"), to rate their confidence, or says only "check your answer" | name the check to run (§3) |
 | L11 worked case first | a theory or repair sheet with no `worked` section, or with a `rule` section before the first one (a locked override of R12 order lets the rule come first, never the worked case go) | a concrete worked case first, then the rule |
 | L12 taught operations | on drills, a new item whose `op` no theory, external, example or repair sheet of its topic has shown (as a pencil question's `op` or in a worked section's `ops`); a topic with no such sheet is skipped | show it worked on the theory and rebuild that, or drop the item; never rename an `op` |
+| L13 meaning box | a theory sheet on a procedural, conceptual or code topic with no `meaning` section | after the worked case, say in at most 5 lines what the object is and why the rule follows from it |
 | W1 | `=` in a block title | the operation in words |
 | W2 | on drills with both computed and sentence items, a sentence item with no computed item before it on its topic | make it the last question of the computed item it is about |
 | W3 | on a topic below mastery 3 (3p counts as 3): a check line with no hint, or a hint that needs a second method or the weakest step ("another way", "which step would you be pushed on?") | the check the theory sheet worked, or one using only what the learner owns |
 | W4 | a theory or repair sheet whose worked case shows no check (no step labelled "Check:") | end the worked case with the check the drills will ask for |
 | W5 | a theory, example or repair sheet whose estimate leaves no time to read it: under the pace floor plus its words (floor box, words box, sections) at 150 a minute | add the reading time: its words over 120 a minute, over 90 in a second language (builder.md) |
+| W6 | a theory sheet on another topic (verbal, reading, production) with no `meaning` section; a meaning box over about 5 lines (80 words), or after the rule | the meaning in at most 5 lines, before the rule; for a convention, one line saying it is learned as given |
 
 L4 resolutions (`defined_here`, `defined_on:<sheet-id>`, `glossary`, `everyday`, `measured_here`) are in builder.md rule 5. Words the learner owns reach the glossary with `ind glossary add` at marking ([session-grade.md](session-grade.md) §8). Lint checks that a `defined_on` sheet is on file and defines the word, and `ind sheet issue` holds the sheet back until that one is issued; that the learner really read it, lint can't see, so it must be true.
 

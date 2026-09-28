@@ -113,6 +113,11 @@ LEAST_SURE_LABEL = "Least sure I chose the right idea (item numbers):"
 # blank reads the same as "none", so the learner is told that "none" is an answer.
 LEAST_SURE_RULE = "Then fill in the Least-sure line: item numbers, or “none”."
 CHECK_LABEL = "Check:"
+# A theory section's heading when the spec gives none. "What it is and why" is the meaning box: what the
+# object is, and why the rule follows from it, between the worked case and the rule (lint L13).
+SECTION_TITLES = {"worked": "Worked case", "meaning": "What it is and why", "rule": "The rule",
+                  "contrast": "Contrast", "both_hold": "When both hold", "warning": "Warning",
+                  "where": "Where this lives"}
 
 # Answer-box heights (mm) by layer; generous, for handwriting.
 BOX_MM = {"procedural": 32, "conceptual": 30, "verbal": 18, "reading": 16, "production": 80, "code": 50}
@@ -609,9 +614,7 @@ def render_html(spec, date=None, tools=None, lang="en", profile=None, reference_
         for i, sec in enumerate(th["sections"], start=1):
             hid = "sec-%d" % i
             o.append('<section class="sec sec-%s" aria-labelledby="%s">\n' % (_e(_slug(sec["kind"])), hid))
-            title = sec["title"] or {"rule": "The rule", "warning": "Warning", "worked": "Worked case",
-                                     "contrast": "Contrast", "both_hold": "When both hold",
-                                     "where": "Where this lives"}.get(sec["kind"], "Notes")
+            title = sec["title"] or SECTION_TITLES.get(sec["kind"], "Notes")
             o.append('<h2 id="%s">%s</h2>\n' % (hid, _e(title)))
             o.append(_html_paras(sec["paras"]))
             o.append("</section>\n")
@@ -726,9 +729,7 @@ def render_typst(spec, date=None, tools=None, lang="en", profile=None, reference
                 gloss = " #emph[(%s)]" % _tl(w["gloss"]).strip() if w["gloss"] else ""
                 o.append("#strong[%s]%s: %s\n\n" % (_tl(w["term"]).strip(), gloss, _tl(w["def"]).strip()))
         for sec in th["sections"]:
-            title = sec["title"] or {"rule": "The rule", "warning": "Warning", "worked": "Worked case",
-                                     "contrast": "Contrast", "both_hold": "When both hold",
-                                     "where": "Where this lives"}.get(sec["kind"], "Notes")
+            title = sec["title"] or SECTION_TITLES.get(sec["kind"], "Notes")
             body = _typ_paras(sec["paras"])
             if sec["kind"] in ("rule", "warning"):
                 o.append("#boxed[\n#strong[%s]\n\n%s]\n\n" % (_tl(title).strip(), body))
@@ -827,7 +828,7 @@ def render_markdown(spec, date=None, tools=None, lang="en", profile=None, refere
                 o.append("- **%s**%s: %s\n" % (_md_escape(w["term"]), gloss, _md_escape(w["def"])))
             o.append("\n")
         for sec in th["sections"]:
-            title = sec["title"] or sec["kind"].replace("_", " ").capitalize()
+            title = sec["title"] or SECTION_TITLES.get(sec["kind"], "Notes")
             if sec["kind"] in ("rule", "warning"):
                 o.append("> **%s**\n>\n" % _md_escape(title))
                 for blk in sec["paras"]:

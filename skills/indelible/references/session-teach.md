@@ -41,12 +41,13 @@ A wrong idea (an error of kind `belief`) is never served cold until it has been 
    1. the floor box (what the topic stands on);
    2. the words and symbols, each with a gloss (a first-language gloss on first use, when set); a symbol, built-in or piece of syntax also says how to read it aloud and what it does;
    3. the smallest worked concrete case, one for each operation the drills will use, ending with its check worked as a step ("Check: …"): the check the drills will ask for, so the learner has seen it run once. Lint L11 fails a theory sheet with no worked case before the rule, and L12 fails drills that ask for an operation the theory never showed;
-   4. the rule, in a box;
-   5. a contrast pair, then the case where both hold;
-   6. a warning box with the likeliest wrong turn;
-   7. "where this lives": where it turns up in the exam or the work;
-   8. pencil questions, printed at the end of the sheet: completion steps on a fresh case, with the worked case's named steps and every operation named;
-   9. "Send me your pencil answers and keep this sheet open until I've marked them. Then put it away and tell me “closed”. The drills come on their own sheet."
+   4. what it is and why (the meaning box), at most 5 lines: what the object is, as one everyday anchor or a picture in words, and why the rule follows from it; for a pure convention, one line saying it is learned as given (lint L13 asks for it on procedural, conceptual and code topics). A procedure learned without its meaning fades before its recheck;
+   5. the rule, in a box;
+   6. a contrast pair, then the case where both hold;
+   7. a warning box with the likeliest wrong turn;
+   8. "where this lives": where it turns up in the exam or the work;
+   9. pencil questions, printed at the end of the sheet: completion steps on a fresh case, with the worked case's named steps and every operation named;
+   10. "Send me your pencil answers and keep this sheet open until I've marked them. Then put it away and tell me “closed”. The drills come on their own sheet."
 
    By default (R12 order), a concrete case comes before any definition. A learner's locked override of R12 order (the brief's OVERRIDES) puts the rule first; the worked case still follows.
 4. **At mastery 0–1, the worked example comes first and fades, in each drill block whose operation is new.** The block's first item is fully worked, ending with its check (a step labelled "Check:"), and asks one "why does this step follow?" question. The second has its last steps blank. The rest of the block is independent; in a block of 3, only the first item is worked. In a block of 6 or more, the failure gate moves to after item 4 (`gate_after`), so it watches the faded item and two independent ones, not the worked one.
@@ -73,6 +74,8 @@ When the learner is stuck, climb one rung per message:
 
 - **Drills:** ask for a photo or a typed copy of that question's work so far, and file it for that question alone, as a gate photo is filed: `ind scan ingest <s> <id> <photo> --asks 5a --transcript -` (no path for a photo pasted into chat or a typed copy). The sheet stays issued, and `ind key open <s> <id>` prints only that question: point from its `solution`, one rung per message, and say nothing about the other questions.
 - **Theory, external, example and repair sheets:** the pencils follow the sheet's own worked case, so point to its step, as marking does (§2 step 6). Read the visible sheet, `<s>/sheets/YYYY-MM/<id>.<ext>` (or the source beside it; never anything under `.indelible/`); an external sheet names the book's page and example instead.
+
+**"What is it?" or "why?"** about the object itself (not a step) points to the meaning box: "Look at 'What it is and why' on the theory sheet." If the sheet has none, or it didn't land, that is my mistake: log it (`ind ledger add defect --subject <s> --category content_error --what "<sheet>: no meaning for <object>" --fix-type template --fix "builder: say what <object> is and why the rule follows"`) and put the answer on the next sheet, rather than teaching it in chat right above the drills. If you do answer in chat, run `ind session expose <s> <T> --kind chat`.
 
 **Floundering timeout** (2 hints, or 5 minutes without progress since the learner first asked, checked against `ind session status` when their next message comes): "One more hint, or a worked example?"
 

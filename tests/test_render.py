@@ -321,13 +321,23 @@ class HtmlTemplateTests(Base):
         t = visible_text(render.render_html(theory_spec(), date=DAY))
         order = ["Rules", "0. Start time:", "Before this sheet", "You can find the verb in a sentence.",
                  "Words on this sheet", "paraphrase (paráfrase)", "the same idea said with other words",
-                 "A worked case", "How to paraphrase", "Watch out", "Question 1.", "Stop time:", CLOSE]
+                 "A worked case", "What it is and why", "How to paraphrase", "Watch out", "Question 1.",
+                 "Stop time:", CLOSE]
         positions = [t.index(s) for s in order]
         self.assertEqual(positions, sorted(positions))
         self.assertTrue(t.endswith(CLOSE))
         self.assertIn("Read this sheet, then do the pencil questions at the end with it open. "
                       "The drills that follow are closed book.", t)
         self.assertNotIn("Least sure", t)
+
+    def test_an_untitled_section_gets_its_kinds_heading_in_every_format(self):
+        spec = theory_spec()
+        for sec in spec["theory"]["sections"]:
+            sec["title"] = ""
+        for fn in (render.render_html, render.render_typst, render.render_markdown):
+            out = fn(spec, date=DAY)
+            positions = [out.index(s) for s in ("Worked case", "What it is and why", "The rule", "Warning")]
+            self.assertEqual(positions, sorted(positions), fn.__name__)
 
 
 class TypstAndMarkdownTests(Base):

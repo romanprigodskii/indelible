@@ -99,6 +99,9 @@ def theory_spec(sheet_id="ielts-theory-01", **over):
                  "body": "Start: The shop shut at noon.\n\nOther words: The store closed at midday.\n\n"
                          "Check: read both aloud. Same idea, new words.",
                  "ops": ["swap-word"]},
+                {"kind": "meaning", "title": "What it is and why",
+                 "body": "A paraphrase is the same message in new clothes. Exams use it to see whether you "
+                         "read for the message, not for matching words."},
                 {"kind": "rule", "title": "How to paraphrase", "body": "Keep the idea. Change the words."},
                 {"kind": "warning", "title": "Watch out", "body": "Do not add new facts."},
             ],

@@ -285,6 +285,10 @@ THEORY_SPEC = {
                 "Step 3. Compare each heading with your five words, not with single words in the paragraph. "
                 "B says the same thing as 'piped water ended town illness'.\n\n"
                 "Step 4. Check: read the whole paragraph again under B. Every sentence belongs under it."},
+            {"kind": "meaning", "title": "What it is and why", "body":
+                "A heading is the paragraph's name: a reader scanning the list uses it to find the paragraph "
+                "they need. So every sentence has to sit under it. A heading that covers only one sentence "
+                "names a detail, and a reader who follows it lands in the wrong place."},
             {"kind": "rule", "title": "The rule", "body":
                 "Say the main idea of the whole paragraph in your words before you look at the headings. "
                 "Then choose the heading that says the same thing. A heading that repeats a word from the "

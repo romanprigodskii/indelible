@@ -37,6 +37,10 @@ Step 3. Compare each heading with your five words, not with single words in the 
 
 Step 4. Check: read the whole paragraph again under B. Every sentence belongs under it.
 
+## What it is and why
+
+A heading is the paragraph's name: a reader scanning the list uses it to find the paragraph they need. So every sentence has to sit under it. A heading that covers only one sentence names a detail, and a reader who follows it lands in the wrong place.
+
 > **The rule**
 >
 > Say the main idea of the whole paragraph in your words before you look at the headings. Then choose the heading that says the same thing. A heading that repeats a word from the paragraph is not a reason to choose it.

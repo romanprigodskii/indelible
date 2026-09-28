@@ -512,10 +512,10 @@ DUE counts tiers 6 and 7 together (plain: `later rechecks ready now: 2`) and sen
 - **`theory`** (theory, external, example, repair only):
 
   ```json
-  {"floor":["..."],"words":[{"term","gloss","def"}],"sections":[{"kind":"worked|rule|contrast|both_hold|warning|where|text","title","body","ops":["..."]}],"pages":"Cambridge 18 pp. 44-47"}
+  {"floor":["..."],"words":[{"term","gloss","def"}],"sections":[{"kind":"worked|meaning|rule|contrast|both_hold|warning|where|text","title","body","ops":["..."]}],"pages":"Cambridge 18 pp. 44-47"}
   ```
 
-  `body` is plain text with Unicode maths, paragraphs separated by blank lines. `ops` (optional, a list of `op` names, read on `worked` sections) names the operations the worked case shows.
+  `body` is plain text with Unicode maths, paragraphs separated by blank lines. `ops` (optional, a list of `op` names, read on `worked` sections) names the operations the worked case shows. A `meaning` section (default heading "What it is and why") says in at most 5 lines what the object is and why the rule follows from it, between the worked case and the rule.
 
 **Answers file** (`<subject>/.indelible/tmp/<id>.answers.json`):
 
@@ -549,13 +549,15 @@ For a rounded number, `check` also gives the tolerance the check holds to, the s
   | L10 check hints | No `check_hint` on an ask with `check: true` sends the learner to find their own mistake ("find the mistake", "check your work for mistakes", "where did you go wrong?", "is there a mistake?"), asks for a re-solve ("redo", "rework", "do it again", "double-check") or a confidence rating ("are you sure?"), or is only "check your answer". "Error" counts only when the phrase ends there or points at the learner's own work, so subject words pass: "the standard error", "the error term", "error bars", "the error message", "a confidence interval". Detection matches English wording only |
   | L11 worked case first | On `theory` and `repair`: `theory.sections` has a section of kind `worked`, and no `rule` section comes before the first one, unless the subject's `overrides[]` holds a locked override of `R12 order` (or of `R12`, from before the split): that lifts the order, never the worked section |
   | L12 taught operations | On `drills`: every item with origin `new` has an `op` (case-insensitive) that a sheet of its topic of type `theory`, `external`, `example` or `repair`, not `void`, has shown: the `op` of one of its items, or an entry of a `worked` section's `ops` (a section's ops count for every topic on that sheet). A topic with no such sheet is skipped (taught by a tutor, or migrated) |
+  | L13 meaning box | On `theory`: when any item's `layer` is `procedural`, `conceptual` or `code`, `theory.sections` has a section of kind `meaning` |
 
   WARN rules:
   - W1: a formula character (`=`) appears in a block title;
   - W2: on `drills` with both verbal and non-verbal items (verbal: layer `verbal` or `reading`, or a sentence op), a verbal item has no non-verbal item before it on its topic: a sentence is answered off the numbers it is about, as the last ask of their item;
   - W3: on a sheet with check lines (the L2 types plus `repair`), an ask with `check: true` on a topic below mastery 3p (the ask's own `topic`, else its item's; from `data/topics.json`; no state counts as 0) has no `check_hint`, or a hint that needs a second method or a sense of the weakest step ("another way", "a different method", "the weakest step", "would you be pushed on"). Subject words pass ("the weakest acid");
   - W4: on `theory` and `repair`, no `worked` section has a step labelled "Check:" in its body: the worked case ends with the check the drills will ask for;
-  - W5: on `theory`, `example` and `repair`, `est_min` is under the pace floor plus the sheet's words to read (`theory.floor`, `theory.words`, `theory.sections`) at 150 a minute: the builder adds reading time at 120 words a minute, 90 in a second language.
+  - W5: on `theory`, `example` and `repair`, `est_min` is under the pace floor plus the sheet's words to read (`theory.floor`, `theory.words`, `theory.sections`) at 150 a minute: the builder adds reading time at 120 words a minute, 90 in a second language;
+  - W6: on `theory` with no item on a `procedural`, `conceptual` or `code` layer, no `meaning` section; on any `theory`, a `meaning` section of more than 80 words in all, or one after the first `rule` section.
 - **`sheet build <subject> <id> [--format pdf|html|md] [--date YYYY-MM-DD]`**
   - Requires `lint=PASS`.
   - Renders through the chain: typst, then Chrome/Edge headless on the HTML (PDF), then HTML, then Markdown. It uses the backend recorded by `doctor`, or tries in order.

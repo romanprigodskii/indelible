@@ -1,4 +1,4 @@
-"""The sheet checker: every rule L1-L12 and W1-W5 has a failing and a passing fixture.
+"""The sheet checker: every rule L1-L13 and W1-W6 has a failing and a passing fixture.
 
 Most rules are checked in-process with ``lint.check(spec, ctx)``; the rules
 that read the workspace (L4 sense words, L5 blocks, L7 exposures and errors,
@@ -658,7 +658,7 @@ class RuleTests(Base):
         self.assertIn("no worked section", r["detail"])
         spec = theory_spec()
         secs = spec["theory"]["sections"]
-        secs[0], secs[1] = secs[1], secs[0]
+        secs[0], secs[2] = secs[2], secs[0]                   # the rule before the worked case
         r = result(spec, "L11")
         self.assertEqual(r["status"], "FAIL")
         self.assertIn("the rule comes before the first worked case", r["detail"])
@@ -679,6 +679,42 @@ class RuleTests(Base):
         spec["type"] = "external"
         self.assertEqual(self.status(spec, "L11"), "PASS", "external pages are named, never copied")
         self.assertEqual(self.status(drills_spec(), "L11"), "PASS")
+
+    def test_l13_a_theory_on_a_procedure_says_what_it_is_and_why(self):
+        self.assertEqual(self.status(theory_spec(), "L13"), "PASS")
+        spec = theory_spec()
+        spec["theory"]["sections"] = [s for s in spec["theory"]["sections"] if s["kind"] != "meaning"]
+        r = result(spec, "L13")
+        self.assertEqual((r["status"], r["detail"]), ("PASS", "not required on a verbal topic (W6 asks for it)"))
+        r = result(spec, "W6")
+        self.assertEqual(r["status"], "WARN")
+        self.assertIn("no meaning section", r["detail"])
+        self.assertIn("a convention", r["detail"])
+        for layer in ("procedural", "conceptual", "code"):
+            spec["items"][0]["layer"] = layer
+            r = result(spec, "L13")
+            self.assertEqual(r["status"], "FAIL", layer)
+            self.assertIn("no meaning section on a %s topic" % layer, r["detail"])
+            self.assertEqual(self.status(spec, "W6"), "PASS", "L13 asks for it: one line, not two")
+        # Theory sheets only: a repair, an example and external pages are not asked for one.
+        for t in ("repair", "example", "external"):
+            self.assertEqual(self.status(dict(spec, type=t), "L13"), "PASS", t)
+            self.assertEqual(self.status(dict(spec, type=t), "W6"), "PASS", t)
+        self.assertEqual(self.status(drills_spec(), "L13"), "PASS")
+
+    def test_w6_keeps_the_meaning_box_short_and_before_the_rule(self):
+        self.assertEqual(self.status(theory_spec(), "W6"), "PASS")
+        spec = theory_spec()
+        spec["theory"]["sections"][1]["body"] = " ".join(["word"] * 81)
+        r = result(spec, "W6")
+        self.assertEqual(r["status"], "WARN")
+        self.assertIn("81 words", r["detail"])
+        spec = theory_spec()
+        secs = spec["theory"]["sections"]
+        secs[1], secs[2] = secs[2], secs[1]                   # meaning after the rule
+        r = result(spec, "W6")
+        self.assertEqual(r["status"], "WARN")
+        self.assertIn("after the rule", r["detail"])
 
     def test_l12_drills_ask_only_for_operations_a_sheet_has_shown(self):
         spec = drills_spec()                                   # T04, op swap-word
@@ -809,7 +845,7 @@ class CliLintTests(Base):
         from lib import ws as wsmod
         theory = theory_spec()
         secs = theory["theory"]["sections"]
-        secs[0], secs[1] = secs[1], secs[0]                   # the rule before the worked case
+        secs[0], secs[2] = secs[2], secs[0]                   # the rule before the worked case
         self.assertEqual(new_sheet(self.ws, theory).returncode, 0)
         r = self.lint(theory["id"])
         self.assertEqual(r.returncode, 1)
