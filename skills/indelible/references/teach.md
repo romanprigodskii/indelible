@@ -155,6 +155,7 @@ Next time: open Claude in ~/Study and say "start ielts".
 Building your diagnostic now (about 3 minutes). Part A is set for Mon 07:00.
 ```
 
+- **Typed answers** (`format.answer_form` "typed", B): the You line says "type your answers with a check after each, and send them in one message when you stop" in place of "work on paper, write the check beside each answer", and the photos line is left out ([sheets.md](sheets.md) §8).
 - **The photos line** (paper answers only; typed answers need none) fits the learner's computer and phone, with the workspace's real path. File routes come first: the original photo is kept in `scans/`, while a pasted one leaves only a transcript ([sheets.md](sheets.md) §10).
   - macOS with an iPhone (A): as above.
   - Windows with an iPhone (C): "Photos of your work: email them to yourself and save the attachments in <ws>\inbox (Phone Link works too), then say 'sent'. Pasting a photo into this chat also works."
