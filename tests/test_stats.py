@@ -181,6 +181,13 @@ class StatsTests(StatsBase):
         self.assertEqual(list(st["instruments"]), ["cold"])
 
 
+class FailedCheckLineTests(unittest.TestCase):
+    def test_failed_checks_name_those_on_right_answers(self):
+        self.assertEqual(cmd_stats.failed_checks({"n": 3, "right": 0}), "failed checks 3")
+        self.assertEqual(cmd_stats.failed_checks({"n": 3, "right": 1}), "failed checks 3 (1 on a right answer)")
+        self.assertEqual(cmd_stats.failed_checks({"n": 3, "right": 2}), "failed checks 3 (2 on right answers)")
+
+
 class ReviewWeekTests(StatsBase):
     def test_review_prints_at_most_15_lines_and_writes_the_file(self):
         self.add_week_records()

@@ -697,6 +697,14 @@ class MetricTests(Base):
         cov = learning.check_coverage(rows)
         self.assertEqual((cov["num"], cov["n"]), (7, 8))
         self.assertEqual(learning.check_catches(rows), 1)
+        self.assertEqual(learning.check_failed(rows), {"n": 0, "right": 0})
+        # A check marked failed with the answer kept was written: it counts toward coverage.
+        rows[5]["check"] = "failed"
+        rows[0]["check"] = "failed"
+        cov = learning.check_coverage(rows)
+        self.assertEqual((cov["num"], cov["n"]), (8, 8))
+        self.assertEqual(learning.check_failed(rows), {"n": 2, "right": 1})
+        rows[5]["check"], rows[0]["check"] = "missing", "filled"
         r48 = learning.retention_48h(rows)
         self.assertEqual((r48["num"], r48["n"]), (2, 4))
         self.assertIsNone(learning.retention_7d(rows)["value"])

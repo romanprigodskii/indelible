@@ -788,13 +788,20 @@ def least_sure_hit_rate(attempts):
 
 
 def check_coverage(attempts):
-    """Asks with check filled or caught / asks, on sheets that carry check lines."""
-    rows = [a for a in attempts or [] if a.get("check") in ("filled", "missing", "caught")]
-    return _ratio(len([a for a in rows if a.get("check") in ("filled", "caught")]), len(rows))
+    """Asks with a check written (filled, caught or failed) / asks, on sheets that carry check lines."""
+    rows = [a for a in attempts or [] if a.get("check") in ("filled", "missing", "caught", "failed")]
+    return _ratio(len([a for a in rows if a.get("check") in ("filled", "caught", "failed")]), len(rows))
 
 
 def check_catches(attempts):
     return len([a for a in attempts or [] if a.get("check") == "caught"])
+
+
+def check_failed(attempts):
+    """Checks that didn't hold with the answer kept (marked ✗): {"n", "right"}. Those on right
+    answers are counted apart: they point at the check, its tolerance or the key, not the answer."""
+    rows = [a for a in attempts or [] if a.get("check") == "failed"]
+    return {"n": len(rows), "right": len([a for a in rows if a.get("verdict") == "right"])}
 
 
 def retention(attempts, lo_h, hi_h):

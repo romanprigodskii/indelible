@@ -41,7 +41,8 @@ SHEET_TYPES = [
 MEASURING_TYPES = ["cold", "diagnostic", "mock", "checkpoint", "probe", "words"]
 SHEET_STATUSES = ["built", "linted", "rendered", "issued", "sat", "graded", "void"]
 VERDICTS = ["right", "half", "wrong", "dont_know", "skip"]
-CHECKS = ["filled", "missing", "caught", "n/a"]
+# failed: the check was written and didn't hold, and the answer was left as it was (marked ✗ on the sheet).
+CHECKS = ["filled", "missing", "caught", "failed", "n/a"]
 INSTRUMENTS = ["practice", "cold", "diagnostic", "mock", "checkpoint", "probe", "words"]
 PROVENANCE = ["practice", "measured"]
 ERROR_KINDS = ["belief", "slip", "shaky"]
@@ -845,7 +846,7 @@ RECORDS = {
                     "prov": "measured"},
         "notes": [
             ("verdict", "right (1) | half (0.5) | wrong (0) | dont_know (0) | skip (0)"),
-            ("check", "filled | missing | caught (answer changed after a failed check) | n/a"),
+            ("check", "filled | missing | caught (answer changed after a failed check) | failed (the check didn't hold and the answer was kept: marked ✗) | n/a"),
             ("least_sure", "true if the ask is on the sheet's closing 'Least sure of' line"),
             ("instrument", " | ".join(INSTRUMENTS) + "; drills, mixed, repair, review, example -> practice"),
             ("interval_h", "hours since the topic's last warm exposure"),
@@ -1003,6 +1004,8 @@ RECORDS = {
         "notes": [
             ("keys", "ask ids from the spec"),
             ("accept", "accepted answer strings; lint fails if one of 3+ characters appears in the visible sheet"),
+            ("check", "what a correct check line shows; for a rounded number, the tolerance it holds to, as the "
+                      "check_hint states it"),
             ("sealing", "sheet new moves it to .indelible/keys/<id>.json (mode 600) and deletes the answers file"),
             ("reading", "only indelible.py key open, and only after evidence of the attempt is filed"),
         ],
@@ -1018,7 +1021,7 @@ RECORDS = {
         "notes": [
             ("start / stop", "HH:MM from items 0 and N; date YYYY-MM-DD"),
             ("verdict", "right | half | wrong | dont_know | skip ('I don't know' is always an accepted answer)"),
-            ("check", "filled | missing | caught | n/a"),
+            ("check", "filled | missing | caught | failed (marked ✗, answer kept) | n/a"),
             ("least_sure", "true if the learner named this ask on the Least-sure line"),
             ("kind", "belief | slip | shaky: creates an error for wrong, half or dont_know asks"),
             ("account", "the learner's own words, asked before classifying; or 'no account'"),

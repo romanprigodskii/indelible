@@ -311,7 +311,7 @@ def cmd_grade_record(args):
                 if verdict in ("skip", "dont_know") or not ask.get("check"):
                     check = "n/a"
                 else:
-                    bad.append("%s: give check (filled, missing, caught or n/a)" % aid)
+                    bad.append("%s: give check (filled, missing, caught, failed or n/a)" % aid)
                     continue
             origin = str(item.get("origin") or "new")
             kind = g.get("kind")
@@ -526,11 +526,17 @@ def cmd_grade_record(args):
     wrong = [a for a in attempts if a["verdict"] == "wrong"]
     unnamed = [a for a in wrong if not a["least_sure"]]
     out("Wrong answers not on the Least-sure line: %d of %d" % (len(unnamed), len(wrong)))
-    with_lines = [a for a in attempts if a["check"] in ("filled", "missing", "caught")]
+    with_lines = [a for a in attempts if a["check"] in ("filled", "missing", "caught", "failed")]
     if with_lines:
-        covered = len([a for a in with_lines if a["check"] in ("filled", "caught")])
+        covered = len([a for a in with_lines if a["check"] in ("filled", "caught", "failed")])
         caught = len([a for a in with_lines if a["check"] == "caught"])
-        out("Check lines written: %d of %d; caught a mistake: %d" % (covered, len(with_lines), caught))
+        line = "Check lines written: %d of %d; caught a mistake: %d" % (covered, len(with_lines), caught)
+        failed = [a for a in with_lines if a["check"] == "failed"]
+        if failed:
+            # A check that failed on a right answer points at the check, its tolerance or the key.
+            right = len([a for a in failed if a["verdict"] == "right"])
+            line += "; failed, answer kept: %d%s" % (len(failed), " (%d of them right)" % right if right else "")
+        out(line)
     if created:
         parts = []
         for e in created:

@@ -356,8 +356,11 @@ def rules(spec, tools, fmt="html", profile=None, reference_sheet=False):
     else:
         out.append("Write the check beside each answer where a Check line is printed. " + check_how)
     if any_check and spec.get("least_sure") is True:
-        out.append("If a check fails and you can't see why within a minute, keep your answer, put its number "
-                   "on the Least-sure line and go on: I'll show you where at marking.")
+        # One line: the ✗ records the failed check (graded `failed`), and leaving the check as it is
+        # stops a learner reworking it until it agrees, which hides the slip it found.
+        out.append("If a check fails and you can't see why within a minute, mark it ✗ or “no”, leave your "
+                   "answer and the check as they are, put its number on the Least-sure line and go on: "
+                   "I'll show you where at marking.")
     # One line for "can't do it": the hint offer shares the "I don't know" line, to keep the box short.
     out.append("“I don't know” is always an accepted answer." + (" " + STUCK_LINE if t in HINT_TYPES else ""))
     if minutes and t in THEORY_BEARING:

@@ -193,6 +193,16 @@ class ColdSheetTests(GradeBase):
         path = write_grades(self.tmp, "grades.json", self.grades)
         return self.cli(["grade", "record", self.sid, "ielts-cold-01", "--from", path] + list(extra), **kw)
 
+    def test_a_failed_check_with_the_answer_kept_is_recorded_apart(self):
+        # The learner marked the checks on 3 and 7 with a cross and left both answers: `failed`.
+        self.grades["asks"][2]["check"] = "failed"
+        self.grades["asks"][6]["check"] = "failed"
+        out = self.record().stdout
+        self.assertIn("Check lines written: 7 of 8; caught a mistake: 1; failed, answer kept: 2 (1 of them right)",
+                      out)
+        by_ask = dict((a["ask"], a) for a in self.attempts())
+        self.assertEqual((by_ask["3a"]["check"], by_ask["7a"]["check"]), ("failed", "failed"))
+
     def test_cold_sheet_writes_attempts_errors_levels_and_closes_obligations(self):
         r = self.record()
         out = r.stdout

@@ -108,7 +108,9 @@ class HtmlTemplateTests(Base):
         for s in ("Closed book", "Answer on paper, one answer in each box.",
                   "Write the check beside each answer.", "“I don't know” is always an accepted answer.",
                   "Stop after 12 minutes.", "Tools allowed: none.", V_RULE,
-                  "If a check fails and you can't see why within a minute, keep your answer"):
+                  "If a check fails and you can't see why within a minute, mark it ✗ or “no”, leave your "
+                  "answer and the check as they are, put its number on the Least-sure line and go on: "
+                  "I'll show you where at marking."):
             self.assertIn(s, rules)
 
     def test_the_exams_formula_sheet_is_allowed_where_the_exam_gives_one(self):
@@ -181,6 +183,13 @@ class HtmlTemplateTests(Base):
             lines = render.rules(spec, "none")
             self.assertTrue(any(r.startswith("Stop after") for r in lines), spec["type"])
             self.assertFalse(any(r.startswith("Allow about") for r in lines), spec["type"])
+
+    def test_the_rules_box_stays_short(self):
+        # Eight lines at most: new advice joins a line it belongs with (the failed-check mark, the hint offer).
+        for spec in (drills_spec(), cold_spec(), theory_spec(), drills_spec(type="repair"), drills_spec(type="mock")):
+            lines = render.rules(spec, "calculator", reference_sheet=True)
+            self.assertLessEqual(len(lines), 8, spec["type"])
+            self.assertLessEqual(len([r for r in lines if "check fails" in r]), 1, spec["type"])
 
     def test_a_failed_check_is_a_flag_not_a_hunt_only_where_there_are_checks(self):
         from lib import render

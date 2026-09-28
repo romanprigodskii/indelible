@@ -192,7 +192,7 @@ A topic's cold passes are not stored: the level rules find them in `attempts.jso
 ```
 
 - **`verdict`:** `right` (1) | `half` (0.5) | `wrong` (0) | `dont_know` (0) | `skip` (0).
-- **`check`:** `filled` | `missing` | `caught` | `n/a`. `caught` means the answer was changed after a failed check.
+- **`check`:** `filled` | `missing` | `caught` | `failed` | `n/a`. `caught` means the answer was changed after a failed check; `failed` means the check was written and didn't hold, and the answer was kept (the learner marks it ✗).
 - **`instrument`:** `practice` | `cold` | `diagnostic` | `mock` | `checkpoint` | `probe` | `words`.
 - **`prov`:** `practice` | `measured`. `measured` iff the instrument measures.
 
@@ -337,8 +337,9 @@ For error re-serves, only 2 and 3 apply, plus `next_due ≤ date(t)`.
 | careless per 10 | 10 × (misses with mode `C`) ÷ asks attempted on topics that were at level ≥3 before the sitting |
 | unnamed-wrong % | wrong answers with `least_sure=false` ÷ all wrong answers |
 | least-sure hit rate | least-sure asks that were wrong ÷ least-sure asks |
-| check coverage | asks with check `filled` or `caught` ÷ asks, on sheets that carry check lines |
+| check coverage | asks with check `filled`, `caught` or `failed` ÷ asks, on sheets that carry check lines |
 | check catches | count of `caught` |
+| failed checks | count of `failed`, with those on right answers counted apart: they point at the check, its tolerance or the key |
 | retention 48 h | right ÷ presented on cold asks with `interval_h` of 36–72 |
 | retention 7 d | right ÷ presented on cold asks with `interval_h` of 144–216 |
 | execution | blocks done ÷ planned (scheduled mode only); actual ÷ planned minutes; overruns |
@@ -477,6 +478,8 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
 {"1a":{"accept":["..."],"check":"what a correct check line shows","solution":"worked solution (short)"}}
 ```
 
+For a rounded number, `check` also gives the tolerance the check holds to, the same one the `check_hint` states ("agrees to 2 decimal places"), and marking holds to it.
+
 **Commands:**
 
 - **`sheet new <subject> <id> --spec PATH --answers PATH`**
@@ -535,7 +538,7 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
   - closed book ("no notes, no book, no search, no AI"; on `drills`, where Claude gives hints, "no other AI"); `theory`, `external`, `example` and `repair` print their read-then-close line instead; with the subject's `format.reference_sheet` true, a closed-book sheet (any type but `theory`, `external`, `example` and `repair`) adds "You may use a clean copy of the exam's formula sheet, with nothing written on it", and its tools line names the formula sheet;
   - answer on paper, one answer in each box;
   - write the check beside each answer;
-  - on sheets with check lines and a Least-sure line: a failed check the learner can't resolve within a minute is kept, named on the Least-sure line, and left ("I'll show you where at marking");
+  - on sheets with check lines and a Least-sure line, one line: a failed check the learner can't resolve within a minute is marked ✗ or "no", the answer and the check are left as they are, its number goes on the Least-sure line, and the learner goes on ("I'll show you where at marking");
   - "I don't know" is always an accepted answer; on the sheets that get hints (`theory`, `external`, `example`, `repair`, `drills`) the same line adds "Stuck on a question after a real try? Tell me its number: you get a small hint, never the answer";
   - stop after N minutes; on `theory`, `external`, `example` and `repair`, which are read in full, "Allow about N minutes, and read it all even if it takes longer";
   - tools allowed;
