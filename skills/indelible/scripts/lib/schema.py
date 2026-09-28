@@ -594,6 +594,28 @@ def validate_sheet(s):
     return p
 
 
+SCAFFOLD_MAX_LINES = 12
+SCAFFOLD_MAX_COLUMNS = 8
+SCAFFOLD_MAX_ROWS = 20
+
+
+def _labels_ok(values, most):
+    return (isinstance(values, list) and 1 <= len(values) <= most
+            and all(isinstance(v, str) and v.strip() and len(v) <= 120 for v in values))
+
+
+def scaffold_ok(value):
+    """An item's scaffold: printed working lines (a list of labels, ["u =", "u′ ="]) or an empty
+    table ({"columns": [labels], "rows": N}). Never graded, keyed or counted."""
+    if isinstance(value, list):
+        return _labels_ok(value, SCAFFOLD_MAX_LINES)
+    if isinstance(value, dict):
+        rows = value.get("rows")
+        return (_labels_ok(value.get("columns"), SCAFFOLD_MAX_COLUMNS) and isinstance(rows, int)
+                and not isinstance(rows, bool) and 1 <= rows <= SCAFFOLD_MAX_ROWS)
+    return False
+
+
 def validate_sheetspec(spec):
     """Structural checks on a builder's sheet spec (lint does the rest)."""
     if not isinstance(spec, dict):
@@ -620,6 +642,9 @@ def validate_sheetspec(spec):
         p += _enum(it, "layer", LAYERS, name)
         if "origin" in it and not ORIGIN_RE.match(str(it["origin"])):
             p.append("%s.origin must be new, cold:<topic>, error:<E-id>, sentinel:<E-id> or official:<source>" % name)
+        if it.get("scaffold") is not None and not scaffold_ok(it["scaffold"]):
+            p.append("%s.scaffold must be a list of working-line labels (at most %d), or {columns: [labels], "
+                     "rows: 1-%d}" % (name, SCAFFOLD_MAX_LINES, SCAFFOLD_MAX_ROWS))
         asks = it.get("asks")
         if not isinstance(asks, list):
             p.append("%s.asks must be a list" % name)
@@ -997,6 +1022,10 @@ RECORDS = {
             ("blocks[]", "{title, items}; on drills, optional gate_after (an item of the block): the failure gate "
                          "follows it, covering the 3 items that end there (default: the block's 3rd item; at "
                          "mastery 0-1, a block of 6 or more sets its 4th, so the gate skips the worked item)"),
+            ("items[].scaffold", "optional, on a practice sheet: printed working lines, [\"u =\", \"u′ =\"], "
+                         "or an empty table, {columns: [labels], rows: N}, between its text and its first box; "
+                         "never graded, keyed or counted. Lint L14 refuses one on cold, mixed and measuring "
+                         "sheets, and on the last two items of a drills block"),
             ("asks[]", "{id, label, check, check_hint}: one labelled blank per required answer; optional topic "
                        "(a question on another topic than its item, e.g. one hidden-test group), answer_form "
                        "(letter, number, word, test-line, short, sentence, long, code, none: sizes the box), "

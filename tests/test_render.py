@@ -330,6 +330,30 @@ class HtmlTemplateTests(Base):
                       "The drills that follow are closed book.", t)
         self.assertNotIn("Least sure", t)
 
+    def test_a_scaffold_prints_working_lines_or_a_table_and_is_no_question(self):
+        spec = drills_spec()
+        spec["items"][0]["scaffold"] = ["Old verb:", "New verb:"]
+        spec["items"][1]["scaffold"] = {"columns": ["word", "same meaning?"], "rows": 3}
+        n = render.ask_count(drills_spec())
+        self.assertEqual(render.ask_count(spec), n, "not counted")
+        self.assertIn("About 12 min · %d questions" % n, render.build_model(spec)["meta"])
+        html = render.render_html(spec, date=DAY)
+        t = visible_text(html)
+        self.assertLess(t.index("The bridge was closed"), t.index("Old verb:"))
+        self.assertLess(t.index("New verb:"), t.index("1a"))
+        self.assertEqual(html.count("<td></td>"), 6)
+        self.assertIn('<th scope="col">same meaning?</th>', html)
+        md = render.render_markdown(spec, date=DAY)
+        self.assertIn("Old verb: ______________________", md)
+        self.assertIn("| word | same meaning? |\n|---|---|\n|   |   |\n", md)
+        self.assertLess(md.index("New verb:"), md.index("**1a**"))
+        typ = render.render_typst(spec, date=DAY)
+        self.assertIn('#"Old verb:" #fillin(1fr)', typ)
+        self.assertIn("#table(columns: (1fr, 1fr), inset: 6pt", typ)
+        self.assertEqual(typ.count("[#v(1.2em)]"), 6)
+        self.assertIn("Old verb:", render.visible_texts(spec))
+        self.assertIn("same meaning?", render.visible_texts(spec))
+
     def test_a_guess_before_reading_says_wrong_guesses_help(self):
         spec = theory_spec()
         spec["theory"]["sections"].insert(0, {"kind": "prequestion", "title": "",

@@ -1,4 +1,4 @@
-"""The sheet checker: rules L1-L13 and warnings W1-W6 (CONTRACT section 7.4).
+"""The sheet checker: rules L1-L14 and warnings W1-W6 (CONTRACT section 7.4).
 
 ``check(spec, ctx)`` is pure: it takes the visible spec and a context dict and
 returns one result per rule, in order. ``gather(ws, subject, spec, row)``
@@ -62,6 +62,11 @@ recheck. W6 asks the same, as a warning, on other topics (a language or
 reading convention may say in one line that it is learned as given), and
 keeps the box short and before the rule.
 
+L14 keeps scaffolds (an item's printed working lines or empty table) on
+practice sheets: a measuring or mixed sheet is question, box and check line
+only. On drills, a block's last two items print only the box, so the block
+shows whether the working now happens unprompted.
+
 The key is read in-process for L8 only. Nothing from it is ever returned or
 printed: an L8 FAIL names the question (ask) ids, never the text.
 
@@ -76,12 +81,13 @@ from lib import LISTS_DIR, dates, learning
 from lib import io as fio
 from lib import render
 
-RULES = ["L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L9", "L10", "L11", "L12", "L13",
+RULES = ["L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L9", "L10", "L11", "L12", "L13", "L14",
          "W1", "W2", "W3", "W4", "W5", "W6"]
 TITLES = {
     "L1": "structure", "L2": "check lines", "L3": "unlabelled", "L4": "terms", "L5": "budget",
     "L6": "drill blocks", "L7": "cold validity", "L8": "key leak", "L9": "least-sure",
     "L10": "check hints", "L11": "worked case first", "L12": "taught operations", "L13": "meaning box",
+    "L14": "scaffolds",
     "W1": "formula in block title", "W2": "sentences after their numbers",
     "W3": "checks on new topics", "W4": "worked check", "W5": "reading time", "W6": "meaning box",
 }
@@ -182,6 +188,10 @@ SHOWING_TYPES = ("theory", "external", "example", "repair")
 # learned without its meaning fades); W6 asks for it on the others. The box is about 5 lines.
 MEANING_LAYERS = ("procedural", "conceptual", "code")
 MEANING_MAX_WORDS = 80
+# L14: a scaffold is worked structure, which a measuring or mixed sheet never carries (builder rule 6);
+# on drills it fades before the block ends.
+SCAFFOLD_REFUSED = MEASURING + ("mixed",)
+SCAFFOLD_FADED = 2
 
 _CODE_SPAN = re.compile(r"(`+)(?!`)(.+?)(?<!`)\1(?!`)")
 _FENCE_OPEN = re.compile(r"^[ \t]*(`{3,}|~{3,})")
@@ -462,6 +472,7 @@ def _raw_term_texts(spec):
     texts += [b.get("title") for b in spec.get("blocks") or [] if isinstance(b, dict)]
     for it in _items(spec):
         texts.append(it.get("text"))
+        texts += render.scaffold_texts(it.get("scaffold"))
         texts += [a.get("label") for a in _asks(it)]
         texts += [a.get("check_hint") for a in _asks(it)]
     th = spec.get("theory")
@@ -1054,6 +1065,27 @@ def _w6(spec, ctx):
     return "PASS", "a short meaning box before the rule"
 
 
+def _l14(spec, ctx):
+    """Scaffolds (printed working) go on practice sheets only, and fade before a drills block ends."""
+    items = _items(spec)
+    with_sc = [it.get("n") for it in items if it.get("scaffold") not in (None, [], {})]
+    if not with_sc:
+        return "PASS", "no scaffolds"
+    t = spec.get("type")
+    if t in SCAFFOLD_REFUSED:
+        return "FAIL", ("printed working (scaffold) on item %s of a %s sheet: a measuring or mixed sheet is "
+                        "question, box and check line only" % (_listed(with_sc), t))
+    if t == "drills":
+        late = []
+        for b in spec.get("blocks") or []:
+            its = b.get("items") if isinstance(b, dict) and isinstance(b.get("items"), list) else []
+            late += [n for n in its[-SCAFFOLD_FADED:] if n in with_sc]
+        if late:
+            return "FAIL", ("a scaffold on item %s, one of the last two of its block: they print only the box, so "
+                            "the block shows whether the working now happens unprompted" % _listed(late))
+    return "PASS", "working printed on item %s, faded before each block ends" % _listed(with_sc)
+
+
 def _w4(spec, ctx):
     if spec.get("type") not in WORKED_CHECK_TYPES:
         return "PASS", "not a theory or repair sheet"
@@ -1117,7 +1149,7 @@ def _w2(spec, ctx):
 
 
 CHECKS = {"L1": _l1, "L2": _l2, "L3": _l3, "L4": _l4, "L5": _l5, "L6": _l6, "L7": _l7,
-          "L8": _l8, "L9": _l9, "L10": _l10, "L11": _l11, "L12": _l12, "L13": _l13,
+          "L8": _l8, "L9": _l9, "L10": _l10, "L11": _l11, "L12": _l12, "L13": _l13, "L14": _l14,
           "W1": _w1, "W2": _w2, "W3": _w3, "W4": _w4, "W5": _w5, "W6": _w6}
 
 

@@ -165,8 +165,11 @@ def ask(ask_id, label, hint=None):
     return a
 
 
-def item(n, topic, layer, op, text, asks):
-    return {"n": n, "topic": topic, "layer": layer, "op": op, "origin": "new", "text": text, "asks": asks}
+def item(n, topic, layer, op, text, asks, scaffold=None):
+    it = {"n": n, "topic": topic, "layer": layer, "op": op, "origin": "new", "text": text, "asks": asks}
+    if scaffold:
+        it["scaffold"] = scaffold
+    return it
 
 
 DIAG_SPEC = {
@@ -336,11 +339,15 @@ THEORY_KEY = {
 }
 
 DRILL_CHECK = "Read the whole paragraph again under your heading."
+# Working lines printed inside items 2-4 (a scaffold): the steps are written, not asked for in a sentence.
+# Items 5 and 6, the last two of the block, print only the box.
+STEP_1 = "Step 1. The whole paragraph in five words:"
+STEP_2 = "Step 2. The headings that name only a detail:"
 HEADING_LABEL = "Letter of the heading for this paragraph:"
 
 DRILLS_SPEC = {
     "v": 1, "id": DRILLS, "type": "drills", "subject": SUBJECT,
-    "title": "Choose the heading from the whole paragraph", "est_min": 8, "tools": "none",
+    "title": "Choose the heading from the whole paragraph", "est_min": 10, "tools": "none",
     "answer_form": "short",
     "items": [
         item(1, "T01", "reading", "pick-heading",
@@ -356,27 +363,28 @@ DRILLS_SPEC = {
              [ask("1a", "Why step 3 does not choose C, which shares two words with the paragraph (one line):",
                   "Read your reason against the paragraph's last sentence.")]),
         item(2, "T01", "reading", "pick-heading",
-             "Step 1 is done for you; finish steps 2 and 3.\n\n"
+             "Step 1 is done for you. Write step 2 on its line, then answer step 3.\n\n"
              "Paragraph: For years the ferry to Inchmore carried only twelve cars, and in summer drivers "
              "waited half a day to cross. In 2021 a larger boat arrived with room for forty cars. Queues on "
              "the pier have almost disappeared, and more visitors now come for a single day.\n\n"
              "Headings:\nA. The history of Inchmore's pier\nB. How a bigger ferry ended the long waits\n"
              "C. Summer holidays on the island\nD. How to drive onto a ferry\n\n"
              "Step 1. The whole paragraph in five words: 'bigger boat ended the queues'.",
-             [ask("2a", "Step 3: letter of the heading that says the same as the five words:", DRILL_CHECK)]),
+             [ask("2a", "Step 3: letter of the heading that says the same as the five words:", DRILL_CHECK)],
+             scaffold=[STEP_2]),
         item(3, "T01", "reading", "pick-heading",
              "Paragraph: A retired postal worker in the town began painting at sixty. Her "
              "first pictures showed the garden behind her house. Ten years later, her paintings of the coast "
              "hang in the national gallery, and art schools invite her to speak.\n\n"
              "Headings:\nA. Life at the post office\nB. A late start that led to success\n"
              "C. How to paint the coast\nD. Gardens in art",
-             [ask("3a", HEADING_LABEL, DRILL_CHECK)]),
+             [ask("3a", HEADING_LABEL, DRILL_CHECK)], scaffold=[STEP_1, STEP_2]),
         item(4, "T01", "reading", "pick-heading",
              "Paragraph: The Kell valley once had eleven working farms. Today two are left. Most of the land "
              "is now a forest planted in the 1980s, and the old farmhouses have become holiday cottages.\n\n"
              "Headings:\nA. A valley that turned from farming to forest and holidays\n"
              "B. How to plant a forest\nC. The best holiday cottages\nD. Farm work in the 1980s",
-             [ask("4a", HEADING_LABEL, DRILL_CHECK)]),
+             [ask("4a", HEADING_LABEL, DRILL_CHECK)], scaffold=[STEP_1, STEP_2]),
         item(5, "T01", "reading", "pick-heading",
              "Paragraph: At the start of the school year, the pupils at Harlow Road asked for a quieter lunch "
              "hall. The teachers split lunch into two sittings, added a wall of plants and asked the older "

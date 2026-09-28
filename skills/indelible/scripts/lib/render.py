@@ -37,6 +37,11 @@ Code: item text and theory bodies may hold fenced code blocks (lines between
 monospace font with their indentation: ``<pre><code>`` in HTML, fenced
 blocks and spans in Markdown, raw blocks in typst.
 
+An item's optional ``scaffold`` prints working lines (a list of labels, each
+with a line to write on) or an empty table (``{"columns": [...], "rows": N}``)
+between its text and its first box: a place for each step the learner is to
+write, never a question, so it is not counted, keyed or graded.
+
 Answer boxes are sized from the question's ``answer_form`` (``letter``,
 ``number``, ``word`` and ``test-line`` get a one-line box; ``none`` gets no
 box, e.g. a code task answered in the editor), or its label ("letter",
@@ -316,6 +321,24 @@ def _box_mm(spec, item, ask):
     return BOX_MM.get(item.get("layer"), BOX_MM_DEFAULT)
 
 
+def scaffold_model(value):
+    """An item's scaffold for the templates: {"lines": [labels]}, {"columns": [labels], "rows": N}, or None."""
+    if not schema.scaffold_ok(value):
+        return None
+    if isinstance(value, list):
+        return {"lines": [_s(v).strip() for v in value]}
+    return {"columns": [_s(c).strip() for c in value["columns"]], "rows": int(value["rows"])}
+
+
+def scaffold_texts(value):
+    """The words a scaffold prints (its labels or column heads), for the checks that read visible text."""
+    if isinstance(value, list):
+        return [_s(v) for v in value]
+    if isinstance(value, dict) and isinstance(value.get("columns"), list):
+        return [_s(c) for c in value["columns"]]
+    return []
+
+
 def is_code_sheet(spec, profile=None):
     if profile == "code" or _s(spec.get("answer_form")).lower() == "code":
         return True
@@ -459,7 +482,8 @@ def build_model(spec, date=None, tools=None, fmt="html", profile=None, reference
                               "check": bool(a.get("check")), "hint": hint if a.get("check") else None,
                               "box_mm": _box_mm(spec, it, a)})
             keep = len(_s(it.get("text"))) <= KEEP_MAX_CHARS and len(masks) <= 2
-            mitems.append({"n": _s(it.get("n")), "paras": segments(it.get("text")), "asks": masks, "keep": keep})
+            mitems.append({"n": _s(it.get("n")), "paras": segments(it.get("text")), "asks": masks, "keep": keep,
+                           "scaffold": scaffold_model(it.get("scaffold"))})
         model_groups.append({"title": g["title"], "items": mitems, "gate": g["gate"], "gate_at": g["gate_at"]})
 
     theory = None
@@ -518,6 +542,7 @@ def visible_texts(spec):
             out.append(_s(b.get("title")))
     for it in _items(spec):
         out.append(_s(it.get("text")))
+        out.extend(scaffold_texts(it.get("scaffold")))
         for a in _asks(it):
             out.append(_s(a.get("label")))
             out.append(_s(a.get("check_hint")))
@@ -577,6 +602,18 @@ def _html_paras(paras, cls=None):
 
 def _slug(text):
     return re.sub(r"[^a-z0-9]+", "-", _s(text).lower()).strip("-") or "x"
+
+
+def _html_scaffold(sc):
+    """Working lines, or an empty table, for the learner's steps (not a question)."""
+    if "lines" in sc:
+        rows = "".join('<p class="line"><span>%s</span> <span class="fill" aria-hidden="true"></span></p>\n'
+                       % _html_line(ln) for ln in sc["lines"])
+        return '<div class="scaffold" role="group" aria-label="Working">\n%s</div>\n' % rows
+    head = "".join("<th scope=\"col\">%s</th>" % _html_line(c) for c in sc["columns"])
+    body = "".join("<tr>%s</tr>\n" % ("<td></td>" * len(sc["columns"])) for _ in range(sc["rows"]))
+    return ('<table class="scaffold grid" aria-label="Working">\n<thead><tr>%s</tr></thead>\n<tbody>\n%s'
+            '</tbody>\n</table>\n' % (head, body))
 
 
 def render_html(spec, date=None, tools=None, lang="en", profile=None, reference_sheet=False,
@@ -641,6 +678,8 @@ def render_html(spec, date=None, tools=None, lang="en", profile=None, reference_
             o.append('<div class="qbody">\n')
             if it["paras"]:
                 o.append('<div class="stem">\n%s</div>\n' % _html_paras(it["paras"]))
+            if it["scaffold"]:
+                o.append(_html_scaffold(it["scaffold"]))
             for a in it["asks"]:
                 aid = "a-%s" % _slug(a["id"])
                 o.append('<div class="ask" role="group" aria-labelledby="%s">\n' % aid)
@@ -706,6 +745,16 @@ def _typ_paras(paras):
     return "".join(out)
 
 
+def _typ_scaffold(sc):
+    """Working lines, or an empty table, for the learner's steps (not a question)."""
+    if "lines" in sc:
+        return "".join("%s #fillin(1fr)\n\n" % _typ_line(ln) for ln in sc["lines"])
+    n = len(sc["columns"])
+    cells = ["[#strong[%s]]" % _typ_line(c) for c in sc["columns"]] + ["[#v(1.2em)]"] * (n * sc["rows"])
+    return ("#table(columns: (%s), inset: 6pt, stroke: 0.6pt + luma(40), %s)\n\n"
+            % (", ".join(["1fr"] * n) + ("," if n == 1 else ""), ", ".join(cells)))
+
+
 def render_typst(spec, date=None, tools=None, lang="en", profile=None, reference_sheet=False,
                  sheet_code=None):
     m = build_model(spec, date=date, tools=tools, fmt="pdf", profile=profile, reference_sheet=reference_sheet,
@@ -754,6 +803,8 @@ def render_typst(spec, date=None, tools=None, lang="en", profile=None, reference
             o.append("#strong[%s] " % _tl(it["n"] + ".").strip())
             o.append(_typ_paras(it["paras"]) or "\n")
             o.append("]\n")
+            if it["scaffold"]:
+                o.append(_typ_scaffold(it["scaffold"]))
             for a in it["asks"]:
                 o.append("#block(width: 100%, breakable: false, above: 6pt, below: 10pt)[\n")
                 o.append("#strong[%s] %s\n\n" % (_tl(a["id"]).strip(), _typ_line(a["label"])))
@@ -815,6 +866,16 @@ def _md_paras(paras):
     return "".join(out)
 
 
+def _md_scaffold(sc):
+    """Working lines, or an empty table, for the learner's steps (not a question)."""
+    if "lines" in sc:
+        return "".join("%s ______________________  \n" % _md_line(ln) for ln in sc["lines"]) + "\n"
+    head = "| " + " | ".join(_md_line(c) for c in sc["columns"]) + " |\n"
+    rule = "|" + "|".join(["---"] * len(sc["columns"])) + "|\n"
+    rows = ("|" + "|".join(["   "] * len(sc["columns"])) + "|\n") * sc["rows"]
+    return head + rule + rows + "\n"
+
+
 def render_markdown(spec, date=None, tools=None, lang="en", profile=None, reference_sheet=False,
                     sheet_code=None):
     m = build_model(spec, date=date, tools=tools, fmt="md", profile=profile, reference_sheet=reference_sheet,
@@ -856,6 +917,8 @@ def render_markdown(spec, date=None, tools=None, lang="en", profile=None, refere
             o.append("**%s.** " % _md_escape(it["n"]))
             body = _md_paras(it["paras"])
             o.append(body if body else "\n\n")
+            if it["scaffold"]:
+                o.append(_md_scaffold(it["scaffold"]))
             for a in it["asks"]:
                 if a["box_mm"]:
                     o.append("- **%s** %s  \n  Answer: ______________________  \n"

@@ -1,4 +1,4 @@
-"""The sheet checker: every rule L1-L13 and W1-W6 has a failing and a passing fixture.
+"""The sheet checker: every rule L1-L14 and W1-W6 has a failing and a passing fixture.
 
 Most rules are checked in-process with ``lint.check(spec, ctx)``; the rules
 that read the workspace (L4 sense words, L5 blocks, L7 exposures and errors,
@@ -731,6 +731,43 @@ class RuleTests(Base):
         r = result(spec, "W6")
         self.assertEqual(r["status"], "WARN")
         self.assertIn("after the rule", r["detail"])
+
+    def test_l14_scaffolds_stay_on_practice_and_fade_before_a_block_ends(self):
+        spec = drills_spec()                                   # blocks [1-3] and [4-6]
+        self.assertEqual(self.status(spec, "L14"), "PASS")
+        spec["items"][0]["scaffold"] = ["Old verb:", "New verb:"]
+        spec["items"][3]["scaffold"] = {"columns": ["word", "same meaning?"], "rows": 2}
+        r = result(spec, "L14")
+        self.assertEqual((r["status"], r["detail"]), ("PASS", "working printed on item 1, 4, faded before each "
+                                                               "block ends"))
+        spec["items"][1]["scaffold"] = ["Old verb:"]           # item 2 of a block of 3: one of its last two
+        r = result(spec, "L14")
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("item 2, one of the last two of its block", r["detail"])
+        for t in ("cold", "mixed", "diagnostic", "mock", "checkpoint", "probe", "words"):
+            spec = cold_spec(type=t)
+            spec["items"][0]["scaffold"] = ["Old verb:"]
+            r = result(spec, "L14")
+            self.assertEqual(r["status"], "FAIL", t)
+            self.assertIn("question, box and check line only", r["detail"])
+        for t in ("theory", "repair", "example", "review"):
+            spec = theory_spec(type=t)
+            spec["items"][0]["scaffold"] = ["Old verb:"]
+            self.assertEqual(self.status(spec, "L14"), "PASS", t)
+
+    def test_a_scaffold_is_read_by_the_key_leak_and_terms_checks(self):
+        spec = drills_spec()
+        key = answers_for(spec)
+        key["2a"]["accept"] = ["zephyrine"]
+        spec["items"][0]["scaffold"] = ["First write zephyrine:"]
+        r = result(spec, "L8", key=key)
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("2a", r["detail"])
+        spec = drills_spec()
+        spec["items"][0]["scaffold"] = ["The median of the three:"]
+        r = result(spec, "L4")
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("'median'", r["detail"])
 
     def test_l12_drills_ask_only_for_operations_a_sheet_has_shown(self):
         spec = drills_spec()                                   # T04, op swap-word

@@ -878,6 +878,16 @@ class SchemaTests(Base):
         self.assertTrue(any("used twice" in p for p in schema.validate_sheetspec(spec)))
         self.assertTrue(schema.validate_grades({"asks": [{"ask": "1a", "verdict": "maybe"}]}))
 
+    def test_a_scaffold_is_working_lines_or_an_empty_table(self):
+        spec = schema.example("sheetspec")
+        for good in (["u =", "u′ ="], {"columns": ["line", "i", "total"], "rows": 4}):
+            spec["items"][0]["scaffold"] = good
+            self.assertEqual(schema.validate_sheetspec(spec), [], good)
+        for bad in ([], ["u =", ""], "u =", {"columns": ["i"], "rows": 0}, {"columns": [], "rows": 2},
+                    {"columns": ["i"], "rows": True}, ["x"] * 13):
+            spec["items"][0]["scaffold"] = bad
+            self.assertTrue(any("scaffold must be" in p for p in schema.validate_sheetspec(spec)), bad)
+
 
 # ==========================================================================
 # CLI: doctor, init, subject add, set, schema

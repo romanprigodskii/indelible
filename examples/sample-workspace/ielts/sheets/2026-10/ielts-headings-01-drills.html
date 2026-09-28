@@ -99,6 +99,13 @@
   .check { display: flex; align-items: flex-end; gap: 2mm; margin: 2mm 0 0; }
   .check .fill { flex: 1; border-bottom: 1px solid var(--rule); min-height: 9mm; }
   .hint { margin: 0.8mm 0 0; font-size: 10pt; color: var(--muted); }
+  /* Working printed inside an item (scaffold): lines or an empty table, never graded */
+  .scaffold { margin: 1mm 0 3mm; }
+  .scaffold .line { margin: 2.5mm 0; }
+  table.grid { width: 100%; border-collapse: collapse; break-inside: avoid; }
+  table.grid th, table.grid td { border: 1px solid var(--rule); padding: 1.5mm 2mm; text-align: left; }
+  table.grid th { font-weight: 700; }
+  table.grid td { height: 9mm; }
   /* Code: verbatim, indentation kept, monospace */
   pre.code {
     font-family: var(--mono); font-size: 10.5pt; line-height: 1.4; white-space: pre; overflow-x: auto;
@@ -127,7 +134,7 @@
 <main aria-labelledby="sheet-title">
 <header class="sheet-head">
 <div class="head-row"><h1 id="sheet-title">Choose the heading from the whole paragraph</h1><p class="when">Date: ____________</p></div>
-<p class="meta">About 8 min · 6 questions · Practice — written by Claude · Sheet IELTS-03</p>
+<p class="meta">About 10 min · 6 questions · Practice — written by Claude · Sheet IELTS-03</p>
 </header>
 <section class="rules" aria-labelledby="rules-h">
 <h2 id="rules-h">Rules</h2>
@@ -137,7 +144,7 @@
 <li>Write the check beside each answer. Work backwards from it: put it back in, rebuild the total, or test the definition you used against the question&#x27;s words.</li>
 <li>If a check fails and you can&#x27;t see why within a minute, mark it ✗ or “no”, leave your answer and the check as they are, put its number on the Least-sure line and go on: I&#x27;ll show you where at marking.</li>
 <li>“I don&#x27;t know” is always an accepted answer. Stuck on a question after a real try? Tell me its number: you get a small hint, never the answer.</li>
-<li>Stop after 8 minutes. Then fill in the Least-sure line: item numbers, or “none”.</li>
+<li>Stop after 10 minutes. Then fill in the Least-sure line: item numbers, or “none”.</li>
 <li>Tools allowed: none.</li>
 <li class="v-rule">If a word here was never explained to you, on this sheet or an earlier one, write it beside that answer: that&#x27;s my mistake, not yours.</li>
 </ul>
@@ -166,10 +173,13 @@
 <h3 id="q-2" class="qnum"><span class="sr-only">Question </span>2.</h3>
 <div class="qbody">
 <div class="stem">
-<p>Step 1 is done for you; finish steps 2 and 3.</p>
+<p>Step 1 is done for you. Write step 2 on its line, then answer step 3.</p>
 <p>Paragraph: For years the ferry to Inchmore carried only twelve cars, and in summer drivers waited half a day to cross. In 2021 a larger boat arrived with room for forty cars. Queues on the pier have almost disappeared, and more visitors now come for a single day.</p>
 <p>Headings:<br>A. The history of Inchmore&#x27;s pier<br>B. How a bigger ferry ended the long waits<br>C. Summer holidays on the island<br>D. How to drive onto a ferry</p>
 <p>Step 1. The whole paragraph in five words: &#x27;bigger boat ended the queues&#x27;.</p>
+</div>
+<div class="scaffold" role="group" aria-label="Working">
+<p class="line"><span>Step 2. The headings that name only a detail:</span> <span class="fill" aria-hidden="true"></span></p>
 </div>
 <div class="ask" role="group" aria-labelledby="a-2a">
 <p class="ask-label" id="a-2a"><span class="ask-id">2a</span> Step 3: letter of the heading that says the same as the five words:</p>
@@ -186,6 +196,10 @@
 <p>Paragraph: A retired postal worker in the town began painting at sixty. Her first pictures showed the garden behind her house. Ten years later, her paintings of the coast hang in the national gallery, and art schools invite her to speak.</p>
 <p>Headings:<br>A. Life at the post office<br>B. A late start that led to success<br>C. How to paint the coast<br>D. Gardens in art</p>
 </div>
+<div class="scaffold" role="group" aria-label="Working">
+<p class="line"><span>Step 1. The whole paragraph in five words:</span> <span class="fill" aria-hidden="true"></span></p>
+<p class="line"><span>Step 2. The headings that name only a detail:</span> <span class="fill" aria-hidden="true"></span></p>
+</div>
 <div class="ask" role="group" aria-labelledby="a-3a">
 <p class="ask-label" id="a-3a"><span class="ask-id">3a</span> Letter of the heading for this paragraph:</p>
 <div class="box" style="min-height:14mm" aria-hidden="true"></div>
@@ -200,6 +214,10 @@
 <div class="stem">
 <p>Paragraph: The Kell valley once had eleven working farms. Today two are left. Most of the land is now a forest planted in the 1980s, and the old farmhouses have become holiday cottages.</p>
 <p>Headings:<br>A. A valley that turned from farming to forest and holidays<br>B. How to plant a forest<br>C. The best holiday cottages<br>D. Farm work in the 1980s</p>
+</div>
+<div class="scaffold" role="group" aria-label="Working">
+<p class="line"><span>Step 1. The whole paragraph in five words:</span> <span class="fill" aria-hidden="true"></span></p>
+<p class="line"><span>Step 2. The headings that name only a detail:</span> <span class="fill" aria-hidden="true"></span></p>
 </div>
 <div class="ask" role="group" aria-labelledby="a-4a">
 <p class="ask-label" id="a-4a"><span class="ask-id">4a</span> Letter of the heading for this paragraph:</p>

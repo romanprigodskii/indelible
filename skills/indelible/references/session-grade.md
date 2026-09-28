@@ -166,6 +166,8 @@ Every question on drills, cold, mixed, review, diagnostic and checkpoint sheets 
 
 Persona C, question 4: "Your check confirmed the arithmetic of the mean, so it couldn't catch the wrong average. When a question turns on a word, write down the definition you used and test it against the question."
 
+**Working lines** (a practice item's printed scaffold) are never graded: an empty line doesn't change the verdict. On a miss, the wrong or empty line is the step to point to (§6).
+
 **A check marked ✗** (`failed`) did its job: say so as process praise ("Your check on 4 flagged it; that's what it's for"), then point to the step (§6). Never ask the learner to find the mistake it flagged. On a right answer, the answer stands: the check itself slipped, or its tolerance was wrong. Say which in one line, and log a wrong tolerance as a `content_error` defect for the builder.
 
 **Checked in the head.** The written check is a core rule (R41), but the learner may decline the lines for one sheet as an override ([session-open.md](session-open.md) step 6; `ind ledger list --kind override --open` shows it). On that sheet, record each empty line they say they ran in their head as `head` [self-report], and don't coach the blanks one by one. After the account of each miss, point to the step as usual (§6), then show the one written line that would have caught it: "One line here, your answer put back into the equation, would have shown it doesn't hold." It names the check, never the answer. With no override on the sheet, an empty line the learner says they checked in their head is still `head`, and it is coached as a `missing` one.

@@ -99,6 +99,13 @@
   .check { display: flex; align-items: flex-end; gap: 2mm; margin: 2mm 0 0; }
   .check .fill { flex: 1; border-bottom: 1px solid var(--rule); min-height: 9mm; }
   .hint { margin: 0.8mm 0 0; font-size: 10pt; color: var(--muted); }
+  /* Working printed inside an item (scaffold): lines or an empty table, never graded */
+  .scaffold { margin: 1mm 0 3mm; }
+  .scaffold .line { margin: 2.5mm 0; }
+  table.grid { width: 100%; border-collapse: collapse; break-inside: avoid; }
+  table.grid th, table.grid td { border: 1px solid var(--rule); padding: 1.5mm 2mm; text-align: left; }
+  table.grid th { font-weight: 700; }
+  table.grid td { height: 9mm; }
   /* Code: verbatim, indentation kept, monospace */
   pre.code {
     font-family: var(--mono); font-size: 10.5pt; line-height: 1.4; white-space: pre; overflow-x: auto;

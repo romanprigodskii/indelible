@@ -4,7 +4,7 @@
   "type": "drills",
   "subject": "ielts",
   "title": "Choose the heading from the whole paragraph",
-  "est_min": 8,
+  "est_min": 10,
   "tools": "none",
   "answer_form": "short",
   "items": [
@@ -30,7 +30,7 @@
       "layer": "reading",
       "op": "pick-heading",
       "origin": "new",
-      "text": "Step 1 is done for you; finish steps 2 and 3.\n\nParagraph: For years the ferry to Inchmore carried only twelve cars, and in summer drivers waited half a day to cross. In 2021 a larger boat arrived with room for forty cars. Queues on the pier have almost disappeared, and more visitors now come for a single day.\n\nHeadings:\nA. The history of Inchmore's pier\nB. How a bigger ferry ended the long waits\nC. Summer holidays on the island\nD. How to drive onto a ferry\n\nStep 1. The whole paragraph in five words: 'bigger boat ended the queues'.",
+      "text": "Step 1 is done for you. Write step 2 on its line, then answer step 3.\n\nParagraph: For years the ferry to Inchmore carried only twelve cars, and in summer drivers waited half a day to cross. In 2021 a larger boat arrived with room for forty cars. Queues on the pier have almost disappeared, and more visitors now come for a single day.\n\nHeadings:\nA. The history of Inchmore's pier\nB. How a bigger ferry ended the long waits\nC. Summer holidays on the island\nD. How to drive onto a ferry\n\nStep 1. The whole paragraph in five words: 'bigger boat ended the queues'.",
       "asks": [
         {
           "id": "2a",
@@ -38,6 +38,9 @@
           "check": true,
           "check_hint": "Read the whole paragraph again under your heading."
         }
+      ],
+      "scaffold": [
+        "Step 2. The headings that name only a detail:"
       ]
     },
     {
@@ -54,6 +57,10 @@
           "check": true,
           "check_hint": "Read the whole paragraph again under your heading."
         }
+      ],
+      "scaffold": [
+        "Step 1. The whole paragraph in five words:",
+        "Step 2. The headings that name only a detail:"
       ]
     },
     {
@@ -70,6 +77,10 @@
           "check": true,
           "check_hint": "Read the whole paragraph again under your heading."
         }
+      ],
+      "scaffold": [
+        "Step 1. The whole paragraph in five words:",
+        "Step 2. The headings that name only a detail:"
       ]
     },
     {

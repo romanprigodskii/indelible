@@ -1,6 +1,6 @@
 # Choose the heading from the whole paragraph
 
-**Date: ____________** · About 8 min · 6 questions · Practice — written by Claude · Sheet IELTS-03
+**Date: ____________** · About 10 min · 6 questions · Practice — written by Claude · Sheet IELTS-03
 
 > **Rules**
 >
@@ -9,7 +9,7 @@
 > - Write the check beside each answer. Work backwards from it: put it back in, rebuild the total, or test the definition you used against the question's words.
 > - If a check fails and you can't see why within a minute, mark it ✗ or “no”, leave your answer and the check as they are, put its number on the Least-sure line and go on: I'll show you where at marking.
 > - “I don't know” is always an accepted answer. Stuck on a question after a real try? Tell me its number: you get a small hint, never the answer.
-> - Stop after 8 minutes. Then fill in the Least-sure line: item numbers, or “none”.
+> - Stop after 10 minutes. Then fill in the Least-sure line: item numbers, or “none”.
 > - Tools allowed: none.
 > - If a word here was never explained to you, on this sheet or an earlier one, write it beside that answer: that's my mistake, not yours.
 
@@ -35,7 +35,7 @@ Step 3. B says the same as the five words, so B is the heading.
   Answer: ______________________  
   Check: ______________________ *(Read your reason against the paragraph's last sentence.)*
 
-**2.** Step 1 is done for you; finish steps 2 and 3.
+**2.** Step 1 is done for you. Write step 2 on its line, then answer step 3.
 
 Paragraph: For years the ferry to Inchmore carried only twelve cars, and in summer drivers waited half a day to cross. In 2021 a larger boat arrived with room for forty cars. Queues on the pier have almost disappeared, and more visitors now come for a single day.
 
@@ -46,6 +46,8 @@ C. Summer holidays on the island
 D. How to drive onto a ferry
 
 Step 1. The whole paragraph in five words: 'bigger boat ended the queues'.
+
+Step 2. The headings that name only a detail: ______________________  
 
 - **2a** Step 3: letter of the heading that says the same as the five words:  
   Answer: ______________________  
@@ -59,6 +61,9 @@ B. A late start that led to success
 C. How to paint the coast  
 D. Gardens in art
 
+Step 1. The whole paragraph in five words: ______________________  
+Step 2. The headings that name only a detail: ______________________  
+
 - **3a** Letter of the heading for this paragraph:  
   Answer: ______________________  
   Check: ______________________ *(Read the whole paragraph again under your heading.)*
@@ -70,6 +75,9 @@ A. A valley that turned from farming to forest and holidays
 B. How to plant a forest  
 C. The best holiday cottages  
 D. Farm work in the 1980s
+
+Step 1. The whole paragraph in five words: ______________________  
+Step 2. The headings that name only a detail: ______________________  
 
 - **4a** Letter of the heading for this paragraph:  
   Answer: ______________________  

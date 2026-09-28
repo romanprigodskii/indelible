@@ -508,6 +508,7 @@ DUE counts tiers 6 and 7 together (plain: `later rechecks ready now: 2`) and sen
 
 - **`type`:** `theory` | `external` | `example` | `drills` | `cold` | `mixed` | `repair` | `review` | `probe` | `diagnostic` | `mock` | `checkpoint` | `words` | `triage` | `miss-review` | `explain`.
 - **`origin`:** `new` | `cold:<topic>` | `error:<E-id>` | `sentinel:<E-id>` | `official:<source>`.
+- **`items[].scaffold`** (optional): printed working lines, a list of labels (at most 12), or an empty table, `{"columns": [labels, at most 8], "rows": 1–20}`. The renderer draws it between the item's text and its first box: a line to write on after each label, or the header row and empty rows. It is not a question: never graded, keyed or counted in the header's number of questions. `visible_texts` includes its labels, so L4 and L8 read them.
 - **`blocks[]`:** `{title, items}`; on `drills`, an optional `gate_after` (an item of the block) moves the failure gate after that item, covering the 3 items that end there. Without it the gate follows the block's third item.
 - **`theory`** (theory, external, example, repair only):
 
@@ -550,6 +551,7 @@ For a rounded number, `check` also gives the tolerance the check holds to, the s
   | L11 worked case first | On `theory` and `repair`: `theory.sections` has a section of kind `worked`, and no `rule` section comes before the first one, unless the subject's `overrides[]` holds a locked override of `R12 order` (or of `R12`, from before the split): that lifts the order, never the worked section. A `prequestion` section appears only on `theory`, before the first `worked` section |
   | L12 taught operations | On `drills`: every item with origin `new` has an `op` (case-insensitive) that a sheet of its topic of type `theory`, `external`, `example` or `repair`, not `void`, has shown: the `op` of one of its items, or an entry of a `worked` section's `ops` (a section's ops count for every topic on that sheet). A topic with no such sheet is skipped (taught by a tutor, or migrated) |
   | L13 meaning box | On `theory`: when any item's `layer` is `procedural`, `conceptual` or `code`, `theory.sections` has a section of kind `meaning` |
+  | L14 scaffolds | No item has a `scaffold` on `cold`, `mixed`, `diagnostic`, `mock`, `checkpoint`, `probe` or `words`; on `drills`, none on either of the last two items of a block |
 
   WARN rules:
   - W1: a formula character (`=`) appears in a block title;
@@ -593,7 +595,7 @@ For a rounded number, `check` also gives the tolerance the check holds to, the s
   - tools allowed;
   - "If a word here was never explained to you, on this sheet or an earlier one, write it beside that answer: that's my mistake, not yours" (marking looks the word up: a word defined on an earlier sheet is the learner's miss);
 - **item 0:** `Start time: ____`;
-- **items:** each ask shows its label, an answer box and, when `check`, a line `Check: ____` with the `check_hint` in small text;
+- **items:** the item's text, then its `scaffold` if any (working lines or an empty table), then for each ask its label, an answer box and, when `check`, a line `Check: ____` with the `check_hint` in small text;
 - **drills:** block titles, plus after item 3 of each block (or its `gate_after` item, covering the 3 items that end there) the failure gate: *If 2 of items 1–3 have a failed check, an “I don't know” or an empty box: stop and send a photo of 1–3*;
 - **the last line:** `Stop time: ____` and, when `least_sure`, `Least sure I chose the right idea (item numbers): ____` (one wording for every subject: it asks about the idea chosen, not a possible slip);
 - **theory sheets:** a rules box starting *Read this sheet, then do the pencil questions at the end with it open. The drills that follow are closed book.*; floor box, words (with glosses), sections in order, the pencil questions, and a final line *Send me your pencil answers and keep this sheet open until I've marked them. Then put it away and tell me “closed”. The drills come on their own sheet.* (`external` sheets end with the same line; `example` sheets with *Close this sheet now, then go back to your question.*);

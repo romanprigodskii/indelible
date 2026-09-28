@@ -10,7 +10,7 @@ Load this for anything that builds, renders, issues, files or marks a sheet. Mar
 4. The Least-sure line
 5. Don'ts
 6. Building a sheet
-7. The checker: rules L1–L13
+7. The checker: rules L1–L14
 8. What the learner gets
 9. Keys
 10. Evidence
@@ -48,7 +48,7 @@ The templates print these:
 - **Header:** title, date and weekday, estimated minutes, number of questions, `Practice — written by Claude`, `Measurement — written by Claude` or `Measurement — official`, and the sheet code (`Sheet IELTS-07`: the subject and a running number, never a topic word), so a photo is matched to its sheet ([session-grade.md](session-grade.md) §2).
 - **Rules box:** closed book ("no other AI" on drills; with `format.reference_sheet`, a clean copy of the exam's formula sheet is allowed, and the tools line names it); one answer in each box, on paper; the check beside each answer (on a mock, or a sheet of official questions only: "Check your answers as you would in the exam: there is no check line on this sheet."); a failed check the learner can't resolve within a minute: mark it ✗ or "no", leave the answer and the check as they are, name it on the Least-sure line, go on; "I don't know" is always an accepted answer, and on theory, external, example, repair and drills sheets, "Stuck on a question after a real try? Tell me its number: you get a small hint, never the answer" ([session-teach.md](session-teach.md) §3); stop after N minutes (on theory, external, example and repair sheets, "Allow about N minutes, and read it all even if it takes longer"), and on a sheet with the Least-sure line, "Then fill in the Least-sure line: item numbers, or “none”."; tools allowed; "If a word here was never explained to you, on this sheet or an earlier one, write it beside that answer: that's my mistake, not yours" (marking looks the word up: [session-grade.md](session-grade.md) §3).
 - **Item 0** `Start time: ____`. **Last line** `Stop time: ____`, plus the Least-sure line when `least_sure` is true.
-- **Each question:** label, answer box, and `Check: ____` with the hint in small text. **Drills** add block titles and, after item 3 of each block: "If 2 of items 1–3 have a failed check, an “I don't know” or an empty box: stop and send a photo of 1–3." A block's `gate_after` moves the gate after that item, over the 3 items that end there: at mastery 0–1 a block of 6 or more sets it to its 4th item, so the gate skips the worked item 1.
+- **Each question:** label, answer box, and `Check: ____` with the hint in small text. On a practice sheet an item may print working lines or an empty table (`scaffold`) between its text and its first box: a place for each step to write, never graded or counted. **Drills** add block titles and, after item 3 of each block: "If 2 of items 1–3 have a failed check, an “I don't know” or an empty box: stop and send a photo of 1–3." A block's `gate_after` moves the gate after that item, over the 3 items that end there: at mastery 0–1 a block of 6 or more sets it to its 4th item, so the gate skips the worked item 1.
 - **Theory:** floor box, words, sections, the pencil questions, then "Send me your pencil answers and keep this sheet open until I've marked them. Then put it away and tell me “closed”. The drills come on their own sheet." (external pages end the same way). Its rules box starts "Read this sheet, then do the pencil questions at the end with it open." **Footer:** page X of Y where the format has pages.
 
 No printed "Looked at any of this since last time?" line exists in v0.1; ask it in chat before marking a recheck ([session-grade.md](session-grade.md) §10).
@@ -96,7 +96,8 @@ Every answer on `drills`, `cold`, `mixed`, `review`, `diagnostic` and `checkpoin
 | The answer anywhere visible: a hint, an option the key accepts word for word, a worked case on the same details | Choices answered by letter; worked cases on different details |
 | A concept introduced only by its definition | A concrete worked case first, then the rule (lint L11); one for each operation the drills use (L12) |
 | A procedure with no meaning: steps the learner can follow but can't picture | After the worked case, "What it is and why" in at most 5 lines: what the object is, and why the rule follows from it (lint L13, W6) |
-| Hints or worked steps on a measuring sheet | Only question, box and check line |
+| Hints, worked steps or printed working (a scaffold) on a measuring or mixed sheet | Only question, box and check line (lint L14) |
+| A step asked for in a sentence ("write u first", "finish steps 2 and 3") | A printed working line or table for it (`scaffold`), faded before the block ends |
 | Official questions copied into a spec | A pointer: "Test 2, questions 1–13" (`origin: official:<source>`) |
 
 ## 6. Building a sheet
@@ -116,7 +117,7 @@ A builder subagent writes every sheet that has answers, so no answer enters this
 - **Ids:** `<subject>-<type>-NN` (`ielts-cold-05`), or for a theory and its drills a shared stem, `<subject>-<stem>-NN-<type>` (`ielts-headings-01-theory`, `ielts-headings-01-drills`). A new id takes the next free NN.
 - **No Agent tool:** keyed sheets can't be built safely. Say so once, offer `external` pages from the learner's book, and label results `[unverified]`.
 
-## 7. The checker: rules L1–L13
+## 7. The checker: rules L1–L14
 
 `ind sheet lint <s> <id> --budget-min N` prints one PASS, FAIL or WARN line per rule and exits 1 on any FAIL. The builder fixes and re-lints. Never show rule codes to a plain-vocabulary learner.
 
@@ -135,6 +136,7 @@ A builder subagent writes every sheet that has answers, so no answer enters this
 | L11 worked case first | a theory or repair sheet with no `worked` section, or with a `rule` section before the first one (a locked override of R12 order lets the rule come first, never the worked case go); a `prequestion` (a guess before reading) on any other type, or after the first worked section | a concrete worked case first, then the rule; a guess goes first, on a theory sheet only |
 | L12 taught operations | on drills, a new item whose `op` no theory, external, example or repair sheet of its topic has shown (as a pencil question's `op` or in a worked section's `ops`); a topic with no such sheet is skipped | show it worked on the theory and rebuild that, or drop the item; never rename an `op` |
 | L13 meaning box | a theory sheet on a procedural, conceptual or code topic with no `meaning` section | after the worked case, say in at most 5 lines what the object is and why the rule follows from it |
+| L14 scaffolds | printed working (`scaffold`) on a cold, mixed or measuring sheet; on drills, a scaffold on one of a block's last two items | take it off; on drills, fade it: the last two items of a block print only the box |
 | W1 | `=` in a block title | the operation in words |
 | W2 | on drills with both computed and sentence items, a sentence item with no computed item before it on its topic | make it the last question of the computed item it is about |
 | W3 | on a topic below mastery 3 (3p counts as 3): a check line with no hint, or a hint that needs a second method or the weakest step ("another way", "which step would you be pushed on?") | the check the theory sheet worked, or one using only what the learner owns |
