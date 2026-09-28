@@ -3,27 +3,28 @@
 ``check(spec, ctx)`` is pure: it takes the visible spec and a context dict and
 returns one result per rule, in order. ``gather(ws, subject, spec, row)``
 builds that context from the workspace (topics, sense words, the glossary,
-budget, exposures, errors, the sealed key, and the time the sheet will be
-sat). ``run(...)`` does both.
+budget, pace, exposures, errors, the words and operations the subject's other
+sheets show, the sealed key, and the time the sheet will be sat). ``run(...)``
+does both.
 
 When the sheet is linked to a block (``sheet new/lint --block``, or the
 sheet row's block), L5 uses that block's minutes, less the other sheets on it,
-and L7 judges the recheck at
-the block's start: a recheck built at the previous close is judged at the time
-it will be sat, not at build time. ``sheet issue`` checks both again. L5 also
-recomputes the builder's own estimate from the subject's ``pace_s``
-(``pace_floor``) and fails a lower ``est_min``, since the estimate is written by
-the party whose sizing it checks. A measurement (diagnostic, mock, checkpoint)
-is exempt from the session's question budget, not from its own minutes: its
-block's minutes less the 10 kept for recording (``budget_for``).
+and L7 judges the recheck at the block's start: a recheck built at the previous
+close is judged at the time it will be sat, not at build time. ``sheet issue``
+checks both again. L5 also recomputes the builder's own estimate from the
+subject's ``pace_s`` (``pace_floor``) and fails a lower ``est_min``, since the
+estimate is written by the party whose sizing it checks. A measurement
+(diagnostic, mock, checkpoint) is exempt from the session's question budget,
+not from its own minutes: its block's minutes less the 10 kept for recording
+(``budget_for``).
 
 L4 terms: code (inline `spans` and fenced blocks) is scanned only for the
 subject's own ``lexicon`` and ``sense_list`` entries (``len``, ``.append``,
 ``λ``), never for the seed list, whose words are often identifiers; check hints
-and theory section bodies are scanned for all of them. Resolutions: ``defined_here`` (the word is
-in ``theory.words`` on this sheet), ``defined_on:<sheet-id>`` (a sheet of this
-subject, not void, that defines the word; ``sheet issue`` waits until that
-sheet is issued), ``glossary`` (the
+and theory section bodies are scanned for all of them. Resolutions:
+``defined_here`` (the word is in ``theory.words`` on this sheet),
+``defined_on:<sheet-id>`` (a sheet of this subject, not void, that defines the
+word; ``sheet issue`` waits until that sheet is issued), ``glossary`` (the
 word is in data/glossary.jsonl: ``glossary add``), ``everyday`` (used in its
 plain everyday sense; never for a word in the subject lexicon or one the sheet
 defines, and on a theory, example or repair sheet never for one it teaches: in
