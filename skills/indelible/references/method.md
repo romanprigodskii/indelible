@@ -66,7 +66,7 @@ IDs are stable, so `overrides[].rule` in `subject.json` can name one (for exampl
 | R8 | No answer before a real attempt; keys open only after the attempt is filed | core | [integrity] | Bastani et al., 2025 |
 | R9 | Every word on a sheet is defined there, already owned, or published by the exam | core | [integrity] | Abedi & Lord, 2001 |
 | R11 | One labelled box per answer, start and stop times, one Least-sure line per sheet | core | [design] | Butler, Karpicke & Roediger, 2008 |
-| R12 | At mastery 0–1 the worked example comes first, then fades, with a principle prompt on each worked case | default | [lit-strong] | Renkl & Atkinson, 2003; Atkinson, Renkl & Merrill, 2003 |
+| R12 | At mastery 0–1 the worked example comes first, then fades, with a principle prompt on each worked case that is marked (not an example sheet) | default | [lit-strong] | Renkl & Atkinson, 2003; Atkinson, Renkl & Merrill, 2003 |
 | R12 order | A small concrete case before the definition, then the general rule | default | [lit-mixed] | Fyfe et al., 2014 |
 | R13 | Each theory sheet lists what it stands on, and missing ground comes first | default | [lit-mixed] | Simonsmeier et al., 2022 |
 | R15 | A sheet fits the minutes left; an over-budget sheet is refused | default | [design] | |
