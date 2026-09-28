@@ -95,7 +95,7 @@ def register(subparsers):
                    help="the block it is built for (lint sizes and times it against that block)")
     a.set_defaults(func=cmd_new)
 
-    a = sp.add_parser("lint", help="run the sheet checker (L1-L14, W1-W7)")
+    a = sp.add_parser("lint", help="run the sheet checker (L1-L14, W1-W8)")
     a.add_argument("subject")
     a.add_argument("id")
     a.add_argument("--budget-min", type=float, default=None, metavar="N",

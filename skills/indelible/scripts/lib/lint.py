@@ -1,4 +1,4 @@
-"""The sheet checker: rules L1-L14 and warnings W1-W7 (CONTRACT section 7.4).
+"""The sheet checker: rules L1-L14 and warnings W1-W8 (CONTRACT section 7.4).
 
 ``check(spec, ctx)`` is pure: it takes the visible spec and a context dict and
 returns one result per rule, in order. ``gather(ws, subject, spec, row)``
@@ -38,7 +38,10 @@ plain everyday sense; never for a word in the subject lexicon or one the sheet
 defines, and on a theory, example or repair sheet never for one it teaches: in
 the title, a section title, the topic's name or a question, or used 3 times or
 more), and ``measured_here`` (a measuring sheet that deliberately tests the
-word).
+word). W8 warns when a cold, mixed or measuring sheet leans on a word through
+``defined_on:`` that no question the learner answered used: an item's text or
+label on a practice sheet sat or graded. A word read once in a words box is
+not yet the learner's.
 
 L10 and W3 read check hints only. A hint is how the learner checks an answer,
 so it must name a check that runs: never a search for their own mistake, a
@@ -84,7 +87,7 @@ from lib import io as fio
 from lib import render
 
 RULES = ["L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L9", "L10", "L11", "L12", "L13", "L14",
-         "W1", "W2", "W3", "W4", "W5", "W6", "W7"]
+         "W1", "W2", "W3", "W4", "W5", "W6", "W7", "W8"]
 TITLES = {
     "L1": "structure", "L2": "check lines", "L3": "unlabelled", "L4": "terms", "L5": "budget",
     "L6": "drill blocks", "L7": "cold validity", "L8": "key leak", "L9": "least-sure",
@@ -92,7 +95,7 @@ TITLES = {
     "L14": "scaffolds",
     "W1": "formula in block title", "W2": "sentences after their numbers",
     "W3": "checks on new topics", "W4": "worked check", "W5": "reading time", "W6": "meaning box",
-    "W7": "recheck operations",
+    "W7": "recheck operations", "W8": "terms used before",
 }
 
 # L2: every ask has a check line on these types. Repair is exempt (CONTRACT
@@ -189,6 +192,11 @@ ORDER_RULES = ("r12 order", "r12")
 SHOWING_TYPES = ("theory", "external", "example", "repair")
 # W7: the sheets whose operations a recheck may ask for: shown, or practised on drills.
 PRACTISED_TYPES = SHOWING_TYPES + ("drills",)
+# W8: the closed-book sheets whose defined_on: words must have been used in an answered question,
+# and the practice sheets whose questions count as that use once sat or graded.
+TERM_USE_CHECKED = MEASURING + ("mixed",)
+TERM_USE_TYPES = SHOWING_TYPES + ("drills", "mixed", "review", "explain", "miss-review")
+ANSWERED = ("sat", "graded")
 # L13: the layers whose theory must say what the object is and why the rule follows (a procedure
 # learned without its meaning fades); W6 asks for it on the others. The box is about 5 lines.
 MEANING_LAYERS = ("procedural", "conceptual", "code")
@@ -1081,6 +1089,49 @@ def _w7(spec, ctx):
     return "PASS", "each recheck item's operation was shown or practised"
 
 
+def _w8(spec, ctx):
+    """A word a cold, mixed or measuring sheet leans on through ``defined_on:<sheet>`` was used in
+    a question the learner answered (an item's text or label on a practice sheet sat or graded),
+    not only read: a word printed once in a words box and never used is not owned, and meeting it
+    cold is my mistake. A warning only; a word listed in ``terms`` but not on the sheet is skipped."""
+    if spec.get("type") not in TERM_USE_CHECKED:
+        return "PASS", "not a cold, mixed or measuring sheet"
+    answered = ctx.get("answered_texts")
+    if answered is None:
+        return "PASS", "not checked (no sheets read)"
+    visible = _term_texts(spec)
+    only_read = []
+    for term in spec.get("terms") or []:
+        if not isinstance(term, dict):
+            continue
+        res = _s(term.get("resolution")).strip()
+        pat = phrase_pattern(_term_key(term.get("term")))
+        if not res.startswith("defined_on:") or pat is None or not any(pat.search(x) for x in visible):
+            continue
+        if not any(pat.search(x) for x in answered):
+            only_read.append("'%s' (%s)" % (_term_key(term.get("term")), res[len("defined_on:"):]))
+    if only_read:
+        return "WARN", ("a word the learner has read but never used in a question they answered on a practice "
+                        "sheet: %s. Use it in a drills question first, or use plain words here"
+                        % _listed(only_read, 4))
+    return "PASS", "each defined_on word was used in an answered question"
+
+
+def _answered_texts(specs, sheet_id):
+    """The questions the learner answered: item texts and labels on this subject's practice
+    sheets sat or graded (W8). None when the sheets can't be read."""
+    if specs is None:
+        return None
+    out = []
+    for row, spec in specs:
+        if row.get("id") == sheet_id or row.get("status") not in ANSWERED or spec.get("type") not in TERM_USE_TYPES:
+            continue
+        for it in _items(spec):
+            out.append(strip_code(it.get("text")))
+            out += [strip_code(a.get("label")) for a in _asks(it)]
+    return [x for x in out if x.strip()]
+
+
 def _sections(spec):
     theory = spec.get("theory") if isinstance(spec.get("theory"), dict) else {}
     return [sec for sec in (theory.get("sections") or []) if isinstance(sec, dict)]
@@ -1214,7 +1265,7 @@ def _w2(spec, ctx):
 
 CHECKS = {"L1": _l1, "L2": _l2, "L3": _l3, "L4": _l4, "L5": _l5, "L6": _l6, "L7": _l7,
           "L8": _l8, "L9": _l9, "L10": _l10, "L11": _l11, "L12": _l12, "L13": _l13, "L14": _l14,
-          "W1": _w1, "W2": _w2, "W3": _w3, "W4": _w4, "W5": _w5, "W6": _w6, "W7": _w7}
+          "W1": _w1, "W2": _w2, "W3": _w3, "W4": _w4, "W5": _w5, "W6": _w6, "W7": _w7, "W8": _w8}
 
 
 def check(spec, ctx=None):
@@ -1477,6 +1528,7 @@ def gather(ws, subject, spec, row=None, budget_min=None, now=None, block=None, a
                                if specs is not None else None),
         "practised_ops": shown_ops([(r, s) for r, s in specs if r.get("id") != spec.get("id")]
                                    if specs is not None else None, types=PRACTISED_TYPES),
+        "answered_texts": _answered_texts(specs, spec.get("id")),
         "block_size": block_size,
         "overrides": cfg.get("overrides") if isinstance(cfg.get("overrides"), list) else [],
         "pace_s": cfg.get("pace_s") if isinstance(cfg.get("pace_s"), dict) else {},

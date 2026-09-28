@@ -1,4 +1,4 @@
-"""The sheet checker: every rule L1-L14 and W1-W7 has a failing and a passing fixture.
+"""The sheet checker: every rule L1-L14 and W1-W8 has a failing and a passing fixture.
 
 Most rules are checked in-process with ``lint.check(spec, ctx)``; the rules
 that read the workspace (L4 sense words, L5 blocks, L7 exposures and errors,
@@ -823,6 +823,38 @@ class RuleTests(Base):
                         "a warning never blocks a recheck")
         self.assertEqual(self.status(drills_spec(), "W7", shown_ops=shown, practised_ops={}), "PASS")
 
+    def test_w8_a_recheck_word_was_used_in_an_answered_question_not_only_read(self):
+        spec = cold_spec()
+        spec["items"][0]["text"] = "Paraphrase this sentence: " + spec["items"][0]["text"]
+        spec["terms"] = [{"term": "paraphrase", "resolution": "defined_on:ielts-theory-01"}]
+        self.assertEqual(self.status(spec, "W8"), "PASS", "no sheets read")
+        r = result(spec, "W8", answered_texts=["Swap one word in: The bridge was closed."])
+        self.assertEqual(r["status"], "WARN")
+        self.assertIn("'paraphrase' (ielts-theory-01)", r["detail"])
+        self.assertEqual(self.status(spec, "W8", answered_texts=["Write a paraphrase of the first line:"]),
+                         "PASS", "used in a question the learner answered")
+        self.assertTrue(lint.passed(lint.check(spec, ctx(key=answers_for(spec), answered_texts=[]))),
+                        "a warning never blocks a recheck")
+        # Listed but not on the sheet, another resolution, or a practice sheet: not checked.
+        spec["items"][0]["text"] = SENT = "The bridge was closed for repairs last winter."
+        self.assertEqual(self.status(spec, "W8", answered_texts=[]), "PASS")
+        drills = drills_spec(terms=[{"term": "paraphrase", "resolution": "defined_on:ielts-theory-01"}])
+        drills["items"][0]["text"] = "Paraphrase: " + SENT
+        self.assertEqual(self.status(drills, "W8", answered_texts=[]), "PASS", "drills are where it gets used")
+
+    def test_w8_counts_questions_on_practice_sheets_sat_or_graded(self):
+        theory = theory_spec()                                 # its pencil: "Finish the second sentence ..."
+        theory["items"][0]["text"] = "Write a paraphrase of the first sentence."
+        rows = [({"id": "ielts-theory-01", "status": "graded"}, theory),
+                ({"id": "ielts-drills-01", "status": "rendered"},
+                 dict(drills_spec(), items=[dict(drills_spec()["items"][0], text="Paraphrase the line.")])),
+                ({"id": "ielts-cold-01", "status": "graded"},
+                 dict(cold_spec(), items=[dict(cold_spec()["items"][0], text="A paraphrase, cold.")]))]
+        texts = lint._answered_texts(rows, "ielts-cold-02")
+        self.assertEqual(texts, ["Write a paraphrase of the first sentence.", "Second sentence:"],
+                         "only sat or graded practice sheets: not a rendered one, not a recheck")
+        self.assertIsNone(lint._answered_texts(None, "x"))
+
     def test_practised_ops_add_the_drills(self):
         shown = lint.shown_ops([({}, theory_spec()), ({}, drills_spec(n=3))], types=lint.PRACTISED_TYPES)
         self.assertEqual(shown, {"T04": {"complete", "swap-word"}})
@@ -920,6 +952,29 @@ class CliLintTests(Base):
         self.assertIn("defined on ielts-theory-01, which is rendered: issue that sheet first", r.stdout + r.stderr)
         self.assertEqual(run(["sheet", "issue", SUBJECT, theory["id"]], ws=self.ws, now=NOW).returncode, 0)
         self.assertEqual(run(["sheet", "issue", SUBJECT, spec["id"]], ws=self.ws, now=NOW).returncode, 0)
+
+    def test_a_recheck_word_only_read_on_the_theory_warns(self):
+        # W8 through the CLI: 'paraphrase' is in the theory's words box but in no question the
+        # learner answered, until a graded practice sheet uses it.
+        theory = theory_spec()
+        self.assertEqual(new_sheet(self.ws, theory).returncode, 0)
+        spec = cold_spec(terms=[{"term": "paraphrase", "resolution": "defined_on:ielts-theory-01"}])
+        spec["items"][1]["text"] = "Give a paraphrase of this line: " + spec["items"][1]["text"]
+        self.assertEqual(new_sheet(self.ws, spec).returncode, 0)
+        r = self.lint(spec["id"], "--at", "2026-10-12T09:00+01:00")
+        self.assertIn("W8 WARN terms used before", r.stdout)
+        self.assertIn("'paraphrase' (ielts-theory-01)", self.line(r, "W8"))
+        drills = drills_spec()
+        drills["items"][0]["text"] = "Paraphrase it with a new verb: " + drills["items"][0]["text"]
+        drills["terms"] = [{"term": "paraphrase", "resolution": "defined_on:ielts-theory-01"}]
+        self.assertEqual(new_sheet(self.ws, drills).returncode, 0)
+        rows = fio.read_jsonl(subject_dir(self.ws) / "data" / "sheets.jsonl")
+        for row in rows:
+            if row["id"] == drills["id"]:
+                row["status"] = "graded"
+        fio.write_jsonl(subject_dir(self.ws) / "data" / "sheets.jsonl", rows)
+        r = self.lint(spec["id"], "--at", "2026-10-12T09:00+01:00")
+        self.assertTrue(self.line(r, "W8").startswith("W8 PASS"), self.line(r, "W8"))
 
     def test_drills_ask_only_for_what_the_theory_worked(self):
         theory = theory_spec()
