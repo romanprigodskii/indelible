@@ -14,7 +14,7 @@ becomes a usage error (exit 2) in the middle of a session. Every backticked
 
 Placeholders are `<…>`, a quoted string holding `…`, and the words N, ISO,
 DATE, TEXT, MIN or a single capital letter. Optional `[--opt …]` groups are
-left out.
+left out of the parse, but their flags and choices are still checked.
 """
 
 import argparse
@@ -91,21 +91,49 @@ def _fill(action, prev):
     return FILL_TEXT
 
 
+def _marked(s):
+    """``s`` with its placeholders marked as <ph>."""
+    s = ANGLE_RE.sub("<ph>", s)               # before shlex: "<the learner's words>" holds an apostrophe
+    return QUOTED_ELLIPSIS_RE.sub("<ph>", s)
+
+
+def _words(s):
+    """The words of ``s``, with any `…` left out (ValueError if shlex can't split it)."""
+    return shlex.split(s.replace("…", " ").replace("...", " "))
+
+
 def check_usage(parser, usage):
     """None if the usage fits the parser, else the reason it doesn't."""
-    s = OPTIONAL_RE.sub("", usage.split("<<")[0])
-    s = ANGLE_RE.sub("<ph>", s)               # before shlex: "<the learner's words>" holds an apostrophe
-    s = QUOTED_ELLIPSIS_RE.sub("<ph>", s)
+    s = usage.split("<<")[0]
+    # The optional groups stay out of the parse, but their flags are checked.
+    optional = _marked(" ".join(g[1:-1] for g in OPTIONAL_RE.findall(s)))
+    s = _marked(OPTIONAL_RE.sub("", s))
     elided = "…" in s or "..." in s
-    s = s.replace("…", " ").replace("...", " ")
     try:
-        tokens = shlex.split(s)[1:]
+        tokens = _words(s)[1:]
+        extra = _words(optional)
     except ValueError as exc:
         return "cannot be split into words (%s)" % exc
-    return _check_tokens(parser, tokens, elided)
+    return _check_tokens(parser, tokens, elided, extra)
 
 
-def _check_tokens(parser, tokens, elided):
+def _check_options(p, path, words):
+    """None if every --flag in ``words`` is one of p's options, with a valid literal choice."""
+    for j, t in enumerate(words):
+        if not t.startswith("--"):
+            continue
+        action = _option(p, t)
+        if action is None:
+            return "%s takes no option %s" % (" ".join(path), t)
+        if action.choices and j + 1 < len(words):
+            value = words[j + 1]
+            if not _placeholder(value) and not value.startswith("--"):
+                if any(v not in action.choices for v in value.split("|")):
+                    return "%s %s: not one of %s" % (t, value, ", ".join(str(c) for c in action.choices))
+    return None
+
+
+def _check_tokens(parser, tokens, elided, optional=()):
     p, i, path = parser, 0, []
     while i < len(tokens) and _subparsers(p):
         subs = _subparsers(p)
@@ -115,7 +143,7 @@ def _check_tokens(parser, tokens, elided):
         if len(alts) > 1:
             # "error repair|pass|fail" names three commands: check each.
             for a in alts:
-                why = _check_tokens(parser, tokens[:i] + [a] + tokens[i + 1:], elided)
+                why = _check_tokens(parser, tokens[:i] + [a] + tokens[i + 1:], elided, optional)
                 if why:
                     return why
             return None
@@ -127,17 +155,9 @@ def _check_tokens(parser, tokens, elided):
             return "%s needs a subcommand" % " ".join(path)
         return "no such command: %s" % " ".join(tokens[:i + 1])
     rest = tokens[i:]
-    for j, t in enumerate(rest):
-        if not t.startswith("--"):
-            continue
-        action = _option(p, t)
-        if action is None:
-            return "%s takes no option %s" % (" ".join(path), t)
-        if action.choices and j + 1 < len(rest):
-            value = rest[j + 1]
-            if not _placeholder(value) and not value.startswith("--"):
-                if any(v not in action.choices for v in value.split("|")):
-                    return "%s %s: not one of %s" % (t, value, ", ".join(str(c) for c in action.choices))
+    why = _check_options(p, path, rest) or _check_options(p, path, list(optional))
+    if why:
+        return why
     if elided or not rest or all(t.startswith("--") for t in rest):
         return None
     argv, prev = list(path), None
@@ -191,6 +211,9 @@ class DocUsages(unittest.TestCase):
             ("ind sheet lint <s> <id> --budget 5", "takes no option --budget"),       # truncated flag
             ("ind plan add <s> --kind K --start ISO --minutes 60", "takes no option --minutes"),
             ("ind session open <s> --planned 60 --kind diag", "not one of"),
+            ("ind plan add <s> --kind K --start ISO --min N [--protectd]", "takes no option --protectd"),
+            ("ind sheet lint <s> <id> [--budget 5]", "takes no option --budget"),
+            ("ind session open <s> --planned 60 [--kind diag]", "not one of"),
             ("ind cal ics <out> --ops all|update", "not one of"),
             ("ind sheet sit <s> <id>", "no such command"),
             ("ind error repair|pass|drop", "no such command"),
