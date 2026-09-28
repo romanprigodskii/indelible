@@ -623,6 +623,14 @@ class LevelTests(Base):
         # A mock pass is a retrieval too; a pass seen warm is not.
         five = level(first + att("c2", "rrrr", "cold", 10, interval_h=240) + att("m", "rrrw", "mock", 14))
         self.assertEqual((five["level"], five["last_pass"]), (5, "2026-10-27T07:00+01:00"))
+        # A mock sat 3 h after the topic was seen keeps the upkeep clock where it was.
+        warm = level(first + att("c2", "rrrr", "cold", 10, interval_h=240) + att("m", "rrrr", "mock", 14, interval_h=3))
+        self.assertEqual(warm["last_pass"], "2026-10-23T07:00+01:00")
+        warm = level(first + att("c2", "rrrr", "cold", 10, interval_h=240) + att("m", "rrrr", "checkpoint", 14,
+                                                                                  interval_h=23.9))
+        self.assertEqual(warm["last_pass"], "2026-10-23T07:00+01:00")
+        self.assertEqual(level(first + att("c2", "rrrr", "cold", 10, interval_h=240)
+                               + att("m", "rrrr", "mock", 14, interval_h=24))["last_pass"], "2026-10-27T07:00+01:00")
         self.assertIsNone(learning.later_recheck_due(2, None, None))
         self.assertIsNone(learning.later_recheck_due("3p", None, None))
 

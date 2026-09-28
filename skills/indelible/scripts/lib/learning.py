@@ -754,7 +754,9 @@ def _levels_for_topic(sittings, window, untreated=None, least_sure_only=False):
                     st["m3p"] = None  # a newer measurement no longer supports 3p
             if inst in MEASURE_5 and st["l4"] and at > st["l4"][0] and ev["n"] and ev["pct"] >= PASS_PCT:
                 st["l5"] = "%s %s on %s after level 4" % (inst, _frac(ev["pts"], ev["n"]), ev["sheet"])
-            if inst in MEASURE_5 and ev["n"] >= MIN_COLD_ASKS and ev["pct"] >= PASS_PCT:
+            # A mock or checkpoint pass is a retrieval too, but not one sat warm (as for a cold pass).
+            if (inst in MEASURE_5 and ev["n"] >= MIN_COLD_ASKS and ev["pct"] >= PASS_PCT
+                    and (ev["interval_h"] is None or ev["interval_h"] >= NO_EXPOSURE_H)):
                 st["last_pass"] = at
             continue
         if inst != "cold":
