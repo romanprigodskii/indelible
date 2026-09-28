@@ -20,6 +20,7 @@ TYPE        sheet type (theory, external, example, drills, cold, mixed, repair, 
 SERVE       what to serve, one per line, most important first:
               cold:<topic>
               error:<E-id> <topic> "<belief line>" (from <sheet> item <n>)
+              sentinel:<E-id> <topic> "<belief line>" (a retired mistake's last check)
               new:<topic> "<topic name>"
               official:<source> "<pointer, e.g. Test 2, questions 1-13>"
 BUDGET_MIN  minutes the sheet may take

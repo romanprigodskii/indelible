@@ -492,7 +492,8 @@ class DueTests(BriefBase):
         pos = [out.index(x) for x in ("1. 2-day rechecks", "T02 True, false or not given · 49 h",
                                       "2. fixed mistakes due", "E-ielts-0003", "3. shaky answers due",
                                       "E-ielts-0004", "4. oldest due", "E-ielts-0001", "E-ielts-0002",
-                                      "5. needs repair", "E-ielts-0005")]
+                                      "5. last checks on retired mistakes", "6. level-4 rechecks",
+                                      "7. upkeep rechecks", "8. needs repair", "E-ielts-0005")]
         self.assertEqual(pos, sorted(pos))      # unnamed-wrong first within a tier, then oldest
         self.assertNotIn("E-ielts-0006", out)
         self.assertNotIn("E-ielts-0007", out)
@@ -521,6 +522,64 @@ class DueTests(BriefBase):
         r = self.ind("due", "ielts", now="2026-10-12T20:30+01:00")
         self.assertIn("mistakes due: 1 fixed, 1 slip", r.stdout)
         self.assertNotIn("not ready", r.stdout)
+
+    def cold_rows(self, sheet, topic, at, interval_h, verdicts="rr", instrument="cold", origin=None):
+        return [{"v": 1, "sheet": sheet, "item": i + 1, "ask": "%da" % (i + 1), "topic": topic, "layer": "reading",
+                 "instrument": instrument, "cold": instrument == "cold", "interval_h": interval_h,
+                 "verdict": {"r": "right", "w": "wrong"}[v], "score": 1 if v == "r" else 0, "check": "filled",
+                 "least_sure": False, "at": at, "prov": "measured", "sheet_type": instrument,
+                 "origin": origin or "cold:%s" % topic} for i, v in enumerate(verdicts)]
+
+    def test_later_rechecks_and_sentinels_come_round(self):
+        # T01 passed its 2-day recheck on 3 Oct (mastery 3): its level-4 recheck is due from 10 Oct 08:00.
+        # T04 reached 4 on 10 Sep: its upkeep recheck is due 21 days later. T02 passed on 8 Oct: not yet.
+        rows = (self.cold_rows("ielts-cold-01", "T01", "2026-10-03T08:00+01:00", 48)
+                + self.cold_rows("ielts-cold-02", "T02", "2026-10-08T08:00+01:00", 48)
+                + self.cold_rows("ielts-cold-03", "T04", "2026-09-01T08:00+01:00", 48)
+                + self.cold_rows("ielts-cold-04", "T04", "2026-09-10T08:00+01:00", 216)
+                + self.cold_rows("ielts-cold-05", "T03", "2026-10-11T08:00+01:00", 200, verdicts="r",
+                                 origin="sentinel:E-ielts-0009"))
+        self.put("ielts/data/attempts.jsonl", rows)
+        fio.write_json(self.s / "data" / "topics.json", {
+            "T01": {"level": 3, "last_cold": "2026-10-03T08:00+01:00"},
+            "T02": {"level": 3, "last_cold": "2026-10-08T08:00+01:00"},
+            "T04": {"level": 4, "last_cold": "2026-09-10T08:00+01:00"}})
+        # Retired mistakes: one due its sentinel, one already served it, one archived by compact.
+        e8 = dict(self.error(8, kind="slip", topic="T03"), status="retired", next_due=None, passes=["2026-09-10"])
+        e9 = dict(self.error(9, kind="slip", topic="T03"), status="retired", next_due=None, passes=["2026-09-12"])
+        e10 = dict(self.error(10, topic="T02"), status="retired", next_due=None, passes=["2026-09-01"])
+        self.put("ielts/data/errors.jsonl", [e8, e9])
+        self.put("ielts/archive/errors-2026-09.jsonl", [e10])
+        self.set_cfg("learner.vocab", "technical")
+        out = self.ind("due", "ielts", "--list").stdout
+        tier = lambda n: out.split("%d. " % n, 1)[1].split("%d. " % (n + 1), 1)[0]
+        self.assertIn("E-ielts-0008 T03 Task 1 overview [slip]", tier(5))
+        self.assertIn("(retired 2026-09-10, check due 2026-10-08)", tier(5))
+        self.assertIn("E-ielts-0010 T02", tier(5))                 # read from the archive
+        self.assertNotIn("E-ielts-0009", tier(5))                  # its sentinel was graded on 11 Oct
+        self.assertIn("T01 Matching headings · first pass Sat 3 Oct 08:00 (9 days ago)", tier(6))
+        self.assertNotIn("T02", tier(6))
+        self.assertIn("T04 Paraphrase · level 4 · last pass Thu 10 Sep 08:00 (32 days ago)", tier(7))
+        self.assertNotIn("T01", out.split("1. 2-day rechecks", 1)[1].split("2. ", 1)[0])
+        r = self.ind("due", "ielts")
+        self.assertIn("level-4 and upkeep serves eligible now: 2", r.stdout)
+        self.assertIn("errors due: 2 sentinels", r.stdout)
+        data = json.loads(self.ind("due", "ielts", "--json").stdout)
+        self.assertEqual([e["id"] for e in data["tiers"]["5_sentinels"]], ["E-ielts-0010", "E-ielts-0008"])
+        self.assertEqual(data["tiers"]["6_level4"][0]["due_at"], "2026-10-10T08:00+01:00")
+        self.assertEqual([r["topic"] for r in data["tiers"]["7_upkeep"]], ["T04"])
+        self.assertEqual((data["counts"]["level4"], data["counts"]["upkeep"], data["counts"]["sentinels"]), (1, 1, 2))
+        self.set_cfg("learner.vocab", "plain")
+        learner, _ = self.parts(self.brief())
+        self.assertIn("later rechecks ready now: 2", learner)
+        self.assertIn("mistakes due: 2 last checks", learner)
+        self.assertNotIn("T01", learner)
+        # Seen in the last 24 h: not eligible now. From the date on, nothing is kept up.
+        self.put("ielts/data/exposures.jsonl", [{"v": 1, "topic": "T01", "at": "2026-10-12T07:00+01:00",
+                                                 "kind": "drill"}])
+        self.assertIn("none", self.ind("due", "ielts", "--list").stdout.split("6. ", 1)[1].split("7. ", 1)[0])
+        r = self.ind("due", "ielts", "--list", now="2026-12-12T09:00+00:00")
+        self.assertEqual(r.stdout.split("6. ", 1)[1].split("8. ", 1)[0].count("none"), 2)
 
     def test_untreated_belief_blocks_a_topic_recheck(self):
         self.put("ielts/data/exposures.jsonl", [{"v": 1, "topic": "T04", "at": "2026-10-10T08:00+01:00",

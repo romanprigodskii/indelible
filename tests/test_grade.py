@@ -744,6 +744,30 @@ class GradingRegressionTests(GradeBase):
         self.assertNotIn("below 3 after this recheck", r.stdout)
         self.assert_no_secrets()
 
+    def test_a_topic_at_3_comes_back_for_level_4_then_for_upkeep(self):
+        add_exposure(self.ws, self.sid, "T01", "2026-10-12T07:40+01:00")
+        items = [make_item(n, "T01", ["%da" % n], origin="cold:T01", layer="reading") for n in (1, 2)]
+        key = write_sheet(self.ws, self.sid, "ielts-cold-01", "cold", items)
+        self.remember_key(key)
+        r = self.grade("ielts-cold-01", {"date": "2026-10-14", "start": "08:00", "stop": "08:05", "asks": [
+            {"ask": "%da" % n, "verdict": "right", "check": "filled"} for n in (1, 2)]})
+        self.assertIn("Levels: T01 0 → 3", r.stdout)
+        r = self.cli(["due", self.sid, "--list"], now="2026-10-21T07:00+01:00")    # 6 days 23 h: not yet
+        self.assertIn("none", r.stdout.split("6. ", 1)[1].split("7. ", 1)[0])
+        r = self.cli(["due", self.sid, "--list"], now="2026-10-21T09:00+01:00")
+        self.assertIn("T01 Matching headings · first pass Wed 14 Oct 08:00 (7 days ago)",
+                      r.stdout.split("6. ", 1)[1].split("7. ", 1)[0])
+        self.assertNotIn("T01", r.stdout.split("1. 2-day rechecks", 1)[1].split("2. ", 1)[0])
+        key = write_sheet(self.ws, self.sid, "ielts-cold-02", "cold", items, issued="2026-10-21T09:00+01:00")
+        self.remember_key(key)
+        r = self.grade("ielts-cold-02", {"date": "2026-10-21", "start": "09:05", "stop": "09:10", "asks": [
+            {"ask": "%da" % n, "verdict": "right", "check": "filled"} for n in (1, 2)]}, now="2026-10-21T09:15+01:00")
+        self.assertIn("Levels: T01 3 → 4", r.stdout)
+        r = self.cli(["due", self.sid, "--list"], now="2026-11-11T10:00+00:00")
+        self.assertIn("T01 Matching headings · level 4 · last pass Wed 21 Oct 09:05 (21 days ago)",
+                      r.stdout.split("7. ", 1)[1].split("8. ", 1)[0])
+        self.assert_no_secrets()
+
     def test_a_words_recheck_still_closes_its_booking(self):
         add_exposure(self.ws, self.sid, "T01", "2026-10-12T07:40+01:00")
         add_blocks(self.ws, [cold_obligation("B-20261014-ielts-2", self.sid, "T01",

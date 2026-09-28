@@ -10,7 +10,7 @@
 
 1. **Read it, then close it.** Theory comes on a sheet you read and put away before the drills. An explanation left in view turns a test into a lookup.
 2. **One thing at a time, then all mixed up.** Teaching drills come in blocks of one question type. Anything that measures is unlabelled and interleaved, like the real exam.
-3. **Nothing counts until it survives 48 hours.** Every new skill comes back cold two days later, on fresh problems. Same-day scores don't count.
+3. **Nothing counts until it survives 48 hours.** Every new skill comes back cold two days later, on fresh problems, then again a week later and every 3 weeks until your date. Same-day scores don't count.
 4. **Check backwards, in writing.** Beside every answer, write one check that runs the other way: put the answer back into the question, rebuild the total, or test the definition you used against what the question actually says. Re-solving in your head replays the same slip; a written check catches it. On a new topic, the check is the one the theory sheet showed you working. Each sheet ends with a single line, *Least sure of: ___*. There is no confidence flag on every answer: people stop filling it in, and doubt tends to fire on arithmetic while the costly mistakes are confident misreadings of a definition.
 5. **Every miss goes in the error log** and returns after 1 day, 3 days, 1 week and 3 weeks.
 6. **You do the work.** You get the smallest hint that unblocks you and never an answer you could reach yourself. When an answer is wrong, you're shown where, and the fix is yours: you're never sent to hunt for a mistake in something you learned an hour ago. Explaining a concept back is the real test.

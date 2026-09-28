@@ -179,11 +179,14 @@ The recheck takes at most a quarter of the planned minutes in sessions of 30 min
    2. fixed mistakes that are due;
    3. shaky answers (right, but named on a Least-sure line);
    4. the oldest due items;
-   5. untreated mistakes. These are listed as "needs repair" and never go on the sheet; they go to repair ([session-teach.md](session-teach.md)).
+   5. last checks on retired mistakes (`sentinel:<E-id>`), about 4 weeks after they retired;
+   6. level-4 rechecks: a topic at mastery 3 whose first pass is 7 days old or more (`cold:<topic>`);
+   7. upkeep rechecks: a topic at mastery 4 or 5, 3 weeks after its last pass, until the date (`cold:<topic>`);
+   8. untreated mistakes. These are listed as "needs repair" and never go on the sheet; they go to repair ([session-teach.md](session-teach.md)).
 
-   Every question is new: fresh numbers or sentences, never the item that was missed. Within a tier, earlier wrong answers the learner had not named as least sure come first.
+   Tiers 6 and 7 wait whenever the share is full: a later session serves them, since they have no window. Every question is new: fresh numbers or sentences, never the item that was missed. Within a tier, earlier wrong answers the learner had not named as least sure come first.
 
-   **At least 2 questions on each recheck topic.** A recheck counts toward mastery only with 2 counted questions on the topic, so give every tier 1 topic 2 before any tier 2–4 item goes on (lint L7 refuses a topic with fewer). If the share can't hold 2 for each, drop the topic whose window stays open longest: it goes to a later session inside its window, or, with none left, to the late-recheck rule ([plan.md](plan.md) §7). Never cut a recheck topic to one question. A quick session serves a recheck only when 2 questions per topic fit.
+   **At least 2 questions on each recheck topic** (tiers 1, 6 and 7). A cold pass counts toward mastery only with 2 counted questions on the topic, so give every tier 1 topic 2 before any later tier goes on, and a tier 6 or 7 topic goes on with 2 or not at all (lint L7 refuses a topic with fewer). If the share can't hold 2 for each tier 1 topic, drop the one whose window stays open longest: it goes to a later session inside its window, or, with none left, to the late-recheck rule ([plan.md](plan.md) §7). Never cut a recheck topic to one question. A quick session serves a recheck only when 2 questions per topic fit.
 2. **Excluded:** any topic with an untreated mistake, and any topic with a warm exposure (teach, repair, chat, drill or review) in the last 24 hours. Lint rule L7 refuses both; never work around it. If the learner overrides, the result is labelled "not counted (seen too recently)".
 3. **The sheet** is type `cold`: unlabelled and mixed, with no topic names in titles or labels and no two neighbouring questions on the same topic. Every question has a check line, and the sheet ends with the Least-sure line. The builder writes it ([sheets.md](sheets.md)).
 4. **Looked since last time:** no sheet prints this in v0.1. When the photo arrives, before marking, ask once in chat: "Did you look at any of this since last time? Which questions? Topics in your own words are fine." Any question named is "not counted (seen too recently)" ([session-grade.md](session-grade.md) §10).

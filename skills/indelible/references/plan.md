@@ -106,7 +106,8 @@ The CLI runs the ladder (`ind grade record`, `ind error repair|pass|fail`); you 
 - **Ladder:** +1 d, +3 d, +1 w, +3 w, capped at the date − 2 days (never before tomorrow).
 - **Entry:** a belief once it is fixed; a slip at +1 d; a shaky answer (right, but on the Least-sure line) at +3 d.
 - **Pass or fail:** a pass moves up a rung; a failed belief needs repair again; a failed slip or shaky item restarts at +1 d.
-- **Retirement:** after passing +3 w, or on a short runway after 2 passes on different days since its last miss. One sentinel follows inside a mixed sheet about 4 weeks later (or a week before the date); a miss reopens the item.
+- **Retirement:** after passing +3 w, or on a short runway after 2 passes on different days since its last miss. One sentinel follows on the next cold or mixed sheet about 4 weeks later (or a week before the date): `ind due <s> --list` lists it in tier 5, read from the archive too; a miss reopens the item.
+- **Topics come back too:** a topic at mastery 3 gets its level-4 recheck 7 days or more after its first pass, and a topic at 4 or 5 an upkeep recheck every 3 weeks until the date (tiers 6 and 7 of `ind due <s> --list`). Both ride inside recheck blocks, 2 questions a topic, like due mistakes.
 - **Due items ride inside blocks, never as calendar events.** Their load is the due count × the subject's pace. Over 25% of a block's work minutes: add a `review` block, or pull items up to 2 days early. Never more than 2 days late.
 
 Why: spaced retrieval beats massed practice, and the best gap grows with the time left before the test (Cepeda et al. 2008). Retiring an item after several spaced successes follows successive relearning (Rawson, Dunlosky & Sciartelli 2013).

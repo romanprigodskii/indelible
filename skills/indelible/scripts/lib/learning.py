@@ -208,6 +208,52 @@ def is_due(e, d):
     return nd is not None and _d(nd) <= _d(d)
 
 
+SENTINEL_DAYS = 28             # a retired mistake's one sentinel serve, after its last pass
+SENTINEL_BEFORE_DATE_DAYS = 7  # ... or a week before the date, when that comes first
+
+
+def sentinel_due(e, deadline=None):
+    """The date a retired mistake's one sentinel serve falls due, or None.
+
+    SENTINEL_DAYS after its last pass; with a deadline, a week before it when
+    that comes first, but never before the day after the last pass, and never
+    on or after the deadline.
+    """
+    if e.get("status") != "retired":
+        return None
+    days = pass_days(e)
+    if not days:
+        return None
+    last = _d(max(days))
+    due = last + timedelta(days=SENTINEL_DAYS)
+    if deadline is not None:
+        dl = _d(deadline)
+        due = max(min(due, dl - timedelta(days=SENTINEL_BEFORE_DATE_DAYS)), last + timedelta(days=1))
+        if due >= dl:
+            return None
+    return due
+
+
+def sentinel_served(e, attempts):
+    """True if a sentinel serve of the retired mistake ``e`` was graded on or after
+    its last pass: on a mixed or measuring sheet, its topic not seen in the 24 h
+    before (a warm serve moves nothing, so it does not count)."""
+    days = pass_days(e)
+    if not days:
+        return False
+    last, origin = max(days), "sentinel:%s" % e.get("id")
+    for a in attempts or []:
+        if a.get("origin") != origin or not (a.get("sheet_type") == "mixed" or a.get("prov") == "measured"):
+            continue
+        ih = a.get("interval_h")
+        if isinstance(ih, (int, float)) and not isinstance(ih, bool) and ih < NO_EXPOSURE_H:
+            continue
+        at = dates.try_parse_iso(a.get("at"))
+        if at is not None and dates.fmt_date(at) >= last:
+            return True
+    return False
+
+
 # ==========================================================================
 # 2. Session budget
 # ==========================================================================
@@ -485,6 +531,7 @@ MEASURE_5 = ("mock", "checkpoint")
 EPISODE_H = 72.0          # parts of one measurement taken within 72 h are pooled
 CONFIRM_3P_DAYS = 14
 LEVEL4_GAP_DAYS = 7
+UPKEEP_DAYS = 21          # a topic at 4 or 5 comes back cold this long after its last pass
 PASS_PCT = 0.75
 FAIL_PCT = 0.50
 MIN_3P_ASKS = 4
@@ -616,6 +663,7 @@ def _levels_for_topic(sittings, window, untreated=None, least_sure_only=False):
         "l5": None,           # basis
         "drop": None,         # basis for "back to 2 after a cold fail"
         "thin": None,         # the latest cold sitting with too few counted questions to count
+        "last_pass": None,    # the latest cold pass, or mock or checkpoint pass, not warm
     }
 
     def current():
@@ -659,6 +707,8 @@ def _levels_for_topic(sittings, window, untreated=None, least_sure_only=False):
                     st["m3p"] = None  # a newer measurement no longer supports 3p
             if inst in MEASURE_5 and st["l4"] and at > st["l4"][0] and ev["n"] and ev["pct"] >= PASS_PCT:
                 st["l5"] = "%s %s on %s after level 4" % (inst, _frac(ev["pts"], ev["n"]), ev["sheet"])
+            if inst in MEASURE_5 and ev["n"] >= MIN_COLD_ASKS and ev["pct"] >= PASS_PCT:
+                st["last_pass"] = at
             continue
         if inst != "cold":
             continue
@@ -685,6 +735,8 @@ def _levels_for_topic(sittings, window, untreated=None, least_sure_only=False):
             continue
         not_warm = ih is None or ih >= NO_EXPOSURE_H
         in_window = ih is not None and lo <= ih <= hi and ih >= NO_EXPOSURE_H
+        if not_warm:
+            st["last_pass"] = at
         if st["cold1"] is None:
             if in_window:
                 st["cold1"] = (at, label)
@@ -718,7 +770,9 @@ def _levels_for_topic(sittings, window, untreated=None, least_sure_only=False):
         basis = "no evidence yet"
     if st["thin"] and level_rank(lvl) < 3 and basis != st["thin"]:
         basis = "%s; %s" % (basis, st["thin"])
-    out = {"level": lvl, "level_basis": basis, "held": False}
+    out = {"level": lvl, "level_basis": basis, "held": False,
+           "first_pass": dates.fmt_iso(st["cold1"][0]) if st["cold1"] else None,
+           "last_pass": dates.fmt_iso(st["last_pass"]) if st["last_pass"] else None}
     if untreated and level_rank(lvl) >= 3:
         held = "3p" if st["m3p"] else 2
         out.update({"level": held, "held": True,
@@ -733,8 +787,11 @@ def compute_levels_from(attempts, subject=None, topic_ids=None, errors=None):
     ``subject`` is the subject.json dict (for the cold window and topic list).
     ``errors`` (optional) are the subject's mistakes: a topic with an untreated
     wrong idea is held below 3 until the idea is repaired.
-    Returns ``{topic: {"level": 0|1|2|"3p"|3|4|5, "level_basis": str, "held": bool}}``,
-    ``held`` true when that wrong idea alone keeps the topic below 3.
+    Returns ``{topic: {"level": 0|1|2|"3p"|3|4|5, "level_basis": str, "held": bool,
+    "first_pass": ISO|None, "last_pass": ISO|None}}``: ``held`` is true when that
+    wrong idea alone keeps the topic below 3; ``first_pass`` is the cold pass that
+    made it 3, ``last_pass`` its latest cold, mock or checkpoint pass (for
+    later_recheck_due).
     """
     window = _window((subject or {}).get("cold_window_h"))
     ids = list(topic_ids or [])
@@ -759,6 +816,37 @@ def compute_levels_from(attempts, subject=None, topic_ids=None, errors=None):
         out[tid] = _levels_for_topic(sittings, window, untreated=untreated.get(tid),
                                      least_sure_only=(tid in named_only and not sittings))
     return out
+
+
+def later_recheck_due(level, first_pass, last_pass, deadline=None):
+    """When a topic's next cold serve after its 2-day recheck falls due:
+    ``("level4", datetime)``, ``("upkeep", datetime)`` or None.
+
+    At 3: its level-4 recheck, LEVEL4_GAP_DAYS after its first pass (the level
+    rules need that gap). At 4 or 5: an upkeep recheck, UPKEEP_DAYS after its
+    last pass; with a deadline, brought forward to 2 days before it, as the
+    ladder is, but never to less than LEVEL4_GAP_DAYS after the last pass.
+    None when it would fall on or after the deadline: nothing is kept up
+    past the date.
+    """
+    rank = level_rank(level)
+    dl = _d(deadline) if deadline is not None else None
+    if rank == 3 and first_pass:
+        kind, due = "level4", dates.parse_iso(first_pass) + timedelta(days=LEVEL4_GAP_DAYS)
+    elif rank >= 4 and last_pass:
+        last = dates.parse_iso(last_pass)
+        kind, due = "upkeep", last + timedelta(days=UPKEEP_DAYS)
+        if dl is not None:
+            cap = dates.at_time(dl - timedelta(days=2), "00:00", last.tzinfo)
+            if due > cap:
+                if cap < last + timedelta(days=LEVEL4_GAP_DAYS):
+                    return None
+                due = cap
+    else:
+        return None
+    if dl is not None and due.date() >= dl:
+        return None
+    return kind, due
 
 
 TOPIC_STATE_DEFAULTS = {

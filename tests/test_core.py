@@ -404,6 +404,23 @@ class LadderTests(Base):
         self.assertEqual(learning.last_miss_day(back), "2026-10-12")
         self.assertIsNone(learning.last_miss_day({"fails": []}))
 
+    def test_sentinel_due_and_served(self):
+        retired = {"id": "E-ielts-0003", "kind": "slip", "status": "retired", "passes": ["2026-09-20", "2026-10-01"]}
+        self.assertEqual(learning.sentinel_due(retired), date(2026, 10, 29))
+        self.assertEqual(learning.sentinel_due(retired, "2026-10-20"), date(2026, 10, 13))   # a week before
+        self.assertEqual(learning.sentinel_due(retired, "2026-10-05"), date(2026, 10, 2))    # never before +1 day
+        self.assertIsNone(learning.sentinel_due(retired, "2026-10-02"))                      # not on the date
+        self.assertIsNone(learning.sentinel_due(dict(retired, status="spacing")))
+        self.assertIsNone(learning.sentinel_due(dict(retired, passes=[])))
+        row = {"origin": "sentinel:E-ielts-0003", "prov": "measured", "sheet_type": "cold", "interval_h": 100,
+               "at": "2026-10-30T07:00+00:00"}
+        self.assertTrue(learning.sentinel_served(retired, [row]))
+        self.assertTrue(learning.sentinel_served(retired, [dict(row, prov="practice", sheet_type="mixed")]))
+        self.assertFalse(learning.sentinel_served(retired, [dict(row, interval_h=5)]))          # warm: no move
+        self.assertFalse(learning.sentinel_served(retired, [dict(row, at="2026-09-25T07:00+00:00")]))
+        self.assertFalse(learning.sentinel_served(retired, [dict(row, prov="practice", sheet_type="drills")]))
+        self.assertFalse(learning.sentinel_served(retired, [dict(row, origin="sentinel:E-ielts-0004")]))
+
     def test_is_due(self):
         e = learning.add({"kind": "slip"}, "2026-10-15")
         self.assertFalse(learning.is_due(e, "2026-10-15"))
@@ -535,7 +552,8 @@ def level(attempts, topic="T04", window=(44, 72)):
 class LevelTests(Base):
     def test_level_0(self):
         out = learning.compute_levels_from([], {"topics": [{"id": "T04", "name": "Paraphrase", "layer": "verbal"}]})
-        self.assertEqual(out["T04"], {"level": 0, "level_basis": "no evidence yet", "held": False})
+        self.assertEqual(out["T04"], {"level": 0, "level_basis": "no evidence yet", "held": False,
+                                      "first_pass": None, "last_pass": None})
         low = level(att("ielts-diag-a", "rwwww", "diagnostic", 0))
         self.assertEqual(low["level"], 0)
         self.assertIn("latest measurement", low["level_basis"])
@@ -586,6 +604,27 @@ class LevelTests(Base):
         self.assertIn("8 days after the first", lv["level_basis"])
         self.assertEqual(level(first + att("c2", "rrrr", "cold", 6, interval_h=140))["level"], 3)
         self.assertEqual(level(first + att("c2", "rrrr", "cold", 10, interval_h=5))["level"], 3)
+
+    def test_later_rechecks_follow_the_first_and_last_pass(self):
+        first = att("d", "rrrrrr", "practice", 0) + att("c1", "rrrr", "cold", 2, interval_h=49)
+        lv = level(first)
+        self.assertEqual((lv["first_pass"], lv["last_pass"]), ("2026-10-15T07:00+01:00", "2026-10-15T07:00+01:00"))
+        kind, due = learning.later_recheck_due(lv["level"], lv["first_pass"], lv["last_pass"])
+        self.assertEqual((kind, dates.fmt_iso(due)), ("level4", "2026-10-22T07:00+01:00"))
+        self.assertIsNone(learning.later_recheck_due(3, lv["first_pass"], lv["last_pass"], "2026-10-22"))
+        four = level(first + att("c2", "rrrr", "cold", 10, interval_h=240))
+        self.assertEqual(four["last_pass"], "2026-10-23T07:00+01:00")
+        kind, due = learning.later_recheck_due(4, four["first_pass"], four["last_pass"])
+        self.assertEqual((kind, dates.fmt_iso(due)), ("upkeep", "2026-11-13T07:00+01:00"))
+        # With a date: brought forward to 2 days before it, but never within a week of the last pass.
+        kind, due = learning.later_recheck_due(4, four["first_pass"], four["last_pass"], "2026-11-10")
+        self.assertEqual(dates.fmt_iso(due), "2026-11-08T00:00+01:00")
+        self.assertIsNone(learning.later_recheck_due(4, four["first_pass"], four["last_pass"], "2026-11-01"))
+        # A mock pass is a retrieval too; a pass seen warm is not.
+        five = level(first + att("c2", "rrrr", "cold", 10, interval_h=240) + att("m", "rrrw", "mock", 14))
+        self.assertEqual((five["level"], five["last_pass"]), (5, "2026-10-27T07:00+01:00"))
+        self.assertIsNone(learning.later_recheck_due(2, None, None))
+        self.assertIsNone(learning.later_recheck_due("3p", None, None))
 
     def test_level_5(self):
         four = (att("d", "rrrrrr", "practice", 0) + att("c1", "rrrr", "cold", 2, interval_h=49)

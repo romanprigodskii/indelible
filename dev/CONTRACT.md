@@ -317,6 +317,12 @@ For error re-serves, only 2 and 3 apply, plus `next_due ≤ date(t)`.
 
 **A recheck again** (`learning.needs_rerecheck`): a topic with `last_cold` set, a stored level below 3 (3p included), and a warm exposure later than `last_cold` is waiting for its 2-day recheck again, judged by rule 1 from that exposure, like a first serve. A topic at 3 or above never is: its later serves (§7.2, tiers 6 and 7) need only rules 2 and 3.
 
+**Later cold serves** (`learning.later_recheck_due`, from the level rules' `first_pass` and `last_pass`, §6.5):
+- **Level-4 recheck:** a topic at 3 is due `LEVEL4_GAP_DAYS` (7) days after its first pass, the one that made it 3 (elapsed time, as the level rule measures it).
+- **Upkeep recheck:** a topic at 4 or 5 is due `UPKEEP_DAYS` (21) days after its last pass (the latest cold pass, or mock or checkpoint pass at 75% or more over at least 2 asks, not warm). With a `target.date` it is brought forward to 2 days before the date, but never to less than 7 days after the last pass (then none is due).
+- Neither is due on or after `target.date`.
+- **Sentinel** (`learning.sentinel_due`): a retired mistake gets one sentinel serve `SENTINEL_DAYS` (28) days after its last pass, or a week before `target.date` when that comes first, never before the day after the last pass and never on or after the date. It stays due until a `sentinel:<E>` ask on it is graded on a mixed or measuring sheet, not warm, on or after that last pass (`learning.sentinel_served`); the archive is read too, since `compact` archives retired rows after 7 days.
+
 ### 6.5 Levels (`compute_levels(subject_dir) -> dict`)
 
 **Evidence per topic** comes from the attempts. Asks marked `least_sure=true` never count toward a level, even when right.
@@ -334,6 +340,7 @@ For error re-serves, only 2 and 3 apply, plus `next_due ≤ date(t)`.
 - The highest satisfied level wins.
 - A later cold fail (<50%, over at least 2 counted asks) drops the level to 2 and records the fact in `level_basis`. A cold sitting with fewer than 2 counted asks on the topic neither passes nor fails; `level_basis` names it ("… did not count") while the level is below 3.
 - `level_basis` is a one-line human reason.
+- Each topic's result also carries `held` (an untreated mistake alone keeps it below 3), `first_pass` (the cold pass that made it 3) and `last_pass` (its latest cold, mock or checkpoint pass at 75% or more over at least 2 asks, not warm), which schedule its later cold serves (§6.4). Only `level` and `level_basis` are stored in `topics.json`.
 
 ### 6.6 Metrics (`lib/learning.py` + `cmd_stats.py`)
 
@@ -389,7 +396,7 @@ Invoke as `python3 <skill>/scripts/indelible.py <command> ...`. Every command ac
 <Title> · <profile> · <date or "no date"> (<N days left>)
 FLAGS: unclosed session S-… (started …) | missed? blocks … | alarm <subject>: last 2 planned blocks missed | late recheck (window passed): 1 | sheet … issued, not taken after 2 sessions | quarantine lines | armed safeguard due …
 NOW/NEXT: today's blocks and the next block (kind, time, content)
-DUE: cold serves eligible now: 1 · errors due: 3 beliefs repaired, 2 slips, 1 shaky · untreated beliefs needing repair: 2
+DUE: cold serves eligible now: 1 · level-4 and upkeep serves eligible now: 2 · errors due: 3 beliefs repaired, 2 slips, 1 shaky, 1 sentinel · untreated beliefs needing repair: 2
 TO-DO (≤3 days): L-0004 Register for … (due Tue 20:00)
 LEVELS: T01 Matching headings 2 · T04 Paraphrase 3p · …
 LAST SESSIONS: 3 lines from sessions.jsonl
@@ -430,7 +437,12 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
 2. repaired beliefs that are due;
 3. shaky items;
 4. the oldest due;
-5. untreated beliefs (listed as "needs repair", never as cold material).
+5. sentinels: retired mistakes, the archive included, whose sentinel serve is due (§6.4), each with its retirement and due dates and, when it can't be served now, `not now: <reason>` (`--json`: `5_sentinels`);
+6. level-4 rechecks: topics at 3 whose level-4 recheck is due (§6.4) and that are eligible now (rules 2 and 3 of §6.4), the longest due first (`6_level4`, with `first_pass` and `due_at`);
+7. upkeep rechecks: topics at 4 or 5 due an upkeep recheck and eligible now (`7_upkeep`, with `last_pass` and `due_at`);
+8. untreated beliefs (listed as "needs repair", never as cold material; `8_needs_repair`).
+
+DUE counts tiers 6 and 7 together (plain: `later rechecks ready now: 2`) and sentinels among the mistakes due (plain: `1 last check`); `due --json` counts them as `level4`, `upkeep` and `sentinels`.
 
 **`render [subject|all] [--force]`:** regenerates `views/*.md`, `views/week.md` and the generated section of each CLAUDE.md (between `<!-- indelible:begin -->` and `<!-- indelible:end -->`).
 - Refuses if a view has been hand-edited since the last render. The sha is kept in `<ws>/.indelible/render.json`.
@@ -547,7 +559,7 @@ For a rounded number, `check` also gives the tolerance the check holds to, the s
   - Output goes to `sheets/YYYY-MM/<id>.<ext>`, and the source `.typ` or `.html` is kept beside it.
   - The date printed in the header is `--date`, else the linked block's day, else the spec's `date`, else today while a session is open; otherwise the date line is left blank.
   - Sets `status=rendered` and `files` (and `code`, on a row that has none). Prints the path.
-- **`sheet issue <subject> <id> [--block ID]`:** sets `status=issued` and `issued_at`, and links the block. It prints `<id> issued for block <B> · sheet <code>`. It refuses (exit 1) a sheet whose `est_min` is over the block's budget, worked out as L5 does without `--budget-min` (a measurement's included), and a `cold` or `mixed` sheet whose L7 fails at the block's start. It refuses a `cold` or `mixed` sheet with a `cold:`, `error:` or `sentinel:` origin that another `cold` or `mixed` sheet with status `issued` or `sat` also has, naming that sheet (sit and grade it, or `sheet void` it first). It refuses a sheet with a term resolved `defined_on:<id>` while `<id>` is not yet `issued`, `sat` or `graded` (issue that sheet first), or is `void` or not on file (resolve the word another way and rebuild). For a `cold` sheet it prints, for each first-serve `cold:` topic, the latest start that still counts: `Start by <time>: the 44–72 h window of T01 closes then …` (the level rules judge a sitting by its start).
+- **`sheet issue <subject> <id> [--block ID]`:** sets `status=issued` and `issued_at`, and links the block. It prints `<id> issued for block <B> · sheet <code>`. It refuses (exit 1) a sheet whose `est_min` is over the block's budget, worked out as L5 does without `--budget-min` (a measurement's included), and a `cold` or `mixed` sheet whose L7 fails at the block's start. It refuses a `cold` or `mixed` sheet with a `cold:`, `error:` or `sentinel:` origin that another `cold` or `mixed` sheet with status `issued` or `sat` also has, naming that sheet (sit and grade it, or `sheet void` it first). It refuses a sheet with a term resolved `defined_on:<id>` while `<id>` is not yet `issued`, `sat` or `graded` (issue that sheet first), or is `void` or not on file (resolve the word another way and rebuild). For a `cold` sheet it prints, for each `cold:` topic judged by its window (a first serve or a recheck again, §6.4), the latest start that still counts: `Start by <time>: the 44–72 h window of T01 closes then …` (the level rules judge a sitting by its start).
 - **`sheet sat <subject> <id> [--start HH:MM] [--stop HH:MM] [--date YYYY-MM-DD]`:** sets `status=sat` and `sat.*` (the date defaults to today). With no `--date` and no date on record, a sheet issued on an earlier day is refused (exit 1) when its sitting time matters (a `cold` sheet, or any `cold:`, `error:` or `sentinel:` item); any other sheet keeps today with a note.
 - **`sheet void <subject> <id> --reason TEXT`**
 - **`sheet show <subject> [--status S] [--json]`:** lists the sheets.
@@ -713,6 +725,8 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
 | Internal | Learner sees |
 |---|---|
 | cold re-serve | 2-day recheck |
+| level-4 or upkeep serve | later recheck |
+| sentinel | last check |
 | repaired | fixed |
 | owed | to do |
 | ask | question |

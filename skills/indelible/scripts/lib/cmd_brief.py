@@ -685,16 +685,26 @@ def due_state(subj, now):
     only repaired is never recheck material. Each has ``closes``, the time
     its window closes (a sitting that starts later is a late recheck);
     tier 2 ``beliefs``: repaired beliefs due; tier 3 ``shaky``; tier 4
-    ``oldest``: every other due error, oldest first; tier 5 ``untreated``:
-    beliefs that need repair (never cold material). Within a tier, errors the
-    learner had not named on the Least-sure line come first.
+    ``oldest``: every other due error, oldest first; tier 5 ``sentinels``:
+    retired mistakes (the archive too) whose one sentinel serve is due
+    (learning.sentinel_due) and not yet graded; tier 6 ``level4``: topics at 3
+    whose level-4 recheck is due, and tier 7 ``upkeep``: topics at 4 or 5 due
+    an upkeep recheck (learning.later_recheck_due), each eligible now (no
+    exposure in 24 h, no untreated mistake), the longest due first; tier 8
+    ``untreated``: beliefs that need repair (never cold material). Within an
+    error tier, errors the learner had not named on the Least-sure line come
+    first.
     """
     exposures = subj.load_exposures()
     errors = subj.load_errors()
     ts_all = subj.load_topics_state()
     window = subj.cold_window()
+    deadline = subj.target_date()
+    attempts = subj.load_attempts(include_archive=True)
+    levels = learning.compute_levels_from(attempts, subj.load(), errors=errors)
+    today = now.date()
     names = {}
-    cold = []
+    cold, later = [], {"level4": [], "upkeep": []}
     for t in subj.topics():
         names[t["id"]] = t.get("name") or t["id"]
         if t.get("scope") == "out":
@@ -710,8 +720,38 @@ def due_state(subj, now):
             cold.append({"topic": t["id"], "name": names[t["id"]], "hours": res["hours"],
                          "closes": closes.astimezone(now.tzinfo) if closes is not None else None,
                          "again": not learning.is_first_serve(state)})
+    for t in subj.topics():
+        # After the 2-day recheck: the level-4 recheck and upkeep (none from the date on).
+        tid = t["id"]
+        state = ts_all.get(tid)
+        if t.get("scope") == "out" or learning.needs_window(tid, state, exposures):
+            continue
+        lv = levels.get(tid) or {}
+        nxt = learning.later_recheck_due(lv.get("level"), lv.get("first_pass"), lv.get("last_pass"), deadline)
+        if nxt is None or nxt[1] > now or (deadline is not None and today >= deadline):
+            continue
+        if not learning.cold_eligibility(tid, now, exposures, errors, window, first_serve=False)["eligible"]:
+            continue
+        since = lv.get("first_pass") if nxt[0] == "level4" else lv.get("last_pass")
+        later[nxt[0]].append({"topic": tid, "name": names[tid], "level": lv.get("level"), "due": nxt[1],
+                              "since": to_local(since, now.tzinfo)})
     cold.sort(key=lambda c: -(c["hours"] or 0.0))
-    today = now.date()
+    for rows in later.values():
+        rows.sort(key=lambda r: (r["due"], r["topic"]))
+    sentinels = []
+    by_id = {}
+    for e in subj.load_errors(include_archive=True):   # the active row wins over its archived copy
+        if e.get("id"):
+            by_id[e["id"]] = e
+    for e in by_id.values():
+        sd = learning.sentinel_due(e, deadline)
+        if sd is None or sd > today or learning.sentinel_served(e, attempts):
+            continue
+        e = dict(e, _sentinel_due=dates.fmt_date(sd), _retired=max(learning.pass_days(e)))
+        res = learning.cold_eligibility(e.get("topic"), now, exposures, errors, first_serve=False)
+        e["_eligible"], e["_reason"] = res["eligible"], res["reason"]
+        sentinels.append(e)
+    sentinels.sort(key=lambda e: (e["_sentinel_due"], e.get("id") or ""))
     live = [dict(e) for e in errors if e.get("status") in ("untreated", "spacing", "reopened")]
     due = [e for e in live if learning.is_due(e, today)]
     for e in due:
@@ -730,20 +770,24 @@ def due_state(subj, now):
     late = late_rechecks(ws, subj, now, blocks=blocks, skip_ids=set(b.get("id") for b in missed))
     return {
         "late": late, "cold": cold, "beliefs": beliefs, "shaky": shaky, "oldest": oldest, "untreated": untreated,
-        "names": names,
+        "sentinels": sentinels, "level4": later["level4"], "upkeep": later["upkeep"], "names": names,
         "counts": {"late": len(late), "cold": len(cold), "beliefs": len(beliefs), "slips": len(slips),
                    "shaky": len(shaky), "other": len(oldest) - len(slips), "untreated": len(untreated),
-                   "errors_due": len(beliefs) + len(shaky) + len(oldest),
-                   "errors_not_now": len([e for e in due if not e["_eligible"]])},
+                   "sentinels": len(sentinels), "level4": len(later["level4"]), "upkeep": len(later["upkeep"]),
+                   "errors_due": len(beliefs) + len(shaky) + len(oldest) + len(sentinels),
+                   "errors_not_now": len([e for e in due + sentinels if not e["_eligible"]])},
     }
 
 
 def due_counts_items(st, plain):
     c = st["counts"]
     items = []
+    later = c.get("level4", 0) + c.get("upkeep", 0)
     if plain:
         if c["cold"]:
             items.append("2-day rechecks ready now: %d" % c["cold"])
+        if later:
+            items.append("later rechecks ready now: %d" % later)
         parts = []
         if c["beliefs"]:
             parts.append("%d fixed" % c["beliefs"])
@@ -753,6 +797,8 @@ def due_counts_items(st, plain):
             parts.append("%d shaky" % c["shaky"])
         if c["other"]:
             parts.append("%d other" % c["other"])
+        if c.get("sentinels"):
+            parts.append("%d last check%s" % (c["sentinels"], "" if c["sentinels"] == 1 else "s"))
         if parts:
             # Due by date, but not all servable now (seen in the last 24 h, or an unfixed mistake
             # on the topic): say how many, so the recheck is not sized on them.
@@ -765,6 +811,8 @@ def due_counts_items(st, plain):
         # line (RECHECK NOW), so the learner can't look them over first.
         if c["cold"]:
             items.append("cold serves eligible now: %d" % c["cold"])
+        if later:
+            items.append("level-4 and upkeep serves eligible now: %d" % later)
         parts = []
         if c["beliefs"]:
             parts.append("%d beliefs repaired" % c["beliefs"])
@@ -774,6 +822,8 @@ def due_counts_items(st, plain):
             parts.append("%d shaky" % c["shaky"])
         if c["other"]:
             parts.append("%d other" % c["other"])
+        if c.get("sentinels"):
+            parts.append("%d sentinel%s" % (c["sentinels"], "" if c["sentinels"] == 1 else "s"))
         if parts:
             later = " (%d not servable now)" % c["errors_not_now"] if c.get("errors_not_now") else ""
             items.append("errors due: " + ", ".join(parts) + later)
@@ -814,6 +864,20 @@ def _late_line(x, now, hours=False):
     for t, name, h in x["topics"]:
         topics.append("%s %s" % (t, name) + ((" · %d h since last seen" % int(h)) if hours and h is not None else ""))
     return "%s %s (window closed %s)" % (x["block"].get("id") or "?", "; ".join(topics), fmt_when(x["closed"], now))
+
+
+def _sentinel_line(e, names):
+    """``E-ielts-0003 T01 Matching headings "…" (retired 2026-10-18, check due 2026-11-15)``."""
+    belief = e.get("belief") or e.get("account") or ""
+    line = '%s %s %s' % (e.get("id") or "?", e.get("topic") or "?", names.get(e.get("topic"), ""))
+    if e.get("kind") != "belief":
+        line += " [%s]" % (e.get("kind") or "?")
+    if belief:
+        line += ' "%s"' % clip(belief, 90)
+    line += " (retired %s, check due %s)" % (e.get("_retired"), e.get("_sentinel_due"))
+    if e.get("_eligible") is False:
+        line += " not now: %s" % e.get("_reason")
+    return " ".join(line.split())
 
 
 def _err_line(e, names, with_reason=False):
@@ -1521,6 +1585,10 @@ def cmd_due(args):
             return {"id": e.get("id"), "topic": e.get("topic"), "kind": e.get("kind"), "rung": e.get("rung"),
                     "next_due": e.get("next_due"), "named_least_sure": bool(e.get("named_least_sure")),
                     "eligible_now": e.get("_eligible", False), "reason": e.get("_reason")}
+
+        def later(r, since):
+            return {"topic": r["topic"], "name": r["name"], "level": r["level"],
+                    since: dates.fmt_iso(r["since"]) if r.get("since") else None, "due_at": dates.fmt_iso(r["due"])}
         out = {"subject": subj.id, "now": dates.fmt_iso(now), "counts": st["counts"],
                "tiers": {"0_late": [{"block": x["block"].get("id"), "closed_at": dates.fmt_iso(x["closed"]),
                                      "topics": [{"topic": t, "name": name,
@@ -1534,7 +1602,11 @@ def cmd_due(args):
                          "2_repaired_beliefs": [err(e) for e in st["beliefs"]],
                          "3_shaky": [err(e) for e in st["shaky"]],
                          "4_oldest": [err(e) for e in st["oldest"]],
-                         "5_needs_repair": [err(e) for e in st["untreated"]]}}
+                         "5_sentinels": [dict(err(e), retired=e["_retired"], sentinel_due=e["_sentinel_due"])
+                                         for e in st["sentinels"]],
+                         "6_level4": [later(r, "first_pass") for r in st["level4"]],
+                         "7_upkeep": [later(r, "last_pass") for r in st["upkeep"]],
+                         "8_needs_repair": [err(e) for e in st["untreated"]]}}
         _out(json.dumps(out, ensure_ascii=False, indent=2))
         return 0
     head = "%s · due at %s" % (subj.title(), fmt_when(now))
@@ -1570,7 +1642,27 @@ def cmd_due(args):
             _out("   " + _err_line(e, names, with_reason=True))
         if not rows:
             _out("   none")
-    _out("5. needs repair (never on a 2-day recheck):")
+    _out("5. last checks on retired mistakes (sentinel:<E-id>, about %d days after the last pass; a miss "
+         "reopens it):" % learning.SENTINEL_DAYS)
+    for e in st["sentinels"]:
+        _out("   " + _sentinel_line(e, names))
+    if not st["sentinels"]:
+        _out("   none")
+    _out("6. level-4 rechecks (mastery 3, %d days or more after the first pass; 2 questions each):"
+         % learning.LEVEL4_GAP_DAYS)
+    for r in st["level4"]:
+        _out("   %s %s · first pass %s (%d days ago)" % (r["topic"], r["name"], fmt_when(r["since"], now),
+                                                          (now - r["since"]).days))
+    if not st["level4"]:
+        _out("   none")
+    _out("7. upkeep rechecks (mastery 4 or 5, every %d days until the date; 2 questions each):"
+         % learning.UPKEEP_DAYS)
+    for r in st["upkeep"]:
+        _out("   %s %s · level %s · last pass %s (%d days ago)" % (
+            r["topic"], r["name"], r["level"], fmt_when(r["since"], now), (now - r["since"]).days))
+    if not st["upkeep"]:
+        _out("   none")
+    _out("8. needs repair (never on a 2-day recheck):")
     for e in st["untreated"]:
         _out("   " + _err_line(e, names))
     if not st["untreated"]:

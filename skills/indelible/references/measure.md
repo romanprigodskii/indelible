@@ -106,6 +106,7 @@ Computed by the CLI (`ind grade record`, `ind topic recompute`), never typed. Th
 - Least-sure questions never count toward a level, even when right. A cold fail under 50% (over at least 2 counted questions) drops the topic to 2. A recheck with fewer than 2 counted questions on a topic neither passes nor fails it.
 - To confirm a never-taught 3p topic: a short mixed practice set, logged with `ind session expose <subject> <topic> --kind review`, then its 2-day recheck inside the window.
 - **A recheck that leaves a topic below 3** (a miss, a score under 75%, a sitting outside its window) is not the last word: the topic's next warm exposure (its fix sheet, the feedback logged after marking, drills) opens a new 44–72 h window, and `ind due <s> --list` offers it again as a 2-day recheck. `ind grade record` names each such topic and what opens its window.
+- **Level 4 and upkeep come round by themselves:** a topic at 3 is offered for its level-4 recheck 7 days after its first pass, and a topic at 4 or 5 for an upkeep recheck 3 weeks after its last pass (brought forward to 2 days before the date, none after it): tiers 6 and 7 of `ind due <s> --list`, 2 questions a topic, never ahead of fixed mistakes.
 
 ## 9. Hours needed and feasibility
 
