@@ -112,10 +112,11 @@ Say "go".
 
 ### Step 6: overrides
 
-Make the call in the opener; the learner can change any part of it (skip the recheck, skip the theory because "I know this", swap topics, or call something easy).
+Make the call in the opener; the learner can change any part of it (skip the recheck, skip the theory because "I know this", skip the check lines and check in their head, swap topics, or call something easy).
 
 1. **Accept the change,** unless it breaks an integrity rule: answers before the attempt, keys, consent, honesty or wellbeing. Those are not negotiable; give the reason in one line.
    - **"Skip the recheck"** moves it, never drops it. Scheduled: `ind plan move <recheck block> --start <ISO>` to the next slot inside its window, then `ind plan check`. On demand: say in one line "Its window closes <time>; after that it becomes a late check that can't raise mastery." The prediction in step 3 is about that recheck, scored when it is sat. Check C9 at the close catches a recheck left where it was.
+   - **"I'll check in my head"** holds for one sheet. The written check is a core rule (R41), so the next sheet has its lines again; marking records those checks as `head` ([session-grade.md](session-grade.md) §7).
 2. **A validity rule can be overridden:** the 24-hour rule, the cold window, the gap between measurements. The result then carries its label, such as "not counted (seen too recently)".
 3. **Ask for a one-line prediction about specific questions,** never a total: "Fine by me. Which questions in the first block will you get right? For example '1 to 6' or '1 to 4'."
 4. **Log it:** `ind session override <s> "<their words>" --predict "<their line>"`. The prediction is scored at marking. It tests the plan as much as it tests the learner.

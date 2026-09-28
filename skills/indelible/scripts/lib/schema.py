@@ -42,7 +42,8 @@ MEASURING_TYPES = ["cold", "diagnostic", "mock", "checkpoint", "probe", "words"]
 SHEET_STATUSES = ["built", "linted", "rendered", "issued", "sat", "graded", "void"]
 VERDICTS = ["right", "half", "wrong", "dont_know", "skip"]
 # failed: the check was written and didn't hold, and the answer was left as it was (marked ✗ on the sheet).
-CHECKS = ["filled", "missing", "caught", "failed", "n/a"]
+# `head`: the learner says they checked in their head, with no line written ([self-report]).
+CHECKS = ["filled", "missing", "caught", "failed", "head", "n/a"]
 INSTRUMENTS = ["practice", "cold", "diagnostic", "mock", "checkpoint", "probe", "words"]
 PROVENANCE = ["practice", "measured"]
 ERROR_KINDS = ["belief", "slip", "shaky"]
@@ -849,7 +850,7 @@ RECORDS = {
                     "prov": "measured"},
         "notes": [
             ("verdict", "right (1) | half (0.5) | wrong (0) | dont_know (0) | skip (0)"),
-            ("check", "filled | missing | caught (answer changed after a failed check) | failed (the check didn't hold and the answer was kept: marked ✗) | n/a"),
+            ("check", "filled | missing | caught (answer changed after a failed check) | failed (the check didn't hold and the answer was kept: marked ✗) | head (checked in the head, no line written: self-report) | n/a"),
             ("least_sure", "true if the ask is on the sheet's closing 'Least sure of' line"),
             ("instrument", " | ".join(INSTRUMENTS) + "; drills, mixed, repair, review, example -> practice"),
             ("interval_h", "hours since the topic's last warm exposure"),
@@ -1028,7 +1029,7 @@ RECORDS = {
         "notes": [
             ("start / stop", "HH:MM from items 0 and N; date YYYY-MM-DD"),
             ("verdict", "right | half | wrong | dont_know | skip ('I don't know' is always an accepted answer)"),
-            ("check", "filled | missing | caught | failed (marked ✗, answer kept) | n/a; always n/a when no check line was printed"),
+            ("check", "filled | missing | caught | failed (marked ✗, answer kept) | head (the learner says they checked in their head; no line written) | n/a; always n/a when no check line was printed"),
             ("least_sure", "true if the learner named this ask on the Least-sure line"),
             ("kind", "belief | slip | shaky: creates an error for wrong, half or dont_know asks"),
             ("account", "the learner's own words, asked before classifying; or 'no account'"),

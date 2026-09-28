@@ -88,6 +88,7 @@ Take the open overrides from `ind ledger list --kind override --open`. For each 
 - **Compare** the learner's item prediction with the result. Score it symmetrically: your default against the learner's call.
 - **Record:** `ind ledger close <L-id> --status scored --note "learner's call held: items 2 and 5 right"`.
 - **Report it as what we learned about the plan.** "Your call to start with the timed section paid off: items 2 and 5 were right. I'll give that more weight." When the learner's call didn't hold, say so just as plainly, with no blame.
+- **Checks in the head** (an override that declined the check lines) are scored the same way. After two such sheets where a miss had a one-line written check that would have caught it, propose the written lines again (section 8), naming those questions. `ind stats` gives the misses among head checks beside those among written ones.
 
 ## 6. Hygiene and liveness
 

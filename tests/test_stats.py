@@ -214,6 +214,35 @@ class FailedCheckOutputTests(StatsBase):
         self.assertIn("failed checks 1 (1 on a right answer)", text)
 
 
+class HeadCheckOutputTests(StatsBase):
+    """Checks the learner says they ran in their head ([self-report]) are reported apart, with
+    their misses beside the written checks' misses: the data that would test R41."""
+
+    def setUp(self):
+        StatsBase.setUp(self)
+        rows = history() + [
+            attempt("ielts-para-03-drills", 1, "T04", "right", "2026-10-14T08:00+01:00", "practice", check="head"),
+            attempt("ielts-para-03-drills", 2, "T04", "wrong", "2026-10-14T08:00+01:00", "practice", check="head",
+                    mode="D")]
+        fio.write_jsonl(self.sdir / "data" / "attempts.jsonl", rows)
+
+    def test_stats_prints_head_checks_beside_written_ones(self):
+        out = self.cli(["stats", self.sid]).stdout
+        self.assertIn("checked in the head 2 [self-report], 1 missed; written 10, 2 missed", out)
+        st = json.loads(self.cli(["stats", self.sid, "--json"]).stdout)
+        prac = st["instruments"]["practice"]
+        self.assertEqual(prac["check_head"], {"n": 2, "missed": 1, "written_n": 10, "written_missed": 2})
+        # Not a written check: coverage keeps both in its denominator, so declining lines never raises it.
+        self.assertEqual((prac["check_coverage"]["num"], prac["check_coverage"]["n"]), (10, 14))
+
+    def test_review_week_prints_head_checks(self):
+        self.add_week_records()
+        out = self.cli(["review", "week", "all"]).stdout
+        self.assertIn("checks 71% (10/14), 1 caught, 2 in the head [self-report]", out)
+        text = (self.ws / "reviews" / "2026-W42.md").read_text(encoding="utf-8")
+        self.assertIn("checked in the head 2 [self-report], 1 missed; written 10, 2 missed", text)
+
+
 class ReviewWeekTests(StatsBase):
     def test_review_prints_at_most_15_lines_and_writes_the_file(self):
         self.add_week_records()

@@ -195,7 +195,7 @@ A topic's cold passes are not stored: the level rules find them in `attempts.jso
 ```
 
 - **`verdict`:** `right` (1) | `half` (0.5) | `wrong` (0) | `dont_know` (0) | `skip` (0).
-- **`check`:** `filled` | `missing` | `caught` | `failed` | `n/a`. `caught` means the answer was changed after a failed check; `failed` means the check was written and didn't hold, and the answer was kept (the learner marks it ✗). A question printed without a check line (its spec ask has no `check: true`) is always `n/a`.
+- **`check`:** `filled` | `missing` | `caught` | `failed` | `head` | `n/a`. `caught` means the answer was changed after a failed check; `failed` means the check was written and didn't hold, and the answer was kept (the learner marks it ✗); `head` means the line was left empty and the learner says they checked in their head ([self-report]). A question printed without a check line (its spec ask has no `check: true`) is always `n/a`.
 - **`instrument`:** `practice` | `cold` | `diagnostic` | `mock` | `checkpoint` | `probe` | `words`.
 - **`prov`:** `practice` | `measured`. `measured` iff the instrument measures.
 
@@ -350,9 +350,10 @@ For error re-serves, only 2 and 3 apply, plus `next_due ≤ date(t)`.
 | careless per 10 | 10 × (misses with mode `C`) ÷ asks attempted on topics that were at level ≥3 before the sitting |
 | unnamed-wrong % | wrong answers with `least_sure=false` ÷ all wrong answers |
 | least-sure hit rate | least-sure asks that were wrong ÷ least-sure asks |
-| check coverage | asks with check `filled`, `caught` or `failed` ÷ asks, on sheets that carry check lines |
+| check coverage | asks with check `filled`, `caught` or `failed` ÷ asks with a check line (`filled`, `missing`, `caught`, `failed` or `head`): a check in the head stays in the denominator |
 | check catches | count of `caught` |
 | failed checks | count of `failed`, with those on right answers counted apart: they point at the check, its tolerance or the key |
+| head checks | count of `head` [self-report], and the misses (`wrong` or `half`) among them beside the misses among written checks (`filled`, `caught`, `failed`): the data that would strengthen or reverse the written-check rule |
 | retention 48 h | right ÷ presented on cold asks with `interval_h` of 36–72 |
 | retention 7 d | right ÷ presented on cold asks with `interval_h` of 144 or more (the level-4 and upkeep rechecks, §6.4, which come a week or more after the last warm exposure) |
 | execution | blocks done ÷ planned (scheduled mode only); actual ÷ planned minutes; overruns |
@@ -621,6 +622,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
 - **Afterwards:** sets `status=graded` and `graded_at`, recomputes the levels, and prints:
   - the score with its label (`[measured n=14]` or `[practice]`);
   - the unnamed-wrong count;
+  - the check lines written and those that caught a mistake, with `failed` checks and checks in the head (`head`, and the misses among them) apart;
   - the errors created (ids only);
   - the level changes;
   - the cold obligations passed;
@@ -693,7 +695,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
 - **`stats <subject> [--since DATE] [--until DATE] [--json]`:** the metrics in §6.6, each labelled with its instrument. `--since` and `--until` keep only the questions answered on or after, and on or before, those dates.
 - **`review week [subject|all] [--week YYYY-Www]`:**
   - execution: blocks run, moved or missed; minutes planned vs actual; overruns; same-day closes;
-  - learning: 48 h retention, errors in, out and overdue, level changes, careless per 10, unnamed-wrong %, check coverage and catches;
+  - learning: 48 h retention, errors in, out and overdue, level changes, careless per 10, unnamed-wrong %, check coverage and catches (failed and head checks apart);
   - hygiene: overdue owed rows, sheets issued but not sat, repeated defect categories, safeguards whose `check_on` has passed.
 
   It prints at most 15 lines and writes `reviews/YYYY-Www.md`.

@@ -144,6 +144,7 @@ def instrument_metrics(attempts, level_fn):
             "check_coverage": learning.check_coverage(rows),
             "check_catches": learning.check_catches(rows),
             "check_failed": learning.check_failed(rows),
+            "check_head": learning.check_head(rows),
         }
     return result
 
@@ -261,6 +262,13 @@ def failed_checks(f):
     return "failed checks %d (%d on %s)" % (f["n"], right, "a right answer" if right == 1 else "right answers")
 
 
+def head_checks(h):
+    """'checked in the head 4 [self-report], 2 missed; written 20, 1 missed': both miss counts,
+    so the written-check rule can be tested on this learner."""
+    return "checked in the head %d [self-report], %d missed; written %d, %d missed" % (
+        h["n"], h["missed"], h["written_n"], h["written_missed"])
+
+
 def stats_lines(subj, st):
     span = "all graded questions"
     if st["since"] or st["until"]:
@@ -280,6 +288,8 @@ def stats_lines(subj, st):
                  "check catches %d" % m["check_catches"]]
         if m["check_failed"]["n"]:
             parts.append(failed_checks(m["check_failed"]))
+        if m["check_head"]["n"]:
+            parts.append(head_checks(m["check_head"]))
         lines.append("%s %s: %s" % (inst, tag, " · ".join(parts)))
     r48 = st["retention_48h"]
     line = "retention 48 h [measured]: %s" % pct(r48["overall"])
@@ -538,6 +548,8 @@ def _subject_lines(w):
             pct(m["unnamed_wrong"]), pct(m["check_coverage"]), m["check_catches"])
         if m["check_failed"]["n"]:
             seg += ", %d failed" % m["check_failed"]["n"]
+        if m["check_head"]["n"]:
+            seg += ", %d in the head [self-report]" % m["check_head"]["n"]
         bits.append(seg)
     l3 = "  " + (" | ".join(bits) if bits else "no graded questions this week")
     return l1, l2, l3
@@ -576,7 +588,8 @@ def _file_lines(week_label, first, last, now, subject_weeks, hyg):
                          "check catches %d" % (inst, tag, m["accuracy"]["n"], pct(m["accuracy"]),
                                                 per10(m["careless_per_10"]), pct(m["unnamed_wrong"]),
                                                 pct(m["check_coverage"]), m["check_catches"])
-                         + (" · " + failed_checks(m["check_failed"]) if m["check_failed"]["n"] else ""))
+                         + (" · " + failed_checks(m["check_failed"]) if m["check_failed"]["n"] else "")
+                         + (" · " + head_checks(m["check_head"]) if m["check_head"]["n"] else ""))
     lines += ["", "## Hygiene", ""]
     lines += ["- " + h for h in hyg] if hyg else ["- Nothing overdue."]
     if len(lines) > FILE_MAX:

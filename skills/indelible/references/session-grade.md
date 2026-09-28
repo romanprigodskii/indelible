@@ -61,7 +61,7 @@ For each question, record the following.
 | Field | Values |
 |---|---|
 | `verdict` | `right` · `half` · `wrong` · `dont_know` (they wrote "I don't know") · `skip` (left blank) |
-| `check` | `filled` · `missing` · `caught` (the answer changed after a failed check) · `failed` (the check didn't hold and the answer was kept, usually marked ✗) · `n/a` (no check line printed for the question, or no answer to check) |
+| `check` | `filled` · `missing` · `caught` (the answer changed after a failed check) · `failed` (the check didn't hold and the answer was kept, usually marked ✗) · `head` (the line is empty and the learner says they checked in their head: [self-report], §7) · `n/a` (no check line printed for the question, or no answer to check) |
 | `least_sure` | `true` for every question of an item named on the "Least sure of" line |
 
 **A word written beside an answer** is the learner flagging a word they were never given (the rules box asks for it). Look it up in the record before any account: the sheet's `terms`, the sheets they read, the glossary. Never defined: §5's "an undefined word is my mistake", even when the answer is right. Defined, on an earlier sheet or in the glossary: on a miss, that is the account "a word stopped me", so don't ask which word again.
@@ -165,6 +165,8 @@ Every question on drills, cold, mixed, review, diagnostic and checkpoint sheets 
 Persona C, question 4: "Your check confirmed the arithmetic of the mean, so it couldn't catch the wrong average. When a question turns on a word, write down the definition you used and test it against the question."
 
 **A check marked ✗** (`failed`) did its job: say so as process praise ("Your check on 4 flagged it; that's what it's for"), then point to the step (§6). Never ask the learner to find the mistake it flagged. On a right answer, the answer stands: the check itself slipped, or its tolerance was wrong. Say which in one line, and log a wrong tolerance as a `content_error` defect for the builder.
+
+**Checked in the head.** The written check is a core rule (R41), but the learner may decline the lines for one sheet as an override ([session-open.md](session-open.md) step 6; `ind ledger list --kind override --open` shows it). On that sheet, record each empty line they say they ran in their head as `head` [self-report], and don't coach the blanks one by one. After the account of each miss, point to the step as usual (§6), then show the one written line that would have caught it: "One line here, your answer put back into the equation, would have shown it doesn't hold." It names the check, never the answer. With no override on the sheet, an empty line the learner says they checked in their head is still `head`, and it is coached as a `missing` one.
 
 **On a topic below mastery 3,** coach the check the theory sheet worked (its worked case ends with it), or one that uses only what the learner already owns. Never "another way" or "the weakest step": the learner has one method so far, and no sense yet of which step is weak. Coaching is about the checks on the next sheet; the miss itself was already pointed to in §6.
 

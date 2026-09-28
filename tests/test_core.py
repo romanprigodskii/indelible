@@ -784,6 +784,15 @@ class MetricTests(Base):
         self.assertEqual((cov["num"], cov["n"]), (8, 8))
         self.assertEqual(learning.check_failed(rows), {"n": 2, "right": 1})
         rows[5]["check"], rows[0]["check"] = "missing", "filled"
+        # A check in the head ([self-report]) is not a written one: it stays in coverage's
+        # denominator, and is counted apart with its misses beside the written checks' misses.
+        self.assertEqual(learning.check_head(rows), {"n": 0, "missed": 0, "written_n": 7, "written_missed": 3})
+        rows[1]["check"] = "head"
+        rows[2]["check"] = "head"
+        cov = learning.check_coverage(rows)
+        self.assertEqual((cov["num"], cov["n"]), (5, 8))
+        self.assertEqual(learning.check_head(rows), {"n": 2, "missed": 1, "written_n": 5, "written_missed": 2})
+        rows[1]["check"], rows[2]["check"] = "filled", "filled"
         r48 = learning.retention_48h(rows)
         self.assertEqual((r48["num"], r48["n"]), (2, 4))
         self.assertIsNone(learning.retention_7d(rows)["value"])

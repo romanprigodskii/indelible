@@ -332,7 +332,7 @@ def cmd_grade_record(args):
                 if verdict in ("skip", "dont_know") or not ask.get("check"):
                     check = "n/a"
                 else:
-                    bad.append("%s: give check (filled, missing, caught, failed or n/a)" % aid)
+                    bad.append("%s: give check (filled, missing, caught, failed, head or n/a)" % aid)
                     continue
             elif check != "n/a" and not ask.get("check"):
                 # No check line was printed (probe, words, theory ...): a `missing`
@@ -595,9 +595,9 @@ def cmd_grade_record(args):
     wrong = [a for a in attempts if a["verdict"] == "wrong"]
     unnamed = [a for a in wrong if not a["least_sure"]]
     out("Wrong answers not on the Least-sure line: %d of %d" % (len(unnamed), len(wrong)))
-    with_lines = [a for a in attempts if a["check"] in ("filled", "missing", "caught", "failed")]
+    with_lines = [a for a in attempts if a["check"] in learning.CHECK_LINE_VALUES]
     if with_lines:
-        covered = len([a for a in with_lines if a["check"] in ("filled", "caught", "failed")])
+        covered = len([a for a in with_lines if a["check"] in learning.WRITTEN_CHECKS])
         caught = len([a for a in with_lines if a["check"] == "caught"])
         line = "Check lines written: %d of %d; caught a mistake: %d" % (covered, len(with_lines), caught)
         failed = [a for a in with_lines if a["check"] == "failed"]
@@ -605,6 +605,11 @@ def cmd_grade_record(args):
             # A check that failed on a right answer points at the check, its tolerance or the key.
             right = len([a for a in failed if a["verdict"] == "right"])
             line += "; failed, answer kept: %d%s" % (len(failed), " (%d of them right)" % right if right else "")
+        head = [a for a in with_lines if a["check"] == "head"]
+        if head:
+            # A check done in the head is the learner's word, and no line is on the page to coach.
+            missed = len([a for a in head if a["verdict"] in learning.CHECK_MISS_VERDICTS])
+            line += "; checked in the head [self-report]: %d, %d missed" % (len(head), missed)
         out(line)
     if created:
         parts = []

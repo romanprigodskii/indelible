@@ -12,7 +12,7 @@ Sections:
      after a recheck left the topic below 3) and the 24-hour rule.
   4. Levels: compute_levels_from(attempts, subject, errors=None) -> {topic: {level, level_basis}}.
   5. Metrics: accuracy by instrument, careless per 10, unnamed-wrong %,
-     least-sure hit rate, check coverage and catches, retention, execution.
+     least-sure hit rate, check coverage, catches and head checks, retention, execution.
   6. Loader helpers (I/O, clearly separated): compute_levels(subject_dir).
 """
 
@@ -931,10 +931,31 @@ def least_sure_hit_rate(attempts):
     return _ratio(len([a for a in ls if a.get("verdict") == "wrong"]), len(ls))
 
 
+# Check values on a question printed with a check line, and those with the check written down.
+# `head` (the learner says they checked in their head, [self-report]) had a line and left it
+# empty: it stays in coverage's denominator, so a declined line never raises coverage.
+CHECK_LINE_VALUES = ("filled", "missing", "caught", "failed", "head")
+WRITTEN_CHECKS = ("filled", "caught", "failed")
+CHECK_MISS_VERDICTS = ("wrong", "half")
+
+
 def check_coverage(attempts):
     """Asks with a check written (filled, caught or failed) / asks, on sheets that carry check lines."""
-    rows = [a for a in attempts or [] if a.get("check") in ("filled", "missing", "caught", "failed")]
-    return _ratio(len([a for a in rows if a.get("check") in ("filled", "caught", "failed")]), len(rows))
+    rows = [a for a in attempts or [] if a.get("check") in CHECK_LINE_VALUES]
+    return _ratio(len([a for a in rows if a.get("check") in WRITTEN_CHECKS]), len(rows))
+
+
+def check_head(attempts):
+    """Checks done in the head ([self-report]) beside written ones, with the misses (wrong or half)
+    among each: {"n", "missed", "written_n", "written_missed"}. Comparing the two miss rates is
+    the data that would strengthen or reverse the written-check rule (R41)."""
+    rows = list(attempts or [])
+    head = [a for a in rows if a.get("check") == "head"]
+    written = [a for a in rows if a.get("check") in WRITTEN_CHECKS]
+
+    def missed(xs):
+        return len([a for a in xs if a.get("verdict") in CHECK_MISS_VERDICTS])
+    return {"n": len(head), "missed": missed(head), "written_n": len(written), "written_missed": missed(written)}
 
 
 def check_catches(attempts):

@@ -204,6 +204,15 @@ class ColdSheetTests(GradeBase):
         by_ask = dict((a["ask"], a) for a in self.attempts())
         self.assertEqual((by_ask["3a"]["check"], by_ask["7a"]["check"]), ("failed", "failed"))
 
+    def test_a_check_in_the_head_is_recorded_apart_as_self_report(self):
+        # The learner declined the lines on this sheet: 8a's empty line was checked in the head.
+        # It stays out of the written count (7 of 8) and is reported apart, with its miss.
+        self.grades["asks"][7]["check"] = "head"
+        out = self.record().stdout
+        self.assertIn("Check lines written: 7 of 8; caught a mistake: 1; checked in the head [self-report]: 1, 1 missed",
+                      out)
+        self.assertEqual(dict((a["ask"], a["check"]) for a in self.attempts())["8a"], "head")
+
     def test_cold_sheet_writes_attempts_errors_levels_and_closes_obligations(self):
         r = self.record()
         out = r.stdout
@@ -581,10 +590,11 @@ class GradingRegressionTests(GradeBase):
         self.remember_key(key)
         grades = {"date": "2026-10-14", "start": "07:00", "stop": "07:05", "asks": [
             {"ask": "1a", "verdict": "right", "check": "missing"},
-            {"ask": "2a", "verdict": "right", "check": "filled"},
+            {"ask": "2a", "verdict": "right", "check": "head"},
             {"ask": "3a", "verdict": "right"}]}
         r = self.grade("ielts-probe-01", grades, expect=2)
         self.assertIn("1a: this question had no check line; give check n/a", r.stderr)
+        # With no line printed, there was no line to leave for a check in the head.
         self.assertIn("2a: this question had no check line", r.stderr)
         self.assertNotIn("3a:", r.stderr)
         self.assertEqual(self.attempts(), [])
