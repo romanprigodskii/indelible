@@ -185,6 +185,7 @@ dev/CONTRACT.md  dev/privacy_grep.py  dev/hooks/pre-push (runs privacy_grep.py; 
 - **`status` flow:** `built` → `linted` → `rendered` → `issued` → `sat` → `graded`. `void` is also possible.
 - **`measures`** is true for types `cold`, `diagnostic`, `mock`, `checkpoint`, `probe` and `words`.
 - **`code`:** the sheet code printed in the header (`Sheet IELTS-07`): the subject id in capitals and a running number past every code and row on file, never a topic word, so a photo or a notebook page is matched to its sheet. `sheet new` sets it and keeps it on `--replace`; `sheet build` sets one on an older row that has none.
+- **`marked_online`:** `true` only on an official test registered with `sheet new --marked-online` (§7.4), and absent otherwise. The platform holds the answers, so its key is `{}` and its verdicts come from the platform's right/wrong list filed as its evidence.
 - **`evidence[]`:** `{"kind","file","at"}` per filed file (plus `original` for a converted HEIC, `source` and `files` for a code project). A failure-gate photo (`scan ingest --asks`) adds `"asks":["1a","2a","3a"]`, the questions it covers; an entry without `asks` is the finished sheet.
 
 ### 5.5 `data/attempts.jsonl` (append; one row per graded ask)

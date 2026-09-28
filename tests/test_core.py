@@ -1188,6 +1188,10 @@ class CliSetupTests(Base):
             self.assertIn("Example:", r.stdout)
         r = run(["schema", "attempt", "--json"])
         self.assertEqual(json.loads(r.stdout)["verdict"], "wrong")
+        # A field only some rows carry is still named: sheet new --marked-online writes marked_online.
+        r = run(["schema", "sheet"])
+        self.assertIn("marked_online  true only on an official test registered with sheet new --marked-online",
+                      r.stdout)
         r = run(["schema", "nope"])
         self.assertEqual(r.returncode, 2)
         r = run(["schema"])

@@ -891,6 +891,9 @@ RECORDS = {
                          "for the finished sheet"),
             ("opens_unsat", "session opens (brief --open) while the sheet is issued but not yet taken; 2 force a "
                             "decision"),
+            ("marked_online", "true only on an official test registered with sheet new --marked-online (absent "
+                              "otherwise): the platform holds the answers, so its key is {} and its verdicts come "
+                              "from the platform's right/wrong list filed as its evidence"),
             ("sealed", "a sealed instrument is never edited after issue"),
         ],
     },
