@@ -24,9 +24,14 @@ being worked never enter the conversation.
 
 A sheet built ahead for a block is linked to it early (``sheet new`` or
 ``sheet lint`` with ``--block``): lint then sizes it against that block (L5)
-and judges a recheck at the block's start (L7). ``sheet issue`` checks both
-again, so a sheet over its block's budget, or a recheck that is no longer
-eligible, is never issued. Nor is a cold or mixed sheet that serves a
+and, while the block is still ahead, judges its cold items at the block's
+start (L7). ``sheet issue`` checks both again, so a sheet over its block's
+budget, or a recheck that is no longer eligible, is never issued. The skill
+itself builds a recheck only at the open, inside its window
+(session-open.md section 2): ``due`` works out what is due now only, and a
+rendered recheck waiting in the learner's sheets folder could be looked at;
+judging at the block's start is a safety net for a sheet issued before its
+block. Nor is a cold or mixed sheet that serves a
 recheck or mistake (a ``cold:``, ``error:`` or ``sentinel:`` origin) that
 another cold or mixed sheet, issued or sat and not graded, already serves:
 a second conversation must not hand out the same recheck twice.

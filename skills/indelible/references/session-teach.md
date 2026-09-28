@@ -127,7 +127,7 @@ No backlog dump and no guilt.
 ### Solo blocks (no Claude)
 
 - The calendar card carries the steps and a fallback ([calendar.md](calendar.md)). Hand the block's sheets over (issue them) in the close message before it; the learner works through them alone.
-- A solo block carries practice sheets only: a recheck can't be built ahead in v0.1 ([session-open.md](session-open.md) §2), so rechecks go in sessions with Claude, inside their window.
+- A solo block carries practice sheets only: a recheck is built at the open of a session with Claude, inside its window, since what is due is known only then and a recheck handed over ahead could be looked at before it is sat ([session-open.md](session-open.md) §2).
 - If the failure gate fires, they stop that block and move on to the next one.
 - At the next session, step 2 of [session-open.md](session-open.md) records "happened without me" with `ind plan done <B>`. The photos are filed and marked after the recheck.
 

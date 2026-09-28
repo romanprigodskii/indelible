@@ -9,9 +9,11 @@ does both.
 
 When the sheet is linked to a block (``sheet new/lint --block``, or the
 sheet row's block), L5 uses that block's minutes, less the other sheets on it,
-and L7 judges the recheck at the block's start: a recheck built at the previous
-close is judged at the time it will be sat, not at build time. ``sheet issue``
-checks both again. L5 also recomputes the builder's own estimate from the
+and L7 judges cold items at the block's start while the block is still ahead:
+the time the sheet will be sat, not build time (``--at`` names another time).
+``sheet issue`` checks both again. The skill builds a recheck only at the
+open, inside its window, so this is a safety net for a sheet issued before
+its block. L5 also recomputes the builder's own estimate from the
 subject's ``pace_s`` (``pace_floor``) and fails a lower ``est_min``, since the
 estimate is written by the party whose sizing it checks. W5 adds the reading
 a theory, example or repair sheet asks for (``reading_words``, at a fast 150

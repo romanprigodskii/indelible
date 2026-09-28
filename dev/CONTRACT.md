@@ -483,13 +483,13 @@ For a rounded number, `check` also gives the tolerance the check holds to, the s
 
 **Commands:**
 
-- **`sheet new <subject> <id> --spec PATH --answers PATH`**
+- **`sheet new <subject> <id> --spec PATH --answers PATH [--replace] [--block ID]`**
   - Validates the spec. Copies it to `.indelible/specs/<id>.json`.
   - Writes the answers to `.indelible/keys/<id>.json` (mode 600) and **deletes** the answers file when it is inside `<subject>/.indelible/tmp/`. An answers file anywhere else is left in place, with a warning.
   - Appends or updates the sheets row (`status=built`), with its sheet `code` (§5.4).
   - Prints exactly: `<id> built: <asks> questions, ~<est_min> min, key sealed sha256:<first 12>`.
   - Refuses to overwrite an existing id unless its status is `built`, `linted` or `rendered` and `--replace` is given. **A sealed instrument is never edited after issue.**
-- **`sheet lint <subject> <id> [--budget-min N]`** prints PASS, FAIL or WARN lines, one per rule id. It sets `lint` to PASS or FAIL, and `status=linted` on PASS. Exit 1 on any FAIL.
+- **`sheet lint <subject> <id> [--budget-min N] [--block ID] [--at ISO] [--json]`** prints PASS, FAIL or WARN lines, one per rule id. It sets `lint` to PASS or FAIL, and `status=linted` on PASS. Exit 1 on any FAIL. `--block` (or `sheet new --block`) links the block the sheet will be sat in: L5 sizes it against that block, and L7 judges at the block's start while it is still ahead. `--at` judges L7 at that time instead. The skill builds a 2-day recheck only at the open, inside its window, since `due` works out what is due now only and a rendered recheck waiting in the learner's `sheets/` folder could be looked at before it is sat.
 
   | Rule | Checks |
   |---|---|
