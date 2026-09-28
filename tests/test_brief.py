@@ -394,6 +394,26 @@ class AlarmTests(BriefBase):
         teach = (refs / "session-teach.md").read_text(encoding="utf-8")
         self.assertIn("5. **Re-plan the week**", teach)
 
+    def test_a_short_session_keeps_the_alarm_for_its_close_message(self):
+        # Once the session is open the subject's alarm is gone from the brief, so a 20-minute session that
+        # keeps the offer for its close message (session-open.md §3 step 2) carries it from the open.
+        self.put("plan/blocks.jsonl", self.two_missed())
+        self.assertIn("hasn't run lately", self.brief())
+        r = self.ind("session", "open", "ielts", "--planned", "20", now=NOW)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertNotIn("hasn't run lately", self.brief("2026-10-12T09:16+01:00"))
+        refs = SKILL_DIR / "references"
+        short = "In a session of 30 minutes or less, or when NOTES holds"
+        opening = (refs / "session-open.md").read_text(encoding="utf-8")
+        bullet = [l for l in opening.splitlines() if l.startswith("- **An alarm**")][0]
+        self.assertIn(short, bullet)
+        self.assertIn("for the close message instead ([close.md](close.md) §8)", bullet)
+        plan = (refs / "plan.md").read_text(encoding="utf-8")
+        self.assertIn(short, [l for l in plan.splitlines() if l.startswith("- **Alarm:**")][0])
+        close = (refs / "close.md").read_text(encoding="utf-8")
+        message = close.split("## 8. The close message", 1)[1].split("\n## ", 1)[0]
+        self.assertIn("- **An alarm kept from the open**", message)
+
     def test_an_ask_again_to_do_with_no_subject_leaves_the_alarm_on(self):
         self.put("plan/blocks.jsonl", self.two_missed())
         r = self.ind("ledger", "add", "owed", "--by", "learner", "--what",
