@@ -120,7 +120,7 @@ Take `mode` from the subject's taxonomy ([taxonomies.md](taxonomies.md); the cod
 
 Law 10: name the error exactly and at once, state the standard, say the learner can reach it, and give the next step. Tone is `learner.tone` in `indelible.json` (default B).
 
-**Point, then ask for the fix.** Name the question and the step where the work parts from the standard ("4, first line: you took the mean; the question asks for the median"). The learner then makes the fix: for a slip, the corrected line, in chat or on the sheet; for a wrong idea, the fix sheet. Never "find it", even after the account: pointing is not teaching, and the fix is still theirs.
+**Point, then ask for the fix.** Name the question and the step where the work parts from the standard ("4, first line: you took the mean; the question asks for the median"), and, when the miss is a number, their value on that line ("7, last line: your 0.35"). Name their value, never the right one: the corrected line must be theirs. The learner then makes the fix: for a slip, the corrected line, in chat or on the sheet; for a wrong idea, the fix sheet. Never "find it", even after the account: pointing is not teaching, and the fix is still theirs.
 
 - **For a slip, ask for the corrected line once.** If it doesn't come, or comes wrong, don't hint or ask again: it wasn't a slip, so classify it as a `belief` in its content mode, and the fix sheet does the teaching.
 - **A miss with no `kind`** (an untaught topic on a diagnostic or probe) gets the pointer only; teaching covers it.
