@@ -347,6 +347,38 @@ class AlarmTests(BriefBase):
                                    "target_weekly_min": 240, "min_weekly_min": None}])
         self.assertNotIn("hasn't run lately", self.brief())
 
+    def test_an_ask_again_to_do_with_no_subject_leaves_the_alarm_on(self):
+        self.put("plan/blocks.jsonl", self.two_missed())
+        r = self.ind("ledger", "add", "owed", "--by", "learner", "--what",
+                     "Ask again at the library about the room booking", "--due", "2026-10-19T07:00+01:00")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        learner, claude = self.parts(self.brief())
+        self.assertIn("IELTS Academic hasn't run lately", learner)
+        self.assertIn("ALARM ielts (plan.md §7)", claude)
+        # Another subject's "Ask again" to-do leaves it on too.
+        r = self.ind("subject", "add", "stats", "--title", "Statistics final", "--profile", "course")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        r = self.ind("ledger", "add", "owed", "--subject", "stats", "--by", "claude", "--what",
+                     "Ask again: Statistics final not running", "--due", "2026-10-19T07:00+01:00")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("IELTS Academic hasn't run lately", self.brief())
+
+    def test_a_block_missed_then_rebooked_and_missed_again_is_named_once(self):
+        self.put("plan/blocks.jsonl", [
+            self.block("B-20261006-ielts-1", "2026-10-06T07:00+01:00", "2026-10-06T08:00+01:00", status="done"),
+            self.block("B-20261008-ielts-1", "2026-10-08T07:00+01:00", "2026-10-08T08:00+01:00")])
+        r = self.ind("plan", "miss", "B-20261008-ielts-1", "--reason", "busy", now="2026-10-09T09:00+01:00")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        r = self.ind("plan", "move", "B-20261008-ielts-1", "--start", "2026-10-10T10:00+01:00",
+                     now="2026-10-09T09:05+01:00")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        # Mon 12 Oct: the old slot's recorded miss and the rebooked slot's missed? are two misses in a row.
+        learner, claude = self.parts(self.brief())
+        self.assertIn("IELTS Academic hasn't run lately: the last two planned sessions didn't happen", learner)
+        self.assertIn("ALARM ielts (plan.md §7): last 2 planned blocks missed: B-20261008-ielts-1 "
+                      "(Thu 8 Oct 07:00, rebooked to Sat 10 Oct 10:00). Once per open", claude)
+        self.assertEqual(claude.count("B-20261008-ielts-1"), 2, claude)   # once in MISSED?, once in ALARM
+
     def test_a_session_since_the_first_miss_or_one_miss_alone_is_no_alarm(self):
         rows = self.two_missed()
         rows[2]["status"] = "done"                      # only one miss among the last two

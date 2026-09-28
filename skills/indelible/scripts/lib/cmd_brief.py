@@ -563,10 +563,12 @@ def starvation_alarm(ws, subj, now, blocks=None, ledger=None, kinds=ALARM_KINDS)
     gap between the subject's planned days, from 4 weeks back to 2 weeks ahead);
     with no session on record, counted from the subject's first planned block.
     Silent while an owed to-do of the subject that starts "Ask again" is open
-    (plan.md section 7, choice 3). Only the kinds in ``kinds`` are looked for.
+    (plan.md section 7, choice 3); a to-do with no subject never silences it.
+    Only the kinds in ``kinds`` are looked for.
 
-    Returns {"kind", "blocks": [ids of the missed blocks], "days": whole days
-    without a session, "limit": days, "ever": False when no session is on record}.
+    Returns {"kind", "blocks": [ids of the missed blocks, each once], "slots":
+    [(block id, the missed slot's start)], "days": whole days without a session,
+    "limit": days, "ever": False when no session is on record}.
     """
     if ws.schedule_mode() == "on_demand" or subject_state(ws, subj.id) != "live":
         return None
@@ -574,7 +576,8 @@ def starvation_alarm(ws, subj, now, blocks=None, ledger=None, kinds=ALARM_KINDS)
     blocks = ws.load_blocks() if blocks is None else blocks
     ledger = ws.load_ledger() if ledger is None else ledger
     for r in ws.open_ledger_items(kind="owed", subject=subj.id, rows=ledger):
-        if str(r.get("what") or "").strip().lower().startswith(ASK_AGAIN):
+        # open_ledger_items also keeps rows with no subject: only this subject's own to-do counts
+        if r.get("subject") == subj.id and str(r.get("what") or "").strip().lower().startswith(ASK_AGAIN):
             return None
     if session_lock_state(subj, now) is not None:
         return None   # a session is running, or waits for its late close
@@ -602,8 +605,12 @@ def starvation_alarm(ws, subj, now, blocks=None, ledger=None, kinds=ALARM_KINDS)
         events.sort(key=lambda x: x[0])
         last = events[-ALARM_MISSES:]
         if len(last) == ALARM_MISSES and all(x[1] for x in last) and not any(s >= last[0][0] for s in starts):
-            return {"kind": "missed", "blocks": [x[2] for x in last], "days": None, "limit": None,
-                    "ever": bool(starts)}
+            ids = []   # a block missed, rebooked and missed again is one block
+            for x in last:
+                if x[2] not in ids:
+                    ids.append(x[2])
+            return {"kind": "missed", "blocks": ids, "slots": [(x[2], x[0]) for x in last], "days": None,
+                    "limit": None, "ever": bool(starts)}
 
     if "gap" in kinds:
         lo, hi = now - timedelta(days=ALARM_GAP_BACK_DAYS), now + timedelta(days=ALARM_GAP_AHEAD_DAYS)
@@ -637,7 +644,13 @@ def _alarm_flag(al, title, sid, plain):
 
 def _alarm_claude(al, sid, title):
     if al["kind"] == "missed":
-        what = "last 2 planned blocks missed: %s" % ", ".join(al["blocks"])
+        shown = []
+        for bid in al["blocks"]:
+            times = [t for i, t in al.get("slots") or [] if i == bid]
+            # missed at its old slot and again where it was rebooked: name it once, with both times
+            shown.append(bid if len(times) < 2 else
+                         "%s (%s)" % (bid, ", rebooked to ".join(fmt_when(t) for t in times)))
+        what = "last 2 planned blocks missed: %s" % ", ".join(shown)
     elif al["ever"]:
         what = "no session in %d days (limit %s)" % (al["days"], al["limit"])
     else:
