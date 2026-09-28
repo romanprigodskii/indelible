@@ -1,6 +1,6 @@
 # Privacy policy
 
-**Effective date:** 25 September 2026. This policy covers the indelible plugin and skill, version 0.1.x.
+**Effective date:** 28 September 2026. This policy covers the indelible plugin and skill, version 0.1.x.
 
 indelible is an open-source study skill that runs inside Claude, on your own computer. This page explains what data it keeps, where that data lives and who can see it.
 
@@ -34,7 +34,7 @@ indelible doesn't need your name, contact details or any account, and it doesn't
 
 - **The plugin sends nothing.** Its scripts make no network requests. When a browser prints a sheet to PDF, the scripts start it with its network access blocked, so it can't contact anything either, including its maker's background services. There are no analytics, no telemetry, no crash reports and no update checks, and nothing is ever sent to the author.
 - **Your own tools, for programming subjects.** To mark your code, Claude runs it with your own compiler or test tool. That tool may download the dependencies your project declares, as it does whenever you run it; your code and marks aren't sent anywhere by indelible.
-- **Claude.** Like anything else you do in Claude, your conversation is processed by Anthropic under your agreement with Anthropic. That includes what Claude reads from your study folder and the photos or files you hand it. Claude reads these only for the study task you asked for.
+- **Claude.** Like anything else you do in Claude, your conversation is processed by Anthropic under your agreement with Anthropic. That includes what Claude reads from your study folder and the photos or files you hand it. When you say "sent", Claude also lists the names of photos and PDFs newer than the sheet in your study folder's inbox, your Downloads folder and a photos folder you named, if any, so those names reach the conversation; it reads nothing else there, and files a photo only after you confirm it. Claude reads these only for the study task you asked for.
 - **Your calendar, only if you choose it.** indelible uses only a calendar connector that you have added to Claude yourself, and only after you pick it at setup.
   - With your yes, Claude may read your busy times for the next 14 days to find free slots.
   - It writes study sessions only after showing you the changes and getting your yes. The one exception is an option you can choose at setup: moving a missed session within 24 hours and telling you afterwards.
