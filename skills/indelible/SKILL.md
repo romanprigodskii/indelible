@@ -3,7 +3,7 @@ name: indelible
 description: "Use when someone wants to learn, revise or prepare on their own over days or weeks (an exam, course final, certification, interview, language or programming skill): setting up study, starting, continuing or closing a study session, checking what is due, being tested on their material, reviewing their mistakes, or planning and rescheduling study time in a calendar, even if they never say \"study plan\". Runs a short onboarding interview, a diagnostic before any teaching, and sessions built on theory sheets that are read and then closed. Drills carry a written check beside each answer and are marked from photos or typed files. Everything taught is re-tested cold two days later, and every mistake returns on a spaced schedule. Files are updated the same day; calendar changes go one way, only with consent. In claude.ai chat or mobile: a limited manual mode. Not for one-off questions or explanations with no ongoing goal, code review, work scheduling, or writing work the learner will hand in for assessment."
 license: MIT OR Apache-2.0
 compatibility: "Python 3.9+ (standard library only) and a folder that lasts between conversations: Claude Code (Cowork with a shared folder is untested). claude.ai chat and mobile: a limited manual mode. Optional: typst or a Chromium browser for PDF sheets; a calendar or task connector."
-argument-hint: "[teach|session|close|status|diagnose|mock|plan|reschedule|review|sync|migrate] [subject]"
+argument-hint: "[teach|session|close|status|ask|diagnose|mock|plan|reschedule|review|sync|migrate] [subject]"
 metadata:
   version: "0.1.5"
   schema: "1"
@@ -36,7 +36,7 @@ Runs a learner's self-study the way a strict, organised tutor would. It measures
 These apply in every command, for every learner. The references add detail but never contradict them.
 
 1. **No answer before a real attempt.** Answers, worked solutions and key content never appear in chat or in your visible thinking until the attempt is filed. Sheets that have answers are built by the builder subagent (`assets/prompts/builder.md`). `ind key open` works only after evidence is filed.
-2. **Nothing is taught in chat right above the questions that test it.** Theory goes on a sheet that is read and then closed. Chat is for probes, the learner's accounts of their mistakes, and asking rather than telling. An explanation in view turns a test into a lookup.
+2. **Nothing is taught in chat right above the questions that test it.** Theory goes on a sheet that is read and then closed. Chat is for probes, the learner's accounts of their mistakes, and asking rather than telling. An explanation in view turns a test into a lookup. Any explanation in chat, in a session or not, is logged at once with `ind session expose <s> <T> --kind chat`. Never discuss a question on a sheet that is out and not yet marked, and never say what a 2-day recheck covers before it is marked.
 3. **Cold first, no contamination.** The 2-day recheck opens the session. A sealed item is either graded or discussed, never both.
 4. **Plan in minutes.** Give a warning 10 minutes before the end, ask at the end, and allow at most one capped extension. Never issue a sheet over budget.
 5. **Close inside the session** with `ind session close`. Never write "tomorrow" or "later" without a dated to-do (`ind ledger add owed`).
@@ -78,6 +78,7 @@ If you are about to do any of these, stop and take the structural route instead.
 | `session [subject]` (default) | "start", "let's go", "what's due", "I have 15 minutes" | A full study session. Load one phase at a time | [session-open.md](references/session-open.md) → [session-grade.md](references/session-grade.md) (the recheck) → [session-teach.md](references/session-teach.md), then session-grade again for each later sheet |
 | `close` | "done", "gotta go", "wrap up" | The close checklist. Re-read the reference every time | [close.md](references/close.md) |
 | `status [subject\|all]` | "where am I", "this week", "how am I doing", "what do you keep?" | A read-only look: at most 5 plain lines, then the offer of a full review. Changes nothing in the plan or records | [review.md](references/review.md) §9 |
+| `ask [subject]` | "what does X mean?", "explain X", "why…?", with no session running | A question about the subject's content, answered without spoiling a sheet or a recheck. No lock and no session | "Questions outside a session", below |
 | `diagnose`, `mock [subject]` | "test me properly", "full mock" | A measurement sitting with no teaching | [measure.md](references/measure.md), [taxonomies.md](references/taxonomies.md) |
 | `plan`, `reschedule` | "plan my week", "I missed Thursday", "sick till Monday" | Build or repair the plan, check it, preview it, confirm it | [plan.md](references/plan.md) |
 | `review` | "weekly review", "review my week", "am I on track?", a yes to the close offer | The weekly review, plus 1–3 decisions | [review.md](references/review.md) |
@@ -91,11 +92,20 @@ Sheets, check lines, the checker (lint), keys and evidence are covered in [sheet
 
 1. **No argument and no clear intent:** run `ind brief`, then offer the next useful action in one line (usually "start <subject>").
 2. **The first word is a command:** load its reference and follow it. `teach` runs only when there is no workspace, when the learner asks to set up, or when the subject is unknown. "Teach me <topic>" goes to the new-material block of a session, not to `teach`.
-3. **Otherwise,** work out the command from the trigger words; the default is `session`. Take the subject from the first of these that applies:
+3. **Otherwise,** work out the command from the trigger words. The default is `session` for a start or an unclear intent; a question about the subject's content with no session running goes to `ask`. Take the subject from the first of these that applies:
    1. a subject the message names: its id, its title, or an obvious short name ("spanish");
    2. the current folder, when it is inside a subject folder;
    3. the block that is on now or next;
    4. otherwise, numbered options.
+
+### Questions outside a session (`ask`)
+
+A question about the subject's content ("what does 'median' mean again?"), asked in a workspace with no session running. It opens no lock and no session. During a session, the session's references cover questions instead.
+
+1. **Read the state:** `ind brief <s>` (without `--open`, so it counts no open) and `ind sheet show <s> --status issued`.
+2. **A question on a sheet that is out** (issued and not yet marked) is sealed (Law 3): "Write 'I don't know' for now. We'll go through it right after marking." Say nothing more about it.
+3. **Otherwise ask before telling** (Law 2): one probe ("What do you remember about it?"), or a pointer to the sheet that taught it ("Look at 'What it is and why' on your sheet about it."). "Teach me X", or a question that needs a lesson, goes to `session`.
+4. **If you still explain,** keep it to a few lines, then run `ind session expose <s> <T> --kind chat` at once. If it prints a WARN about a booked 2-day recheck, run `ind plan check` and move that recheck as [plan.md](references/plan.md) says (a preview and a yes before any calendar write). Tell the learner only "Your next 2-day recheck moves to <day>, so it still counts": never its topics or its block id.
 
 ## File contract
 

@@ -291,6 +291,32 @@ class ExposeTaughtOverrideTests(SessionBase):
         r = self.ind("session", "expose", "ielts", "T04")
         self.assertIn("WARN", r.stdout)
 
+    def test_ask_route_logs_a_chat_explanation_with_no_session(self):
+        # SKILL.md "Questions outside a session": the brief, the sheets out, then the exposure at once;
+        # no lock is written, and plan check then refuses the booked recheck until it is moved.
+        bid = "B-20261013-ielts-1"
+        self.put("plan/blocks.jsonl", [self.block(bid, "2026-10-13T07:00+01:00", "2026-10-13T07:15+01:00",
+                                                  kind="cold", content="cold:T04")])
+        for args in (("brief", "ielts"), ("sheet", "show", "ielts", "--status", "issued")):
+            r = self.ind(*args, now="2026-10-12T20:00+01:00")
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        r = self.ind("session", "expose", "ielts", "T04", "--kind", "chat", now="2026-10-12T20:00+01:00")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("WARN", r.stdout)
+        self.assertIn(bid, r.stdout)
+        self.assertFalse((self.s / ".indelible" / "session.lock").exists())
+        self.assertEqual(self.jsonl("ielts/data/exposures.jsonl")[-1]["kind"], "chat")
+        r = self.ind("plan", "check", "--json", now="2026-10-12T20:05+01:00")
+        self.assertEqual(r.returncode, 1, r.stdout)
+        rules = [(f["rule"], f["block"]) for f in json.loads(r.stdout)["findings"] if f["level"] == "FAIL"]
+        self.assertIn(("cold_24h", bid), rules)
+        skill = (Path(__file__).resolve().parents[1] / "skills" / "indelible" / "SKILL.md").read_text(
+            encoding="utf-8")
+        self.assertIn("| `ask [subject]` |", skill)
+        self.assertIn("goes to `ask`", skill)
+        law2 = [ln for ln in skill.splitlines() if ln.startswith("2. **Nothing is taught in chat")][0]
+        self.assertIn("`ind session expose <s> <T> --kind chat`", law2)
+
     def test_taught_books_one_cold_obligation_with_its_window(self):
         self.put("plan/blocks.jsonl", [self.block("B-20261012-ielts-1", "2026-10-12T09:00+01:00",
                                                   "2026-10-12T10:00+01:00")])
