@@ -46,7 +46,7 @@ Where the method came from, always stated exactly so:
 | [design] | An engineering choice that keeps the system cheap, checkable or honest | "how the tool works" |
 | [integrity] | Honesty, consent, safety or valid measurement | "a fairness rule" |
 
-A parameter (48 hours, six per block, the ladder's days, 12 words per sheet) is [one-learner] or [design] even when its principle is [lit-strong].
+A parameter (48 hours, six per block, the ladder's days, 12 words per sheet, 30 minutes before bed) is [one-learner] or [design] even when its principle is [lit-strong].
 
 ## 3. The rule table
 
@@ -78,7 +78,8 @@ IDs are stable, so `overrides[].rule` in `subject.json` can name one (for exampl
 | R23 ladder | Back after 1 day, 3 days, 1 week and 3 weeks, capped before the deadline | default | [lit-mixed] | Latimier et al., 2021 |
 | R24 | Every number carries its label; two instruments never share a trend | core | [integrity] | |
 | R28 | Calendar changes only after a preview and a yes; move rather than delete | core | [integrity] | |
-| R29 | Sleep is protected: nothing in the sleep window or within 30 minutes of bedtime | core | [lit-strong] | Mazza et al., 2016 |
+| R29 | Sleep is protected: nothing planned in the sleep window | core | [lit-strong] | Berres & Erdfelder, 2021; Newbury et al., 2021 |
+| R29 buffer | Nothing ends within 30 minutes of bedtime | core | [design] | |
 | R31 | Claude's own mistakes are logged; a repeat in one category forces a structural fix | core | [design] | |
 | R34 | Claude makes the call; the learner can override it, predicting specific questions (a recheck moved to a later time needs no prediction) | core | [lit-mixed] | Patall et al., 2008 |
 | R36 | Teaching drills in blocks of one question type (3–8, default 6), with a stop after question 3 (question 4 in a block of 6 or more whose question 1 is worked) if two of the three gated questions have a failed check, an "I don't know" or a blank; at mastery 0–1, a stop every time, for marking | core (one type) / default (size) | [lit-mixed] | Carvalho & Goldstone, 2014; Shute, 2008 |
@@ -135,6 +136,7 @@ Graded [lit-mixed] for the principle; the details are [one-learner]. An earlier 
 - **Worked examples first, for novices only.** The advantage reverses as expertise grows (Kalyuga, 2007), and struggling first then being taught also works (Sinha & Kapur, 2021). A stuck learner gets a worked example on a separate sheet, never the answer in chat (Koedinger & Aleven, 2007). Fading alone helps most on questions like the worked one; adding a prompt to name the principle behind each worked step carried the method to unfamiliar questions too, with no extra time on task (Atkinson, Renkl & Merrill, 2003). Hence R12's principle prompt: a choice among the sheet's own reasons, answered by letter.
 - **Concrete first is a default, not a law.** A concrete case that fades into the general rule helps learners connect the two (Fyfe et al., 2014), but generic examples can transfer better than concrete ones (Kaminski, Sloutsky & Heckler, 2008): hence R12 order is [lit-mixed], and the rule box after the case always states the general form. A learner who would rather see the rule first can lock an override of R12 order at review; lint L11 then accepts the rule before the case, but still asks for a worked case on the sheet.
 - **A same-day failure is real evidence;** only same-day success can't show mastery.
+- **Sleep is protected; the half hour before bed is a choice.** People recall more after sleep than after as long awake (Berres & Erdfelder, 2021), and a night without sleep before learning impairs memory (Newbury et al., 2021). Sleep between two sessions helps too: learners who slept between an evening session and a morning one needed about half the practice to relearn, and remembered more a week and six months later, than those whose 12-hour gap was spent awake (Mazza et al., 2016). None of these tested study in the last half hour before bed, so the 30-minute buffer (R29 buffer) is a wind-down choice, not a finding.
 - **A guess before reading.** Answering questions on material before studying it helps learning of that material once the answers follow, across texts, videos and lectures, even when most first answers are wrong (Pan & Carpenter, 2023). Most of that evidence is on prose and video, and for procedures it shades into struggling first (Sinha & Kapur, 2021), hence R53 is [lit-mixed]: a new topic at mastery 0–1 only, at most two questions, framed as a guess, answered further down the same sheet and never marked.
 - **A procedure needs its meaning.** Knowing what an object is and knowing how to work with it support each other (Rittle-Johnson, Schneider & Star, 2015), but which to teach first has rarely been tested, hence R52 is [lit-mixed] and comes after the worked case, not before it. In the method's development [one-learner], procedures taught with no picture of what they worked on faded before their 2-day recheck, and the learner's "what is it?" questions were the sign. A text box is only part of the answer: sheets carry no drawings in v0.1.
 - **A printed blank gets filled; a printed request gets read past.** [one-learner]: in the method's development, asking in a sentence for the working (the value under each letter, the rows of a trace) got none, while the same step printed as a blank line inside the item got written on nearly every item, and errors traced to working with nowhere to write it. Hence R54. The scaffold fades inside practice, the last two items of a block printing only the box, and never reaches a recheck: a pass with the working printed would measure the prompt, not the learner.
@@ -181,6 +183,7 @@ Why no "sure / not sure" beside each answer? People stop filling it in, and the 
 - Atkinson, Renkl & Merrill (2003), *Journal of Educational Psychology*.
 - Baars, Vink, van Gog, de Bruin & Paas (2014), *Learning and Instruction*.
 - Bastani et al. (2025), *PNAS*.
+- Berres & Erdfelder (2021), *Psychological Bulletin*.
 - Bertsch et al. (2007), *Memory & Cognition*.
 - Bisra et al. (2018), *Educational Psychology Review*.
 - Biwer et al. (2023), *British Journal of Educational Psychology*.
@@ -206,6 +209,7 @@ Why no "sure / not sure" beside each answer? People stop filling it in, and the 
 - Mazza et al. (2016), *Psychological Science*.
 - Metcalfe (2017), *Annual Review of Psychology*.
 - Morris, Bransford & Franks (1977), *Journal of Verbal Learning and Verbal Behavior*.
+- Newbury, Crowley, Rastle & Tamminen (2021), *Psychological Bulletin*.
 - Pashler et al. (2005), *JEP: LMC*.
 - Pan & Carpenter (2023), *Educational Psychology Review*.
 - Patall, Cooper & Robinson (2008), *Psychological Bulletin*.
