@@ -305,6 +305,13 @@ class BriefTests(BriefBase):
         self.assertIn("IELTS Academic · exam", r.stdout)
         self.assertIn("Statistics final · course · no date", r.stdout)
         self.assertLessEqual(len(r.stdout.rstrip("\n")), 4500)
+        # CONTRACT §7.2: "Subjects: …" and the headers above the line,
+        # SUBJECTS: below it, and no one subject's SUBJECT line.
+        above, below = r.stdout.split("-- for Claude, do not read aloud --")
+        self.assertIn("Subjects: ielts, stats", above)
+        self.assertIn("Statistics final · course · no date", above)
+        self.assertTrue(below.lstrip().startswith("SUBJECTS: ielts · stats"), below)
+        self.assertNotIn("SUBJECT: ", r.stdout)
 
 
 class AlarmTests(BriefBase):

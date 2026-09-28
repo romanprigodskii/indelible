@@ -868,6 +868,17 @@ class CliSetupTests(Base):
             if inside.exists():
                 shutil.rmtree(str(inside), ignore_errors=True)
 
+    def test_init_timezone_checks_the_shape_only(self):
+        # CONTRACT §7.1: a badly shaped name is exit 2; a well-shaped one is
+        # kept even when this computer can't load it (the brief says so).
+        r = run(["init", self.tmp / "tz-bad", "--timezone", "not a zone"])
+        self.assertEqual(r.returncode, 2)
+        self.assertFalse((self.tmp / "tz-bad" / "indelible.json").exists())
+        r = run(["init", self.tmp / "tz-odd", "--timezone", "Mars/Olympus"])
+        self.assertEqual(r.returncode, 0, r.stderr)
+        cfg = json.loads((self.tmp / "tz-odd" / "indelible.json").read_text(encoding="utf-8"))
+        self.assertEqual(cfg["timezone"], "Mars/Olympus")
+
     def test_subject_add(self):
         root = make_ws(self.tmp, "A")
         s = root / "ielts"
