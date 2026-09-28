@@ -99,7 +99,7 @@ Detect from the tool list alone: names, descriptions and schemas. Make no connec
 
 **Google Calendar (`google-calendar@1`)**
 - **Which calendar:** events go on a calendar named "Study" if the connector can create one; creating it is a write, so it goes in the preview. Otherwise the learner creates "Study" once, or you use their main calendar, with the `[ind:` marker in the description.
-- **Reminders:** they count only minutes before the start. The end warning comes from the session timer.
+- **Reminders:** they count only minutes before the start. The end warning comes from the in-session timers ([session-open.md](session-open.md) §3 step 8), or the clock times given at hand-over.
 - **Cancels:** add "Cancelled · " to the start of the title. Delete only when the preview said "delete" and the learner said yes.
 - **An event existing is not attendance.**
 
@@ -141,7 +141,7 @@ Detect from the tool list alone: names, descriptions and schemas. Make no connec
   - `.ics`: a VALARM, which the CLI adds.
   - **0 means no reminder:** leave the reminder out entirely (no popup, no trigger). v0.1's `cal ics` still writes a VALARM at the start time; tell the learner once that their calendar app may show it.
 - **Before the end:** only where the provider supports it and the block is 30 min or longer. On TickTick: `TRIGGER;RELATED=END:-PT10M`.
-- **Nothing else.** v0.1 has no push notifications or scheduled jobs, so reminders come from the calendar app. The in-session 10-minute warning comes from the session timer.
+- **Nothing else.** v0.1 has no push notifications, and no scheduled jobs outside a live session, so reminders come from the calendar app. The in-session 10-minute warning comes from the in-session timers ([session-open.md](session-open.md) §3 step 8), or the clock times given at hand-over.
 
 ## 7. When the learner edits the calendar
 

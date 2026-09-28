@@ -128,8 +128,18 @@ Make the call in the opener; the learner can change any part of it (skip the rec
 
 ### Step 8: timers
 
-- **Where the host has a one-shot timer tool** (CronCreate in Claude Code), set one timer at T−10, where T is the planned end, and one at the close start `session open` printed. The T−10 warning and the question at the end are in [close.md](close.md) §2.
-- **Otherwise,** run `ind session status <s>` every time a photo comes back and before each block, and act on what it shows. Its first line can be shown to the learner as is; the "sheets out" line is for you.
+You act only when a message or a timer arrives, so the moments of Law 4 need timers, or clock times the learner can watch.
+
+- **Claude Code has one-shot timers.** Load them with ToolSearch (`select:CronCreate,CronDelete`). Create one job for each moment below, with `recurring: false` and the minute, hour, day and month pinned. Timers run on the computer's local time: if `ind doctor` says its offset differs from the workspace's time zone, convert first.
+  - T−10, where T is the planned end: the warning;
+  - the close start `session open` printed: the question;
+  - the close start + 2 minutes, "no-answer": close if the question got no answer;
+  - T, the planned end;
+  - in sessions over 75 minutes, each break's start and end.
+
+  Each job's prompt: "indelible timer: <moment> for <s>. Run `ind session status <s>` first. If no session is open, or the study frame is stopped (Law 13), say nothing." Keep the job ids (after a context compaction, CronList finds them). [close.md](close.md) handles each moment (§2), replaces the no-answer job after an extension (§2), and deletes every job left with CronDelete at the close (§6), at an abrupt exit (§10) and when distress stops the study frame (§5).
+- **With no timer tool,** give the clock times at the first hand-over, in one line: "Warning at 07:50, closing at 07:55. At 07:55, stop and send your photo even if I haven't written." Then run `ind session status <s>` every time a photo comes back and before each block, and act on what it shows.
+- **The status line:** the first line of `ind session status` can be shown to the learner as is; the "sheets out" line is for you.
 - **Breaks** fall at the times `session open` printed. Nothing about a sealed sheet is discussed during a break.
 
 ## 4. The budget

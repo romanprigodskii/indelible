@@ -69,7 +69,7 @@ When the learner is stuck, climb one rung per message:
 3. The smallest hint: one pointer and no steps ("Look at the verb in the second sentence.").
 4. A second hint: one step further, still not the answer.
 
-**Floundering timeout** (2 hints, or 5 minutes without progress after the learner first asks): "One more hint, or a worked example?"
+**Floundering timeout** (2 hints, or 5 minutes without progress since the learner first asked, checked against `ind session status` when their next message comes): "One more hint, or a worked example?"
 
 - **"Worked example":** the builder makes an `example` sheet with an isomorphic case: the same structure on different surface details, never the current question. The learner reads it, closes it and tries again. The answer then counts as looked up; add a line to the session note with `ind note append <s> session`.
 - **"Show me this one"** (explicit surrender only; never offer it): "Write 'I don't know' in the box. That's always accepted. Carry on with the next question, or stop the block here. We'll go through this one as soon as the sheet is filed." At marking, go through the solution from `ind key open`. Record the question as `dont_know` with `kind: belief` and the account "asked for the solution", so it gets a repair and goes on the ladder ([session-grade.md](session-grade.md)). If the question came from outside a sheet, use `ind error add <s> --topic <T> --kind belief --mode <mode> --belief "<120 characters at most, without the answer>" --account "asked for the solution"`.
