@@ -978,6 +978,36 @@ class GradingRegressionTests(GradeBase):
         self.assertIn("[measured n=3]", r.stdout)
         self.assertIn("2-day recheck done: T01 (B-20261014-ielts-2)", r.stdout)
         self.assertEqual(self.topics()["T01"]["last_cold"], "2026-10-14T08:00+01:00")
+        self.assertEqual(self.topics()["T01"]["last_cold_type"], "words")
+        self.assert_no_secrets()
+
+    def test_a_words_recheck_opens_no_recheck_again(self):
+        # Words sheets don't feed levels, so a words batch stays below 3 for good: a later warm
+        # exposure must not bring it back as a 2-day recheck (its later rungs are placed by hand).
+        self.cli(["session", "taught", self.sid, "T01"], now="2026-10-12T07:40+01:00")
+        items = [make_item(n, "T01", ["%da" % n], origin="cold:T01", layer="verbal") for n in (1, 2)]
+        for it in items:
+            for a in it["asks"]:
+                a["check"] = False
+        key = write_sheet(self.ws, self.sid, "ielts-words-01", "words", items, issued="2026-10-14T07:55+01:00")
+        self.remember_key(key)
+        r = self.grade("ielts-words-01", {"date": "2026-10-14", "start": "08:00", "stop": "08:05",
+                                          "least_sure_line": "none", "asks": [
+            {"ask": "%da" % n, "verdict": "right", "check": "n/a"} for n in (1, 2)]}, now="2026-10-14T08:10+01:00")
+        self.assertIn("2-day recheck done: T01", r.stdout)
+        self.assertEqual(self.topics()["T01"]["level"], 0)
+        r = self.cli(["session", "expose", self.sid, "T01", "--kind", "chat"], now="2026-10-15T09:00+01:00")
+        self.assertIn("It cannot be on a 2-day recheck before Fri 16 Oct 09:00.", r.stdout)
+        self.assertNotIn("now falls between", r.stdout)
+        r = self.cli(["due", self.sid, "--list"], now="2026-10-17T07:00+01:00")
+        self.assertIn("none", r.stdout.split("1. 2-day rechecks", 1)[1].split("2. ", 1)[0])
+        # A cold sheet that serves it later is an ordinary recheck again.
+        state = self.topics()
+        state["T01"]["last_cold_type"] = "cold"
+        fio.write_json(self.sdir / "data" / "topics.json", state)
+        r = self.cli(["due", self.sid, "--list"], now="2026-10-17T07:00+01:00")
+        self.assertIn("T01 Matching headings · 46 h since last seen",
+                      r.stdout.split("1. 2-day rechecks", 1)[1].split("2. ", 1)[0])
         self.assert_no_secrets()
 
     def test_a_late_recheck_probe_closes_the_expired_booking(self):

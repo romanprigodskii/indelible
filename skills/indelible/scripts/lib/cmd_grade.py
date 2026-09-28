@@ -588,7 +588,8 @@ def cmd_grade_record(args):
         # (learning.compute_levels_from, from attempts.jsonl); level_basis names it.
         state = json.loads(json.dumps(topics_state))
         for t in served:
-            state.setdefault(t, {})["last_cold"] = dates.fmt_iso(sit_at)
+            # The sheet type goes with it: a words recheck opens no recheck again (learning.needs_rerecheck).
+            state.setdefault(t, {}).update({"last_cold": dates.fmt_iso(sit_at), "last_cold_type": stype})
         old, levels, merged = recompute_levels(subj, topics_state=state, errors=errors)
         # A re-serve that comes back right lets the right answers named on the Least-sure line
         # that opened it count, at their own sitting (learning.first_reserve_passed). That can make
@@ -603,7 +604,7 @@ def cmd_grade_record(args):
             row = merged.setdefault(t, {})
             last = dates.try_parse_iso(row.get("last_cold"))
             if last is None or last < fp:
-                row["last_cold"] = dates.fmt_iso(fp)
+                row.update({"last_cold": dates.fmt_iso(fp), "last_cold_type": "cold"})
             closed += close_cold_obligations(ws, subj.id, [t], sit_at=fp)
             confirmed.append((t, fp))
         subj.save_topics_state(merged)

@@ -486,11 +486,14 @@ def needs_rerecheck(topic, topic_state, exposures):
     outside its window) is not the end of it: its next warm exposure (the fix
     sheet, the feedback logged after marking, drills) opens a new 2-day window,
     and the topic comes back cold inside it, as a first serve does. A topic at 3
-    or above never does: its later serves have no window.
+    or above never does: its later serves have no window. Nor does one whose
+    last cold serve was a ``words`` recheck (``last_cold_type``): words sheets
+    don't feed levels, so it would stay below 3 for good, and its later rungs
+    are placed by hand.
     """
     st = topic_state or {}
     last_cold = dates.try_parse_iso(st.get("last_cold"))
-    if last_cold is None or level_rank(st.get("level")) >= 3:
+    if last_cold is None or level_rank(st.get("level")) >= 3 or st.get("last_cold_type") == "words":
         return False
     last = last_exposure(topic, exposures)
     return last is not None and last > last_cold

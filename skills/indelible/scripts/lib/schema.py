@@ -863,6 +863,8 @@ RECORDS = {
             ("least_sure", "a right answer named on the Least-sure line counts toward a level only once its "
                            "shaky re-serve comes back right; a named miss always counts"),
             ("taught_by", "sheet | external | chat | tutor"),
+            ("last_cold", "the sitting of the latest cold serve; last_cold_type is that sheet's type (a words "
+                          "recheck opens no recheck again)"),
             ("recompute", "indelible.py topic recompute <subject>"),
         ],
     },
