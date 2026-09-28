@@ -33,7 +33,7 @@ A wrong idea (an error of kind `belief`) is never served cold until it has been 
 
 "Teach me <topic>" lands here.
 
-1. **Floor check.** Every topic in the new topic's floor (its `floor` list in the subject) must show mastery 3 or above in `ind topic show <s>`. If one isn't, serve that one first and the new topic waits: "This builds on reading tables, which isn't solid yet. We'll do that today and the new topic next time."
+1. **Floor check.** Every topic in the new topic's floor (its `floor` list in the subject) must show level 3p or above in `ind topic show <s>` (the brief shows 3p as "3 (to confirm)"), so a floor the diagnostic called "Already yours" is enough to build on. If one is below 3p, serve that one first, and the new topic waits until that topic's 2-day recheck has passed: "This builds on reading tables, which isn't solid yet. We'll work on it today; the new topic comes after its 2-day recheck."
 2. **Choose the theory source:**
    - a `theory` sheet from the builder; or
    - `external` pages the learner already owns ("your practice book, pages 44–47: read them, then close the book"). This is an `external` sheet that names the pages and carries 3–5 pencil questions, done with the book closed. Never copy the pages' content.
@@ -110,7 +110,7 @@ The per-profile defaults are in [profiles.md](profiles.md).
   - Evidence is their project plus the saved compiler or test output, filed in one call: `ind scan ingest <s> <id> --dir <project folder> --typed <output file>` ([profiles.md](profiles.md) §7).
   - Hints stop at rung 4 and contain no code for the current task. A worked example is an isomorphic task, never the current one.
   - The recheck is a fresh variant: the compiler is allowed, but docs and AI are not.
-- **Discrimination.** Confusable topics are kept apart while they are being learned. Once both are at mastery 3 or above, a `mixed` sheet of unlabelled "which applies?" questions and contrast pairs comes once a week until both reach 4 ([plan.md](plan.md) places it).
+- **Discrimination.** Confusable topics are kept apart while they are being learned. Once both are at mastery 3 or above (3p counts), a `mixed` sheet of unlabelled "which applies?" questions and contrast pairs comes once a week until both reach 4 ([plan.md](plan.md) places it).
 
 ## 6. Special sessions
 

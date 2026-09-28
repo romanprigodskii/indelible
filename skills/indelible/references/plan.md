@@ -93,7 +93,7 @@ Plan backwards from `target.date`. For a date range, plan to the earliest date a
 3. Place protected teach/recheck pairs (`--protected`). A teach block needs a slot 44–72 h later (the subject's `cold_window_h`). If the recheck can't fit, move the teach, not the recheck. Place any open obligations.
    - Persona A (60 min on Mon, Tue, Thu and Sat) might plan: Tue new skill → Thu recheck + new skill → Sat recheck + timed section → Mon recheck + fix mistakes.
 4. Place repairs (`--kind repair`, at least 24 h before the recheck they serve). Place a `review` block within 48 h of each mock.
-5. Put a weekly discrimination sheet in a `mixed` block for each confusable pair where both topics are at mastery 3, until both reach 4.
+5. Put a weekly discrimination sheet in a `mixed` block for each confusable pair where both topics are at mastery 3 or above (3p counts), until both reach 4.
 6. Fill each subject toward `target_weekly_min`, in priority order, never below `min_weekly_min`.
 7. Reserve the buffer as `--kind buffer` (`buffer_pct` of the weekly target).
 8. `ind plan check` until it passes.

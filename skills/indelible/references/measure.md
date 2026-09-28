@@ -123,7 +123,7 @@ Computed by the CLI (`ind grade record`, `ind topic recompute`), never typed. Th
 
 ## 10. Topic order
 
-Rank by gap × weight × the chance of a cold pass within a week (high when every floor topic is owned). Then:
+Rank by gap × weight × the chance of a cold pass within a week (high when every floor topic is owned: level 3p or above, the same line the floor check in [session-teach.md](session-teach.md) §2 draws). Then:
 - floor topics before what stands on them;
 - skip-probe topics wait for their probe; a V miss gets its word fixed first;
 - never-taught topics before polishing owned ones;
