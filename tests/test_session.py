@@ -239,6 +239,43 @@ class OpenStatusTests(SessionBase):
         self.assertEqual(self.ind("session", "extend", "ielts", "--min", "6").returncode, 1)
         self.assertEqual(self.ind("session", "extend", "ielts", "--min", "5").returncode, 0)
 
+    def test_extension_ends_15_min_before_the_next_fixed_start(self):
+        # close.md §2: the third cap. The session runs 09:00-10:00; the next block starts 10:20.
+        own = self.block("B-20261012-ielts-1", "2026-10-12T09:00+01:00", "2026-10-12T10:00+01:00")
+        nxt = self.block("B-20261012-ielts-2", "2026-10-12T10:20+01:00", "2026-10-12T10:50+01:00", kind="review")
+        self.put("plan/blocks.jsonl", [own, nxt])
+        self.open_session(60, NOW, "--block", own["id"])
+        r = self.ind("session", "extend", "ielts", "--min", "6", now="2026-10-12T09:55+01:00")
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertIn("the next fixed start, 10:20 (block B-20261012-ielts-2): the cap here is 5 min", r.stdout)
+        self.assertIn("move that block first", r.stdout)
+        self.assertNotIn("extension_min", self.lock())
+        # moved with a yes, the room is back
+        self.put("plan/blocks.jsonl", [own, dict(nxt, start="2026-10-12T11:00+01:00", end="2026-10-12T11:30+01:00")])
+        r = self.ind("session", "extend", "ielts", "--min", "15", now="2026-10-12T09:55+01:00")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+    def test_extension_cap_counts_blocked_time_and_bedtime(self):
+        # work at 10:25 on weekdays: room for 10 minutes after a 10:00 end
+        self.ind("set", "root", "time.blocked.+", '{"days":["Mon"],"from":"10:25","to":"18:00","what":"work"}')
+        self.open_session(60)
+        r = self.ind("session", "extend", "ielts", "--min", "11", now="2026-10-12T09:55+01:00")
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertIn("10:25 (work): the cap here is 10 min. Close now.", r.stdout)
+        self.assertEqual(self.ind("session", "extend", "ielts", "--min", "10").returncode, 0)
+        self.close(now="2026-10-12T10:08+01:00")
+        # 22:00-22:30 ends at bedtime (23:00) - 30 min: no extension at all
+        self.open_session(30, "2026-10-12T22:00+01:00")
+        r = self.ind("session", "extend", "ielts", "--min", "1", now="2026-10-12T22:28+01:00")
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertIn("22:30 (30 min before bedtime): the cap here is 0 min", r.stdout)
+
+    def test_extension_cap_ignores_blocked_time_the_session_began_in(self):
+        # a sick day blocked whole: the learner chose to study anyway, so it caps nothing
+        self.ind("set", "root", "time.blocked.+", '{"date":"2026-10-12","what":"sick"}')
+        self.open_session(60)
+        self.assertEqual(self.ind("session", "extend", "ielts", "--min", "15").returncode, 0)
+
     def test_open_refuses_over_an_unclosed_lock(self):
         self.open_session(60)
         r = self.ind("session", "open", "ielts", "--planned", "60", now="2026-10-12T13:00+01:00")

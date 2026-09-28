@@ -17,7 +17,11 @@ the subject to study another one).
 ``extension_min`` and ``extended_end``, with the close start moved by the same
 minutes. ``planned_min`` stays, so the overrun still counts the extension. A
 second extension, or one over min(``session.extension_max_min`` (default 15,
-at most 30), a quarter of the planned minutes), is refused.
+at most 30), a quarter of the planned minutes, the next fixed start - 15
+minutes - the planned end), is refused. The next fixed start is the earliest,
+from the session's start on, of another open block (of any subject) that ends
+after the planned end, a ``time.blocked`` span that ends after it, and 30
+minutes before bedtime.
 
 ``session close`` runs checks C1-C9 about the session since the lock start
 and prints one PASS, FAIL or INFO line per check. C8 (the next block's sheets)
@@ -58,6 +62,7 @@ C2_OWED_H = 24
 C5_HORIZON_H = 24       # a repair less than 24 h before a recheck takes its topic off it (the 24-hour rule)
 PLANNED_MIN, PLANNED_MAX = 5, 720
 EXTENSION_DEFAULT_MIN, EXTENSION_MAX_MIN = 15, 30   # close.md §2: session.extension_max_min, never over 30
+NEXT_START_GAP_MIN = 15  # close.md §2: an extension ends at least 15 min before the next fixed start
 OPEN = brief.OPEN_BLOCK_STATUSES
 VERDICT_WORDS = (("right", "right"), ("half", "half"), ("wrong", "wrong"), ("dont_know", "don't know"),
                  ("skip", "skipped"))
@@ -270,12 +275,39 @@ def cmd_status(args):
 
 
 def _extension_cap(cfg, planned_min):
-    """The longest extension allowed: min(session.extension_max_min (default 15, at most 30),
-    a quarter of the planned minutes). close.md §2 adds the next fixed start, which Claude checks."""
+    """The first two caps on an extension: min(session.extension_max_min (default 15, at most 30),
+    a quarter of the planned minutes). _next_fixed_start gives the third (close.md §2)."""
     mx = (cfg.get("session") or {}).get("extension_max_min")
     if not isinstance(mx, int) or isinstance(mx, bool):
         mx = EXTENSION_DEFAULT_MIN
     return max(0, min(mx, EXTENSION_MAX_MIN, int(float(planned_min or 0) * 0.25)))
+
+
+def _next_fixed_start(ws, lk):
+    """(time, what) of the next fixed start after the session's planned end, or None (close.md §2).
+
+    The earliest of: another open (planned or synced) block of any subject, not the session's
+    own, that starts at or after the session's start and ends after the planned end; a
+    time.blocked span that does the same; 30 minutes before a bedtime at or after the start.
+    Something that began before the session started is time the learner chose to study in."""
+    ctx = plan.Ctx(ws)
+    start, end = lk["_start"], lk["_planned_end"]
+    d0, d1 = start.date() - timedelta(days=1), end.date() + timedelta(days=1)
+    found = []
+    for b in ws.load_blocks():
+        s, e = plan.b_start(b, ctx.tz), plan.b_end(b, ctx.tz)
+        if b.get("id") == lk.get("block") or b.get("status") not in OPEN or s is None or s < start:
+            continue
+        if (e or s) > end:
+            found.append((s, "block %s" % b.get("id")))
+    for a, z, what in plan._blocked_spans(ctx, d0, d1):
+        if a >= start and z > end:
+            found.append((a, what))
+    for bed, _ in plan._sleep_spans(ctx, d0, d1):
+        if bed >= start:
+            found.append((dates.plus(bed, minutes=-plan.BEDTIME_GAP_MIN),
+                          "%d min before bedtime" % plan.BEDTIME_GAP_MIN))
+    return min(found, key=lambda x: x[0]) if found else None
 
 
 def cmd_extend(args):
@@ -303,6 +335,16 @@ def cmd_extend(args):
             raise CheckFailed("Refused: %d min is over this session's cap of %d min: min(session.extension_max_min, "
                               "%d, a quarter of the planned %d min). Nothing was changed."
                               % (n, cap, EXTENSION_MAX_MIN, int(lk["_planned_min"])))
+        nxt = _next_fixed_start(ws, lk)
+        if nxt is not None:
+            room = int((nxt[0] - lk["_planned_end"]).total_seconds() // 60) - NEXT_START_GAP_MIN
+            if n > room:
+                how = ("Close now, or move that block first, with the learner's yes (plan move)."
+                       if nxt[1].startswith("block ") else "Close now.")
+                raise CheckFailed(
+                    "Refused: %d min would end less than %d min before the next fixed start, %s (%s): the cap "
+                    "here is %d min. %s Nothing was changed."
+                    % (n, NEXT_START_GAP_MIN, nxt[0].strftime("%H:%M"), nxt[1], max(0, room), how))
         end = dates.plus(lk["_planned_end"], minutes=n)
         cstart = dates.plus(lk["_close_start"] or lk["_planned_end"], minutes=n)
         lock = subj.read_session_lock() or {}
