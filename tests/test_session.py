@@ -380,6 +380,39 @@ class ExposeTaughtOverrideTests(SessionBase):
         self.assertIn("`ind session expose <s> <T> --kind review` for the pointer", step4)
         self.assertIn("`--kind chat` for the explanation", step4)
 
+    def test_ask_route_reads_a_taken_sheet_as_out_and_the_topic_ids(self):
+        # references/ask.md step 1: a sheet taken and not yet marked (marking deferred at a close) is out too,
+        # which `sheet show --status issued` alone misses; a read-then-close sheet taken is not, as
+        # `session status` counts them. `session expose` takes a topic id, never the name a plain brief shows.
+        cold = dict(self.sheet("ielts-cold-02", "cold", status="sat"), issued_at="2026-10-12T09:04+01:00")
+        drills = dict(self.sheet("ielts-drills-03", status="issued", sat_date=None, evidence=False),
+                      issued_at="2026-10-12T09:20+01:00")
+        theory = dict(self.sheet("ielts-paraphrase-01-theory", "theory", status="sat"),
+                      issued_at="2026-10-12T09:10+01:00")
+        self.put("ielts/data/sheets.jsonl", [self.sheet("ielts-cold-01", "cold"), cold, drills, theory])
+        r = self.ind("sheet", "show", "ielts", "--status", "issued", now="2026-10-12T20:00+01:00")
+        self.assertNotIn("ielts-cold-02", r.stdout)
+        r = self.ind("sheet", "show", "ielts", "--json", now="2026-10-12T20:00+01:00")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        read_close = ("theory", "external", "example", "triage")
+        out = [s["id"] for s in json.loads(r.stdout) if s["status"] == "issued"
+               or (s["status"] == "sat" and s["type"] not in read_close)]
+        self.assertEqual(out, ["ielts-cold-02", "ielts-drills-03"])
+        self.open_session(60, "2026-10-12T20:00+01:00")   # session status names the same sheets out
+        r = self.ind("session", "status", "ielts", now="2026-10-12T20:01+01:00")
+        listed = r.stdout.strip().splitlines()[1]
+        self.assertEqual([i for i in ("ielts-cold-02", "ielts-drills-03", "ielts-paraphrase-01-theory")
+                          if i in listed], out)
+        r = self.ind("topic", "show", "ielts", "--json", now="2026-10-12T20:00+01:00")
+        name = [t["name"] for t in json.loads(r.stdout) if t["id"] == "T04"][0]
+        r = self.ind("session", "expose", "ielts", name, "--kind", "chat", now="2026-10-12T20:02+01:00")
+        self.assertEqual(r.returncode, 2, r.stdout)
+        ask = (Path(__file__).resolve().parents[1] / "skills" / "indelible" / "references" / "ask.md").read_text(
+            encoding="utf-8")
+        self.assertIn("`sat` (taken, not yet marked), except a theory, external, example or triage sheet", ask)
+        self.assertIn("`ind topic show <s>`: the topic id", ask)
+        self.assertNotIn("--status issued", ask)
+
     def test_law_2_keeps_the_hint_ladder_on_a_practice_sheet_in_a_session(self):
         # The ban on discussing a sheet that is out holds outside a session; in one, session-teach.md §3
         # gives hints on a practice sheet, and the references never contradict the laws (SKILL.md).
