@@ -663,6 +663,31 @@ class ScanTests(SheetBase):
         self.assertEqual(files, ["scans/2026-10-12-ielts-drills-01-answers.png",
                                  "scans/2026-10-12-ielts-drills-01-transcript.txt"])
 
+    def test_gate_photo_with_its_transcript(self):
+        # The gate call session-teach gives: the photo, --asks, and a transcript of those questions only.
+        spec = drills_spec()
+        self.to_issued(spec)
+        gate = ["1a", "2a", "3a"]
+        r = self.ok(self.cli("scan", "ingest", SUBJECT, spec["id"], tiny_png(self.tmp / "gate.png"),
+                             "--asks", "1a,2a,3a", "--transcript", "-",
+                             stdin="1a: the bridge shut\n2a: [blank]\n3a: I don't know\n"))
+        self.assertIn("stays issued", r.stdout)
+        row = sheet_row(self.ws, spec["id"])
+        self.assertEqual(row["status"], "issued")
+        self.assertEqual([(e["kind"], e["file"], e["asks"]) for e in row["evidence"]], [
+            ("scan", "scans/2026-10-12-ielts-drills-01-answers.png", gate),
+            ("chat-image+transcript", "scans/2026-10-12-ielts-drills-01-transcript.txt", gate)])
+        index = fio.read_jsonl(subject_dir(self.ws) / "scans" / "index.jsonl")
+        self.assertEqual([x.get("asks") for x in index], [gate, gate])
+        # The finished sheet and its full transcript: filed beside the gate's files, never over them.
+        self.ok(self.cli("scan", "ingest", SUBJECT, spec["id"], tiny_png(self.tmp / "full.png"),
+                         "--transcript", "-", stdin="1a: the bridge shut\n2a: prices rose\n"))
+        row = sheet_row(self.ws, spec["id"])
+        self.assertEqual(row["status"], "sat")
+        self.assertEqual([(e["file"], e.get("asks")) for e in row["evidence"][2:]], [
+            ("scans/2026-10-12-ielts-drills-01-answers-p1.png", None),
+            ("scans/2026-10-12-ielts-drills-01-transcript-2.txt", None)])
+
     def test_each_typed_file_is_kept(self):
         spec = drills_spec()
         self.to_issued(spec)
