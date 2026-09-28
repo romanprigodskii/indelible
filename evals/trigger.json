@@ -9,6 +9,7 @@
   {"query": "Me mudo a Alemania en seis meses y necesito aprender alemán desde cero. ¿Me organizas sesiones de estudio de 30 minutos, me haces pruebas y repasamos mis errores cada semana?", "should_trigger": true},
   {"query": "I'm taking the AWS Solutions Architect Associate exam in six weeks. Figure out where I actually am first, then plan study around my shifts: I work nights Monday to Wednesday.", "should_trigger": true},
   {"query": "here are the photos of this morning's drill sheet, can you mark them and log whatever I got wrong", "should_trigger": true},
+  {"query": "I typed my answers to the recheck into a text file on my phone, can you mark them?", "should_trigger": true},
   {"query": "put my study blocks for the next two weeks into my Google Calendar, and ask me before you change anything", "should_trigger": true},
   {"query": "that's it for today's chemistry, wrap up the session and tell me what's next", "should_trigger": true},
   {"query": "I'm back after a week off, where was I with rust?", "should_trigger": true},
