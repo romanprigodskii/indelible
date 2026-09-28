@@ -138,7 +138,7 @@ Exit 2: stop, say so in one line. Exit 1: fix what it names, go on.
 6. To-dos and safeguards: `ind ledger add owed --subject ielts --what "Register for the 12 Dec sitting" --due 2026-10-20T20:00 --by learner`, and one ledger decision mirroring each checkpoint ([measure.md](measure.md) §12).
 7. Outside the generated markers: subject `CLAUDE.md` "Learner notes" (why, if-then plan, authorship answer, fixed-time wishes, "prefers few questions", the code folder's full path), "Do not calibrate on"; root "About the learner". Longer: `ind note append <id> onboarding`.
 8. `ind render all`.
-9. Calendar 1–2: the sync in [calendar.md](calendar.md) §3; the "yes" covers this batch only if it matches the preview. 3: `ind cal ics <ws>/plan/ics/study.ics --from <first day> --to <last day>` and how to import it; at the next open, ask once whether it's in, then `ind cal ack` ([calendar.md](calendar.md) §5).
+9. Calendar 1–2: the sync in [calendar.md](calendar.md) §3; the "yes" covers this batch only if it matches the preview. 3: `ind cal ics <ws>/plan/ics/study.ics --from <first day> --to <last day> --ops create` (new blocks only, so a second subject's file doesn't re-send the first's) and how to import it; at the next open, ask once whether it's in, then `ind cal ack` for the blocks in the file only ([calendar.md](calendar.md) §5).
 10. If row 11 stands: `git init` in the workspace (the shipped `.gitignore` keeps keys, photos, typed answers and the inbox out); no remote.
 
 ## 8. Welcome card and the diagnostic
