@@ -660,13 +660,14 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
   Hard (FAIL, exit 1):
   - a block overlaps the sleep window or ends within 30 minutes of bedtime;
   - a block overlaps `time.blocked` or another block;
-  - a cold block falls outside its window;
+  - a cold block falls outside a window that is still open;
   - a cold block's topic has a warm exposure (or a planned teach) within the 24 h before it;
   - a measurement starts less than 3 h after another measurement ends;
   - the weekly planned minutes exceed `weekly_ceiling_min`;
-  - an obligation window closes within 24 h and it is unplaced.
+  - an obligation window closes within the next 24 h and it is unplaced.
 
   Soft (WARN):
+  - a cold block, placed or not, whose window has already closed (`late_recheck`): nothing done while planning fixes it, so it doesn't block the preview; the fix is the late-recheck rule at the next session (plan.md §7), then `plan cancel` and a fresh recheck;
   - the block is outside `time.windows`;
   - the weekly minutes are under the subject minimum;
   - confusable topics are taught on the same day;

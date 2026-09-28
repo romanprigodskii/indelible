@@ -75,7 +75,7 @@ Plan backwards from `target.date`. For a date range, plan to the earliest date a
 "Checked" means `ind plan check` enforces the rule. "Yours" means the CLI doesn't, so you keep it while proposing.
 
 - **Integrity (never broken):**
-  - every teach has a protected 2-day recheck inside `cold_window_h` (checked: an unplaced recheck closing within 24 h FAILs; `session close` checks it is booked);
+  - every teach has a protected 2-day recheck inside `cold_window_h` (checked: an unplaced recheck closing within 24 h FAILs, and one whose window has already closed, placed or not, WARNs, since only the late-recheck rule of §7 at the next session can fix it; `session close` checks it is booked);
   - no untreated belief (wrong idea) is served cold (the sheet checker and `session close`);
   - a repair comes at least 24 h before a new belief's recheck (yours): a repair is an exposure, so one less than 24 h before takes its topic off that recheck;
   - on a day with both, the recheck comes before new material (yours).

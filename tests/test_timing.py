@@ -518,11 +518,22 @@ class LateRecheckTests(TimingCase):
                       "today 07:29: it is a late recheck at the next session" % self.BID, r.stdout)
 
     def test_plan_check_labels_the_late_recheck_measured(self):
+        # A window that has passed can't be fixed while planning, so it WARNs and the plan still
+        # passes: a FAIL would block every preview until the next session runs the late recheck.
         self.save_blocks([self.cold_block(self.BID, window=self.WINDOW, status="planned")])
-        r = self.cli(["plan", "check"], now=self.NEXT_DAY, code=1)
+        r = self.cli(["plan", "check"], now=self.NEXT_DAY, code=0)
+        self.assertIn("WARN late_recheck: Recheck %s was never placed and its window closed" % self.BID, r.stdout)
         self.assertIn("run it first at the next session as a late recheck [measured], labelled with its real "
                       "interval (plan.md §7)", r.stdout)
         self.assertNotIn("[practice]", r.stdout)
+        self.assertIn("plan check: PASS · 0 hard, 1 warning", r.stdout)
+        # Placed after its window: the same WARN, not the cold_window FAIL a move could fix.
+        self.save_blocks([self.cold_block(self.BID, window=self.WINDOW, status="planned",
+                                          start="2026-10-17T07:00+01:00", end="2026-10-17T07:15+01:00")])
+        r = self.cli(["plan", "check", "--json"], now=self.NEXT_DAY, code=0)
+        rows = [(f["level"], f["rule"]) for f in json.loads(r.stdout)["findings"] if f["block"] == self.BID]
+        self.assertIn(("WARN", "late_recheck"), rows)
+        self.assertNotIn(("FAIL", "cold_window"), rows)
 
 
 # ==========================================================================

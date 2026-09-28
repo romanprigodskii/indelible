@@ -18,7 +18,10 @@
 
 ``plan/blocks.jsonl`` is a snapshot holding every subject's blocks. Claude
 proposes blocks, these commands store them, and ``plan check`` validates the
-future ones. There is no solver in v0.1.
+future ones. There is no solver in v0.1. A recheck whose window has already
+passed, placed or not, is a WARN (``late_recheck``), not a FAIL: nothing done
+while planning can fix it (the late-recheck rule of plan.md section 7 runs at
+the next session), and a FAIL would block every preview until then.
 
 Recheck (``kind: cold``) windows come from, in order:
   1. the block's own ``window`` (an obligation made by ``session taught``,
@@ -1517,11 +1520,14 @@ def run_checks(ctx, blocks):
                 fix = "plan move %s --start %s" % (b["id"], iso(target))
                 if w[2] == "pair":
                     fix += " (or move its teach block; the recheck follows)"
+                f.add("FAIL", "cold_window", b, "Recheck %s %s." % (b["id"], what), fix, when=iso(s))
             else:
+                # Nothing done while planning can fix a window that has passed: the late-recheck
+                # rule runs at the next session, so a FAIL would only block the preview until then.
                 fix = ("the window has passed: run it first at the next session as a late recheck [measured], "
                        "labelled with its real interval (plan.md §7), then plan cancel %s --reason \"window passed\" "
                        "and book a fresh recheck" % b["id"])
-            f.add("FAIL", "cold_window", b, "Recheck %s %s." % (b["id"], what), fix, when=iso(s))
+                f.add("WARN", "late_recheck", b, "Recheck %s %s." % (b["id"], what), fix, when=iso(s))
         known = ctx.topic_ids(b.get("subject"))
         cutoff = plus(s, hours=-NO_EXPOSURE_H)
         for t in cold_topics(b, known):
@@ -1592,19 +1598,20 @@ def run_checks(ctx, blocks):
         left = hours_from(now, w[1])
         if left > OBLIGATION_DUE_H:
             continue
-        if left <= 0:
-            msg = "Recheck %s was never placed and its window closed %s." % (b["id"], when_label(w[1]))
-            fix = ("run it first at the next session as a late recheck [measured], labelled with its real "
-                   "interval (plan.md §7), then plan cancel %s --reason \"window passed\" and book a fresh recheck"
-                   % b["id"])
+        if left <= 0:   # a WARN, as for a placed recheck past its window: the next session fixes it
+            f.add("WARN", "late_recheck", b, "Recheck %s was never placed and its window closed %s."
+                  % (b["id"], when_label(w[1])),
+                  "run it first at the next session as a late recheck [measured], labelled with its real "
+                  "interval (plan.md §7), then plan cancel %s --reason \"window passed\" and book a fresh recheck"
+                  % b["id"], when=iso(w[1]))
+            continue
+        msg = "Recheck %s is not placed and its window closes %s (in %s h)." % (
+            b["id"], when_label(w[1]), fmt_hours(left))
+        target = max(w[0], next_quarter(now))
+        if ctx.on_demand():
+            fix = "tell the learner the window: between %s and %s" % (when_label(target), when_label(w[1]))
         else:
-            msg = "Recheck %s is not placed and its window closes %s (in %s h)." % (
-                b["id"], when_label(w[1]), fmt_hours(left))
-            target = max(w[0], next_quarter(now))
-            if ctx.on_demand():
-                fix = "tell the learner the window: between %s and %s" % (when_label(target), when_label(w[1]))
-            else:
-                fix = "plan place %s --start %s --min %d" % (b["id"], iso(target), DEFAULT_RECHECK_MIN)
+            fix = "plan place %s --start %s --min %d" % (b["id"], iso(target), DEFAULT_RECHECK_MIN)
         f.add("FAIL", "obligation_due", b, msg, fix, when=iso(w[1]))
 
     # ---- soft: study windows -------------------------------------------------
