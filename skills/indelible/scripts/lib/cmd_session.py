@@ -841,21 +841,40 @@ def _recheck_move(ws, block, blocks, close, now):
     """(start, last) for moving a recheck that was not sat (C9).
 
     ``start`` is the first quarter hour after now (a start at or before now would
-    be caught by C9 again at the next close), and not before the window opens.
+    be caught by C9 again at the next close), not before the window opens, and
+    out of the sleep window and the 30 minutes before bedtime (_awake).
     ``last`` is the latest start that still counts: the earlier of the window
     close (``close``, from brief.recheck_close) and the end of the window
     plan move enforces. ``start`` is None when no quarter hour is left before it.
     """
-    w = plan.cold_window_for(plan.Ctx(ws), block, dict((b.get("id"), b) for b in blocks))
+    ctx = plan.Ctx(ws)
+    w = plan.cold_window_for(ctx, block, dict((b.get("id"), b) for b in blocks))
     last = close
     if w is not None and (last is None or w[1] < last):
         last = w[1]
     start = _next_quarter(now + timedelta(minutes=1))
     if w is not None and w[0] > start:
         start = _next_quarter(w[0])
+    s, e = brief.block_times(block, ctx.tz)
+    start = _awake(ctx, start, (e - s) if s is not None and e is not None else timedelta(minutes=15))
     if last is not None and start > last:
         return None, last
     return start, last
+
+
+def _awake(ctx, start, length):
+    """The first quarter hour at or after ``start`` at which a block ``length`` long keeps
+    out of the sleep window and ends BEDTIME_GAP_MIN before bedtime, as plan check's hard
+    rule asks: a start in the evening moves to the next waking time."""
+    for _ in range(3):
+        for bed, wake in plan._sleep_spans(ctx, start.date() - timedelta(days=1), (start + length).date()):
+            cutoff = dates.plus(bed, minutes=-plan.BEDTIME_GAP_MIN)
+            if start < wake and dates.plus(start, seconds=length.total_seconds()) > cutoff:
+                start = _next_quarter(wake)
+                break
+        else:
+            return start
+    return start
 
 
 def _mark_block_done(ws, block_id):

@@ -445,6 +445,17 @@ class LateRecheckTests(TimingCase):
         r = self.cli(["session", "close", self.sid], now="2026-10-15T07:46+01:00")
         self.assertIn("PASS C9 recheck sat", r.stdout)
 
+    def test_c9_moves_an_evening_recheck_to_the_next_waking_time(self):
+        # Booked 22:00 and skipped: 22:30 would end within 30 min of bedtime (23:00), which plan check fails.
+        window = {"from": "2026-10-15T03:29+01:00", "to": "2026-10-16T12:00+01:00"}
+        self.save_blocks([self.cold_block(self.BID, "2026-10-15T22:00+01:00", "2026-10-15T22:15+01:00",
+                                          window=window)])
+        self.cli(["session", "open", self.sid, "--planned", "20"], now="2026-10-15T22:00+01:00")
+        r = self.cli(["session", "close", self.sid], now="2026-10-15T22:20+01:00", code=1)
+        self.assertIn("(plan move %s --start 2026-10-16T07:00+01:00)" % self.BID, r.stdout)
+        self.cli(["plan", "move", self.BID, "--start", "2026-10-16T07:00+01:00"], now="2026-10-15T22:21+01:00")
+        self.assertNotIn("FAIL", self.cli(["plan", "check"], now="2026-10-15T22:21+01:00", code=None).stdout)
+
     def friday_block(self):
         """The recheck on Fri 16 Oct 07:00, with a stored window that ends at 07:17, before
         T01's own window (07:29): plan move keeps to the stored one."""
