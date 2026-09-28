@@ -152,7 +152,8 @@ L4 resolutions (`defined_here`, `defined_on:<sheet-id>`, `glossary`, `everyday`,
 `ind sheet build <s> <id>` uses the backend `ind doctor` recorded, or tries in order: **typst** (PDF); **Chrome, Chromium or Edge, headless** (PDF from the HTML); a **print-ready HTML page**; **Markdown** on screen.
 
 - Files land in `<subject>/sheets/YYYY-MM/<id>.<ext>`, source beside them. `--format html` suits a phone (persona B), `--format md` an editor (persona D).
-- Hand-over: "Your 2-day recheck, sheet IELTS-07, is ready: sheets/2026-10/ielts-cold-05.pdf. Print it or open it on screen, and answer on paper." (`ind sheet issue` prints the code.) No printer: read on screen, answer in a notebook: first line the sheet code and the start time, then the answers numbered as on the sheet. If the file won't open, paste its text unchanged.
+- Hand-over: "Your 2-day recheck, sheet IELTS-07, is ready: sheets/2026-10/ielts-cold-05.pdf. Print it or open it on screen, and answer on paper." (`ind sheet issue` prints the code.) No printer: read on screen, answer in a notebook: first line the sheet code and the start time, then the answers numbered as on the sheet. If the file won't open, paste its text unchanged. A pasted theory sheet stays in the conversation, so its drills go in a new conversation (`/clear`) or a later session (Law 2).
+- **Typed answers from a phone** (`format.answer_form` "typed", persona B): the sheet is handed over as usual, as an HTML or Markdown file, and its rules box asks for typed answers. They come back as one chat message per sheet, sent when the learner stops: numbered as on the sheet, each with its check, then the start and stop times and the Least-sure line. One message, sent at the stop, keeps the sheet sealed while it is worked; nothing on it is discussed before then. File the message verbatim (`--typed -`, §10); a text file works too. A failure gate's three answers come as their own message, filed with `--asks`.
 
 ## 9. Keys
 
@@ -168,7 +169,8 @@ File it before opening the key; it settles any dispute about a mark.
 | Evidence | Command | Notes |
 |---|---|---|
 | Photos or scans (jpg, png, pdf, heic) | transcribe exactly, then `ind scan ingest <s> <id> <path> [<path> …] --transcript -`, a path per page, the text on stdin | Copied into `scans/`; HEIC converted where possible. The transcript has a line for every question number: the answer, `[blank]`, `[unreadable]` or `[not found]` ([session-grade.md](session-grade.md) §2) |
-| Typed or dictated answers | a text file from the learner (e.g. `inbox/<id>.txt`), answer then check per line; `ind scan ingest <s> <id> --typed <file>` | Copied into `answers/`, one file per filing. A file, never chat |
+| Typed or dictated answers | a text file from the learner (e.g. `inbox/<id>.txt`), answer then check per line; `ind scan ingest <s> <id> --typed <file>` | Copied into `answers/`, one file per filing. A file, or from a phone one chat message per sheet (next row) |
+| Typed answers sent in one chat message (a phone learner, §8) | the message verbatim on stdin: `ind scan ingest <s> <id> --typed -` | Filed as typed answers, never transcribed: nothing is copied from a photo, and no image is recorded |
 | A photo pasted into chat | transcribe exactly, then `ind scan ingest <s> <id> --transcript -` with the text on stdin | `chat-image+transcript`; enough for `key open`; the original only in a dispute |
 | An online official test | the platform's per-question right/wrong list: typed, `--typed <file>`, or a screenshot with the answer and explanation columns cropped out | Never the review pages, which show the answers ([measure.md](measure.md) §5); verdicts come from the list |
 | Code | the project and the learner's own test or compiler output, in one call: `ind scan ingest <s> <id> --dir <project folder> --typed <output file>` | Copied to `answers/<id>/` with its folder layout (build output, hidden files, links and files over 1 MB left out, and named in a note); the folder must be outside the workspace. Hidden tests run only on a temp copy of that snapshot |
@@ -224,7 +226,7 @@ Also "fix sheet" (repair), "short check" (probe), "the sheet checker" (lint), "t
 Offer it when the learner mentions dyslexia, low vision, reading fatigue or a small screen; never assume.
 
 - **Layout:** sans-serif 12–14 pt, 1.5 line spacing, left-aligned, no italics, fewer items per page (British Dyslexia Association Style Guide). v0.1 templates have no layout switch: brief the builder for fewer questions and stems of at most 25 words, and build with `--format html` (browser zoom, reader view) or `--format md`.
-- **Answers** typed or dictated into a text file, filed with `--typed`, never into chat.
+- **Answers** typed or dictated into a text file, filed with `--typed`; from a phone, one chat message per sheet, sent when the learner stops (§8).
 - **Record it once** under "Learner notes" in the subject `CLAUDE.md`, so every build brief carries it.
 
 Why: [method.md](method.md) (R12, R39, R48).

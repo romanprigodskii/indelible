@@ -76,7 +76,7 @@ For interviews, vivas and oral exams.
 - **Sheet checker:** put grammar terms the learner must own ("preterite", "subjunctive") in `sense_list` so lint L4 checks each is defined; keep target-language vocabulary out of it. The builder uses only words the learner has met, plus that sheet's new words.
 - **Progress:** words owned (right on a words recheck 3 weeks or more after first meeting them, `[measured]`) and can-do scenarios passed (order a meal, ask directions, 3 minutes of small talk). Hours start from published guided-hour ranges, `[published]`, then switch to the learner's own pace, `[mine]`.
 - **Phases:** diagnose, learn, then scenario role-plays (`--kind oral`) in the last 4 weeks before a date. No taper.
-- **Persona B** (phone, no printer, 20 minutes a day): HTML or Markdown sheets read on the phone; answers typed.
+- **Persona B** (phone, no printer, 20 minutes a day): HTML or Markdown sheets read on the phone; answers typed, one chat message per sheet sent when the learner stops ([sheets.md](sheets.md) §8).
 
 ## 7. code
 
@@ -131,7 +131,7 @@ These stand for every skipped question ([teach.md](teach.md)), shown as visible 
 - **Missed session:** ask at the next open (on demand: never). **Running long:** a warning 10 min before the end, the extend-or-close question at the end, one extension up to 15 min ([close.md](close.md) §2). **Breaks:** 10 min every 75, in sessions over 75.
 - **Calendar:** none; writes only after a preview and a yes; reminder 15 min before.
 - **Recheck:** aim 48 h, window 44–72 h. **Drill blocks:** 3–8 questions of one kind, default 6.
-- **Answers:** exam, course: paper plus phone photos; language: typed or spoken; code: the editor. No printer. Typed answers go in a file, never chat. **Photos:** outside macOS, JPEG (iPhone camera "Most Compatible").
+- **Answers:** exam, course: paper plus phone photos; language: typed or spoken; code: the editor. No printer. Typed answers go in a file, or, from a phone, in one chat message per sheet sent when the learner stops ([sheets.md](sheets.md) §8). **Photos:** outside macOS, JPEG (iPhone camera "Most Compatible").
 - **Sheets:** the renderer `doctor` verified; access layout on request ([sheets.md](sheets.md) §13).
 - **Feedback:** tone B; plain words, no codes or IDs; first-language glosses on first use. **Age:** 18+.
 - **History:** local git, never uploaded. **Energy check:** automatic for 120+ minute sessions and under-18s late in the day.

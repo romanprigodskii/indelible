@@ -300,6 +300,36 @@ class HtmlTemplateTests(Base):
         page = render.render_html(drills_spec(least_sure=False), date=DAY)
         self.assertNotIn("Least sure", visible_text(page))
 
+    def test_typed_answers_are_asked_for_in_one_message_in_every_format(self):
+        # A learner answering from a phone (format.answer_form "typed") is never sent to paper or photos.
+        typed = ("Type your answers, numbered as on the sheet, each with its check; when you stop, send them in one "
+                 "message (or a text file) with the start and stop times and the Least-sure line.")
+        for fmt in ("html", "md", "pdf"):
+            lines = render.rules(drills_spec(), "none", fmt=fmt, answer_form="typed")
+            self.assertIn(typed, lines, fmt)
+            self.assertFalse(any("paper" in r for r in lines), fmt)
+        self.assertIn("Type your answers, numbered as on the sheet; when you stop, send them in one message (or a "
+                      "text file) with the start and stop times.",
+                      render.rules(theory_spec(), "none", answer_form=" Typed "), "no checks, no Least-sure line")
+        self.assertIn("Answer on paper, one answer in each box.", render.rules(drills_spec(), "none", answer_form="short"))
+        self.assertTrue(any("in your editor" in r for r in render.rules(drills_spec(), "none", profile="code",
+                                                                        answer_form="typed")), "code keeps the editor")
+        # The failure gates ask for the typed answers too, in every template.
+        spec = drills_spec(n=12)                               # the first block stops every time
+        spec["blocks"][1].pop("gate")
+        stop = "Stop here and send your answers to items 1–3. Go on once I've marked them."
+        gate = ("If 2 of items 7–9 have a failed check, an “I don't know” or an empty box: stop and send your "
+                "answers to 7–9.")
+        t = visible_text(render.render_html(spec, date=DAY, answer_form="typed"))
+        self.assertIn(stop, t)
+        self.assertIn(gate, t)
+        self.assertIn(typed, t)
+        self.assertNotIn("photo", t)
+        md = render.render_markdown(spec, date=DAY, answer_form="typed")
+        self.assertIn("> **%s**" % stop, md)
+        self.assertIn(typed, md)
+        self.assertIn('#"%s"' % gate, render.render_typst(spec, date=DAY, answer_form="typed"))
+
     def test_the_least_sure_line_asks_about_the_idea_and_the_rules_ask_for_it(self):
         # One wording for every subject: the idea chosen, not a possible slip. The rules box asks
         # for item numbers or "none" on the time line, so a blank never reads as "none".
@@ -544,6 +574,18 @@ class BuildCliTests(Base):
             row = sheet_row(self.ws, spec["id"])
             self.assertEqual(row["status"], "rendered")
             self.assertEqual(row["files"], ["sheets/2026-10/ielts-drills-01." + fmt])
+
+    def test_a_typed_subject_builds_sheets_that_ask_for_typed_answers(self):
+        r = run(["set", SUBJECT, "format.answer_form", '"typed"'], ws=self.ws, now=NOW)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        spec = drills_spec()
+        self.linted(spec)
+        r = self.build(spec["id"], "--format", "html")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        text = visible_text(Path(r.stdout.splitlines()[0]).read_text(encoding="utf-8"))
+        self.assertIn("Type your answers, numbered as on the sheet", text)
+        self.assertNotIn("Answer on paper", text)
+        self.assertNotIn("send a photo", text)
 
     def test_recorded_backend_is_used_first(self):
         cfg_path = Path(self.ws) / "indelible.json"

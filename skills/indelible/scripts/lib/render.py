@@ -30,7 +30,9 @@ hyphenation), ``profile`` (the subject profile: ``code`` sheets get the code
 wording in the rules box), ``reference_sheet`` (the exam gives a formula sheet:
 closed-book sheets allow a clean copy of it), ``sheet_code`` (the sheet code from the
 sheet row, e.g. "IELTS-07": printed in the header, so a photo or a notebook page
-can be matched to its sheet).
+can be matched to its sheet), ``answer_form`` (the subject's ``format.answer_form``:
+"typed" asks for the answers typed and sent in one message when the learner stops,
+and failure gates ask for those answers, not a photo).
 
 Code: item text and theory bodies may hold fenced code blocks (lines between
 ```` ``` ```` fences) and inline `code spans`. They are printed verbatim in a
@@ -283,19 +285,34 @@ def _range_text(nums):
     return ", ".join(parts[:-1]) + " and " + parts[-1]
 
 
-def gate_text(three):
+def gate_text(three, typed=False):
     """The failure gate over three items. Any mix counts: "I don't know" is an accepted answer, so a
-    learner who writes it has left nothing blank, and one failed check plus one blank is 2 too."""
+    learner who writes it has left nothing blank, and one failed check plus one blank is 2 too.
+    ``typed``: the learner types the answers (a phone learner), so they send those, not a photo."""
     r = _range_text(three)
     return ("If 2 of items %s have a failed check, an “I don't know” or an empty box: "
-            "stop and send a photo of %s." % (r, r))
+            "stop and send %s %s." % (r, "your answers to" if typed else "a photo of", r))
 
 
-def gate_text_always(three):
+def gate_text_always(three, typed=False):
     """The stop at mastery 0-1 (a block's gate "always"): every learner sends these three for marking,
     so a wrong idea is caught before it is practised through the rest of the block."""
     r = _range_text(three)
-    return "Stop here and send a photo of items %s. Go on once I've marked them." % r
+    return "Stop here and send %s items %s. Go on once I've marked them." % (
+        "your answers to" if typed else "a photo of", r)
+
+
+def typed_answers(answer_form):
+    """True when the subject's ``format.answer_form`` is "typed" (a language learner on a phone)."""
+    return _s(answer_form).strip().lower() == "typed"
+
+
+def typed_line(any_check, least_sure):
+    """How typed answers come back: one message (or a file) per sheet, sent when the learner stops,
+    so nothing on the sheet is discussed while it is being worked (sheets.md section 8)."""
+    return ("Type your answers, numbered as on the sheet%s; when you stop, send them in one message (or a "
+            "text file) with the start and stop times%s."
+            % (", each with its check" if any_check else "", " and the Least-sure line" if least_sure else ""))
 
 
 def gate_position(block, its):
@@ -357,11 +374,13 @@ def is_code_sheet(spec, profile=None):
 # The document model (shared by every format)
 # ==========================================================================
 
-def rules(spec, tools, fmt="html", profile=None, reference_sheet=False):
+def rules(spec, tools, fmt="html", profile=None, reference_sheet=False, answer_form=None):
     """The rules box lines, in order (the wording depends on the sheet type and profile).
 
     ``reference_sheet`` (the subject's ``format.reference_sheet``): the exam hands out a
     formula sheet, so a closed-book sheet allows a clean copy of it, as the exam does.
+    ``answer_form`` (the subject's ``format.answer_form``): "typed" asks for the answers
+    typed and sent in one message when the learner stops, in every format, not paper.
     """
     t = spec.get("type")
     items = _items(spec)
@@ -391,6 +410,8 @@ def rules(spec, tools, fmt="html", profile=None, reference_sheet=False):
     if code:
         out.append("Write your code in your editor, one file or answer for each question; send the files "
                    "(or paste them) when you stop.")
+    elif typed_answers(answer_form):
+        out.append(typed_line(any_check, spec.get("least_sure") is True))
     elif fmt == "md":
         out.append("Answer on paper (or in a typed file), one answer for each box.")
     else:
@@ -437,12 +458,15 @@ def rules(spec, tools, fmt="html", profile=None, reference_sheet=False):
     return out
 
 
-def build_model(spec, date=None, tools=None, fmt="html", profile=None, reference_sheet=False, sheet_code=None):
+def build_model(spec, date=None, tools=None, fmt="html", profile=None, reference_sheet=False, sheet_code=None,
+                answer_form=None):
     """Everything a template shows, as plain strings. No key content ever enters here.
 
     ``date`` None means today; ``False`` prints a blank date line to fill in. ``sheet_code`` (the
-    sheet row's neutral code, never a topic word) ends the header line.
+    sheet row's neutral code, never a topic word) ends the header line. ``answer_form`` "typed":
+    the rules box and the failure gates ask for typed answers, not paper and photos.
     """
+    typed = typed_answers(answer_form)
     t = spec.get("type")
     blank = date is False
     d = None if blank else (dates.to_date(date) if date else dates.today())
@@ -473,7 +497,7 @@ def build_model(spec, date=None, tools=None, fmt="html", profile=None, reference
         if t == "drills" and len(its) >= 3:
             gate_at = gate_position(b, its)
             three = [it.get("n") for it in its[gate_at - 3:gate_at]]
-            gate = gate_text_always(three) if b.get("gate") == "always" else gate_text(three)
+            gate = gate_text_always(three, typed) if b.get("gate") == "always" else gate_text(three, typed)
         groups.append({"title": _s(b.get("title")).strip() or None, "items": its, "gate": gate, "gate_at": gate_at})
     rest = [it for it in items if it.get("n") not in used]
     if rest:
@@ -530,7 +554,8 @@ def build_model(spec, date=None, tools=None, fmt="html", profile=None, reference
         "date": "" if d is None else d.isoformat(),
         "meta": meta,
         "provenance": provenance(spec),
-        "rules": rules(spec, tools, fmt=fmt, profile=profile, reference_sheet=reference_sheet),
+        "rules": rules(spec, tools, fmt=fmt, profile=profile, reference_sheet=reference_sheet,
+                       answer_form=answer_form),
         "theory": theory,
         "groups": model_groups,
         "least_sure": bool(spec.get("least_sure")),
@@ -625,9 +650,9 @@ def _html_scaffold(sc):
 
 
 def render_html(spec, date=None, tools=None, lang="en", profile=None, reference_sheet=False,
-                sheet_code=None):
+                sheet_code=None, answer_form=None):
     m = build_model(spec, date=date, tools=tools, fmt="html", profile=profile, reference_sheet=reference_sheet,
-                    sheet_code=sheet_code)
+                    sheet_code=sheet_code, answer_form=answer_form)
     o = []
     o.append('<main aria-labelledby="sheet-title">\n')
     o.append('<header class="sheet-head">\n')
@@ -764,9 +789,9 @@ def _typ_scaffold(sc):
 
 
 def render_typst(spec, date=None, tools=None, lang="en", profile=None, reference_sheet=False,
-                 sheet_code=None):
+                 sheet_code=None, answer_form=None):
     m = build_model(spec, date=date, tools=tools, fmt="pdf", profile=profile, reference_sheet=reference_sheet,
-                    sheet_code=sheet_code)
+                    sheet_code=sheet_code, answer_form=answer_form)
     o = []
     o.append("#grid(columns: (1fr, auto), column-gutter: 12pt, align: (left + bottom, right + bottom),\n")
     o.append("  [#heading(level: 1)[%s]],\n" % _tl(m["title"]).strip())
@@ -885,9 +910,9 @@ def _md_scaffold(sc):
 
 
 def render_markdown(spec, date=None, tools=None, lang="en", profile=None, reference_sheet=False,
-                    sheet_code=None):
+                    sheet_code=None, answer_form=None):
     m = build_model(spec, date=date, tools=tools, fmt="md", profile=profile, reference_sheet=reference_sheet,
-                    sheet_code=sheet_code)
+                    sheet_code=sheet_code, answer_form=answer_form)
     o = []
     o.append("**0.** %s ____\n\n" % START_LABEL)
     th = m["theory"]
@@ -1202,7 +1227,7 @@ def backend_order(fmt=None, preferred=None):
 
 
 def render_sheet(spec, out_dir, base, fmt=None, preferred=None, date=None, tools=None, lang="en", profile=None,
-                 reference_sheet=False, sheet_code=None):
+                 reference_sheet=False, sheet_code=None, answer_form=None):
     """Render through the chain. Returns ``{"backend", "files", "notes"}``.
 
     ``files`` lists the printable output first, then its kept source
@@ -1215,7 +1240,7 @@ def render_sheet(spec, out_dir, base, fmt=None, preferred=None, date=None, tools
     fio.ensure_dir(out_dir)
     notes = []
     kw = {"date": date, "tools": tools, "lang": lang, "profile": profile, "reference_sheet": reference_sheet,
-          "sheet_code": sheet_code}
+          "sheet_code": sheet_code, "answer_form": answer_form}
     for b in backend_order(fmt, preferred):
         if b == "typst":
             exe = find_typst()

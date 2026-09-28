@@ -671,6 +671,21 @@ class ScanTests(SheetBase):
         r = self.cli("scan", "ingest", SUBJECT, spec["id"], "--transcript", "-", stdin="   \n")
         self.assertEqual(r.returncode, 2, "an empty transcript is refused")
 
+    def test_typed_answers_sent_in_one_chat_message_are_filed_from_stdin(self):
+        # A phone learner's one message per sheet: filed verbatim as typed answers, never as a photo transcript.
+        spec = drills_spec()
+        self.to_issued(spec)
+        message = "1a the bridge shut - check: read it again, fits\n2a I don't know\nStart 07:41 Stop 07:52\nLeast sure: 2\n"
+        r = self.ok(self.cli("scan", "ingest", SUBJECT, spec["id"], "--typed", "-", stdin=message))
+        self.assertIn("marked as taken", r.stdout)
+        self.assertEqual((subject_dir(self.ws) / "answers" / "ielts-drills-01.txt").read_text(encoding="utf-8"), message)
+        row = sheet_row(self.ws, spec["id"])
+        self.assertEqual([e["kind"] for e in row["evidence"]], ["typed"])
+        self.assertEqual(row["status"], "sat")
+        self.assertEqual(json.loads(self.ok(self.cli("key", "open", SUBJECT, spec["id"])).stdout), answers_for(spec))
+        r = self.cli("scan", "ingest", SUBJECT, spec["id"], "--typed", "-", stdin="\n")
+        self.assertEqual(r.returncode, 2, "an empty message is refused")
+
     def test_photos_and_their_transcript_in_one_call(self):
         # The main photo route: the pages by path, and Claude's per-question transcript on stdin.
         spec = drills_spec()

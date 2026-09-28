@@ -555,7 +555,7 @@ def cmd_build(args):
                                   preferred=preferred, date=day if day is not None else False, tools=tools,
                                   lang=lang, profile=subj.load().get("profile"),
                                   reference_sheet=subj_fmt.get("reference_sheet") is True,
-                                  sheet_code=row["code"])
+                                  sheet_code=row["code"], answer_form=subj_fmt.get("answer_form"))
         row["files"] = [_subject_rel(subj, f) for f in res["files"]]
         row["status"] = "rendered"
         _save_row(subj, rows, i, row)

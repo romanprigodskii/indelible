@@ -124,7 +124,7 @@ At most 12 lines, rows that apply; "more" shows the other defaults. Persona A:
 12 One-time step, for fewer prompts: type /permissions and allow Bash(python3 *indelible.py*) (it allows any python3 command that mentions indelible.py)
 ```
 
-Row 12 only if a permission prompt appeared during this setup (Windows: `Bash(py -3 *indelible.py*)`). Code adds a statement row for the learner's own code folder, outside the study folder (`scan ingest --dir` refuses one inside it): "Your code: ~/code/rust-study, outside the study folder; I only read it, and copy it when you hand work in." "change N": apply, show changed rows, ask again. "yes": §7 at once.
+Row 9 follows `format.answer_form`: typed (B) reads "Answers: read on your phone, typed in one message per sheet when you stop; no printer needed" ([sheets.md](sheets.md) §8). Row 12 only if a permission prompt appeared during this setup (Windows: `Bash(py -3 *indelible.py*)`). Code adds a statement row for the learner's own code folder, outside the study folder (`scan ingest --dir` refuses one inside it): "Your code: ~/code/rust-study, outside the study folder; I only read it, and copy it when you hand work in." "change N": apply, show changed rows, ask again. "yes": §7 at once.
 
 ## 7. What teach writes (after "yes" only)
 
