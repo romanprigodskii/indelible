@@ -310,6 +310,17 @@ class ColdSheetTests(GradeBase):
         self.assertEqual(sorted(a["ask"] for a in self.attempts()), ["1a", "2a", "3a", "4a", "7a", "8a"])
         self.assert_no_secrets()
 
+    def test_an_untaught_case_left_out_of_a_recheck_does_not_count_against_it(self):
+        # session-grade.md §5: 7a tested a case no sheet the learner read had worked. On a
+        # recheck it is left out of the grades file, with no kind: T04 is judged on the
+        # other three, so Claude's mistake neither fails the recheck nor holds it below 3.
+        self.grades["asks"] = [g for g in self.grades["asks"] if g["ask"] != "7a"]
+        out = self.record().stdout
+        self.assertIn("Note: no entry for 7a in the grades file, so it was not recorded.", out)
+        self.assertIn("T04 0 → 3", out)
+        self.assertIn("cold 3/3 on ielts-cold-01", self.topics()["T04"]["level_basis"])
+        self.assertNotIn("E-ielts-0001 (belief", out)
+
     def test_a_complete_grades_file_gets_no_left_out_note(self):
         self.assertNotIn("no entry for", self.record().stdout)
 
