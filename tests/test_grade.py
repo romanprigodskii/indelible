@@ -1187,8 +1187,11 @@ class GradingRegressionTests(GradeBase):
             {"ask": "%da" % n, "verdict": "right", "check": "filled"} for n in (1, 2)]}, now="2026-10-21T09:15+01:00")
         self.assertIn("Levels: T01 3 → 4", r.stdout)
         r = self.cli(["due", self.sid, "--list"], now="2026-11-11T10:00+00:00")
-        self.assertIn("T01 Matching headings · level 4 · last pass Wed 21 Oct 09:05 (21 days ago)",
-                      r.stdout.split("7. ", 1)[1].split("8. ", 1)[0])
+        upkeep = r.stdout.split("7. ", 1)[1].split("8. ", 1)[0]
+        self.assertIn("T01 Matching headings · level 4 · last pass Wed 21 Oct ", upkeep)
+        self.assertIn("(21 days ago)", upkeep)
+        if HAS_TZDB:  # without one, the fixed-offset fallback shows 08:05 across the October clock change
+            self.assertIn("last pass Wed 21 Oct 09:05 (21 days ago)", upkeep)
         self.assert_no_secrets()
 
     def test_a_words_recheck_still_closes_its_booking(self):
