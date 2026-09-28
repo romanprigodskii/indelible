@@ -49,7 +49,8 @@ Sets the profile (`intensity: light` if for interest; unsure: add "Is there an e
 Code adds "Have you ever written and run a program yourself?"; language, "Could you order a meal, ask directions and chat for two minutes today: yes, with effort, or no?". Estimates and assisted work go under "Do not calibrate on". **Authorship follow-up**, only if substantial help is reported on work they will present as theirs: "For the parts you'll present as yours, which decisions did you make yourself? I'll help you describe your role accurately: never bigger, never smaller." Keep the answer verbatim.
 
 **Q4 · Materials:**
-- exam, course, interview: "What do you already have: official past papers or practice tests (how many haven't you seen yet?), question banks, textbooks or course notes, an official syllabus (a link or a file)? Any book whose notation or pages I should use for the theory? If any come with answers, I'll keep those sealed until marking."
+- exam, course: "What do you already have: official past papers or practice tests (how many haven't you seen yet?), question banks, textbooks or course notes, an official syllabus (a link or a file)? Any book whose notation or pages I should use for the theory? If any come with answers, I'll keep those sealed until marking."
+- interview: "What are you preparing from: the job advert or brief, your own work (a thesis, a portfolio, a project), a list of likely questions? Any book or course you'd like me to follow? If any come with model answers, I'll keep those sealed until marking."
 - language: "What do you use now: an app, a book, a course, a phrasebook? Anything you'd like me to follow?"
 - code, skill: "Any book, course or tutorial you'd like me to follow? Anything you've already worked through?"
 
