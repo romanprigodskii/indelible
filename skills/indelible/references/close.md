@@ -153,7 +153,7 @@ If blocks were added or moved today and the learner's calendar provider is not `
 
 The learner may already be gone. Work silently:
 
-1. Build the next block's practice sheets (theory, drills, repair) with the builder subagent, as [sheets.md](sheets.md) §6 describes: built, linted and rendered. Build a theory before the drills that point at it: lint checks their words against it. They are issued at hand-over, in that block. Include any work cut today. The recheck is not built now: it is built at the next open, inside its window ([session-open.md](session-open.md) §2).
+1. Build the next block's practice sheets (theory, drills, repair) with the builder subagent, as [sheets.md](sheets.md) §6 describes: built, linted and rendered. Build a theory before the drills that point at it: lint checks their words and operations against it. They are issued at hand-over, in that block. Include any work cut today. The recheck is not built now: it is built at the next open, inside its window ([session-open.md](session-open.md) §2).
 2. Run `ind compact <subject>`.
 3. If a sheet fails lint or can't be finished, add `ind ledger add owed --subject <s> --what "build sheets for <day> <time> block" --due <ISO at least 2 h before the block> --by claude`.
 

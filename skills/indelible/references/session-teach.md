@@ -40,7 +40,7 @@ A wrong idea (an error of kind `belief`) is never served cold until it has been 
 3. **A theory sheet follows this order:**
    1. the floor box (what the topic stands on);
    2. the words and symbols, each with a gloss (a first-language gloss on first use, when set); a symbol, built-in or piece of syntax also says how to read it aloud and what it does;
-   3. the smallest worked concrete case, ending with its check worked as a step ("Check: …"): the check the drills will ask for, so the learner has seen it run once; then pencil questions that are completion steps, every operation named;
+   3. the smallest worked concrete case, one for each operation the drills will use, ending with its check worked as a step ("Check: …"): the check the drills will ask for, so the learner has seen it run once; then pencil questions that are completion steps, every operation named. Lint L11 fails a theory sheet with no worked case before the rule, and L12 fails drills that ask for an operation the theory never showed;
    4. the rule, in a box;
    5. a contrast pair, then the case where both hold;
    6. a warning box with the likeliest wrong turn;
@@ -48,7 +48,7 @@ A wrong idea (an error of kind `belief`) is never served cold until it has been 
    8. "Put this sheet away now. The drills come on their own sheet."
 
    A concrete case always comes before any definition.
-4. **At mastery 0–1, the worked example comes first and fades across the drills.** Item 1 is fully worked, ending with its check (a step labelled "Check:"), and asks one "why does this step follow?" question. Item 2 has its last steps blank. From item 3 on, the questions are independent.
+4. **At mastery 0–1, the worked example comes first and fades, in each drill block whose operation is new.** The block's first item is fully worked, ending with its check (a step labelled "Check:"), and asks one "why does this step follow?" question. The second has its last steps blank. The rest of the block is independent; in a block of 3, only the first item is worked.
 5. **Mark the pencils by asking.** File the photo or typed answers (`ind scan ingest`) before opening the key; pencils are practice. For a wrong pencil, point, then ask: "Look at step 2 of the worked case. What did it do there that you didn't?" Name the step; never ask the learner to find their own mistake. If two questions don't get there, fall back to a fill-in from the sheet itself: name the line of the worked case that holds the step, and have the learner copy it into the pencil box. Don't write the step in chat, because the drills would then sit right below it. If you do explain in chat, run `ind session expose <s> <T> --kind chat`.
 6. **When the learner says "closed"** (the sheet is put away, out of sight):
    - Run `ind session taught <s> <T> --by sheet --block <B>`, or `--by external` for textbook pages. This books the 2-day recheck window and prints it (drills on a later day move it). The window is placed at the close ([close.md](close.md), [plan.md](plan.md)).

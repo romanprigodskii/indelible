@@ -1,4 +1,4 @@
-"""The sheet checker: rules L1-L10 and warnings W1-W4 (CONTRACT section 7.4).
+"""The sheet checker: rules L1-L12 and warnings W1-W4 (CONTRACT section 7.4).
 
 ``check(spec, ctx)`` is pure: it takes the visible spec and a context dict and
 returns one result per rule, in order. ``gather(ws, subject, spec, row)``
@@ -40,6 +40,12 @@ that a theory or repair sheet's worked case ends with a step labelled
 "Check:", so the check a drill asks for has been seen worked. L10 and W3 match
 English wording only; the rules themselves hold in any language.
 
+L11 asks a theory or repair sheet for a worked section, before any rule
+section. L12 asks that every new item on a drills sheet uses an operation a
+theory, external, example or repair sheet of its topic has shown: a pencil
+question with that ``op``, or a worked section listing it in ``ops``. The theory
+and its drills come from two builder runs, so this is what ties them.
+
 The key is read in-process for L8 only. Nothing from it is ever returned or
 printed: an L8 FAIL names the question (ask) ids, never the text.
 
@@ -54,11 +60,12 @@ from lib import LISTS_DIR, dates, learning
 from lib import io as fio
 from lib import render
 
-RULES = ["L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L9", "L10", "W1", "W2", "W3", "W4"]
+RULES = ["L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L9", "L10", "L11", "L12", "W1", "W2", "W3", "W4"]
 TITLES = {
     "L1": "structure", "L2": "check lines", "L3": "unlabelled", "L4": "terms", "L5": "budget",
     "L6": "drill blocks", "L7": "cold validity", "L8": "key leak", "L9": "least-sure",
-    "L10": "check hints", "W1": "formula in block title", "W2": "sentences first",
+    "L10": "check hints", "L11": "worked case first", "L12": "taught operations",
+    "W1": "formula in block title", "W2": "sentences first",
     "W3": "checks on new topics", "W4": "worked check",
 }
 
@@ -135,6 +142,9 @@ _SECOND_WAY_HINT = re.compile(
 _CHECK_STEP = re.compile(r"\bcheck\s*:", re.IGNORECASE)
 CHECKABLE_TYPES = CHECK_REQUIRED + ("repair",)
 WORKED_CHECK_TYPES = ("theory", "repair")
+# L12: the sheets that show an operation before the drills ask for it (pencil questions' op,
+# and a worked section's ops).
+SHOWING_TYPES = ("theory", "external", "example", "repair")
 
 _CODE_SPAN = re.compile(r"(`+)(?!`)(.+?)(?<!`)\1(?!`)")
 _FENCE_OPEN = re.compile(r"^[ \t]*(`{3,}|~{3,})")
@@ -789,6 +799,82 @@ def _w3(spec, ctx):
     return "PASS", "checks on new topics name a check the learner can run"
 
 
+def _l11(spec, ctx):
+    """A theory or repair sheet shows a worked case, and shows it before the rule: a
+    concept introduced only by its definition is a don't (sheets.md §5)."""
+    if spec.get("type") not in WORKED_CHECK_TYPES:
+        return "PASS", "not a theory or repair sheet"
+    theory = spec.get("theory") if isinstance(spec.get("theory"), dict) else {}
+    kinds = [_s(sec.get("kind")) for sec in (theory.get("sections") or []) if isinstance(sec, dict)]
+    if "worked" not in kinds:
+        return "FAIL", "no worked section: show a concrete worked case, then the rule"
+    if "rule" in kinds and kinds.index("rule") < kinds.index("worked"):
+        return "FAIL", "the rule comes before the first worked case: put the worked case first"
+    return "PASS", "a worked case comes before the rule"
+
+
+def _op_key(op):
+    return _s(op).strip().lower()
+
+
+def shown_ops(specs):
+    """{topic: the operations its theory, external, example and repair sheets show}: their
+    pencil questions' ``op`` and their worked sections' ``ops``. None when unknown."""
+    if specs is None:
+        return None
+    out = {}
+    for _row, spec in specs:
+        if spec.get("type") not in SHOWING_TYPES:
+            continue
+        topics = []
+        for it in _items(spec):
+            t = _s(it.get("topic")).strip()
+            if not t:
+                continue
+            if t not in topics:
+                topics.append(t)
+            out.setdefault(t, set())
+            if _op_key(it.get("op")):
+                out[t].add(_op_key(it.get("op")))
+        th = spec.get("theory") if isinstance(spec.get("theory"), dict) else {}
+        for sec in th.get("sections") or []:
+            if not isinstance(sec, dict) or _s(sec.get("kind")) != "worked" or not isinstance(sec.get("ops"), list):
+                continue
+            for t in topics:
+                out[t].update(_op_key(o) for o in sec["ops"] if _op_key(o))
+    return out
+
+
+def _l12(spec, ctx):
+    """Drills ask only for operations a sheet on the topic has shown: each new item's op is
+    a pencil question's op or a worked section's op on a theory, external, example or
+    repair sheet of that topic (any not void, so a theory built ahead with its drills
+    counts). A topic with no such sheet (taught by a tutor, from a migration) is skipped."""
+    if spec.get("type") != "drills":
+        return "PASS", "not a drills sheet"
+    shown = ctx.get("shown_ops")
+    if shown is None:
+        return "PASS", "not checked (no sheets read)"
+    missing, checked = [], 0
+    for it in _items(spec):
+        if _s(it.get("origin") or "new") != "new":
+            continue
+        topic = _s(it.get("topic")).strip()
+        op = _op_key(it.get("op"))
+        if topic not in shown or not op:
+            continue
+        checked += 1
+        if op not in shown[topic]:
+            missing.append("item %s (%s): '%s'" % (_s(it.get("n")), topic, op))
+    if missing:
+        return "FAIL", ("an operation no theory, external, example or repair sheet of the topic has shown: %s. "
+                        "Show it worked there (a worked section's ops, or a pencil question's op) and rebuild "
+                        "that sheet, or drop the item; never rename an op to pass" % _listed(missing, 4))
+    if not checked:
+        return "PASS", "no topic here has a teaching sheet on file"
+    return "PASS", "every new item's operation was shown on a sheet of its topic"
+
+
 def _w4(spec, ctx):
     if spec.get("type") not in WORKED_CHECK_TYPES:
         return "PASS", "not a theory or repair sheet"
@@ -821,7 +907,8 @@ def _w2(spec, ctx):
 
 
 CHECKS = {"L1": _l1, "L2": _l2, "L3": _l3, "L4": _l4, "L5": _l5, "L6": _l6, "L7": _l7,
-          "L8": _l8, "L9": _l9, "L10": _l10, "W1": _w1, "W2": _w2, "W3": _w3, "W4": _w4}
+          "L8": _l8, "L9": _l9, "L10": _l10, "L11": _l11, "L12": _l12,
+          "W1": _w1, "W2": _w2, "W3": _w3, "W4": _w4}
 
 
 def check(spec, ctx=None):
@@ -1040,6 +1127,8 @@ def gather(ws, subject, spec, row=None, budget_min=None, now=None, block=None, a
         "sense_list": set(" ".join(_s(w).lower().split()) for w in _lexicon_terms(cfg.get("sense_list"))),
         "glossary": _glossary_terms(subject),
         "sheet_words": _sheet_words(specs),
+        "shown_ops": shown_ops([(r, s) for r, s in specs if r.get("id") != spec.get("id")]
+                               if specs is not None else None),
         "block_size": block_size,
         "pace_s": cfg.get("pace_s") if isinstance(cfg.get("pace_s"), dict) else {},
         "budget": budget_for(ws, subject, spec, row, budget_min, block=block_id),

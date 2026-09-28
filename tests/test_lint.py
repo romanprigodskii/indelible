@@ -1,4 +1,4 @@
-"""The sheet checker: every rule L1-L10 and W1-W4 has a failing and a passing fixture.
+"""The sheet checker: every rule L1-L12 and W1-W4 has a failing and a passing fixture.
 
 Most rules are checked in-process with ``lint.check(spec, ctx)``; the rules
 that read the workspace (L4 sense words, L5 blocks, L7 exposures and errors,
@@ -478,6 +478,47 @@ class RuleTests(Base):
         self.assertEqual(self.status(spec, "W4"), "WARN", "no worked case at all")
         self.assertEqual(self.status(drills_spec(), "W4"), "PASS")
 
+    def test_l11_a_worked_case_comes_before_the_rule(self):
+        self.assertEqual(self.status(theory_spec(), "L11"), "PASS")
+        spec = theory_spec()
+        spec["theory"]["sections"] = [s for s in spec["theory"]["sections"] if s["kind"] != "worked"]
+        r = result(spec, "L11")
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("no worked section", r["detail"])
+        spec = theory_spec()
+        secs = spec["theory"]["sections"]
+        secs[0], secs[1] = secs[1], secs[0]
+        r = result(spec, "L11")
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("the rule comes before the first worked case", r["detail"])
+        spec = theory_spec(type="repair")
+        spec["theory"]["sections"] = [{"kind": "rule", "title": "The fix", "body": "Keep the idea."}]
+        self.assertEqual(self.status(spec, "L11"), "FAIL", "a repair sheet too")
+        spec["type"] = "external"
+        self.assertEqual(self.status(spec, "L11"), "PASS", "external pages are named, never copied")
+        self.assertEqual(self.status(drills_spec(), "L11"), "PASS")
+
+    def test_l12_drills_ask_only_for_operations_a_sheet_has_shown(self):
+        spec = drills_spec()                                   # T04, op swap-word
+        self.assertEqual(self.status(spec, "L12"), "PASS", "no sheets read")
+        self.assertEqual(self.status(spec, "L12", shown_ops={}), "PASS", "no teaching sheet for T04")
+        r = result(spec, "L12", shown_ops={"T04": {"complete"}})
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("item 1 (T04): 'swap-word'", r["detail"])
+        self.assertIn("never rename an op", r["detail"])
+        self.assertEqual(self.status(spec, "L12", shown_ops={"T04": {"complete", "swap-word"}}), "PASS")
+        for it in spec["items"]:
+            it["origin"] = "official:book"
+        self.assertEqual(self.status(spec, "L12", shown_ops={"T04": set()}), "PASS", "only new items")
+        self.assertEqual(self.status(cold_spec(), "L12", shown_ops={"T04": set()}), "PASS", "drills only")
+
+    def test_shown_ops_come_from_pencils_and_worked_sections(self):
+        theory = theory_spec()
+        external = theory_spec("ielts-external-01", type="external")
+        external["items"][0].update(topic="T01", op="pick-heading")
+        shown = lint.shown_ops([({}, theory), ({}, external), ({}, drills_spec(n=3))])
+        self.assertEqual(shown, {"T04": {"complete", "swap-word"}, "T01": {"pick-heading", "swap-word"}})
+
     def test_a_malformed_spec_fails_instead_of_crashing(self):
         spec = drills_spec()
         spec["blocks"] = "not a list"
@@ -560,6 +601,27 @@ class CliLintTests(Base):
         self.assertIn("defined on ielts-theory-01, which is rendered: issue that sheet first", r.stdout + r.stderr)
         self.assertEqual(run(["sheet", "issue", SUBJECT, theory["id"]], ws=self.ws, now=NOW).returncode, 0)
         self.assertEqual(run(["sheet", "issue", SUBJECT, spec["id"]], ws=self.ws, now=NOW).returncode, 0)
+
+    def test_drills_ask_only_for_what_the_theory_worked(self):
+        theory = theory_spec()
+        theory["theory"]["sections"][0]["ops"] = []           # its pencil op 'complete' only
+        self.assertEqual(new_sheet(self.ws, theory).returncode, 0)
+        spec = drills_spec()                                  # op 'swap-word' on T04
+        self.assertEqual(new_sheet(self.ws, spec).returncode, 0)
+        r = self.lint(spec["id"])
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("'swap-word'", self.line(r, "L12"))
+        # The theory is rebuilt with a worked case for that operation.
+        theory["theory"]["sections"][0]["ops"] = ["swap-word"]
+        self.assertEqual(new_sheet(self.ws, theory, extra=["--replace"]).returncode, 0)
+        r = self.lint(spec["id"])
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertTrue(self.line(r, "L12").startswith("L12 PASS"))
+        # A malformed ops list is refused when the spec is sealed.
+        theory["theory"]["sections"][0]["ops"] = "swap-word"
+        r = new_sheet(self.ws, theory, extra=["--replace"])
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("ops must be a list", r.stdout + r.stderr)
 
     def test_subject_sense_list_is_read(self):
         from lib import ws as wsmod

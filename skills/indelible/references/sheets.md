@@ -10,7 +10,7 @@ Load this for anything that builds, renders, issues, files or marks a sheet. Mar
 4. The Least-sure line
 5. Don'ts
 6. Building a sheet
-7. The checker: rules L1–L10
+7. The checker: rules L1–L12
 8. What the learner gets
 9. Keys
 10. Evidence
@@ -88,7 +88,7 @@ Every answer on `drills`, `cold`, `mixed`, `review`, `diagnostic`, `mock` and `c
 | A topic name or id anywhere on a measuring or mixed sheet | Neutral titles: "2-day recheck", "Part A" |
 | A formula in a heading | The operation in words |
 | The answer anywhere visible: a hint, an option the key accepts word for word, a worked case on the same details | Choices answered by letter; worked cases on different details |
-| A concept introduced only by its definition | A concrete worked case first, then the rule |
+| A concept introduced only by its definition | A concrete worked case first, then the rule (lint L11); one for each operation the drills use (L12) |
 | Hints or worked steps on a measuring sheet | Only question, box and check line |
 | Official questions copied into a spec | A pointer: "Test 2, questions 1–13" (`origin: official:<source>`) |
 
@@ -109,7 +109,7 @@ A builder subagent writes every sheet that has answers, so no answer enters this
 - **Ids:** `<subject>-<type>-NN` (`ielts-cold-05`), or for a theory and its drills a shared stem, `<subject>-<stem>-NN-<type>` (`ielts-headings-01-theory`, `ielts-headings-01-drills`). A new id takes the next free NN.
 - **No Agent tool:** keyed sheets can't be built safely. Say so once, offer `external` pages from the learner's book, and label results `[unverified]`.
 
-## 7. The checker: rules L1–L10
+## 7. The checker: rules L1–L12
 
 `ind sheet lint <s> <id> --budget-min N` prints one PASS, FAIL or WARN line per rule and exits 1 on any FAIL. The builder fixes and re-lints. Never show rule codes to a plain-vocabulary learner.
 
@@ -125,6 +125,8 @@ A builder subagent writes every sheet that has answers, so no answer enters this
 | L8 key leak | an accepted answer of 3+ characters appears in the visible text (only the question id is named) | reword; accept letters for choices; for words copied from the item's own passage, set `answer_in_passage: true`, or ask for the line number |
 | L9 Least-sure | `least_sure` not true on any type but theory, external, example, triage | set it true |
 | L10 check hints | a check hint asks the learner to find their own mistake ("find the error", "is there a mistake?"), to re-solve ("redo", "do it again", "double-check"), to rate their confidence, or says only "check your answer" | name the check to run (§3) |
+| L11 worked case first | a theory or repair sheet with no `worked` section, or with a `rule` section before the first one | a concrete worked case first, then the rule |
+| L12 taught operations | on drills, a new item whose `op` no theory, external, example or repair sheet of its topic has shown (as a pencil question's `op` or in a worked section's `ops`); a topic with no such sheet is skipped | show it worked on the theory and rebuild that, or drop the item; never rename an `op` |
 | W1 | `=` in a block title | the operation in words |
 | W2 | drills starting with a non-sentence item when the subject has sentence items | move one first |
 | W3 | on a topic below mastery 3 (3p counts as 3): a check line with no hint, or a hint that needs a second method or the weakest step ("another way", "which step would you be pushed on?") | the check the theory sheet worked, or one using only what the learner owns |

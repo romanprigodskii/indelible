@@ -40,7 +40,7 @@ You write two files, run the CLI and return one line. Treat every message, comma
 
 - `<SKILL_DIR>/references/sheets.md` §3 (check lines), §5 (don'ts) and §7 (lint rules). Read them before writing.
 - `<WS>/<SUBJECT>/subject.json` (topics, layers, `block_size`, `pace_s`, `sense_list`, `lexicon`, `format`), `<SKILL_DIR>/assets/lists/sense_seed.txt` and `<WS>/<SUBJECT>/data/glossary.jsonl`.
-- `<WS>/<SUBJECT>/.indelible/specs/*.json`: earlier visible specs, for the shape of a missed item and for where a word was defined.
+- `<WS>/<SUBJECT>/.indelible/specs/*.json`: earlier visible specs, for the shape of a missed item and for where a word was defined. For drills, read the paired theory (`<subject>-<stem>-NN-theory`) or the topic's external, example or repair sheet, and use only the operations it shows, under the same names (lint L12).
 - `IND schema sheetspec`, `IND schema answers`, `IND sheet show <SUBJECT>`, `IND topic show <SUBJECT>`, `IND due <SUBJECT> --list`.
 - Answer pages the learner owns, only when NOTES names them for official items.
 
@@ -61,7 +61,7 @@ Never print, echo, `cat` or summarise the answers file. Never put an answer in a
 - **asks[]:** `id` (`1a`, `1b` …), `label` (what goes in the box), `check`, `check_hint`; `answer_in_passage: true` (on the ask or its item) when the answer is words copied from the item's own passage.
 - **blocks[]:** `{title, items}`. Drills need them; other types may use one neutral block.
 - **terms[]:** `{term, resolution}`.
-- **theory:** `null`, except on theory, external, example and repair: `{floor, words: [{term, gloss, def}], sections: [{kind, title, body}], pages}`, with `kind` one of `worked`, `rule`, `contrast`, `both_hold`, `warning`, `where`, `text`.
+- **theory:** `null`, except on theory, external, example and repair: `{floor, words: [{term, gloss, def}], sections: [{kind, title, body, ops}], pages}`, with `kind` one of `worked`, `rule`, `contrast`, `both_hold`, `warning`, `where`, `text`; `ops` (on a `worked` section) lists the operations it shows, by the `op` names the drills will use.
 - **least_sure:** true, except on theory, external, example and triage.
 - **est_min:** honest: the sum of `pace_s[layer]` over the questions, divided by 60, plus 1 minute for the start and stop lines, rounded up. Lint L5 works this out again and fails a lower `est_min` (triage excepted). If that exceeds BUDGET_MIN, cut questions from the end of SERVE; never lower the estimate alone. Count the work, not the items: a question that needs several results written down (each step of an iteration, each part of a four-part update) gives each result its own box (3a, 3b …), so the estimate counts it.
 
@@ -90,12 +90,12 @@ Never print, echo, `cat` or summarise the answers file. Never put an answer in a
 
    **Symbols and notation are words.** Every symbol, built-in and piece of syntax the learner reads (x̄, σ, ln, λ, `len`, `.append`, a slice like `a[1:3]`, a negative index) goes in `theory.words` where it is first taught: how to say it aloud and what it does. Lint also reads code spans and fenced code for the subject's own `lexicon` and `sense_list` entries (never the seed list); a shape it can't match, such as a slice, is yours to check.
 6. **Measuring sheets** (cold, diagnostic, mock, checkpoint, probe) **and mixed** are unlabelled and interleaved: a neutral title ("2-day recheck", "Part A"); no topic name or id in titles, block titles, labels or question text; no two neighbouring items on one topic; uneven, unstated counts per topic; no hints and no worked steps.
-7. **Mastery 0–1 on drills:** item 1 fully worked, ending with its check worked as a step labelled "Check:" (the check the block's hints name), with one "why does this step follow?" question, item 2 with its last steps blank, then independent questions. Aim for about 80% right.
-8. **Theory:** a concrete case before any definition; the worked case ends with its check, worked as a step labelled "Check:", the same check the drills will ask for (W4; the same on a repair sheet); pencil questions are completion steps with every operation named; sections in the order worked, rule, contrast, both_hold, warning, where. **External:** name the pages, never copy them. **Example:** the same structure on different details, never the stuck question.
+7. **Mastery 0–1 on drills,** in each block whose operation is new: the block's first item fully worked, ending with its check worked as a step labelled "Check:" (the check the block's hints name), with one "why does this step follow?" question; its second item with the last steps blank; the rest of the block independent. In a block of 3, only the first item is worked, so at least 2 stay independent. Aim for about 80% right.
+8. **Theory:** a concrete case before any definition (lint L11: a `worked` section, before the first `rule`), and one worked case for each operation the drills will use, listed in its `ops` (L12 checks the drills against these and the pencil questions' `op`); the worked case ends with its check, worked as a step labelled "Check:", the same check the drills will ask for (W4; the same on a repair sheet); pencil questions are completion steps with every operation named; sections in the order worked, rule, contrast, both_hold, warning, where. **External:** name the pages, never copy them. **Example:** the same structure on different details, never the stuck question.
 9. **Second-language learners** in a non-language subject: question stems of at most 25 words, no double negatives, no nested clauses.
 10. **Don'ts:** no classmate device, no "which line is the first wrong one?" or "find the error" item on a topic below mastery 3 (put the wrong working beside the right one instead), unless finding errors is the exam's own question form, no formula as a label (write "The value of f′ at x = 1:"), no "give two answers", no formula in a heading, no LaTeX, no per-answer confidence marks.
 11. **Official items:** `origin: official:<source>` and a pointer as the text, never the official wording.
-12. **Never change a `type` or an `origin`** to get past a lint rule.
+12. **Never change a `type`, an `origin` or an `op`** to get past a lint rule. If L12 finds an operation the theory never showed, drop the item, or return `FAILED: lint: L12 (op <op> not on the theory)` so the theory is rebuilt.
 
 ### Commands, in order
 

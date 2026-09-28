@@ -642,6 +642,10 @@ def validate_sheetspec(spec):
             for i, sec in enumerate(th.get("sections") or []):
                 if isinstance(sec, dict):
                     p += _enum(sec, "kind", THEORY_SECTION_KINDS, "spec.theory.sections[%d]" % i)
+                    ops = sec.get("ops")
+                    if ops is not None and (not isinstance(ops, list)
+                                            or not all(isinstance(o, str) and o.strip() for o in ops)):
+                        p.append("spec.theory.sections[%d].ops must be a list of operation names" % i)
     return p
 
 
@@ -977,7 +981,10 @@ RECORDS = {
                         "defined_on:<sheet-id> (a sheet on file that defines it), glossary (the learner owns it: glossary add), everyday (its plain "
                         "sense; not for a lexicon word, nor on theory, example or repair for a word the sheet "
                         "teaches) or measured_here (a measuring sheet that tests the word)"),
-            ("theory", "{floor[], words[{term, gloss, def}], sections[{kind, title, body}], pages} on theory, external, example, repair"),
+            ("theory", "{floor[], words[{term, gloss, def}], sections[{kind, title, body, ops}], pages} on theory, "
+                       "external, example, repair; a worked section comes before the rule (lint L11), and its "
+                       "optional ops lists the operations it shows, which drills may then ask for (lint L12, "
+                       "with the pencil questions' op)"),
             ("unlabelled", "measuring sheets name no topic in titles or labels and, when they hold 2 or more "
                            "topics, never put two same-topic items together"),
             ("block", "sheet new/lint --block ID links the block it is built for: L5 uses its minutes, L7 judges "

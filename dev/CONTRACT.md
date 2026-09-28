@@ -465,10 +465,10 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
 - **`theory`** (theory, external, example, repair only):
 
   ```json
-  {"floor":["..."],"words":[{"term","gloss","def"}],"sections":[{"kind":"worked|rule|contrast|both_hold|warning|where|text","title","body"}],"pages":"Cambridge 18 pp. 44-47"}
+  {"floor":["..."],"words":[{"term","gloss","def"}],"sections":[{"kind":"worked|rule|contrast|both_hold|warning|where|text","title","body","ops":["..."]}],"pages":"Cambridge 18 pp. 44-47"}
   ```
 
-  `body` is plain text with Unicode maths, paragraphs separated by blank lines.
+  `body` is plain text with Unicode maths, paragraphs separated by blank lines. `ops` (optional, a list of `op` names, read on `worked` sections) names the operations the worked case shows.
 
 **Answers file** (`<subject>/.indelible/tmp/<id>.answers.json`):
 
@@ -498,6 +498,8 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
   | L8 key leak | No accepted answer string of 3 or more characters from the key appears (case-insensitive) in the visible text. The key is read in-process and nothing from it is printed; the FAIL line names the ask id only |
   | L9 least-sure | `least_sure` is true on every type except `theory`, `external`, `example` and `triage` |
   | L10 check hints | No `check_hint` on an ask with `check: true` sends the learner to find their own mistake ("find the mistake", "check your work for mistakes", "where did you go wrong?", "is there a mistake?"), asks for a re-solve ("redo", "rework", "do it again", "double-check") or a confidence rating ("are you sure?"), or is only "check your answer". "Error" counts only when the phrase ends there or points at the learner's own work, so subject words pass: "the standard error", "the error term", "error bars", "the error message", "a confidence interval". Detection matches English wording only |
+  | L11 worked case first | On `theory` and `repair`: `theory.sections` has a section of kind `worked`, and no `rule` section comes before the first one |
+  | L12 taught operations | On `drills`: every item with origin `new` has an `op` (case-insensitive) that a sheet of its topic of type `theory`, `external`, `example` or `repair`, not `void`, has shown: the `op` of one of its items, or an entry of a `worked` section's `ops` (a section's ops count for every topic on that sheet). A topic with no such sheet is skipped (taught by a tutor, or migrated) |
 
   WARN rules:
   - W1: a formula character (`=`) appears in a block title;
