@@ -238,4 +238,5 @@ A question withdrawn as unclear (§9) gets its own card line, "Withdrawn (my wor
   - if their answer was wrong, add the error with `ind error add … --sheet <id> --item <n>`;
   - run `ind session expose <subject> <topic> --kind review`.
   No blame: looking is allowed, and it only means those questions can't count.
+- **Official answers or explanations pasted into chat** (an online test's review pages) are handled as in [measure.md](measure.md) §12: never quoted or used. Log a `contamination` defect only if Claude asked for the pages.
 - **A topic due on an issued, unsat 2-day recheck** (`ind sheet show <subject> --status issued`, `ind due <subject> --list`) is not discussed while you grade anything else: "That's on your 2-day recheck. We'll go through it after you've sat it."
