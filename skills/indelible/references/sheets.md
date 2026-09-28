@@ -131,7 +131,7 @@ A builder subagent writes every sheet that has answers, so no answer enters this
 | L8 key leak | an accepted answer of 3+ characters appears in the visible text (only the question id is named) | reword; accept letters for choices; for words copied from the item's own passage, set `answer_in_passage: true`, or ask for the line number |
 | L9 Least-sure | `least_sure` not true on any type but theory, external, example, triage | set it true |
 | L10 check hints | a check hint asks the learner to find their own mistake ("find the error", "is there a mistake?"), to re-solve ("redo", "do it again", "double-check"), to rate their confidence, or says only "check your answer" | name the check to run (§3) |
-| L11 worked case first | a theory or repair sheet with no `worked` section, or with a `rule` section before the first one | a concrete worked case first, then the rule |
+| L11 worked case first | a theory or repair sheet with no `worked` section, or with a `rule` section before the first one (a locked override of R12 order lets the rule come first, never the worked case go) | a concrete worked case first, then the rule |
 | L12 taught operations | on drills, a new item whose `op` no theory, external, example or repair sheet of its topic has shown (as a pencil question's `op` or in a worked section's `ops`); a topic with no such sheet is skipped | show it worked on the theory and rebuild that, or drop the item; never rename an `op` |
 | W1 | `=` in a block title | the operation in words |
 | W2 | drills starting with a non-sentence item when the subject has sentence items | move one first |

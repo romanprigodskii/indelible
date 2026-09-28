@@ -645,6 +645,17 @@ class RuleTests(Base):
         r = result(spec, "L11")
         self.assertEqual(r["status"], "FAIL")
         self.assertIn("the rule comes before the first worked case", r["detail"])
+        # R12 order is a default: a locked override lets the rule come first, never the worked case go.
+        locked = [{"rule": "R12 order", "value": "rule first", "why": "their words", "date": "2026-10-10",
+                   "locked": True}]
+        self.assertEqual(self.status(spec, "L11", overrides=locked), "PASS")
+        self.assertEqual(self.status(spec, "L11", overrides=[dict(locked[0], rule="R12")]), "PASS",
+                         "an override saved before R12 was split")
+        self.assertEqual(self.status(spec, "L11", overrides=[dict(locked[0], locked=False)]), "FAIL",
+                         "an unlocked override changes nothing")
+        self.assertEqual(self.status(spec, "L11", overrides=[dict(locked[0], rule="R36")]), "FAIL")
+        spec["theory"]["sections"] = [s for s in spec["theory"]["sections"] if s["kind"] != "worked"]
+        self.assertEqual(self.status(spec, "L11", overrides=locked), "FAIL", "the worked case is never waived")
         spec = theory_spec(type="repair")
         spec["theory"]["sections"] = [{"kind": "rule", "title": "The fix", "body": "Keep the idea."}]
         self.assertEqual(self.status(spec, "L11"), "FAIL", "a repair sheet too")
@@ -776,6 +787,24 @@ class CliLintTests(Base):
         r = new_sheet(self.ws, theory, extra=["--replace"])
         self.assertNotEqual(r.returncode, 0)
         self.assertIn("ops must be a list", r.stdout + r.stderr)
+
+    def test_a_locked_r12_order_override_lets_the_rule_come_first(self):
+        from lib import ws as wsmod
+        theory = theory_spec()
+        secs = theory["theory"]["sections"]
+        secs[0], secs[1] = secs[1], secs[0]                   # the rule before the worked case
+        self.assertEqual(new_sheet(self.ws, theory).returncode, 0)
+        r = self.lint(theory["id"])
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("the rule comes before the first worked case", self.line(r, "L11"))
+        subj = wsmod.Workspace(self.ws).subject(SUBJECT)
+        cfg = subj.load()
+        cfg["overrides"] = [{"rule": "R12 order", "value": "rule first", "why": "I like the rule first",
+                             "date": "2026-10-10", "locked": True}]
+        subj.save(cfg)
+        r = self.lint(theory["id"])
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertIn("locked override of R12 order", self.line(r, "L11"))
 
     def test_subject_sense_list_is_read(self):
         from lib import ws as wsmod
