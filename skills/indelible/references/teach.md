@@ -40,7 +40,7 @@ Found: Python 3.12 · PDF sheets · time zone Lisbon · Google Calendar (I won't
 Sets the profile (`intensity: light` if for interest; unsure: add "Is there an exam at the end?" to Q2), the id and `target.*`. No success named: exam, the target plus a floor one step lower; otherwise draft a capstone (B: "order a meal, ask directions, 3 minutes of small talk"; D: "a command-line tool that reads a CSV file, with tests").
 
 **Q2 · Date and format** (feeds `target.date`, `format.*`):
-- exam: "When is it (or the window, and what fixes it)? Are you registered, and by when must you be? How many attempts, and what does a retake cost? Format: length, sections, marking, answer form, calculator, reference sheet? What time of day? Any accommodations, like extra time or a computer?" Skipped: public format in ≤5 lines, `[published]`; unknown registration: a to-do due in 3 days.
+- exam: "When is it (or the window, and what fixes it)? Are you registered, and by when must you be? What time does it start? Any accommodations, like extra time or a computer? I'll plan to the published format: <at most 2 lines> [published]; say if yours differs (paper or computer, for example)." With no public format, or one you aren't sure of, ask instead: "Format: length, sections, marking, answer form, calculator, reference sheet?"; never state a format from memory as `[published]`. Skipped: public format in ≤5 lines, `[published]`; unknown registration: a to-do due in 3 days.
 - course: "When is the final, and what's allowed (formula sheet, calculator)? Any past papers? Will any of this be handed in for a grade, and what does your course allow AI to do?" Record the AI rule; never write graded work.
 - interview: "When is it, who's on the panel, and what will they probe?"
 - language, code, skill: "Is there a date you're aiming at, like a trip or a project? If not, I'll plan in 4-week cycles with a check-in at the end of each."
@@ -48,7 +48,11 @@ Sets the profile (`intensity: light` if for interest; unsure: add "Is there an e
 **Q3 · Where you are now:** "Where are you now, in your own words? Any real evidence, like a score report or a practice test you've taken? And was earlier work in this subject done with a lot of help (AI, a tutor, a group)? I ask only so I don't mistake it for your starting point; the diagnostic decides anyway."
 Code adds "Have you ever written and run a program yourself?"; language, "Could you order a meal, ask directions and chat for two minutes today: yes, with effort, or no?". Estimates and assisted work go under "Do not calibrate on". **Authorship follow-up**, only if substantial help is reported on work they will present as theirs: "For the parts you'll present as yours, which decisions did you make yourself? I'll help you describe your role accurately: never bigger, never smaller." Keep the answer verbatim.
 
-**Q4 · Materials:** "What do you already have: official past papers or practice tests (how many haven't you seen yet?), question banks, textbooks or course notes, an official syllabus (a link or a file)? Any book whose notation or pages I should use for the theory? If any come with answers, I'll keep those sealed until marking."
+**Q4 · Materials:**
+- exam, course, interview: "What do you already have: official past papers or practice tests (how many haven't you seen yet?), question banks, textbooks or course notes, an official syllabus (a link or a file)? Any book whose notation or pages I should use for the theory? If any come with answers, I'll keep those sealed until marking."
+- language: "What do you use now: an app, a book, a course, a phrasebook? Anything you'd like me to follow?"
+- code, skill: "Any book, course or tutorial you'd like me to follow? Anything you've already worked through?"
+
 Feeds `materials.sources`, `.ration` (shapes: [sheets.md](sheets.md) §11) and the theory source. Answer files: path only, never opened here.
 
 **Q5 · About you:** "Three quick ones. (a) Are you 18 or over? If not, say 'under 16' or '16–17': it only changes sleep, load and reminder defaults. (b) Is your first language different from the one you'll study in? Then I'll explain hard words in it the first time they appear, and you may draft 'why' answers in it. (c) Which feedback suits you, for a wrong answer on question 7?

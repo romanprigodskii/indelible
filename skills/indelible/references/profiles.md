@@ -42,7 +42,7 @@ Every question on `drills`, `cold`, `mixed`, `diagnostic`, `mock`, `checkpoint` 
 ## 4. course
 
 As exam, except:
-- **No registration or retake questions.** Record the course's AI rule in `format.ai_policy`. Never write anything that will be handed in for a grade (Law 12); teach on parallel questions instead.
+- **No registration question.** Record the course's AI rule in `format.ai_policy`. Never write anything that will be handed in for a grade (Law 12); teach on parallel questions instead.
 - **Weights from past papers** when there are any: topic counts across the papers, labelled `[mine, from n papers]`.
 - **Theory from the learner's own textbook or notes:** an `external` sheet ("Textbook §4.2, pp. 181–188: read, then close"), then 3–5 pencil questions. It is still read and then closed.
 - **Past-paper solutions** are recorded by path only. The builder copies what a key needs when it builds the sheet; the main conversation opens nothing before evidence is filed.
