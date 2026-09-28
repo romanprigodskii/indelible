@@ -1,6 +1,6 @@
 # review: the weekly review
 
-Load for `review`, "weekly review" and "how am I doing". Run it in the main conversation, never in a subagent. Any change it leads to goes through [plan.md](plan.md), and any calendar change through [calendar.md](calendar.md).
+Load for `review`, "weekly review", "review my week" or a yes to the close offer, and for `status` (section 9 only). Run it in the main conversation, never in a subagent. Any change it leads to goes through [plan.md](plan.md), and any calendar change through [calendar.md](calendar.md).
 
 1. When
 2. Run it
@@ -10,10 +10,20 @@ Load for `review`, "weekly review" and "how am I doing". Run it in the main conv
 6. Hygiene and liveness
 7. My own mistakes
 8. Proposals
+9. Status (read-only)
 
 ## 1. When
 
 - **Scheduled mode:** once a week, about 10 minutes. Offer it in one line at the close of the first session of a new week if `reviews/<last week>.md` doesn't exist yet, and run it whenever the learner asks. Review the week just ended: pass `--week YYYY-Www` when the default isn't that week.
+- **Sessions of 30 minutes or less** (persona B; the day-7 check-in of [measure.md](measure.md) §11): at that close, run `ind review week` and give 3 lines from it in place of the one-line offer. The last line offers the full review:
+
+  ```
+  Week 42: 5 of 5 sessions · 2-day rechecks 6/8 [measured] · 3 mistakes fixed
+  Next: Mon 07:40 · 20 min · nothing needs changing
+  Full weekly review, about 10 minutes? (yes/no)
+  ```
+
+  On a yes, carry on from section 2, step 2 (the check-in questions come only then). On a no, settle any safeguard that is due (section 4) and stop.
 - **On-demand mode** (persona D): at the first open after 7 days or more away, show 3 lines inside the re-entry opener ([session-teach.md](session-teach.md) §6), never as a separate routine. They ask nothing, and never count what is due (re-entry step 3):
 
   ```
@@ -127,3 +137,30 @@ Make one to three proposals, each a yes/no question, asked one at a time. They c
 4. a calendar preview ([calendar.md](calendar.md)).
 
 **A no needs nothing written.** Don't propose the same thing again for 2 weeks unless new evidence arrives.
+
+## 9. Status (read-only)
+
+For `status`, "where am I", "this week" and "how am I doing". It changes nothing: no `ind review week` (it writes the week's file), no note, no `ind compact`, and the brief runs without `--open`.
+
+1. **Read.** One subject: `ind brief <s>`, `ind plan week`, `ind stats <s>`. All: `ind brief` (no subject), `ind plan week`, `ind stats <s>` per live subject.
+2. **Answer in at most 5 plain lines,** from that output only, each number with its label:
+   - sessions done and still planned this week (`plan week`);
+   - the latest 2-day recheck result (the `retention 48 h [measured]` line of `ind stats`; "no recheck marked yet" when it has no data);
+   - what's solid and what isn't yet, from MASTERY (LEVELS), in plain words;
+   - the next session (NOW/NEXT);
+   - one to-do due in the next few days (TO-DO), if there is one.
+3. **Never read out anything below `-- for Claude, do not read aloud --`:** no recheck topics and no mistake descriptions. Naming them before the recheck is marked spoils it ([session-open.md](session-open.md) §3, step 1).
+4. **Plain words** when the vocabulary is plain: "careless per 10" is "slips per 10 questions", "unnamed-wrong" is "wrong answers not on your Least-sure line", "check coverage" is "answers with a check beside them".
+5. **End with one offer line:** "Full weekly review? (yes/no)". A yes runs section 2.
+
+Persona A, Thursday before the session (Saturday is kept clear for a wedding):
+
+```
+This week: 2 sessions done; today 07:00 is the last one
+2-day rechecks: none marked yet
+Getting there: matching headings. Not yet: true, false or not given; Task 1 overview; paraphrase
+Next: today 07:00 · 2-day recheck, then fixing mistakes · 60 min
+Full weekly review? (yes/no)
+```
+
+"What do you keep?": list the workspace folders and what each holds, in plain words, with no file contents.
