@@ -269,8 +269,32 @@ class RuleTests(Base):
         self.assertIn("split a part Claude wrote into sittings", r["detail"])
         self.assertNotIn("cut questions", r["detail"])
         self.assertEqual(self.status(drills_spec(est_min=87, type="diagnostic"), "L5", budget=None), "PASS")
-        # The pace floor holds on a measurement: 6 verbal questions are 8.5 minutes, not 3.
-        self.assertEqual(self.status(drills_spec(est_min=3, type="diagnostic"), "L5", budget=None), "FAIL")
+        # The pace floor holds on a measurement Claude wrote: 6 verbal questions are 8.5 minutes,
+        # not 3. It is never cut, so the message doesn't say to cut questions.
+        r = result(drills_spec(est_min=3, type="diagnostic"), "L5", budget=None)
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("under the pace floor of 9 min", r["detail"])
+        self.assertIn("a measurement is never cut", r["detail"])
+        self.assertNotIn("cut questions", r["detail"])
+
+    def test_l5_an_official_paper_keeps_the_exams_clock(self):
+        # A listening test as a checkpoint: 4 parts of 10 questions in the exam's 30 minutes.
+        # At 75 s a question the pace floor would be 51 min; the exam times these, not the pace.
+        items = []
+        for p in range(4):
+            items.append({"n": p + 1, "topic": "T01", "layer": "verbal", "op": "listen",
+                          "origin": "official:cambridge-18-test-1",
+                          "text": "Test 1, Listening part %d, questions %d-%d" % (p + 1, p * 10 + 1, p * 10 + 10),
+                          "asks": [{"id": "%d%s" % (p + 1, chr(97 + k)), "label": "Q%d:" % (p * 10 + k + 1),
+                                    "check": True} for k in range(10)]})
+        spec = drills_spec(est_min=30, type="checkpoint")
+        spec["items"], spec["blocks"] = items, []
+        self.assertEqual(lint.pace_floor(spec, {}), 1)
+        self.assertEqual(self.status(spec, "L5", budget=None), "PASS")
+        self.assertEqual(self.status(spec, "L5", budget=(35.0, "block of 45 min, less 10 to record")), "PASS")
+        # A question Claude adds to it is still counted at the learner's pace.
+        spec["items"].append(dict(drills_spec()["items"][0], n=5, origin="new"))
+        self.assertEqual(lint.pace_floor(spec, {}), 2.25)
 
     def test_l5_the_estimate_is_checked_against_the_pace(self):
         spec = drills_spec(est_min=1)

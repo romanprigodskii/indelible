@@ -16,7 +16,8 @@ a mixed sheet built at the close is judged at the next block. ``sheet issue``
 checks both again, since the learner may meet a topic in between. L5 also
 recomputes the builder's own estimate from the subject's ``pace_s``
 (``pace_floor``) and fails a lower ``est_min``, since the estimate is written
-by the party whose sizing it checks. W5 adds the reading
+by the party whose sizing it checks. Official questions (``official:``) are
+left out of it: the exam's clock times them. W5 adds the reading
 a theory, example or repair sheet asks for (``reading_words``, at a fast 150
 words a minute), which the pace floor leaves out. A measurement
 (diagnostic, mock, checkpoint) is exempt from the session's question budget,
@@ -548,9 +549,12 @@ def _l4(spec, ctx):
 
 
 def pace_floor(spec, pace_s=None):
-    """The builder's honest estimate (builder.md): pace_s[layer] for each question, over 60, plus 1 minute."""
+    """The builder's honest estimate (builder.md): pace_s[layer] for each question, over 60, plus 1 minute.
+    An official question (origin ``official:``) is left out: the exam's clock times it, not the pace."""
     secs = 0.0
     for it in _items(spec):
+        if _s(it.get("origin")).startswith("official:"):
+            continue
         secs += learning.pace_for(it.get("layer"), pace_s) * len(_asks(it))
     return secs / 60.0 + 1
 
@@ -587,8 +591,11 @@ def _l5(spec, ctx):
     # must come from. A triage sheet is a mark per word, not a question at pace.
     floor = pace_floor(spec, ctx.get("pace_s"))
     if t not in FLOOR_EXEMPT and est_f + 1e-9 < floor:
+        fix = ("recount it; a measurement is never cut: split a part Claude wrote into sittings (measure.md §3), "
+               "or book it a longer block" if t in BUDGET_EXEMPT else "recount it, or cut questions")
         return "FAIL", ("est_min %s is under the pace floor of %s min (pace_s of each question's layer, "
-                        "over 60, plus 1): recount it, or cut questions" % (_num(est_f), _num(math.ceil(floor - 1e-9))))
+                        "over 60, plus 1; official questions left out): %s"
+                        % (_num(est_f), _num(math.ceil(floor - 1e-9)), fix))
     if budget is None:
         return "PASS", "no budget known (pass --budget-min)"
     if est_f <= budget + 1e-9:
