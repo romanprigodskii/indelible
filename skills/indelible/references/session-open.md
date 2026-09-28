@@ -174,7 +174,7 @@ The recheck takes at most a quarter of the planned minutes in sessions of 30 min
 4. **Looked since last time:** no sheet prints this in v0.1. When the photo arrives, before marking, ask once in chat: "Did you look at any of this since last time? Which questions?" Any question named is "not counted (seen too recently)" ([session-grade.md](session-grade.md) §10).
 5. **The sitting:**
    - **Hand it over** and issue it against the session block from step 4 (`ind sheet issue <s> <id> --block <B>`): "Here's your 2-day recheck: <path>. On paper, book closed. Write the start time on the first line and a check beside every answer. At the end, write the stop time and fill in 'Least sure of'. Writing 'I don't know' is always fine. Send a photo when you're done."
-   - **No printer** (persona B): the learner reads the sheet on screen and writes the answers in a notebook, numbered as on the sheet.
+   - **No printer** (persona B): the learner reads the sheet on screen and writes the answers in a notebook: first line the sheet code from the header ("Sheet SPANISH-12") and the start time, then the answers numbered as on the sheet.
    - **Sealed until marked:** while the sheet is out, discuss nothing that is on it. If the learner asks about a question, say "Write 'I don't know' for now. We'll go through it right after marking." A sealed item is marked or discussed, never both.
    - **Meanwhile,** build any missing practice sheet (section 2).
 6. **Neither the calendar nor the chat names the topics.** The calendar card reads "2-day recheck (mixed)" (`ind plan diff` writes it that way), and nothing said before marking reveals which topics or mistakes are on the sheet.

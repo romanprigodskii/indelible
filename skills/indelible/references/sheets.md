@@ -44,7 +44,7 @@ Load this for anything that builds, renders, issues, files or marks a sheet. Mar
 ## 2. What every sheet carries
 
 The templates print these:
-- **Header:** title, date and weekday, estimated minutes, number of questions, and `Practice — written by Claude`, `Measurement — written by Claude` or `Measurement — official`.
+- **Header:** title, date and weekday, estimated minutes, number of questions, `Practice — written by Claude`, `Measurement — written by Claude` or `Measurement — official`, and the sheet code (`Sheet IELTS-07`: the subject and a running number, never a topic word), so a photo is matched to its sheet ([session-grade.md](session-grade.md) §2).
 - **Rules box:** closed book ("no other AI" on drills; with `format.reference_sheet`, a clean copy of the exam's formula sheet is allowed, and the tools line names it); one answer in each box, on paper; the check beside each answer; a failed check the learner can't resolve within a minute: mark it ✗ or "no", leave the answer and the check as they are, name it on the Least-sure line, go on; "I don't know" is always an accepted answer, and on theory, external, example, repair and drills sheets, "Stuck on a question after a real try? Tell me its number: you get a small hint, never the answer" ([session-teach.md](session-teach.md) §3); stop after N minutes (on theory, external, example and repair sheets, "Allow about N minutes, and read it all even if it takes longer"); tools allowed; "If a word here was never explained to you, on this sheet or an earlier one, write it beside that answer: that's my mistake, not yours" (marking looks the word up: [session-grade.md](session-grade.md) §3).
 - **Item 0** `Start time: ____`. **Last line** `Stop time: ____`, plus the Least-sure line when `least_sure` is true.
 - **Each question:** label, answer box, and `Check: ____` with the hint in small text. **Drills** add block titles and, after item 3 of each block: "If 2 of items 1–3 have a failed check, an “I don't know” or an empty box: stop and send a photo of 1–3." A block's `gate_after` moves the gate after that item, over the 3 items that end there: at mastery 0–1 a block of 6 or more sets it to its 4th item, so the gate skips the worked item 1.
@@ -141,7 +141,7 @@ L4 resolutions (`defined_here`, `defined_on:<sheet-id>`, `glossary`, `everyday`,
 `ind sheet build <s> <id>` uses the backend `ind doctor` recorded, or tries in order: **typst** (PDF); **Chrome, Chromium or Edge, headless** (PDF from the HTML); a **print-ready HTML page**; **Markdown** on screen.
 
 - Files land in `<subject>/sheets/YYYY-MM/<id>.<ext>`, source beside them. `--format html` suits a phone (persona B), `--format md` an editor (persona D).
-- Hand-over: "Your 2-day recheck is ready: sheets/2026-10/ielts-cold-05.pdf. Print it or open it on screen, and answer on paper." No printer: read on screen, answer in a notebook, numbered as on the sheet. If the file won't open, paste its text unchanged.
+- Hand-over: "Your 2-day recheck, sheet IELTS-07, is ready: sheets/2026-10/ielts-cold-05.pdf. Print it or open it on screen, and answer on paper." (`ind sheet issue` prints the code.) No printer: read on screen, answer in a notebook: first line the sheet code and the start time, then the answers numbered as on the sheet. If the file won't open, paste its text unchanged.
 
 ## 9. Keys
 

@@ -311,15 +311,17 @@ def cmd_extend(args):
 
 def _sheets_out(subj, now):
     """One phrase per sheet issued or sat and not graded yet, oldest issue first: its id,
-    type and issue time. A recheck shows its id only, never its topics."""
+    type, sheet code (printed on it, to match a photo) and issue time. A recheck shows its
+    id only, never its topics."""
     rows = [s for s in subj.load_sheets() if s.get("status") in ("issued", "sat")]
     rows.sort(key=lambda s: str(s.get("issued_at") or ""))
     out = []
     for s in rows:
         issued = brief.to_local(s.get("issued_at"), now.tzinfo)
         when = "issued %s" % brief.fmt_when(issued, now) if issued is not None else "issued"
-        out.append("%s (%s, %s)" % (s.get("id"), s.get("type") or "?",
-                                    "taken, not graded" if s.get("status") == "sat" else when))
+        code = ("sheet %s, " % s["code"]) if s.get("code") else ""
+        out.append("%s (%s, %s%s)" % (s.get("id"), s.get("type") or "?", code,
+                                      "taken, not graded" if s.get("status") == "sat" else when))
     return out
 
 

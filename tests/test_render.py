@@ -103,6 +103,13 @@ class HtmlTemplateTests(Base):
         self.assertIn('datetime="2026-10-15"', self.page)
         self.assertIn("About 12 min · 6 questions · Practice — written by Claude", self.text)
 
+    def test_the_sheet_code_ends_the_header_line(self):
+        m = render.build_model(cold_spec(), date=DAY, sheet_code="IELTS-07")
+        self.assertEqual(m["meta"], "About 10 min · 4 questions · Measurement — written by Claude · Sheet IELTS-07")
+        self.assertIn("· Sheet IELTS-07", render.render_markdown(cold_spec(), date=DAY, sheet_code="IELTS-07"))
+        self.assertIn('· Sheet IELTS-07"', render.render_typst(cold_spec(), date=DAY, sheet_code="IELTS-07"))
+        self.assertNotIn("Sheet ", render.build_model(cold_spec(), date=DAY)["meta"], "no code, no mention")
+
     def test_rules_box(self):
         rules = visible_text(self.page.split('<section class="rules"', 1)[1].split("</section>", 1)[0])
         for s in ("Closed book", "Answer on paper, one answer in each box.",

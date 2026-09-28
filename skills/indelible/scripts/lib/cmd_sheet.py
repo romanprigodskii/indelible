@@ -31,6 +31,11 @@ recheck or mistake (a ``cold:``, ``error:`` or ``sentinel:`` origin) that
 another cold or mixed sheet, issued or sat and not graded, already serves:
 a second conversation must not hand out the same recheck twice.
 
+Every sheet row carries a short neutral code, printed in the sheet's header
+(``IELTS-07``: the subject id in capitals and a running number, never a topic
+word), so a photo or a notebook page can be matched to its sheet. ``sheet new``
+sets it, and ``sheet build`` sets it for an older row that has none.
+
 Every date and time here comes from the workspace clock (its time zone), the
 same clock as ``session open`` and ``session close``.
 """
@@ -342,6 +347,18 @@ def _refuse_existing(rows, sheet_id, replace):
     return i, old
 
 
+def next_sheet_code(subj, rows):
+    """The next sheet code for this subject: "IELTS-07", the subject id in capitals and a running
+    number past every code and every row on file, so no two sheets share one."""
+    prefix = subj.id.upper() + "-"
+    top = len(rows)
+    for r in rows:
+        c = r.get("code")
+        if isinstance(c, str) and c.startswith(prefix) and c[len(prefix):].isdigit():
+            top = max(top, int(c[len(prefix):]))
+    return "%s%02d" % (prefix, top + 1)
+
+
 def _normalised_spec(spec, subj):
     """The spec as sealed: each item's layer filled from its topic when missing."""
     out = json.loads(json.dumps(spec))
@@ -391,6 +408,7 @@ def cmd_new(args):
             "key_sha": sha, "issued_at": None, "sat": {"start": None, "stop": None, "date": None},
             "evidence": [], "graded_at": None, "opens_unsat": 0,
             "block": args.block or (old or {}).get("block"),
+            "code": (old or {}).get("code") or next_sheet_code(subj, rows),
         }
         if old is not None:
             rows[i] = row
@@ -517,6 +535,8 @@ def cmd_build(args):
             raise CheckFailed("%s has not passed lint (lint: %s). Run: indelible.py sheet lint %s %s"
                               % (args.id, row.get("lint") or "not run", subj.id, args.id))
         spec = _load_spec(subj, args.id)
+        if not row.get("code"):
+            row["code"] = next_sheet_code(subj, rows)   # a row from before sheet codes
         day = _sheet_date(ws, subj, row, spec, args.date)
         cfg = ws.load_config()
         preferred = (cfg.get("render") or {}).get("backend")
@@ -526,7 +546,8 @@ def cmd_build(args):
         res = render.render_sheet(spec, subj.sheet_month_dir(day or ws.today()), args.id, fmt=args.format,
                                   preferred=preferred, date=day if day is not None else False, tools=tools,
                                   lang=lang, profile=subj.load().get("profile"),
-                                  reference_sheet=subj_fmt.get("reference_sheet") is True)
+                                  reference_sheet=subj_fmt.get("reference_sheet") is True,
+                                  sheet_code=row["code"])
         row["files"] = [_subject_rel(subj, f) for f in res["files"]]
         row["status"] = "rendered"
         _save_row(subj, rows, i, row)
@@ -566,7 +587,8 @@ def cmd_issue(args):
         row["status"] = "issued"
         row["issued_at"] = _now_iso(ws)
         _save_row(subj, rows, i, row)
-    _out("%s issued%s" % (args.id, (" for block %s" % block_id) if block_id else ""))
+    _out("%s issued%s%s" % (args.id, (" for block %s" % block_id) if block_id else "",
+                            (" · sheet %s" % row["code"]) if row.get("code") else ""))
     if spec.get("type") == "cold":
         for line in _start_by_lines(ws, subj, spec):
             _out(line)
@@ -834,6 +856,8 @@ def cmd_show(args):
             extra.append("evidence %d" % len(r["evidence"]))
         if r.get("block"):
             extra.append("block %s" % r["block"])
+        if r.get("code"):
+            extra.append("sheet %s" % r["code"])
         _out("%-32s %-11s %-9s %3s q  ~%s min  lint %s%s" % (
             r.get("id"), r.get("type"), r.get("status"), r.get("asks", "?"), _num(r.get("est_min")),
             r.get("lint") or "-", ("  " + " · ".join(extra)) if extra else ""))

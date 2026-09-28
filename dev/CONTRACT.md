@@ -176,11 +176,12 @@ A topic's cold passes are not stored: the level rules find them in `attempts.jso
 ```json
 {"v":1,"id":"ielts-cold-03","subject":"ielts","type":"cold","measures":true,"topics":["T01","T04"],"asks":14,"est_min":12,
  "status":"issued","created":"...","lint":"PASS","files":["sheets/2026-10/ielts-cold-03.pdf"],"key_sha":"<sha256>",
- "issued_at":"...","sat":{"start":null,"stop":null,"date":null},"evidence":[],"graded_at":null,"opens_unsat":0,"block":null}
+ "issued_at":"...","sat":{"start":null,"stop":null,"date":null},"evidence":[],"graded_at":null,"opens_unsat":0,"block":null,"code":"IELTS-07"}
 ```
 
 - **`status` flow:** `built` → `linted` → `rendered` → `issued` → `sat` → `graded`. `void` is also possible.
 - **`measures`** is true for types `cold`, `diagnostic`, `mock`, `checkpoint`, `probe` and `words`.
+- **`code`:** the sheet code printed in the header (`Sheet IELTS-07`): the subject id in capitals and a running number past every code and row on file, never a topic word, so a photo or a notebook page is matched to its sheet. `sheet new` sets it and keeps it on `--replace`; `sheet build` sets one on an older row that has none.
 - **`evidence[]`:** `{"kind","file","at"}` per filed file (plus `original` for a converted HEIC, `source` and `files` for a code project). A failure-gate photo (`scan ingest --asks`) adds `"asks":["1a","2a","3a"]`, the questions it covers; an entry without `asks` is the finished sheet.
 
 ### 5.5 `data/attempts.jsonl` (append; one row per graded ask)
@@ -412,7 +413,7 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
 - **`session open <subject> --planned MIN [--block ID] [--kind K]`**
   - Refuses (exit 1) if that subject is locked and not stale, and says to carry that session on after reading `session status` and the open `owed` rows (it may be running in another chat). If another subject is locked, it prints a warning with the other lock and proceeds only with `--park-other`, which writes that subject's `.indelible/unclosed`.
   - Writes the lock and prints the budget (§6.3).
-- **`session status <subject>`:** one line, e.g. `[indelible] 47/60 min · close starts 07:55 · questions so far 38`. Questions so far are the asks graded since the start. When sheets are out (status `issued` or `sat`), a second line lists them, oldest issue first, by id, type and issue time: `[indelible] sheets out: ielts-cold-02 (cold, issued today 07:04) · ielts-headings-01-drills (drills, taken, not graded)`. It never names a recheck's topics.
+- **`session status <subject>`:** one line, e.g. `[indelible] 47/60 min · close starts 07:55 · questions so far 38`. Questions so far are the asks graded since the start. When sheets are out (status `issued` or `sat`), a second line lists them, oldest issue first, by id, type, sheet code and issue time: `[indelible] sheets out: ielts-cold-02 (cold, sheet IELTS-04, issued today 07:04) · ielts-headings-01-drills (drills, sheet IELTS-03, taken, not graded)`. It never names a recheck's topics.
 - **`session extend <subject> --min N`:** records the session's one extension in the lock (§6.2) and prints the new end and close start. Refuses (exit 1) with no open session, an unclosed one, a second extension, or N over min(`session.extension_max_min` (default 15, at most 30), ⌊0.25 × planned_min⌋); N < 1 is a usage error (exit 2). The third cap in close.md §2 (the next fixed start) is Claude's to check. While an extension runs, `session status` adds `· extension until HH:MM`, and "closing time" waits for the moved close start.
 - **`session expose <subject> <topic> [--kind chat]`:** appends an exposure. Used whenever something is taught or discussed outside a sheet. For a topic still waiting for its first recheck, the window counts from the last warm exposure (§6.4), so it moves every open cold block of that topic alone (not placed, or placed later) to [now + `cold_window_h[0]`, now + `cold_window_h[1]`] (`basis: exposure`), prints the new window, and WARNs for a placed recheck now outside it.
 - **`session taught <subject> <topic> [--by sheet|external|chat|tutor] [--block ID]`**
@@ -485,7 +486,7 @@ For a rounded number, `check` also gives the tolerance the check holds to, the s
 - **`sheet new <subject> <id> --spec PATH --answers PATH`**
   - Validates the spec. Copies it to `.indelible/specs/<id>.json`.
   - Writes the answers to `.indelible/keys/<id>.json` (mode 600) and **deletes** the answers file when it is inside `<subject>/.indelible/tmp/`. An answers file anywhere else is left in place, with a warning.
-  - Appends or updates the sheets row (`status=built`).
+  - Appends or updates the sheets row (`status=built`), with its sheet `code` (§5.4).
   - Prints exactly: `<id> built: <asks> questions, ~<est_min> min, key sealed sha256:<first 12>`.
   - Refuses to overwrite an existing id unless its status is `built`, `linted` or `rendered` and `--replace` is given. **A sealed instrument is never edited after issue.**
 - **`sheet lint <subject> <id> [--budget-min N]`** prints PASS, FAIL or WARN lines, one per rule id. It sets `lint` to PASS or FAIL, and `status=linted` on PASS. Exit 1 on any FAIL.
@@ -515,8 +516,8 @@ For a rounded number, `check` also gives the tolerance the check holds to, the s
   - Requires `lint=PASS`.
   - Renders through the chain: typst, then Chrome/Edge headless on the HTML (PDF), then HTML, then Markdown. It uses the backend recorded by `doctor`, or tries in order.
   - Output goes to `sheets/YYYY-MM/<id>.<ext>`, and the source `.typ` or `.html` is kept beside it.
-  - Sets `status=rendered` and `files`. Prints the path.
-- **`sheet issue <subject> <id> [--block ID]`:** sets `status=issued` and `issued_at`, and links the block. It refuses (exit 1) a sheet whose `est_min` is over the block's budget, worked out as L5 does without `--budget-min` (a measurement's included), and a `cold` sheet whose L7 fails at the block's start. It refuses a `cold` or `mixed` sheet with a `cold:`, `error:` or `sentinel:` origin that another `cold` or `mixed` sheet with status `issued` or `sat` also has, naming that sheet (sit and grade it, or `sheet void` it first). For a `cold` sheet it prints, for each first-serve `cold:` topic, the latest start that still counts: `Start by <time>: the 44–72 h window of T01 closes then …` (the level rules judge a sitting by its start).
+  - Sets `status=rendered` and `files` (and `code`, on a row that has none). Prints the path.
+- **`sheet issue <subject> <id> [--block ID]`:** sets `status=issued` and `issued_at`, and links the block. It prints `<id> issued for block <B> · sheet <code>`. It refuses (exit 1) a sheet whose `est_min` is over the block's budget, worked out as L5 does without `--budget-min` (a measurement's included), and a `cold` sheet whose L7 fails at the block's start. It refuses a `cold` or `mixed` sheet with a `cold:`, `error:` or `sentinel:` origin that another `cold` or `mixed` sheet with status `issued` or `sat` also has, naming that sheet (sit and grade it, or `sheet void` it first). For a `cold` sheet it prints, for each first-serve `cold:` topic, the latest start that still counts: `Start by <time>: the 44–72 h window of T01 closes then …` (the level rules judge a sitting by its start).
 - **`sheet sat <subject> <id> [--start HH:MM] [--stop HH:MM] [--date YYYY-MM-DD]`:** sets `status=sat` and `sat.*` (the date defaults to today). With no `--date` and no date on record, a sheet issued on an earlier day is refused (exit 1) when its sitting time matters (a `cold` sheet, or any `cold:`, `error:` or `sentinel:` item); any other sheet keeps today with a note.
 - **`sheet void <subject> <id> --reason TEXT`**
 - **`sheet show <subject> [--status S]`:** lists the sheets.
@@ -533,7 +534,7 @@ For a rounded number, `check` also gives the tolerance the check holds to, the s
   - It is the only command that prints answers. Each opening appends `{"at","sheet","asks"}` to `.indelible/keys/opened.jsonl`, `asks` being the questions printed.
 
 **Templates** (`assets/templates/typ/sheet.typ`, `html/sheet.html`, `md/sheet.md`): Python fills them with `string.Template`-style `$placeholders`, or builds the body in code. Every rendered sheet has:
-- **header:** title, date and weekday, estimated minutes, number of questions, and the provenance line `Practice — written by Claude`, `Measurement — written by Claude`, or `Measurement — official`;
+- **header:** title, date and weekday, estimated minutes, number of questions, the provenance line `Practice — written by Claude`, `Measurement — written by Claude`, or `Measurement — official`, and the sheet code, `Sheet IELTS-07`;
 - **a rules box:**
   - closed book ("no notes, no book, no search, no AI"; on `drills`, where Claude gives hints, "no other AI"); `theory`, `external`, `example` and `repair` print their read-then-close line instead; with the subject's `format.reference_sheet` true, a closed-book sheet (any type but `theory`, `external`, `example` and `repair`) adds "You may use a clean copy of the exam's formula sheet, with nothing written on it", and its tools line names the formula sheet;
   - answer on paper, one answer in each box;

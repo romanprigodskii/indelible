@@ -279,6 +279,29 @@ class SheetNewTests(SheetBase):
         self.assertEqual(r.returncode, 2)
         self.assertIn("does not exist", r.stderr)
 
+    def test_every_sheet_gets_a_neutral_code_to_match_its_photo(self):
+        drills, theory = drills_spec(), theory_spec()
+        self.ok(new_sheet(self.ws, drills))
+        self.ok(new_sheet(self.ws, theory))
+        self.assertEqual(sheet_row(self.ws, drills["id"])["code"], "IELTS-01")
+        self.assertEqual(sheet_row(self.ws, theory["id"])["code"], "IELTS-02")
+        self.ok(new_sheet(self.ws, drills, extra=["--replace"]))
+        self.assertEqual(sheet_row(self.ws, drills["id"])["code"], "IELTS-01", "a rebuild keeps its code")
+        # A row from before sheet codes gets the next free one when it is built.
+        path = subject_dir(self.ws) / "data" / "sheets.jsonl"
+        rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+        for row in rows:
+            if row["id"] == theory["id"]:
+                del row["code"]
+        path.write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8")
+        self.ok(self.cli("sheet", "lint", SUBJECT, theory["id"]))
+        out = Path(self.ok(self.cli("sheet", "build", SUBJECT, theory["id"], "--format", "md")).stdout.splitlines()[0])
+        self.assertEqual(sheet_row(self.ws, theory["id"])["code"], "IELTS-03")
+        self.assertIn("Practice — written by Claude · Sheet IELTS-03", out.read_text(encoding="utf-8"))
+        r = self.ok(self.cli("sheet", "issue", SUBJECT, theory["id"]))
+        self.assertIn("issued · sheet IELTS-03", r.stdout)
+        self.assertIn("sheet IELTS-03", self.ok(self.cli("sheet", "show", SUBJECT)).stdout)
+
     def test_existing_id_needs_replace_and_sealed_is_never_edited(self):
         spec = drills_spec()
         self.ok(new_sheet(self.ws, spec))

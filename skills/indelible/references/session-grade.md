@@ -32,6 +32,8 @@ No part of the key reaches chat for a question until its account is in (step 5).
 
 ## 2. File the evidence
 
+**Match the photo to its sheet first.** Read the sheet code on the page: "Sheet STATS-04" in the header, or the first line of a notebook page. `ind session status stats` lists each sheet out with its code. No code, and one sheet of this subject is out: file it against that one. No code and more than one out, or a code that differs: ask "Which sheet is this: STATS-04 or STATS-05?" before filing, since filing marks the sheet taken and opens its key. When a page also holds another subject's answers, transcribe only the lines under this sheet's code.
+
 | Evidence arrives as | Run |
 |---|---|
 | Photos in `<ws>/inbox/` or at a path | `ind scan ingest stats stats-cold-04 <ws>/inbox/IMG_0412.jpg <ws>/inbox/IMG_0413.jpg` (one path per page) |

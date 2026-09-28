@@ -28,7 +28,9 @@ a blank date line to fill in, for a sheet built ahead with no block), ``tools``
 (default ``spec.tools`` or "none"), ``lang`` (an ISO 639 code for
 hyphenation), ``profile`` (the subject profile: ``code`` sheets get the code
 wording in the rules box), ``reference_sheet`` (the exam gives a formula sheet:
-closed-book sheets allow a clean copy of it).
+closed-book sheets allow a clean copy of it), ``sheet_code`` (the sheet code from the
+sheet row, e.g. "IELTS-07": printed in the header, so a photo or a notebook page
+can be matched to its sheet).
 
 Code: item text and theory bodies may hold fenced code blocks (lines between
 ```` ``` ```` fences) and inline `code spans`. They are printed verbatim in a
@@ -380,10 +382,11 @@ def rules(spec, tools, fmt="html", profile=None, reference_sheet=False):
     return out
 
 
-def build_model(spec, date=None, tools=None, fmt="html", profile=None, reference_sheet=False):
+def build_model(spec, date=None, tools=None, fmt="html", profile=None, reference_sheet=False, sheet_code=None):
     """Everything a template shows, as plain strings. No key content ever enters here.
 
-    ``date`` None means today; ``False`` prints a blank date line to fill in.
+    ``date`` None means today; ``False`` prints a blank date line to fill in. ``sheet_code`` (the
+    sheet row's neutral code, never a topic word) ends the header line.
     """
     t = spec.get("type")
     blank = date is False
@@ -392,6 +395,8 @@ def build_model(spec, date=None, tools=None, fmt="html", profile=None, reference
     n_asks = ask_count(spec)
     est = spec.get("est_min")
     meta = "About %s min · %d question%s · %s" % (_num(est), n_asks, "" if n_asks == 1 else "s", provenance(spec))
+    if _s(sheet_code).strip():
+        meta += " · Sheet %s" % _s(sheet_code).strip()
 
     items = _items(spec)
     by_n = {}
@@ -546,8 +551,10 @@ def _slug(text):
     return re.sub(r"[^a-z0-9]+", "-", _s(text).lower()).strip("-") or "x"
 
 
-def render_html(spec, date=None, tools=None, lang="en", profile=None, reference_sheet=False):
-    m = build_model(spec, date=date, tools=tools, fmt="html", profile=profile, reference_sheet=reference_sheet)
+def render_html(spec, date=None, tools=None, lang="en", profile=None, reference_sheet=False,
+                sheet_code=None):
+    m = build_model(spec, date=date, tools=tools, fmt="html", profile=profile, reference_sheet=reference_sheet,
+                    sheet_code=sheet_code)
     o = []
     o.append('<main aria-labelledby="sheet-title">\n')
     o.append('<header class="sheet-head">\n')
@@ -673,8 +680,10 @@ def _typ_paras(paras):
     return "".join(out)
 
 
-def render_typst(spec, date=None, tools=None, lang="en", profile=None, reference_sheet=False):
-    m = build_model(spec, date=date, tools=tools, fmt="pdf", profile=profile, reference_sheet=reference_sheet)
+def render_typst(spec, date=None, tools=None, lang="en", profile=None, reference_sheet=False,
+                 sheet_code=None):
+    m = build_model(spec, date=date, tools=tools, fmt="pdf", profile=profile, reference_sheet=reference_sheet,
+                    sheet_code=sheet_code)
     o = []
     o.append("#grid(columns: (1fr, auto), column-gutter: 12pt, align: (left + bottom, right + bottom),\n")
     o.append("  [#heading(level: 1)[%s]],\n" % _tl(m["title"]).strip())
@@ -782,8 +791,10 @@ def _md_paras(paras):
     return "".join(out)
 
 
-def render_markdown(spec, date=None, tools=None, lang="en", profile=None, reference_sheet=False):
-    m = build_model(spec, date=date, tools=tools, fmt="md", profile=profile, reference_sheet=reference_sheet)
+def render_markdown(spec, date=None, tools=None, lang="en", profile=None, reference_sheet=False,
+                    sheet_code=None):
+    m = build_model(spec, date=date, tools=tools, fmt="md", profile=profile, reference_sheet=reference_sheet,
+                    sheet_code=sheet_code)
     o = []
     o.append("**0.** %s ____\n\n" % START_LABEL)
     th = m["theory"]
@@ -1096,7 +1107,7 @@ def backend_order(fmt=None, preferred=None):
 
 
 def render_sheet(spec, out_dir, base, fmt=None, preferred=None, date=None, tools=None, lang="en", profile=None,
-                 reference_sheet=False):
+                 reference_sheet=False, sheet_code=None):
     """Render through the chain. Returns ``{"backend", "files", "notes"}``.
 
     ``files`` lists the printable output first, then its kept source
@@ -1108,7 +1119,8 @@ def render_sheet(spec, out_dir, base, fmt=None, preferred=None, date=None, tools
     out_dir = Path(out_dir)
     fio.ensure_dir(out_dir)
     notes = []
-    kw = {"date": date, "tools": tools, "lang": lang, "profile": profile, "reference_sheet": reference_sheet}
+    kw = {"date": date, "tools": tools, "lang": lang, "profile": profile, "reference_sheet": reference_sheet,
+          "sheet_code": sheet_code}
     for b in backend_order(fmt, preferred):
         if b == "typst":
             exe = find_typst()

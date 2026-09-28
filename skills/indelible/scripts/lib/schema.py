@@ -821,9 +821,12 @@ RECORDS = {
                     "created": "2026-10-14T19:05+01:00", "lint": "PASS",
                     "files": ["sheets/2026-10/ielts-cold-03.pdf"], "key_sha": "<sha256 of the sealed key>",
                     "issued_at": "2026-10-14T19:20+01:00", "sat": {"start": None, "stop": None, "date": None},
-                    "evidence": [], "graded_at": None, "opens_unsat": 0, "block": None},
+                    "evidence": [], "graded_at": None, "opens_unsat": 0, "block": None, "code": "IELTS-07"},
         "notes": [
             ("id", "free slug matching [a-z0-9][a-z0-9-]{1,60}, e.g. ielts-cold-03"),
+            ("code", "the sheet code printed in the header (the subject id in capitals and a running number, "
+                     "never a topic word), so a photo or notebook page is matched to its sheet; set by sheet new "
+                     "(sheet build, for an older row)"),
             ("type", " | ".join(SHEET_TYPES)),
             ("measures", "true for " + ", ".join(MEASURING_TYPES)),
             ("status", "built -> linted -> rendered -> issued -> sat -> graded; or void"),

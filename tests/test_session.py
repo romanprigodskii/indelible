@@ -167,6 +167,15 @@ class OpenStatusTests(SessionBase):
         r = self.ind("session", "status", "ielts", now="2026-10-12T09:30+01:00")
         self.assertEqual(len(r.stdout.strip().splitlines()), 1, r.stdout)
 
+    def test_status_names_the_sheet_code_to_match_a_photo(self):
+        self.open_session(60)
+        cold = dict(self.sheet("ielts-cold-02", "cold", status="issued", sat_date=None, evidence=False),
+                    issued_at="2026-10-12T09:04+01:00", code="IELTS-04")
+        self.put("ielts/data/sheets.jsonl", [cold])
+        r = self.ind("session", "status", "ielts", now="2026-10-12T09:30+01:00")
+        self.assertEqual(r.stdout.strip().splitlines()[1],
+                         "[indelible] sheets out: ielts-cold-02 (cold, sheet IELTS-04, issued today 09:04)")
+
     def test_extend_records_the_one_extension(self):
         r = self.ind("session", "extend", "ielts", "--min", "10")
         self.assertEqual(r.returncode, 1)
