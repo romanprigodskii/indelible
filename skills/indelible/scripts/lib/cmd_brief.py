@@ -726,7 +726,8 @@ def due_state(subj, now):
         "names": names,
         "counts": {"late": len(late), "cold": len(cold), "beliefs": len(beliefs), "slips": len(slips),
                    "shaky": len(shaky), "other": len(oldest) - len(slips), "untreated": len(untreated),
-                   "errors_due": len(beliefs) + len(shaky) + len(oldest)},
+                   "errors_due": len(beliefs) + len(shaky) + len(oldest),
+                   "errors_not_now": len([e for e in due if not e["_eligible"]])},
     }
 
 
@@ -746,7 +747,10 @@ def due_counts_items(st, plain):
         if c["other"]:
             parts.append("%d other" % c["other"])
         if parts:
-            items.append("mistakes due: " + ", ".join(parts))
+            # Due by date, but not all servable now (seen in the last 24 h, or an unfixed mistake
+            # on the topic): say how many, so the recheck is not sized on them.
+            later = " (%d not ready yet)" % c["errors_not_now"] if c.get("errors_not_now") else ""
+            items.append("mistakes due: " + ", ".join(parts) + later)
         if c["untreated"]:
             items.append("mistakes to fix before they come back: %d" % c["untreated"])
     else:
@@ -764,7 +768,8 @@ def due_counts_items(st, plain):
         if c["other"]:
             parts.append("%d other" % c["other"])
         if parts:
-            items.append("errors due: " + ", ".join(parts))
+            later = " (%d not servable now)" % c["errors_not_now"] if c.get("errors_not_now") else ""
+            items.append("errors due: " + ", ".join(parts) + later)
         if c["untreated"]:
             items.append("untreated beliefs needing repair: %d" % c["untreated"])
     return items

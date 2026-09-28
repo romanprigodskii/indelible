@@ -503,6 +503,25 @@ class DueTests(BriefBase):
         self.assertEqual(data["counts"]["untreated"], 1)
         self.assertEqual([e["id"] for e in data["tiers"]["4_oldest"]], ["E-ielts-0001", "E-ielts-0002"])
 
+    def test_the_due_count_says_how_many_are_not_ready_yet(self):
+        # Repaired last night: due today by date, but the 24-hour rule holds it until 20:00.
+        self.put("ielts/data/exposures.jsonl", [{"v": 1, "topic": "T03", "at": "2026-10-11T20:00+01:00",
+                                                 "kind": "repair"}])
+        self.put("ielts/data/errors.jsonl", [self.error(1, kind="belief", next_due="2026-10-12", topic="T03"),
+                                             self.error(2, kind="slip", next_due="2026-10-11", topic="T01")])
+        self.set_cfg("learner.vocab", "technical")
+        r = self.ind("due", "ielts")
+        self.assertIn("errors due: 1 beliefs repaired, 1 slip (1 not servable now)", r.stdout)
+        self.set_cfg("learner.vocab", "plain")
+        learner, claude = self.parts(self.brief())
+        self.assertIn("mistakes due: 1 fixed, 1 slip (1 not ready yet)", learner)
+        self.assertIn("not now: seen 13 h ago (less than 24 h)", claude)
+        data = json.loads(self.ind("due", "ielts", "--json").stdout)
+        self.assertEqual((data["counts"]["errors_due"], data["counts"]["errors_not_now"]), (2, 1))
+        r = self.ind("due", "ielts", now="2026-10-12T20:30+01:00")
+        self.assertIn("mistakes due: 1 fixed, 1 slip", r.stdout)
+        self.assertNotIn("not ready", r.stdout)
+
     def test_untreated_belief_blocks_a_topic_recheck(self):
         self.put("ielts/data/exposures.jsonl", [{"v": 1, "topic": "T04", "at": "2026-10-10T08:00+01:00",
                                                  "kind": "teach"}])
