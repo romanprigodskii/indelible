@@ -18,7 +18,7 @@ Contents: 1 Rules for every subject · 2 Quantitative · 3 Verbal · 4 Language 
 - **The `belief` text** is at most 120 characters, states the wrong idea, and never the right answer. The examples below follow that style.
 - **Codes** are single capital letters stored as `mode`. Set them at `teach` from the profile's table: `ind set <subject> taxonomy '[{"code":"V","name":"a word stopped me","treatment":"…"}, …]'`. A subject spanning layers combines sets, renaming a code only if two collide. Persona A (IELTS): verbal V D E R T C, essay A S O W, and L from language.
 - **Treatments are sheets,** never explanations in chat above a test (Law 2). Sheet types and check-line forms: [sheets.md](sheets.md).
-- **Tell the learner the mode in plain words** (Law 10): "Question 5: the passage never says this, so the answer isn't supported. Every TRUE needs words in the passage behind it. Your other answers on that passage had them, so this is within reach. Next: a short sheet on it on Thursday; until then, copy the supporting words beside each answer."
+- **Tell the learner the mode in plain words** (Law 10), naming the question by its gist and the learner's answer ([session-grade.md](session-grade.md) §3): "Question 5 (why the second entrance was built; you wrote TRUE): the passage never says this, so the answer isn't supported. Every TRUE needs words in the passage behind it. Your other answers on that passage had them, so this is within reach. Next: a short sheet on it on Thursday; until then, copy the supporting words beside each answer."
 
 ## 2. Quantitative (maths, statistics, science calculations: persona C)
 

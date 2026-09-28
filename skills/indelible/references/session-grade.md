@@ -20,7 +20,7 @@ Load this whenever a sheet comes back: a photo, a typed file, or a photo pasted 
 Never reorder these steps.
 
 1. File the evidence with `ind scan ingest`.
-2. On a 2-day recheck, before the key is opened, ask once: "Did you look at any of this since last time? Which questions?" (§10). Asked after the verdicts, it would let the learner name the questions they got wrong.
+2. On a 2-day recheck, before the key is opened, ask once: "Did you look at any of this since last time? Which questions? Topics in your own words are fine." (§10). Asked after the verdicts, it would let the learner name the questions they got wrong.
 3. Open the key with `ind key open`.
 4. Mark every question privately.
 5. Show the learner the list of verdicts.
@@ -69,12 +69,15 @@ Take `start` and `stop` from items 0 and N. If both are blank on a recheck or a 
 
 Say "wrong" when the answer fails an objective test: a number that fails substitution (to the tolerance the key's `check` gives, never a tighter one), code that fails a test, or an official key. For a Claude-written item where another answer could be defensible (verbal, reading, language, or wording in a concept), say "doesn't match my answer" (see §9).
 
-Show the list in plain words, with question numbers and no IDs:
+**Name each question so the learner can place it.** A number alone means little once the sheet is out of view, and nothing days later. In the Wrong and Doesn't-match lines, in each account and feedback line, and on the result card, give the number, a gist of the question in at most 12 words, and the learner's answer as filed (its first words if it is long): "4 (median of six waiting times; you wrote 11.2)". Take the gist from the item's `text` in `<subject>/.indelible/specs/<id>.json`, the visible sheet, never from the key. An official item has only a pointer there: give its number and the answer. The Right line stays numbers only. Do it every time; it matters most when the sheet was sat on an earlier day (a solo block, marking carried over to the next session, a photo sent later).
+
+Show the list in plain words, with no IDs:
 
 ```
 2-day recheck, marked.
 Right: 1, 2, 3, 5, 6, 8, 9, 10, 11, 12, 13
-Wrong: 4, 7 · Doesn't match my answer: 14
+Wrong: 4 (median of six waiting times; you wrote 11.2) · 7 (share of late buses in the sample; you wrote 0.35)
+Doesn't match my answer: 14 (what the 95% in an interval refers to; you wrote "95% of the data…")
 Let's go through them one at a time, starting with 4.
 ```
 
@@ -83,7 +86,7 @@ Let's go through them one at a time, starting with 4.
 - **Order.** First the unnamed wrong answers (wrong, and not on the Least-sure line), then the named wrong answers, then halves. Accounts for "I don't know" are optional.
 - **An account is how the learner got their answer, never where it went wrong.** They know the answer doesn't match, not why. On a topic they met today they can't see the error, and a hunt for it costs minutes and confidence and tells you nothing. Never ask "can you find the mistake?", "which line is wrong?" or "what went wrong?", and never say how many answers are wrong without naming them.
 - **One question at a time,** as a short menu:
-  `Question 4: how did you get your answer? 1) I did it this way: ___  2) a word stopped me  3) I guessed  4) I can see my slip: ___`
+  `Question 4 (median of six waiting times; you wrote 11.2): how did you get your answer? 1) I did it this way: ___  2) a word stopped me  3) I guessed  4) I can see my slip: ___`
   Option 1 is the richest account: the method in their words is often the wrong idea itself. Word it for the layer when it helps: "I used this rule: ___" (numbers), "I read line __ as saying: ___" (reading), "I thought it meant: ___" (language), "I expected this line to: ___" (code). Option 4 is for a learner who spots a slip at a glance; never press for it. A reply in their own words, off the menu, is always fine.
 - **"A word stopped me":** ask which word, in one line. Ask for the word only, never the answer.
 - **First language allowed.** Persona A may answer in Portuguese. Record the account in the learner's own words.
@@ -188,7 +191,7 @@ Turn the output into a result card of at most 6 lines. Every number carries its 
 ```
 2-day recheck: 11 of 14 right [measured n=14]
 2 of your 3 wrong answers weren't on your Least-sure line: those come back first.
-Check lines on 13 of 14 questions; one caught a mistake (question 9).
+Check lines on 13 of 14 questions; one caught a mistake (question 9, the sample size for a margin of error).
 Mistakes scheduled: 3. One needs a short fix sheet before it comes back.
 Mastery: confidence intervals 2 → 3 [measured].
 ```
@@ -217,7 +220,7 @@ Drill scores are `[practice]`; never present them as measured. Every belief now 
 
 - **A sealed question** (on a measuring sheet that is issued and not yet graded) is never discussed before grading: "Send the photo first. Once it's marked, we can go through it."
 - **A question you discussed before it was sat** is not graded. Leave it out of `grades.json` and tell the learner "not counted (seen too recently)". Log it when the discussion happens, not at marking: `ind ledger add defect --subject <s> --category contamination --what "<sheet> q<n> discussed before it was sat" --fix-type <type> --fix "<what changes>"`.
-- **Looked since last time.** Before marking a 2-day recheck, ask once: "Did you look at any of this since last time? Which questions?" For each question they name:
+- **Looked since last time.** Before marking a 2-day recheck, ask once: "Did you look at any of this since last time? Which questions? Topics in your own words are fine." Match any topic they name to its questions on the sheet. For each question they name:
   - leave it out of `grades.json`;
   - if their answer was wrong, add the error with `ind error add … --sheet <id> --item <n>`;
   - run `ind session expose <subject> <topic> --kind review`.

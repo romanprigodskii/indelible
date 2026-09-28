@@ -164,7 +164,7 @@ Rough figures at the default paces (estimates): 20 minutes verbal gives about 12
 
 - **Short sessions (30 minutes or less):**
   - A teach and its recheck may span sessions: the theory card one day, drills the next, and the recheck 44–72 h after the last warm exposure.
-  - Marking of new material may carry over to the next open, for at most 3 minutes. A recheck is always marked the same day.
+  - Marking of new material may carry over to the next open, for at most 3 minutes; name each question then by its gist and the learner's answer, not its number alone ([session-grade.md](session-grade.md) §3). A recheck is always marked the same day.
 - **A quick session** is an unplanned drop-in, or one shorter than the learner's usual length. It serves due items only: nothing new and no measurement.
 - **Measurement sittings** (diagnostic, mock, checkpoint) are sized by the exam clock, not this table ([measure.md](measure.md)).
 
@@ -182,7 +182,7 @@ The recheck takes at most a quarter of the planned minutes in sessions of 30 min
    Every question is new: fresh numbers or sentences, never the item that was missed. Within a tier, earlier wrong answers the learner had not named as least sure come first.
 2. **Excluded:** any topic with an untreated mistake, and any topic with a warm exposure (teach, repair, chat, drill or review) in the last 24 hours. Lint rule L7 refuses both; never work around it. If the learner overrides, the result is labelled "not counted (seen too recently)".
 3. **The sheet** is type `cold`: unlabelled and mixed, with no topic names in titles or labels and no two neighbouring questions on the same topic. Every question has a check line, and the sheet ends with the Least-sure line. The builder writes it ([sheets.md](sheets.md)).
-4. **Looked since last time:** no sheet prints this in v0.1. When the photo arrives, before marking, ask once in chat: "Did you look at any of this since last time? Which questions?" Any question named is "not counted (seen too recently)" ([session-grade.md](session-grade.md) §10).
+4. **Looked since last time:** no sheet prints this in v0.1. When the photo arrives, before marking, ask once in chat: "Did you look at any of this since last time? Which questions? Topics in your own words are fine." Any question named is "not counted (seen too recently)" ([session-grade.md](session-grade.md) §10).
 5. **The sitting:**
    - **Hand it over** and issue it against the session block from step 4 (`ind sheet issue <s> <id> --block <B>`): "Here's your 2-day recheck: <path>. On paper, book closed. Write the start time on the first line and a check beside every answer. At the end, write the stop time and fill in 'Least sure of'. Writing 'I don't know' is always fine. When you're done, send the photos (<the route from the welcome card>) and say 'sent'."
    - **No printer** (persona B): the learner reads the sheet on screen and writes the answers in a notebook: first line the sheet code from the header ("Sheet SPANISH-12") and the start time, then the answers numbered as on the sheet.

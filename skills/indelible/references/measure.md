@@ -61,7 +61,7 @@ Item rules (lint L2, L3 and L9 enforce the first three):
 1. **Evidence first:** `ind sheet sat <subject> <id> --start HH:MM --stop HH:MM`, then `ind scan ingest <subject> <id> <photos>` (or `--typed FILE`, or `--transcript -` for a chat photo you transcribed). Only then `ind key open <subject> <id>`.
 2. **Between Part A and Part B,** give verdicts only; explain nothing on a topic going into Part B.
 3. **Per question:** verdict `right`, `half`, `wrong`, `dont_know` (wrote "I don't know") or `skip` (blank); check `filled`, `missing` or `caught`; `least_sure` from the closing line.
-4. **Accounts before classifying,** one miss at a time, unnamed wrong answers first (wrong and not on the Least-sure line): "Question 7: how did you get your answer? 1) I did it this way: ___ 2) a word stopped me 3) I guessed 4) I can see my slip: ___". An account is how they got it, never a hunt for the error ([session-grade.md](session-grade.md) §4). Any language is fine. Cap at about 5 minutes per paper; the rest get "no account", never counted as blanks.
+4. **Accounts before classifying,** one miss at a time, unnamed wrong answers first (wrong and not on the Least-sure line): "Question 7 (<gist>; you wrote <answer>): how did you get your answer? 1) I did it this way: ___ 2) a word stopped me 3) I guessed 4) I can see my slip: ___", naming each question by its number, a gist and the learner's answer, as [session-grade.md](session-grade.md) §3 says. An account is how they got it, never a hunt for the error ([session-grade.md](session-grade.md) §4). Any language is fine. Cap at about 5 minutes per paper; the rest get "no account", never counted as blanks.
 5. **Classify** with the subject taxonomy. Give `kind` only for a specific wrong idea (`belief`) or a slip. A guess or "I don't know" on an untaught topic gets no `kind`: teaching covers it.
 6. **Record:** write the grades file (`ind schema grades`), then `ind grade record <subject> <id> --from grades.json`. No `--shaky` on a diagnostic; use it on mocks and checkpoints.
 7. **Claude-built keys can be wrong.** Say "that doesn't match my answer", check the scan and key, and if the answer is defensible, mark it right and log a `content_error` defect (`ind ledger add defect`).
@@ -87,7 +87,7 @@ No praise beyond the evidence. End with the next step.
 ## 7. Probes (sessions 2–3)
 
 - **A skipped topic is not an unknown topic.** Blanks often come from labels, time or nerves. Each topic whose evidence is mostly blanks gets 2–3 unlabelled items in one mixed 10–15-minute `probe`, taken within 48 hours of the results. A pass sends the topic to the back of the teach queue; a miss confirms it.
-- **Vocabulary probes.** For each "a word stopped me" miss, and each term-hinged miss whose plain-worded twin was right, one line, cold: "In question 6, what does 'unbiased' mean here?" At most 10 per `probe`. Fix the word (the words box of the next theory sheet, a `words` sheet, or the subject `lexicon` via `ind set`) before the topic is re-taught.
+- **Vocabulary probes.** For each "a word stopped me" miss, and each term-hinged miss whose plain-worded twin was right, one line, cold, quoting the sentence the word came from rather than "in question 6", since the learner no longer has that sheet: "'An unbiased estimate of the mean is…': what does 'unbiased' mean here?" (for an official item, a sentence of the builder's own). At most 10 per `probe`. Fix the word (the words box of the next theory sheet, a `words` sheet, or the subject `lexicon` via `ind set`) before the topic is re-taught.
 
 ## 8. Levels
 
