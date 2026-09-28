@@ -331,12 +331,6 @@ def _sheets_out(subj, now):
 # expose / taught / override
 # ==========================================================================
 
-def _cold_blocks_for(ws, subj, tid, blocks=None):
-    blocks = ws.load_blocks() if blocks is None else blocks
-    return [b for b in blocks if b.get("subject") == subj.id and b.get("kind") == "cold"
-            and b.get("status") in OPEN and tid in brief.block_topics(b)]
-
-
 def cmd_expose(args):
     ws = wsmod.from_args(args)
     subj = ws.subject(args.subject)
@@ -349,67 +343,16 @@ def cmd_expose(args):
         raise UsageError("; ".join(problems))
     with ws.lock():
         subj.append_exposure(row)
-        rebooked = rebook_first_recheck(ws, subj, t["id"], now)
-    until = dates.plus(now, hours=learning.NO_EXPOSURE_H)  # elapsed hours: right across a clock change
+        rebooked = brief.rebook_first_recheck(ws, subj, t["id"], now)
+    noted = "Noted: %s %s seen (%s) at %s." % (t["id"], t.get("name") or "", args.kind, now.strftime("%H:%M"))
     if rebooked is None:
-        _out("Noted: %s %s seen (%s) at %s. It cannot be on a 2-day recheck before %s." % (
-            t["id"], t.get("name") or "", args.kind, now.strftime("%H:%M"), brief.fmt_when(until, now)))
-        moved, outside = [], []
+        until = dates.plus(now, hours=learning.NO_EXPOSURE_H)  # elapsed hours: right across a clock change
+        _out("%s It cannot be on a 2-day recheck before %s." % (noted, brief.fmt_when(until, now)))
     else:
-        (wf, wt), moved, outside = rebooked
-        lo, hi = subj.cold_window()
-        _out("Noted: %s %s seen (%s) at %s. Its first 2-day recheck now falls between %s and %s (%s–%s h after "
-             "this)." % (t["id"], t.get("name") or "", args.kind, now.strftime("%H:%M"), brief.fmt_when(wf, now),
-                         brief.fmt_when(wt, now), _num(lo), _num(hi)))
-        for b in moved:
-            _out("Recheck %s: window moved to %s – %s." % (b.get("id"), brief.fmt_when(wf, now), brief.fmt_when(wt, now)))
-        for b in outside:
-            s, _ = brief.block_times(b, now.tzinfo)
-            _out("WARN: the 2-day recheck booked %s (%s) is outside its new window: move it inside "
-                 "(plan move %s --start %s), or it will not count." % (
-                     brief.fmt_when(s, now), b.get("id"), b.get("id"), _fmt(wf)))
-    shown = set(b.get("id") for b in outside)
-    for b in _cold_blocks_for(ws, subj, t["id"]):
-        s, _ = brief.block_times(b, now.tzinfo)
-        if b.get("id") in shown:
-            continue
-        if b.get("start") and s is not None and now <= s < until:
-            _out("WARN: the 2-day recheck booked %s (%s) includes %s and is now within 24 h of this exposure: "
-                 "move it (plan move %s --start ISO), or it will not count." % (
-                     brief.fmt_when(s, now), b.get("id"), t["id"], b.get("id")))
+        _out("%s %s" % (noted, brief.rebook_text(subj, rebooked, now)))
+    for line in brief.exposure_lines(ws, subj, t["id"], now, rebooked):
+        _out(line)
     return 0
-
-
-def rebook_first_recheck(ws, subj, tid, at):
-    """Move the open 2-day recheck windows of ``tid`` to follow a warm exposure at ``at``.
-
-    The window is measured from the last warm exposure (CONTRACT 6.4), so drills
-    sat on a later day than the teaching move it: to at + cold_window_h. Only a
-    topic still waiting for its first recheck is moved, and only a recheck of
-    that topic alone that is not placed, or placed after ``at``; one with other
-    topics keeps its window. Call it inside ws.lock(). Returns None when nothing
-    applies, else ((from, to), moved blocks, placed blocks now outside the window).
-    """
-    exposures = subj.load_exposures()
-    state = subj.load_topics_state().get(tid)
-    if not learning.is_first_serve(state) or not learning.has_first_serve_basis(tid, exposures, state):
-        return None
-    lo, hi = subj.cold_window()
-    wf, wt = dates.plus(at, hours=lo), dates.plus(at, hours=hi)
-    blocks = ws.load_blocks()
-    moved, outside = [], []
-    for b in _cold_blocks_for(ws, subj, tid, blocks):
-        s = brief.to_local(b.get("start"), at.tzinfo)
-        if s is not None and s < at:
-            continue  # already past: the brief reports it if it was not sat
-        if brief.block_topics(b) == [tid]:
-            b["window"] = {"from": _fmt(wf), "to": _fmt(wt), "basis": "exposure"}
-            moved.append(b)
-            if s is not None and not (wf <= s <= wt):
-                outside.append(b)
-    if moved:
-        ws.save_blocks(blocks)
-    return (wf, wt), moved, outside
 
 
 def cmd_taught(args):
@@ -446,7 +389,7 @@ def cmd_taught(args):
 
         blocks = ws.load_blocks()
         existing = []
-        for b in _cold_blocks_for(ws, subj, tid, blocks):
+        for b in brief.cold_blocks_for(ws, subj, tid, blocks):
             s = dates.try_parse_iso(b.get("start"))
             if s is not None and s < now:
                 continue
@@ -638,7 +581,7 @@ def run_checks(ws, subj, lk, now, note):
     for tid, at in sorted(taught.items()):
         wf, wt = dates.plus(at, hours=lo), dates.plus(at, hours=hi)
         ok = False
-        for b in _cold_blocks_for(ws, subj, tid, blocks):
+        for b in brief.cold_blocks_for(ws, subj, tid, blocks):
             if brief.is_obligation(b):
                 _, bt = brief.block_times(b, tz)
                 if bt is None or bt >= now:

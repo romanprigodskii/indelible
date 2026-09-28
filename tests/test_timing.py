@@ -285,6 +285,24 @@ class MovedWindowTests(TimingCase):
         self.assertEqual(r.stdout.count("WARN"), 1)
         self.cli(["plan", "move", bid, "--start", "2026-10-19T07:00+01:00"], now=self.DRILLS)
 
+    def test_a_repair_on_a_later_day_moves_the_window_too(self):
+        # T03 taught Thu 07:00, its recheck placed Sat 10:00; a wrong idea on T03 repaired Fri 20:00 (37 h later)
+        self.cli(["session", "taught", self.sid, "T03"])
+        bid = self.obligation()["id"]
+        self.cli(["plan", "place", bid, "--start", "2026-10-17T10:00+01:00", "--min", "15"])
+        self.cli(["error", "add", self.sid, "--topic", "T03", "--kind", "belief", "--mode", "D",
+                  "--belief", "reads the heading as the first line", "--account", "took the first line"])
+        repaired = "2026-10-16T20:00+01:00"
+        r = self.cli(["error", "repair", self.sid, "E-ielts-0001"], now=repaired)
+        self.assertIn("Its first 2-day recheck now falls between Sun 18 Oct 16:00 and Mon 19 Oct 20:00", r.stdout)
+        self.assertIn("WARN: the 2-day recheck booked Sat 17 Oct 10:00 (%s) is outside its new window: move it "
+                      "inside (plan move %s --start 2026-10-18T16:00+01:00)" % (bid, bid), r.stdout)
+        self.assertEqual(self.obligation()["window"], {"from": "2026-10-18T16:00+01:00",
+                                                       "to": "2026-10-19T20:00+01:00", "basis": "exposure"})
+        self.cli(["plan", "move", bid, "--start", "2026-10-18T16:00+01:00"], now=repaired)
+        r = self.cli(["plan", "check"], now=repaired)
+        self.assertIn("plan check: PASS", r.stdout)
+
     def test_a_topic_already_rechecked_keeps_its_windows(self):
         self.cli(["session", "taught", self.sid, "T03"])
         path = self.sdir / "data" / "topics.json"

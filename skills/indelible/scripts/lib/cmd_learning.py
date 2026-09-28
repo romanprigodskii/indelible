@@ -39,6 +39,7 @@ from lib import CheckFailed, UsageError
 from lib import dates, learning, schema
 from lib import io as fio
 from lib import ws as wsmod
+from lib import cmd_brief as brief
 
 READ_ONLY_STATES = ("shadow", "legacy")
 MIN_LEAK_LEN = 3
@@ -405,16 +406,24 @@ def cmd_error_repair(args):
             new["repair_sheet"] = args.sheet
         errors[idx] = new
         subj.save_errors(errors)
+        rebooked = None
         if e.get("topic"):
             subj.append_exposure({"v": 1, "topic": e["topic"], "at": dates.fmt_iso(now), "kind": "repair"})
+            # A warm exposure: a topic still waiting for its first recheck gets its window moved.
+            rebooked = brief.rebook_first_recheck(ws, subj, e["topic"], now)
         changes = refresh_levels(subj)
     out("%s repaired: back on the ladder at rung 0; its recheck is due %s (%s)."
         % (new["id"], new.get("next_due"), fmt_day(new.get("next_due"))))
     if e.get("topic"):
         # The repair is an exposure: the 24-hour rule, not the due date, sets the earliest serve.
         free = dates.plus(now, hours=learning.NO_EXPOSURE_H)
-        out("Exposure logged: %s (repair), so it can't come back cold before %s %s (24-hour rule)."
-            % (e["topic"], fmt_day(free.date()), free.strftime("%H:%M")))
+        line = ("Exposure logged: %s (repair), so it can't come back cold before %s %s (24-hour rule)."
+                % (e["topic"], fmt_day(free.date()), free.strftime("%H:%M")))
+        if rebooked is not None:
+            line += " " + brief.rebook_text(subj, rebooked, now)
+        out(line)
+        for ln in brief.exposure_lines(ws, subj, e["topic"], now, rebooked):
+            out(ln)
     if changes:
         out("Levels: " + fmt_changes(changes, subj))
     if note:

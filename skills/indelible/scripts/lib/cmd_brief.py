@@ -417,6 +417,86 @@ def recheck_close(block, subj, now, exposures=None, ts_all=None):
     return to_local(w.get("to"), now.tzinfo)
 
 
+def cold_blocks_for(ws, subj, tid, blocks=None):
+    """Open 2-day recheck blocks of this subject that name ``tid``."""
+    blocks = ws.load_blocks() if blocks is None else blocks
+    return [b for b in blocks if b.get("subject") == subj.id and b.get("kind") == "cold"
+            and b.get("status") in OPEN_BLOCK_STATUSES and tid in block_topics(b)]
+
+
+def rebook_first_recheck(ws, subj, tid, at):
+    """Move the open 2-day recheck windows of ``tid`` to follow a warm exposure at ``at``.
+
+    The window is measured from the last warm exposure (CONTRACT 6.4), so drills
+    or a repair on a later day than the teaching move it: to at + cold_window_h.
+    Only a topic still waiting for its first recheck is moved, and only a recheck
+    of that topic alone that is not placed, or placed after ``at``; one with other
+    topics keeps its window. Used by session expose and error repair; call it
+    inside ws.lock(). Returns None when nothing applies, else ((from, to), moved
+    blocks, placed blocks now outside the window).
+    """
+    exposures = subj.load_exposures()
+    state = subj.load_topics_state().get(tid)
+    if not learning.is_first_serve(state) or not learning.has_first_serve_basis(tid, exposures, state):
+        return None
+    lo, hi = subj.cold_window()
+    wf, wt = dates.plus(at, hours=lo), dates.plus(at, hours=hi)
+    blocks = ws.load_blocks()
+    moved, outside = [], []
+    for b in cold_blocks_for(ws, subj, tid, blocks):
+        s = to_local(b.get("start"), at.tzinfo)
+        if s is not None and s < at:
+            continue  # already past: the brief reports it if it was not sat
+        if block_topics(b) == [tid]:
+            b["window"] = {"from": dates.fmt_iso(wf), "to": dates.fmt_iso(wt), "basis": "exposure"}
+            moved.append(b)
+            if s is not None and not (wf <= s <= wt):
+                outside.append(b)
+    if moved:
+        ws.save_blocks(blocks)
+    return (wf, wt), moved, outside
+
+
+def _hours_num(x):
+    return ("%d" % x) if float(x) == int(x) else ("%.1f" % x)
+
+
+def rebook_text(subj, rebooked, now):
+    """The sentence that gives a re-booked first window (rebook_first_recheck's result)."""
+    (wf, wt), _, _ = rebooked
+    lo, hi = subj.cold_window()
+    return "Its first 2-day recheck now falls between %s and %s (%s–%s h after this)." % (
+        fmt_when(wf, now), fmt_when(wt, now), _hours_num(lo), _hours_num(hi))
+
+
+def exposure_lines(ws, subj, tid, now, rebooked):
+    """The lines after a warm exposure of ``tid`` at ``now`` (session expose, error repair):
+    each recheck whose window moved (``rebooked``, from rebook_first_recheck, or None),
+    a WARN for each placed one now outside its new window, and a WARN for any other
+    placed recheck of ``tid`` now within 24 h of the exposure."""
+    out, shown = [], set()
+    if rebooked is not None:
+        (wf, wt), moved, outside = rebooked
+        for b in moved:
+            out.append("Recheck %s: window moved to %s – %s." % (b.get("id"), fmt_when(wf, now), fmt_when(wt, now)))
+        for b in outside:
+            s, _ = block_times(b, now.tzinfo)
+            out.append("WARN: the 2-day recheck booked %s (%s) is outside its new window: move it inside "
+                       "(plan move %s --start %s), or it will not count." % (
+                           fmt_when(s, now), b.get("id"), b.get("id"), dates.fmt_iso(wf)))
+            shown.add(b.get("id"))
+    until = dates.plus(now, hours=learning.NO_EXPOSURE_H)  # elapsed hours: right across a clock change
+    for b in cold_blocks_for(ws, subj, tid):
+        s, _ = block_times(b, now.tzinfo)
+        if b.get("id") in shown:
+            continue
+        if b.get("start") and s is not None and now <= s < until:
+            out.append("WARN: the 2-day recheck booked %s (%s) includes %s and is now within 24 h of this exposure: "
+                       "move it (plan move %s --start ISO), or it will not count." % (
+                           fmt_when(s, now), b.get("id"), tid, b.get("id")))
+    return out
+
+
 def late_rechecks(ws, subj, now, blocks=None, skip_ids=()):
     """Open 2-day rechecks of this subject whose window has passed (no writes).
 
