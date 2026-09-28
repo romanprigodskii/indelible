@@ -14,7 +14,7 @@
   {"query": "that's it for today's chemistry, wrap up the session and tell me what's next", "should_trigger": true},
   {"query": "I'm back after a week off, where was I with rust?", "should_trigger": true},
   {"query": "I looked at my notes on confidence intervals last night, does that matter for tomorrow's recheck?", "should_trigger": true},
-  {"query": "Make me a printable revision timetable for my six GCSE exams", "should_trigger": true},
+  {"query": "Make me a printable revision timetable for my four ACCA papers in June", "should_trigger": true},
   {"query": "What's the difference between a confidence interval and a credible interval? Just a quick explanation, I'm reading a paper.", "should_trigger": false},
   {"query": "Can you review this Rust function for borrow checker problems? fn longest(a: &str, b: &str) -> &str { if a.len() > b.len() { a } else { b } }", "should_trigger": false},
   {"query": "Find a 30-minute slot next week when my two teammates and I are all free and send them a meeting invite about the Q4 roadmap", "should_trigger": false},
