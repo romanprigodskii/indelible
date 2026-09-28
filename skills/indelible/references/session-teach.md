@@ -91,7 +91,7 @@ Per-profile defaults: [profiles.md](profiles.md).
 
 No backlog dump and no guilt.
 
-1. **Their "why", in one line, in their own words,** from NOTES: "You said this matters because <their words>." ("You're doing this for fun.") Missing: ask once, alone, "Before we start again: in a line, why does this matter to you?" (the answer replaces the line, not read back), then, once the recheck is handed over, record it under "Learner notes" in the subject `CLAUDE.md`, outside the markers; never look in `subject.json` (Law 6). "Skip", or a one-word label ("hobby"), leaves the line out.
+1. **Their "why", in one line, in their own words,** from NOTES: "You said this matters because <their words>." ("You're doing this for fun.") Missing: ask once, alone, "Before we start again: in a line, why does this matter to you?" (the answer replaces the line, not read back), then, once the recheck is handed over, record it under "Learner notes" in the subject `CLAUDE.md`, outside the markers, and for the weekly review run `ind set <s> target.why '"<their words>"' --dry-run`: if it shows `(unset)`, `null` or `""` before the arrow, run it again without `--dry-run`. Never look in `subject.json` (Law 6). "Skip", or a one-word label ("hobby"), leaves the line out.
 2. **Their if-then plan,** from the same notes, if there is one.
 3. **Backlog amnesty.** Never list or count what was missed, at the open's missed-block step too: "A few things are waiting. I'll bring them back over the next sessions, riskiest first." Serve what fits the question budget, in `ind due <s> --list` tier order.
 4. **A 10-minute cold check on the last two topics taught,** a `cold` sheet if lint accepts it; a topic whose first 2-day window has passed gets the late-recheck rule ([plan.md](plan.md) §7).

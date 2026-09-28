@@ -413,6 +413,36 @@ class ExposeTaughtOverrideTests(SessionBase):
         self.assertIn("`ind topic show <s>`: the topic id", ask)
         self.assertNotIn("--status issued", ask)
 
+    def test_re_entry_stores_the_asked_reason_only_where_target_why_is_empty(self):
+        # session-teach.md §6 step 1: the reason asked at re-entry reaches target.why, where the weekly
+        # review reads it (review.md §3), through a dry run that shows the old value, since the open never
+        # reads subject.json (Law 6); a reason already there is never overwritten.
+        words = "I want to study abroad next year"
+        r = self.ind("set", "ielts", "target.why", json.dumps(words), "--dry-run")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn('target.why: "master\'s offer" -> ', r.stdout)
+        self.assertEqual(json.loads((self.s / "subject.json").read_text(encoding="utf-8"))["target"]["why"],
+                         "master's offer")
+        for empty, shown in (("null", "null"), ('""', '""')):
+            self.ind("set", "ielts", "target.why", empty)
+            r = self.ind("set", "ielts", "target.why", json.dumps(words), "--dry-run")
+            self.assertIn("target.why: %s -> " % shown, r.stdout)
+            self.assertIn("(dry run: nothing written)", r.stdout)
+        cfg = json.loads((self.s / "subject.json").read_text(encoding="utf-8"))
+        del cfg["target"]["why"]
+        (self.s / "subject.json").write_text(json.dumps(cfg), encoding="utf-8")
+        r = self.ind("set", "ielts", "target.why", json.dumps(words), "--dry-run")
+        self.assertIn("target.why: (unset) -> ", r.stdout)
+        r = self.ind("set", "ielts", "target.why", json.dumps(words))
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertEqual(json.loads((self.s / "subject.json").read_text(encoding="utf-8"))["target"]["why"], words)
+        teach = (Path(__file__).resolve().parents[1] / "skills" / "indelible" / "references"
+                 / "session-teach.md").read_text(encoding="utf-8")
+        step1 = [ln for ln in teach.splitlines() if ln.startswith('1. **Their "why"')][0]
+        self.assertIn("`ind set <s> target.why '\"<their words>\"' --dry-run`", step1)
+        self.assertIn("if it shows `(unset)`, `null` or `\"\"` before the arrow", step1)
+        self.assertIn("Never look in `subject.json` (Law 6)", step1)
+
     def test_law_2_keeps_the_hint_ladder_on_a_practice_sheet_in_a_session(self):
         # The ban on discussing a sheet that is out holds outside a session; in one, session-teach.md §3
         # gives hints on a practice sheet, and the references never contradict the laws (SKILL.md).
