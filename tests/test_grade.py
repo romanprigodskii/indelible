@@ -297,6 +297,23 @@ class ColdSheetTests(GradeBase):
         self.assertIn("Levels: T04 2 → 3", r.stdout)
         self.assert_no_secrets()
 
+    def test_one_wrong_idea_on_two_questions_is_one_mistake_with_the_account_on_both(self):
+        # session-grade.md §5: the same wrong idea on 3 and 7 is one mistake. `kind` goes on the
+        # first question only; the second gets the same account and no kind, so it keeps the
+        # learner's words on its row without opening a second fix sheet for one fix.
+        account = "didn't know 'albeit'; guessed 'because'"
+        self.grades["asks"][2] = dict(self.grades["asks"][6], ask="3a")
+        self.grades["asks"][6] = {"ask": "7a", "verdict": "wrong", "check": "filled", "least_sure": False,
+                                  "mode": "V", "account": account}
+        out = self.record().stdout
+        self.assertIn("Misses with no kind (no mistake opened): 7a", out)
+        errs = [e for e in self.errors() if e["kind"] == "belief"]
+        self.assertEqual([(e["topic"], e["account"]) for e in errs], [("T04", account)])
+        by_ask = dict((a["ask"], a) for a in self.attempts())
+        self.assertEqual(by_ask["3a"]["error_id"], errs[0]["id"])
+        self.assertIsNone(by_ask["7a"]["error_id"])
+        self.assertEqual((by_ask["7a"]["account"], by_ask["7a"]["mode"]), (account, "V"))
+
     def test_an_older_topics_file_with_cold_passes_still_grades(self):
         old = [{"at": "2026-10-10T07:00+01:00", "sheet": "ielts-cold-00", "score": "2/2"}]
         fio.write_json(self.sdir / "data" / "topics.json", {"T04": {
