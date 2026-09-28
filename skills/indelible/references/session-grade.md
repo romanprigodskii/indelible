@@ -155,17 +155,7 @@ The method itself goes on the repair sheet, not in chat. If you explain anything
 
 ## 7. Coaching the backwards check
 
-Every question on drills, cold, mixed, review, diagnostic and checkpoint sheets has a written check beside the answer that works backwards, including a check of the definition used (a repair pencil may have one too). A question printed without a check line (every question on mock, probe, words, theory, external, example, triage, explain and miss-review sheets, a late recheck run as a probe included, and an official question on a diagnostic or checkpoint, sat as the exam sets it) is `check: n/a` and is never coached; `ind grade record` refuses any other value for it. On a question that had a check line, coach when the check was `missing`, or when it was `filled` but repeated the same steps forwards (it would repeat the same mistake). Name the form that fits:
-
-| Question kind | Check that runs the other way | Say |
-|---|---|---|
-| Numeric | Substitute the answer back, or rebuild the total | "Put your answer back into the original equation: does it hold?" |
-| Hinges on a term | Write the definition you used, and test it against the question's words | "Write the definition you used in one line, then reread the question: does it ask for that?" |
-| Verbal or reading | Reread the sentence with the answer in place | "Read the sentence with your word in it: does it still say what the passage says?" |
-| Language | Back-translate | "Translate your sentence back into your own language: is that what you meant?" |
-| Code | An assert or test that runs the other way | "Add an assert that feeds your output back in, such as parse(format(x)) == x." |
-| Proof, below mastery 3 | Name the rule each step uses, beside it | "Beside each step, name the rule it uses." |
-| Proof, from mastery 3 | Name the weakest step and re-derive it | "Which step are you least sure of? Derive that one again another way." |
+A question printed without a check line (every question on mock, probe, words, theory, external, example, triage, explain and miss-review sheets, a late recheck run as a probe included, and an official question on a diagnostic or checkpoint, sat as the exam sets it) is `check: n/a` and is never coached; `ind grade record` refuses any other value for it. On a question that had a check line, coach when the check was `missing`, or when it was `filled` but repeated the same steps forwards (it would repeat the same mistake). Name the form that fits, in the words of its hint in [sheets.md](sheets.md) §3; on a topic below mastery 3, only a check the learner can run (the one the theory sheet worked, or one using only what they own), never "another way" or "the weakest step". Coaching is about the checks on the next sheet; the miss itself was already pointed to in §6.
 
 Persona C, question 4: "Your check confirmed the arithmetic of the mean, so it couldn't catch the wrong average. When a question turns on a word, write down the definition you used and test it against the question."
 
@@ -174,8 +164,6 @@ Persona C, question 4: "Your check confirmed the arithmetic of the mean, so it c
 **A check marked ✗** (`failed`) did its job: say so as process praise ("Your check on 4 flagged it; that's what it's for"), then point to the step (§6). Never ask the learner to find the mistake it flagged. On a right answer, the answer stands: the check itself slipped, or its tolerance was wrong. Say which in one line, and log a wrong tolerance as a `content_error` defect for the builder.
 
 **Checked in the head.** The written check is a core rule (R41), but the learner may decline the lines for one sheet as an override ([session-open.md](session-open.md) step 6; `ind ledger list --kind override --open` shows it). On that sheet, record each empty line they say they ran in their head as `head` [self-report], and don't coach the blanks one by one. After the account of each miss, point to the step as usual (§6), then show the one written line that would have caught it: "One line here, your answer put back into the equation, would have shown it doesn't hold." It names the check, never the answer. With no override on the sheet, an empty line the learner says they checked in their head is still `head`, and it is coached as a `missing` one.
-
-**On a topic below mastery 3,** coach the check the theory sheet worked (its worked case ends with it), or one that uses only what the learner already owns. Never "another way" or "the weakest step": the learner has one method so far, and no sense yet of which step is weak. Coaching is about the checks on the next sheet; the miss itself was already pointed to in §6.
 
 ## 8. Record
 

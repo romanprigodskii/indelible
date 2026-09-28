@@ -48,18 +48,20 @@ The templates print a header with the sheet code (`Sheet IELTS-07`: the subject 
 
 ## 3. Check lines
 
-Every answer on `drills`, `cold`, `mixed`, `review`, `diagnostic` and `checkpoint` has a written check beside it that runs from the answer back to the question, including a check of the definition used. A check that repeats the same steps forwards repeats the same mistake; coach it at marking.
+Every answer on `drills`, `cold`, `mixed`, `review`, `diagnostic` and `checkpoint` has a written check beside it that runs from the answer back to the question, including a check of the definition used (a repair pencil may have one too). A check that repeats the same steps forwards repeats the same mistake; coach it at marking ([session-grade.md](session-grade.md) §7).
 
 **Exam conditions have no check column.** A `mock`, and an official question (`origin: official:`) on a diagnostic or checkpoint, is sat as the exam sets it, and the exam's clock has no time for a written check per answer: it carries no check line, and the rules box says to check as in the exam. Its questions are graded `check: n/a`. A capstone, transfer task or diagnostic item Claude wrote keeps its check line.
 
-| The question turns on | The learner writes | Hint on the sheet (example) |
+This is the one table of check forms: the hint printed on the sheet, and the line to say when coaching at marking.
+
+| The question turns on | The learner writes | Hint, and coaching line (example) |
 |---|---|---|
 | a number | the answer substituted back, or the total rebuilt from the other direction | "Put your answer back into the first line: does it hold?" |
 | a definition or key word | the definition used, tested against the question's words | "Write the meaning of 'median' you used. Does the question ask for that?" |
-| a sentence (verbal, reading) | a re-read of the sentence with the answer in it | "Read the sentence again with your answer in it." |
-| language production | a back-translation | "Translate it back: is that what you meant?" |
-| code | an assert or test that runs the other way | "Parse what you printed: do you get the input back?" |
-| a proof | below mastery 3: the rule each step uses, named beside it; from 3: the weakest step, named and re-derived | "Beside each step, name the rule it uses." / "Which step would you be pushed on? Do it another way." |
+| a sentence (verbal, reading) | a re-read of the sentence with the answer in it | "Read the sentence again with your answer in it: does it still say what the passage says?" |
+| language production | a back-translation | "Translate it back into your own language: is that what you meant?" |
+| code | an assert or test that runs the other way | "Add an assert that feeds your output back in: parse(format(x)) == x?" |
+| a proof | below mastery 3: the rule each step uses, named beside it; from 3: the weakest step, named and re-derived | "Beside each step, name the rule it uses." / "Which step would you be pushed on? Derive it again another way." |
 | an explanation (interview, viva) | below mastery 3: the answer re-read against the question's words; from 3: the weakest point named, then said again | "Read it as the listener: does every sentence answer the question?" / "Which part would you be pushed on?" |
 
 - `check_hint` says how to check in about 12 words and never points toward the answer. A question that hinges on a key word also gets the definition check.
