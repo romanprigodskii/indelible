@@ -694,7 +694,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
 3. Cold first, no contamination: the recheck opens the session; grade or discuss a sealed item, never both.
 4. Plan in minutes: a warning 10 minutes before the end, a question at the end, at most one capped extension; never issue a sheet over budget.
 5. Close inside the session with `session close`. No "tomorrow" without a dated ledger `owed` row.
-6. Only the CLI writes data files. Claude writes sheet specs (via the builder) and notes via `note append`. At open, read only CLI output: `brief` and the listings session-open.md §2 names, never the raw data or views.
+6. Only the CLI writes data files. Claude writes sheet specs (via the builder) and notes via `note append`. At open, read only CLI output (`brief`, the listings session-open.md §2 names, and the output of the commands the open runs), never the raw data or views.
 7. Calendar writes only after a preview and a yes (or under the learner's standing permission). Move rather than delete.
 8. Every number carries its label: measured, practice, published, mine. Practice is never presented as measurement.
 9. Make the call; the learner can override. Log the override with a one-line item prediction. Ask one question at a time.

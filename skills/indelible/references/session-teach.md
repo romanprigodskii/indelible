@@ -118,7 +118,7 @@ The per-profile defaults are in [profiles.md](profiles.md).
 
 No backlog dump and no guilt.
 
-1. **Their "why", in one line, in their own words:** "You said this matters because <their words>." ("You're doing this for fun.") Setup puts it in the learner notes, which the brief prints under NOTES. If it is missing there, read `target.why` in `<s>/subject.json` (read only, never edit). When all there is is a one-word label ("hobby"), skip the line.
+1. **Their "why", in one line, in their own words:** "You said this matters because <their words>." ("You're doing this for fun.") Setup puts it in the learner notes, which the brief prints under NOTES. If it is missing there, skip the line: the open reads CLI output only (Law 6), never `subject.json`. Skip it too when all there is is a one-word label ("hobby").
 2. **Their if-then plan,** from the same learner notes, if there is one.
 3. **Backlog amnesty.** Never list or count what was missed. Say: "A few things are waiting. I'll bring them back over the next sessions, riskiest first." Serve what fits the question budget, in `ind due <s> --list` tier order; the rest waits its turn.
 4. **A 10-minute cold check on the last two topics taught.** Use a `cold` sheet if lint accepts it. A topic whose first 2-day window has passed gets the late-recheck rule instead ([plan.md](plan.md) §7): a `probe`, `[measured]` with its real interval, that can't raise mastery, then a fresh recheck booked after grading.
