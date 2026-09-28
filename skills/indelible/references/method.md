@@ -80,7 +80,7 @@ IDs are stable, so `overrides[].rule` in `subject.json` can name one (for exampl
 | R28 | Calendar changes only after a preview and a yes; move rather than delete | core | [integrity] | |
 | R29 | Sleep is protected: nothing in the sleep window or within 30 minutes of bedtime | core | [lit-strong] | Mazza et al., 2016 |
 | R31 | Claude's own mistakes are logged; a repeat in one category forces a structural fix | core | [design] | |
-| R34 | Claude makes the call; the learner can override it, predicting specific questions | core | [lit-mixed] | Patall et al., 2008 |
+| R34 | Claude makes the call; the learner can override it, predicting specific questions (a recheck moved to a later time needs no prediction) | core | [lit-mixed] | Patall et al., 2008 |
 | R36 | Teaching drills in blocks of one question type (3–8, default 6), with a stop after question 3 (question 4 in a block of 6 or more whose question 1 is worked) if two of the three gated questions have a failed check, an "I don't know" or a blank; at mastery 0–1, a stop every time, for marking | core (one type) / default (size) | [lit-mixed] | Carvalho & Goldstone, 2014; Shute, 2008 |
 | R38 | Explaining it back is a test: captured word for word, critiqued, model answer after | core (interview, verbal) | [lit-strong] | Bisra et al., 2018 |
 | R39 | Hard words glossed in the first language the first time they appear | default | [lit-mixed] | Yanagisawa et al., 2020 |
