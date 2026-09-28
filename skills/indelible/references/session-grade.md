@@ -147,7 +147,7 @@ The method itself goes on the repair sheet, not in chat. If you explain anything
 
 ## 7. Coaching the backwards check
 
-Every question on drills, cold, mixed, review, diagnostic, mock and checkpoint sheets has a written check beside the answer that works backwards, including a check of the definition used (a repair pencil may have one too). A question printed without a check line (every question on probe, words, theory, external, example, triage, explain and miss-review sheets, a late recheck run as a probe included) is `check: n/a` and is never coached; `ind grade record` refuses any other value for it. On a question that had a check line, coach when the check was `missing`, or when it was `filled` but repeated the same steps forwards (it would repeat the same mistake). Name the form that fits:
+Every question on drills, cold, mixed, review, diagnostic and checkpoint sheets has a written check beside the answer that works backwards, including a check of the definition used (a repair pencil may have one too). A question printed without a check line (every question on mock, probe, words, theory, external, example, triage, explain and miss-review sheets, a late recheck run as a probe included, and an official question on a diagnostic or checkpoint, sat as the exam sets it) is `check: n/a` and is never coached; `ind grade record` refuses any other value for it. On a question that had a check line, coach when the check was `missing`, or when it was `filled` but repeated the same steps forwards (it would repeat the same mistake). Name the form that fits:
 
 | Question kind | Check that runs the other way | Say |
 |---|---|---|

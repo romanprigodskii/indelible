@@ -40,7 +40,7 @@ Brief the builder subagent with a blueprint only (topics, part, counts, formats,
 
 Item rules (lint L2, L3 and L9 enforce the first three):
 - Unlabelled and interleaved: no topic name in titles or labels, no two adjacent items on one topic. Per-topic counts are uneven and never stated.
-- One labelled blank per question, each with a check line. For a definition: "write the definition you used and test it against the question's words".
+- One labelled blank per question, each with a check line (not on an official question: an unseen official test is sat as the exam sets it, with no check column). For a definition: "write the definition you used and test it against the question's words".
 - Item 0 records the start time; the last line records the stop time and "Least sure of: ___". No per-answer confidence marks.
 - The rules box says "I don't know" is always an accepted answer.
 - Mixed formats: compute, reverse the question, which rule applies, a one-line "why", and the exam's own answer form. No "find the error" items unless the exam itself asks them (a grammar "identify the error" question, say): spotting an error takes the knowledge the item tests. Form, tools and accommodations match `subject.json.format`.
@@ -60,7 +60,7 @@ Item rules (lint L2, L3 and L9 enforce the first three):
 
 1. **Evidence first:** `ind sheet sat <subject> <id> --start HH:MM --stop HH:MM`, then `ind scan ingest <subject> <id> <photos> --transcript -` with your transcript, a line for every question number ([session-grade.md](session-grade.md) §2) (or `--typed FILE`, or `--transcript -` alone for a chat photo). Only then `ind key open <subject> <id>`. **An online official test** (the platform marks it and shows answers beside the results): the evidence is the platform's per-question right/wrong list. Ask for the question numbers and right or wrong only, typed, or a screenshot with the correct-answer and explanation columns cropped out; never ask for the review pages. File it with `--typed <file>` (a screenshot as a photo), and take each verdict from that list.
 2. **Between Part A and Part B,** give verdicts only; explain nothing on a topic going into Part B.
-3. **Per question:** verdict `right`, `half`, `wrong`, `dont_know` (wrote "I don't know") or `skip` (blank); check `filled`, `missing`, `caught` or `failed` (marked ✗, answer kept); `least_sure` from the closing line.
+3. **Per question:** verdict `right`, `half`, `wrong`, `dont_know` (wrote "I don't know") or `skip` (blank); check `filled`, `missing`, `caught` or `failed` (marked ✗, answer kept), or `n/a` for a question printed without a check line (a mock, an official question); `least_sure` from the closing line.
 4. **Accounts before classifying,** one miss at a time, unnamed wrong answers first (wrong and not on the Least-sure line): "Question 7 (<gist>; you wrote <answer>): how did you get your answer? 1) I did it this way: ___ 2) a word stopped me 3) I guessed 4) I can see my slip: ___", naming each question by its number, a gist and the learner's answer, as [session-grade.md](session-grade.md) §3 says. An account is how they got it, never a hunt for the error ([session-grade.md](session-grade.md) §4). Any language is fine. Cap at about 5 minutes per paper; the rest get "no account", never counted as blanks.
 5. **Classify** with the subject taxonomy. Give `kind` only for a specific wrong idea (`belief`) or a slip. A guess or "I don't know" on an untaught topic gets no `kind`: teaching covers it.
 6. **Record:** write the grades file (`ind schema grades`), then `ind grade record <subject> <id> --from grades.json`. No `--shaky` on a diagnostic; use it on mocks and checkpoints.
@@ -82,7 +82,7 @@ Time 96 of 110 min · 2 "I don't know" (both accepted answers)
 Needs about 48 h at your pace [mine]; you have about 38 h. Three options below.
 ```
 
-No praise beyond the evidence. End with the next step.
+The "Checks beside" line only when the sheet had check lines (never on a mock). No praise beyond the evidence. End with the next step.
 
 ## 7. Probes (sessions 2–3)
 
@@ -148,7 +148,7 @@ Code, and on-demand learners (D), whatever they come for: session 1 is the capst
 ## 12. Mocks, rationing and checkpoints
 
 **Mocks** (exam profile; how many and when, by runway: [plan.md](plan.md)):
-- Exam conditions (clock, time of day, tools, accommodations), first in the day, in a block of exam length plus 15 minutes. No recheck before it: that day's rechecks go 3+ hours later, or the next day inside their window.
+- Exam conditions (clock, time of day, tools, accommodations), first in the day, in a block of exam length plus 15 minutes. No check lines: the exam has no check column, and a check per answer would take its clock (lint L2 asks for none; the rules box says to check as in the exam). No recheck before it: that day's rechecks go 3+ hours later, or the next day inside their window.
 - If no window fits the whole exam, sit one section at a time; section scores are their own series.
 - One trend line per instrument family (official, Claude-built, section). Never join mock numbers to diagnostic or recheck numbers.
 - Within 48 hours, a `review` block per miss: account, repair, one fresh item, labelled practice. On official items the learner writes a why-line (why they chose their answer) before any reveal, then a "now" answer once Claude has pointed to the line or step the answer turns on, never the answer itself (`miss-review` sheet). A mock miss's recheck comes at least 24 hours after its repair (the repair is an exposure).

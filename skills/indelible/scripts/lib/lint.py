@@ -80,6 +80,11 @@ TITLES = {
 # 7.4): sheets.md and builder.md make check lines optional on repair pencils,
 # which are done with the fix in view.
 CHECK_REQUIRED = ("drills", "cold", "mixed", "diagnostic", "mock", "checkpoint", "review")
+# ... except where the sheet copies the exam, which has no check column: a whole mock,
+# and an official question (origin official:) on a diagnostic or checkpoint. A check
+# written per answer would take the exam's own clock and measure another task.
+EXAM_CONDITIONS = ("mock",)
+OFFICIAL_EXEMPT_TYPES = ("diagnostic", "checkpoint")
 UNLABELLED_TYPES = ("cold", "diagnostic", "mock", "checkpoint", "probe", "mixed")
 BUDGET_EXEMPT = ("diagnostic", "mock", "checkpoint")
 FLOOR_EXEMPT = ("triage",)
@@ -370,9 +375,20 @@ def _l2(spec, ctx):
     t = spec.get("type")
     if t not in CHECK_REQUIRED:
         return "PASS", "not required on %s sheets" % t
-    missing = [a.get("id") for it in _items(spec) for a in _asks(it) if a.get("check") is not True]
+    if t in EXAM_CONDITIONS:
+        return "PASS", "not required on %s sheets (exam conditions)" % t
+    missing, exam = [], 0
+    for it in _items(spec):
+        as_exam = t in OFFICIAL_EXEMPT_TYPES and _s(it.get("origin")).startswith("official:")
+        for a in _asks(it):
+            if as_exam:
+                exam += 1
+            elif a.get("check") is not True:
+                missing.append(a.get("id"))
     if missing:
         return "FAIL", "no check line on question%s %s" % ("s" if len(missing) > 1 else "", _listed(missing))
+    if exam:
+        return "PASS", "every question Claude wrote has a check line; official questions need none (exam conditions)"
     return "PASS", "every question has a check line"
 
 

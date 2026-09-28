@@ -191,6 +191,33 @@ class HtmlTemplateTests(Base):
             self.assertTrue(any(r.startswith("Stop after") for r in lines), spec["type"])
             self.assertFalse(any(r.startswith("Allow about") for r in lines), spec["type"])
 
+    def test_a_mock_and_an_official_paper_are_checked_as_in_the_exam(self):
+        # pedagogy-2: the exam has no check column, so neither has the sheet that copies it.
+        exam = "Check your answers as you would in the exam: there is no check line on this sheet."
+
+        def no_checks(spec, origin=None):
+            for it in spec["items"]:
+                if origin:
+                    it["origin"] = origin
+                for a in it["asks"]:
+                    a["check"] = False
+            return spec
+        mock_sheet = no_checks(drills_spec(type="mock"))
+        lines = render.rules(mock_sheet, "none")
+        self.assertIn(exam, lines)
+        self.assertFalse(any(r.startswith("Write the check") or "check fails" in r for r in lines))
+        self.assertLessEqual(len(lines), 8)
+        official = no_checks(cold_spec(type="checkpoint"), origin="official:Cambridge 18")
+        self.assertIn(exam, render.rules(official, "none"))
+        # A checkpoint with Claude's own items among official ones keeps the check where it is printed.
+        mixed = no_checks(cold_spec(type="checkpoint"), origin="official:Cambridge 18")
+        mixed["items"][0]["origin"] = "new"
+        mixed["items"][0]["asks"][0]["check"] = True
+        lines = render.rules(mixed, "none")
+        self.assertNotIn(exam, lines)
+        self.assertTrue(any(r.startswith("Write the check beside each answer where a Check line is printed")
+                            for r in lines))
+
     def test_the_rules_box_stays_short(self):
         # Eight lines at most: new advice joins a line it belongs with (the failed-check mark, the hint offer).
         for spec in (drills_spec(), cold_spec(), theory_spec(), drills_spec(type="repair"), drills_spec(type="mock")):

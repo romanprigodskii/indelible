@@ -113,6 +113,38 @@ class RuleTests(Base):
         self.assertEqual(self.status(spec, "L2"), "PASS")
         self.assertEqual(self.status(drills_spec(), "L2"), "PASS")
 
+    def test_l2_a_mock_and_official_questions_copy_the_exam(self):
+        # pedagogy-2: the exam has no check column, so a mock carries none, nor does an
+        # official question on a diagnostic or checkpoint. Claude's own items still do.
+        def official(stype, origin="official:Cambridge 18"):
+            spec = cold_spec(type=stype)
+            for it in spec["items"]:
+                it["origin"] = origin
+                it["text"] = "Test 2, question %d" % it["n"]
+                for a in it["asks"]:
+                    a["check"] = False
+                    a.pop("check_hint", None)
+            return spec
+        r = result(official("mock"), "L2")
+        self.assertEqual((r["status"], r["detail"]), ("PASS", "not required on mock sheets (exam conditions)"))
+        self.assertEqual(self.status(official("mock", origin="new"), "L2"), "PASS")
+        for stype in ("checkpoint", "diagnostic"):
+            r = result(official(stype), "L2")
+            self.assertEqual(r["status"], "PASS", stype)
+            self.assertIn("official questions need none", r["detail"])
+            # A capstone or transfer task Claude built keeps its check line.
+            r = result(official(stype, origin="new"), "L2")
+            self.assertEqual(r["status"], "FAIL", stype)
+            self.assertIn("1a, 2a, 3a, 4a", r["detail"])
+        # One Claude-built item among official ones: only it needs the line.
+        spec = official("checkpoint")
+        spec["items"][2]["origin"] = "new"
+        r = result(spec, "L2")
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("question 3a", r["detail"])
+        # Official questions on a practice sheet are practice: the check habit still applies.
+        self.assertEqual(self.status(official("mixed"), "L2"), "FAIL")
+
     def test_l3_unlabelled(self):
         self.assertEqual(self.status(cold_spec(), "L3"), "PASS")
         r = result(cold_spec(title="Paraphrase recheck"), "L3")

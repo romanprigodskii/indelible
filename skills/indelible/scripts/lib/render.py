@@ -95,6 +95,9 @@ V_RULE = ("If a word here was never explained to you, on this sheet or an earlie
 # the ladder starts only when they speak up. Mixed, review and measuring sheets get no hints.
 HINT_TYPES = ("theory", "external", "example", "repair", "drills")
 STUCK_LINE = "Stuck on a question after a real try? Tell me its number: you get a small hint, never the answer."
+# A mock, or a sheet of official questions only, is sat as the exam sets it: the exam has no
+# check column, so its rules box says to check as in the exam (lint L2 asks for no check line).
+EXAM_CHECK_LINE = "Check your answers as you would in the exam: there is no check line on this sheet."
 # The pencils are printed last and marked with the sheet still open (session-teach.md §2: marking
 # points back to a step of the worked case), so the sheet is put away only after that, and "closed"
 # is the learner's signal for the drills.
@@ -353,7 +356,11 @@ def rules(spec, tools, fmt="html", profile=None, reference_sheet=False):
     else:
         check_how = ("Work backwards from it: put it back in, rebuild the total, or test the "
                      "definition you used against the question's words.")
-    if any_check or not items:
+    as_exam = t == "mock" or bool(items) and all(_s(it.get("origin")).startswith("official:") for it in items)
+    every_check = all(a.get("check") for it in items for a in _asks(it))
+    if as_exam and not any_check:
+        out.append(EXAM_CHECK_LINE)
+    elif every_check:
         out.append("Write the check beside each answer. " + check_how)
     else:
         out.append("Write the check beside each answer where a Check line is printed. " + check_how)

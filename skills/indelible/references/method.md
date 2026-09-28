@@ -22,7 +22,7 @@ The README's method (keep the two in step), with the mechanism each relies on.
 1. **Read it, then close it.** Theory comes on a sheet that is read and put away before the drills. People judge their learning too high while the answer is in view (Koriat & Bjork, 2005), and expecting an open book lowers later closed-book recall (Agarwal & Roediger, 2011). What matters is recall with the source closed, not paper as such.
 2. **One thing at a time, then all mixed up.** Teaching drills come in blocks of one question type; anything that measures mixes topics and hides their names. Blocks help first contact. Mixing makes the learner choose the method, which the exam demands and a heading gives away (Rohrer et al., 2020; Brunmair & Richter, 2019).
 3. **Nothing counts until it survives 48 hours.** Performance during learning is a poor guide to learning (Soderstrom & Bjork, 2015). Retrieval after a gap, repeated across days, is what lasts (Roediger & Karpicke, 2006; Cepeda et al., 2006; Rawson et al., 2013), so a topic comes back cold again: after a recheck it didn't pass, a week after its first pass, then every 3 weeks until the date.
-4. **Check backwards, in writing.** Beside every answer, a check that runs the other way, including the definition used. On a new topic it is the check the theory sheet worked, because a check has to be one the learner can run. Each sheet ends with one line: "Least sure of: ___". See section 4.
+4. **Check backwards, in writing.** Beside every answer, a check that runs the other way, including the definition used. On a new topic it is the check the theory sheet worked, because a check has to be one the learner can run. A mock copies the exam, so it has no check column. Each sheet ends with one line: "Least sure of: ___". See section 4.
 5. **Every miss goes in the error log** and returns after 1 day, 3 days, 1 week and 3 weeks. Errors need corrective feedback (Pashler et al., 2005; Metcalfe, 2017), and corrected errors made with confidence can come back (Butler, Fazio & Marsh, 2011), so each one returns on a spaced schedule until it has survived several returns.
 6. **You do the work.** The smallest hint that unblocks, never an answer the learner could reach. Generating beats reading (Slamecka & Graf, 1978; Bertsch et al., 2007), explaining exposes gaps (Chi et al., 1994; Rozenblit & Keil, 2002), and unrestricted AI answers can lower later unaided performance (Bastani et al., 2025). When an answer is wrong, the error is pointed to and the fix is the learner's: hunting for a mistake in a method not yet owned is work they can't do (section 5).
 
@@ -85,7 +85,7 @@ IDs are stable, so `overrides[].rule` in `subject.json` can name one (for exampl
 | R38 | Explaining it back is a test: captured word for word, critiqued, model answer after | core (interview, verbal) | [lit-strong] | Bisra et al., 2018 |
 | R39 | Hard words glossed in the first language the first time they appear | default | [lit-mixed] | Yanagisawa et al., 2020 |
 | R40 | The learner writes every line of their own solutions; worked code and line-ordering puzzles at mastery 0–1 | core | [lit-mixed] | Ericson et al., 2017 |
-| R41 | A written backwards check beside every answer, including the definition used; one the learner can run (on a new topic, the check the theory sheet worked) | core | [one-learner] | section 4 |
+| R41 | A written backwards check beside every answer, including the definition used; one the learner can run (on a new topic, the check the theory sheet worked); none on a mock, or on an official question in a diagnostic or checkpoint: those copy the exam | core | [one-learner] | section 4 |
 | R42 | Point to the error, and the learner makes the fix: never send them to find their own mistake; error-finding items only on topics they own, or where the exam's own questions are error-finding | core | [lit-mixed] | Große & Renkl, 2007; Baars et al., 2014 |
 | R43 | A plan change carries a dated safeguard: a check date, a rule and an action | core | [design] | |
 | R47 | Anything that measures mixes topics and hides their names | core | [lit-strong] | Rohrer et al., 2020 |
@@ -127,6 +127,7 @@ Graded [lit-mixed] for the principle; the details are [one-learner]. An earlier 
 - **Worked examples first, for novices only.** The advantage reverses as expertise grows (Kalyuga, 2007), and struggling first then being taught also works (Sinha & Kapur, 2021). A stuck learner gets a worked example on a separate sheet, never the answer in chat (Koedinger & Aleven, 2007).
 - **Concrete first is a default, not a law.** A concrete case that fades into the general rule helps learners connect the two (Fyfe et al., 2014), but generic examples can transfer better than concrete ones (Kaminski, Sloutsky & Heckler, 2008): hence R12 order is [lit-mixed], and the rule box after the case always states the general form.
 - **A same-day failure is real evidence;** only same-day success can't show mastery.
+- **A mock copies the exam, check column included.** The exam has no check line, and a written check per answer takes time its clock doesn't give. A sitting unlike the exam measures a different task (Morris, Bransford & Franks, 1977), and a checkpoint's threshold is set on the exam's own scoring. So a mock, and an official question on a diagnostic or checkpoint, carries no check line; the miss-review after it carries the why-line.
 - **Hypercorrection is shown mostly on facts.** A wrong procedure also needs a contrast with a wrong worked example (Durkin & Rittle-Johnson, 2012), which fix sheets include.
 - **"Careless" needs two things:** the learner's slip account and the same step done right elsewhere.
 - **First-language glosses rest on vocabulary studies.** Glossed reading teaches more new words than unglossed reading, and first-language glosses more than second-language ones (Yanagisawa et al., 2020), but those studies measure words learned, not content understood in a second language: hence R39 is [lit-mixed]. Abedi & Lord (2001) tested plainer wording of test items, which is R9's ground, not glosses.
@@ -191,6 +192,7 @@ Why no "sure / not sure" beside each answer? People stop filling it in, and the 
 - Latimier, Peyre & Ramus (2021), *Educational Psychology Review*.
 - Mazza et al. (2016), *Psychological Science*.
 - Metcalfe (2017), *Annual Review of Psychology*.
+- Morris, Bransford & Franks (1977), *Journal of Verbal Learning and Verbal Behavior*.
 - Pashler et al. (2005), *JEP: LMC*.
 - Patall, Cooper & Robinson (2008), *Psychological Bulletin*.
 - Rawson, Dunlosky & Sciartelli (2013), *Educational Psychology Review*.

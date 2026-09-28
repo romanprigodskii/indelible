@@ -19,7 +19,7 @@ Levels are computed by the CLI the same way for every profile ([measure.md](meas
 
 ## 2. Check lines by layer
 
-Every question on `drills`, `cold`, `mixed`, `diagnostic`, `mock`, `checkpoint` and `review` sheets has a written backwards check beside the answer (lint L2). When a key word decides the answer, the check also tests the definition used against the question's words. Each sheet ends with one line: "Least sure of (question numbers): ___". There are no per-answer confidence marks. No check line on `theory`, `external`, `example`, `probe`, `triage`, `words`, `explain` or `miss-review`. Hint rules: [sheets.md](sheets.md) §3.
+Every question on `drills`, `cold`, `mixed`, `diagnostic`, `checkpoint` and `review` sheets has a written backwards check beside the answer (lint L2), except an official question: a mock, and an official question on a diagnostic or checkpoint, are sat as the exam sets them, with no check column. When a key word decides the answer, the check also tests the definition used against the question's words. Each sheet ends with one line: "Least sure of (question numbers): ___". There are no per-answer confidence marks. No check line on `mock`, `theory`, `external`, `example`, `probe`, `triage`, `words`, `explain` or `miss-review`. Hint rules: [sheets.md](sheets.md) §3.
 
 | Layer or form | The learner writes | Example hint |
 |---|---|---|
