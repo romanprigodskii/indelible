@@ -1,0 +1,9 @@
+#!/bin/sh
+# Runs the privacy check before every push, and stops the push on any exit but 0.
+# Turn it on once per clone:  git config core.hooksPath dev/hooks
+# It needs the local, git-ignored denylist (dev/.privacy-denylist.txt): README.md, "Contributing".
+root=$(git rev-parse --show-toplevel) || exit 1
+if command -v python3 >/dev/null 2>&1; then
+    exec python3 "$root/dev/privacy_grep.py"
+fi
+exec py -3 "$root/dev/privacy_grep.py"

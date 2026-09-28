@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Privacy check for the public indelible repository. Run it before every push.
+"""Privacy check for the public indelible repository. Run it before every push:
+dev/hooks/pre-push does, once `git config core.hooksPath dev/hooks` is set.
 
     python3 dev/privacy_grep.py [--source DIR] [--show-sources] [--shingle N]
                                 [--denylist PATH] [--no-git-meta]

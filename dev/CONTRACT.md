@@ -39,7 +39,7 @@ skills/indelible/
   assets/lists/sense_seed.txt
 tests/        test_*.py (unittest; run: python3 -m unittest discover -s tests)
 evals/fixtures/persona-{a,b,c,d}.json  evals/trigger.json
-dev/CONTRACT.md  dev/privacy_grep.py
+dev/CONTRACT.md  dev/privacy_grep.py  dev/hooks/pre-push (runs privacy_grep.py; git config core.hooksPath dev/hooks)
 .github/workflows/ci.yml
 ```
 
