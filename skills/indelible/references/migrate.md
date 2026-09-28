@@ -86,7 +86,7 @@ with open(str(dst / "MANIFEST.sha256"), "w", encoding="utf-8", newline="\n") as 
 EOF
 ```
 
-4. **Key files,** by path only: `ind set stats materials.sources '<the full list>' --dry-run`, then without `--dry-run`. One entry each, e.g. `{"what":"past final A solutions (hand-run)","path":"<ws>/stats/.indelible/legacy/2026-10-14/solutions/final-a.pdf","answers":true,"seen":null}` (shape: [sheets.md](sheets.md) §11). In v0.1 they stay closed: `ind key open` can't gate them, so unsat hand-run sheets are not reused.
+4. **Key files,** by path only: `ind set stats materials.sources '<the full list>' --dry-run`, then without `--dry-run`. One entry each, e.g. `{"what":"past final A solutions (hand-run)","path":"<ws>/stats/.indelible/legacy/2026-10-14/solutions/final-a.pdf","answers":true,"seen":null}` (shape: [measure.md](measure.md) §12). In v0.1 they stay closed: `ind key open` can't gate them, so unsat hand-run sheets are not reused.
 5. **Where it runs.** Under "Learner notes" in `<ws>/stats/CLAUDE.md` (learner-owned text, outside the markers): `Hand-run until cut-over: follow <hand-run folder>/CLAUDE.md. Frozen copy: .indelible/legacy/2026-10-14/.`
 6. **Git.** The shipped `.gitignore` ignores `**/.indelible/legacy/` (the copy may hold answers). If the workspace uses git and its `.gitignore` lacks that line, offer to add it.
 7. **Report:** the files copied, with short hashes; the subject created as `legacy`; nothing else changed.

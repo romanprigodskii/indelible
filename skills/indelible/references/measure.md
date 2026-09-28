@@ -1,6 +1,6 @@
 # Measure: diagnostics, probes, mocks and checkpoints
 
-For `diagnose`, `mock`, checkpoints and week 1 of a new subject. Diagnose before teaching: levels come from measurement, never from self-report or earlier work. Sheet mechanics (builder, check-line forms, lint, evidence): [sheets.md](sheets.md). General grading: [session-grade.md](session-grade.md). Miss classification: [taxonomies.md](taxonomies.md).
+For `diagnose`, `mock`, checkpoints and week 1 of a new subject. Diagnose before teaching: levels come from measurement, never from self-report or earlier work. Sheet mechanics (builder, check-line forms, lint): [sheets.md](sheets.md). Filing evidence and general grading: [session-grade.md](session-grade.md). Miss classification: [taxonomies.md](taxonomies.md).
 
 Contents: 1 Instrument · 2 Scope map · 3 Two-stage diagnostic · 4 Sitting · 5 Scoring · 6 Results card · 7 Probes · 8 Levels · 9 Hours and feasibility · 10 Topic order · 11 Week 1 · 12 Mocks, rationing, checkpoints
 
@@ -156,11 +156,16 @@ Code, and on-demand learners (D), whatever they come for: session 1 is the capst
 - On an online platform, the learner switches off any "show correct answer and explanation" option before opening each missed question, and writes the why-line and the "now" answer on paper before switching it back on.
 - **Official answers or explanations pasted into chat anyway:** never quote or use them. Ask once: "Did you read the explanations for any of these? Which?" Only the questions they name count as seen (never infer it), and those skip the "now" answer. Say once that some chat apps offer pasted text back as you type, so the why-lines go on paper.
 
-**Rationing official material** (entry shape: [sheets.md](sheets.md) §11):
-- Each unseen official unit gets one job and a date: the checkpoints and the final mock first, a diagnostic only from what is left. Persona A: `ind set ielts materials.ration.+ '{"unit":"official test 1","job":"checkpoint","date":"2026-11-14","status":"assigned"}'`, then official test 2 as the `final mock` on 2026-11-21.
-- A unit already seen is never a measurement: practice, labelled `[practice]`.
-- Don't use an unseen official test for anything a question bank could cover (drills, topic practice, words).
-- Using a unit reserved for a later job needs the learner's override, logged with an item prediction.
+**Materials entries.** `ind schema subject` doesn't spell these out, so use exactly these shapes:
+- `materials.sources[]`: `{"what":"Cambridge IELTS 18","path":null,"answers":false,"seen":"tests 1–2"}`: a plain name; a file or folder, or null for a paper book; `answers` true when it holds answers (registered by path, opened only at marking); what the learner has already seen, or null.
+- `materials.ration[]`: `{"unit":"official test 1","job":"checkpoint","date":"2026-11-14","status":"assigned"}`: `job` is `diagnostic`, `checkpoint` or `final mock`; `status` is `assigned`, `used` or `seen` (turned out to be seen: practice only).
+
+**Rationing official material:**
+- Each scarce unit (an unseen official test, a past paper with answers) gets one job and a date: the checkpoints and the final mock first, a diagnostic only from what is left. Persona A, dry run first: `ind set ielts materials.ration.+ '{"unit":"official test 1","job":"checkpoint","date":"2026-11-14","status":"assigned"}' --dry-run`, then official test 2 as the `final mock` on 2026-11-21.
+- A unit is used only for its job; afterwards set its `status` to `used`.
+- A unit already seen, even in part, is never a measurement: practice, labelled `[practice]`. Ask "Have you seen any of this paper before?"
+- Don't use an unseen official test for anything a question bank or Claude-written questions could cover (drills, topic practice, words).
+- Another job, a unit reserved for a later one included, is the learner's call: `ind session override` with an item prediction, and the confound noted beside the result.
 
 **Checkpoints** (every 1–2 weeks with a date; end of each 4-week cycle without one):
 - Pre-register before the sitting, never after (at `teach`, in the subject draft): `ind set <subject> checkpoints.+ '{"date":"2026-11-14","instrument":"official test 1, reading","threshold":"30 of 40","if_below":"two review blocks replace new material for 2 weeks","status":"armed","result":null}'`.

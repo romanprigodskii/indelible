@@ -35,14 +35,20 @@ No part of the key reaches chat for a question until its account is in (step 6).
 
 **Match the photo to its sheet first.** Read the sheet code on the page: "Sheet STATS-04" in the header, or the first line of a notebook page. `ind session status stats` lists each sheet out with its code. No code, and one sheet of this subject is out: file it against that one. No code and more than one out, or a code that differs: ask "Which sheet is this: STATS-04 or STATS-05?" before filing, since filing marks the sheet taken and opens its key. When a page also holds another subject's answers, transcribe only the lines under this sheet's code.
 
+This is the one table of evidence routes. File before the key is opened: the evidence settles any dispute about a mark.
+
 | Evidence arrives as | Run |
 |---|---|
-| Photos or a PDF in `<ws>/inbox/` or at a path | Transcribe them (below), then file the pages and the transcript in one call: `ind scan ingest stats stats-cold-04 <ws>/inbox/IMG_0412.jpg <ws>/inbox/IMG_0413.jpg --transcript - <<'EOF'` … `EOF` (one path per page) |
+| Photos or a PDF in `<ws>/inbox/` or at a path | Transcribe them (below), then file the pages and the transcript in one call: `ind scan ingest stats stats-cold-04 <ws>/inbox/IMG_0412.jpg <ws>/inbox/IMG_0413.jpg --transcript - <<'EOF'` … `EOF` (one path per page). The pages are copied into `scans/`, HEIC converted where possible |
+| A photo pasted into chat | Transcribe it, then pipe the text in: `ind scan ingest stats stats-cold-04 --transcript - <<'EOF'` … `EOF`. Filed as `chat-image+transcript`, enough for `key open`; the original is needed only in a dispute |
 | The learner says "sent" | List the image and PDF files newer than the sheet's issue time in `<ws>/inbox/`, in `~/Downloads` (where AirDrop puts them) and in the photos folder named under "About the learner" in the root `CLAUDE.md`, if any; names only, nothing else there. Name them to the learner ("IMG_0412 and IMG_0413: those two?") and file them only after a yes |
-| A typed-answers file | `ind scan ingest stats stats-cold-04 --typed <file>` |
-| Typed answers in one chat message (a phone learner, [sheets.md](sheets.md) §8) | The message verbatim, never retyped or corrected: `ind scan ingest stats stats-cold-04 --typed - <<'EOF'` … `EOF` |
-| A photo pasted into chat | Transcribe it, then pipe the text in: `ind scan ingest stats stats-cold-04 --transcript - <<'EOF'` … `EOF` |
+| A typed-answers file (e.g. `inbox/<id>.txt`, answer then check per line) | `ind scan ingest stats stats-cold-04 --typed <file>`, copied into `answers/`, one file per filing |
+| Typed answers in one chat message (a phone learner, [sheets.md](sheets.md) §8) | The message verbatim, never retyped or corrected: `ind scan ingest stats stats-cold-04 --typed - <<'EOF'` … `EOF`. Never transcribed, and no image is recorded |
+| Code | The project and the learner's own test or compiler output, in one call: `ind scan ingest <s> <id> --dir <project folder> --typed <output file>`. Copied to `answers/<id>/` with its folder layout (build output, hidden files, links and files over 1 MB left out, and named in a note); the folder must be outside the workspace. Hidden tests run only on a temp copy of that snapshot |
+| An online official test | The platform's per-question right/wrong list: typed, `--typed <file>`, or a screenshot with the answer and explanation columns cropped out. Never the review pages, which show the answers ([measure.md](measure.md) §5); verdicts come from the list. Registered with `sheet new … --marked-online`: no key to seal, and `key open` prints an empty one |
 | A sheet sat on an earlier day (solo block), or a photo sent on a later day than the sheet was issued | Add `--date YYYY-MM-DD`. Without it, ingest refuses a recheck, or a sheet with mistakes re-served, issued on an earlier day: their sitting date decides the 2-day window and the 24-hour rule |
+
+Filing marks an issued sheet `sat` (a failure-gate photo doesn't). Times from items 0 and N go in `grades.json` (§3), or `ind sheet sat <s> <id> --start HH:MM --stop HH:MM`.
 
 Transcribing photos and PDFs (pasted into chat or given by path; a typed file or a code project needs none):
 - Transcribe before the key is open, one line for every question number on the sheet (a failure-gate photo: only its questions, below): the answer, then the check line, exactly as written; `[blank]` for an empty box, `[not found]` for a question you can't find on any page. Keep crossed-out answers (`[crossed out: -4] 4`), because they show a check that caught something. Add the start and stop times and the Least-sure line as written (`[blank]` when it is empty). A missed page otherwise turns answered questions into blanks, and blanks open no mistake and can send a topic to a probe.

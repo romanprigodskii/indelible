@@ -54,7 +54,7 @@ Code adds "Have you ever written and run a program yourself?"; language, "Could 
 - language: "What do you use now: an app, a book, a course, a phrasebook? Anything you'd like me to follow?"
 - code, skill: "Any book, course or tutorial you'd like me to follow? Anything you've already worked through?"
 
-Feeds `materials.sources`, `.ration` (shapes: [sheets.md](sheets.md) §11) and the theory source. Answer files: path only, never opened here.
+Feeds `materials.sources`, `.ration` (shapes: [measure.md](measure.md) §12) and the theory source. Answer files: path only, never opened here.
 
 **Q5 · About you:** "Three quick ones. (a) Are you 18 or over? If not, say 'under 16' or '16–17': it only changes sleep, load and reminder defaults. (b) Is your first language different from the one you'll study in? Then I'll explain hard words in it the first time they appear, and you may draft 'why' answers in it. (c) Which feedback suits you, for a wrong answer on question 7?
 A: '7 is wrong: you used the mean where the question asks for the median. Next: a fix sheet on the median.'
@@ -156,7 +156,7 @@ Building your diagnostic now (about 3 minutes). Part A is set for Mon 07:00.
 ```
 
 - **Typed answers** (`format.answer_form` "typed", B): the You line says "type your answers with a check after each, and send them in one message when you stop" in place of "work on paper, write the check beside each answer", and the photos line is left out ([sheets.md](sheets.md) §8).
-- **The photos line** (paper answers only; typed answers need none) fits the learner's computer and phone, with the workspace's real path. File routes come first: the original photo is kept in `scans/`, while a pasted one leaves only a transcript ([sheets.md](sheets.md) §10).
+- **The photos line** (paper answers only; typed answers need none) fits the learner's computer and phone, with the workspace's real path. File routes come first: the original photo is kept in `scans/`, while a pasted one leaves only a transcript ([session-grade.md](session-grade.md) §2).
   - macOS with an iPhone (A): as above.
   - Windows with an iPhone (C): "Photos of your work: email them to yourself and save the attachments in <ws>\inbox (Phone Link works too), then say 'sent'. Pasting a photo into this chat also works."
   - Claude Code desktop: add "or attach them to your message".

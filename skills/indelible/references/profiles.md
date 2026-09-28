@@ -33,7 +33,7 @@ Every question on `drills`, `cold`, `mixed`, `diagnostic`, `checkpoint` and `rev
 ## 3. exam
 
 - **Match the exam** (`format.*`): answer form, tools, reference sheet, accommodations. Extra time scales timed work and the per-question pace. Formulas are given on drill and recheck sheets only if the exam provides them: with `format.reference_sheet` true, the rules box of every closed-book sheet allows a clean copy of the exam's formula sheet, and no question asks the learner to recall a formula it prints.
-- **Ration official material.** Each unseen official test gets one job (checkpoint and final mock first, then diagnostic if one is spare) in `materials.ration` ([sheets.md](sheets.md) §11). A test the learner has seen is never a measurement. Don't use an unseen official test for anything a question bank could cover.
+- **Ration official material.** Each unseen official test gets one job (checkpoint and final mock first, then diagnostic if one is spare) in `materials.ration` ([measure.md](measure.md) §12). A test the learner has seen is never a measurement. Don't use an unseen official test for anything a question bank could cover.
 - **Measurements** go at the exam's time of day where possible, first in the day, never within 3 h after another, and are sized by the exam clock, not the session budget.
 - **Phases scale with the runway** ([plan.md](plan.md)): timed work from week 2–3, mocks in the last 3–4 weeks, a taper of 2–7 days (no new material, load at most 60%, rest the day before). Under 3 weeks: timed from session 3, 1–2 papers in the last 5 days, taper the last day.
 - **Checkpoints** every 1–2 weeks, registered before they are taken: instrument, threshold, what happens if missed.
