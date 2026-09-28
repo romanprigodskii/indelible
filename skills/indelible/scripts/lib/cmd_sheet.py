@@ -603,9 +603,9 @@ def cmd_issue(args):
 
 
 def _start_by_lines(ws, subj, spec):
-    """For each first-serve ``cold:`` topic of a recheck, the latest start that still
-    counts: its window closes 44–72 h (cold_window_h) after its last warm exposure,
-    and the level rules judge the sitting by its start time."""
+    """For each ``cold:`` topic of a recheck judged by its window (learning.needs_window),
+    the latest start that still counts: its window closes 44–72 h (cold_window_h) after
+    its last warm exposure, and the level rules judge the sitting by its start time."""
     now = ws.now()
     exposures = subj.load_exposures()
     topics_state = subj.load_topics_state()
@@ -619,7 +619,8 @@ def _start_by_lines(ws, subj, spec):
         if topic in [t for t, _ in found]:
             continue
         state = topics_state.get(topic)
-        if not learning.is_first_serve(state) or not learning.has_first_serve_basis(topic, exposures, state):
+        if not learning.needs_window(topic, state, exposures) or not learning.has_first_serve_basis(
+                topic, exposures, state):
             continue
         closes = learning.window_closes(topic, now, exposures, window)
         if closes is not None:

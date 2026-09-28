@@ -309,11 +309,13 @@ With P = planned minutes:
 ### 6.4 Cold eligibility
 
 A topic is **cold-eligible** at time t if all three hold:
-1. its last warm exposure (`exposures.jsonl` with kind `teach`, `repair`, `drill`, `chat` or `review`) is at least `cold_window_h[0]` hours before t, and at most `cold_window_h[1]` hours before t (for the first serve after teaching);
+1. its last warm exposure (`exposures.jsonl` with kind `teach`, `repair`, `drill`, `chat` or `review`) is at least `cold_window_h[0]` hours before t, and at most `cold_window_h[1]` hours before t (for a 2-day recheck: the first serve after teaching, or one again after a recheck that left the topic below 3, `learning.needs_window`);
 2. there has been no exposure in the 24 h before t;
 3. no error on the topic has `status=untreated`.
 
 For error re-serves, only 2 and 3 apply, plus `next_due ≤ date(t)`.
+
+**A recheck again** (`learning.needs_rerecheck`): a topic with `last_cold` set, a stored level below 3 (3p included), and a warm exposure later than `last_cold` is waiting for its 2-day recheck again, judged by rule 1 from that exposure, like a first serve. A topic at 3 or above never is: its later serves (§7.2, tiers 6 and 7) need only rules 2 and 3.
 
 ### 6.5 Levels (`compute_levels(subject_dir) -> dict`)
 
@@ -424,7 +426,7 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
 
 **`due [subject] [--list] [--json]`:** counts by default. `--list` lists cold-eligible topics and due errors by tier:
 0. late rechecks, window passed (listed only when there is one; `--json` always has `0_late`);
-1. cold re-serves in their window, each with its hours since the last warm exposure and the time its window closes (`CLOSING` within 30 minutes; `--json` gives `closes_at`);
+1. 2-day rechecks in their window (a first serve, or one again after a recheck that left the topic below 3, §6.4, marked `again`), each with its hours since the last warm exposure and the time its window closes (`CLOSING` within 30 minutes; `--json` gives `closes_at` and `again`);
 2. repaired beliefs that are due;
 3. shaky items;
 4. the oldest due;
@@ -609,7 +611,8 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
   - the errors created (ids only);
   - the level changes;
   - the cold obligations passed;
-  - on a `cold` sheet, for each first-serve topic sat outside its window (and not confirming a 3p level): `Not counted toward level 3: T01 was sat at 72.1 h, outside its 44–72 h window. Treat it as a late recheck …`.
+  - on a `cold` sheet, for each topic whose 2-day recheck (§6.4) was sat outside its window (and not confirming a 3p level): `Not counted toward level 3: T01 was sat at 72.1 h, outside its 44–72 h window. Treat it as a late recheck …`;
+  - on a `cold` sheet, for each other topic served that is still below 3 (and not held there only by an untreated mistake), with teaching on record: `T01 is below 3 after this recheck: …`, saying that it comes back as a 2-day recheck 44–72 h after its fix sheet, or, with no mistake to fix, after the feedback logged with `session expose <s> <T> --kind review`.
   - a note naming any question of the spec with no entry in the grades file (`no entry for 5a, 6a in the grades file, so they were not recorded …`). It is a note, not a refusal: a block cut for time, a question not counted and one withdrawn as unclear are left out on purpose.
 - **For a `cold:<topic>` item on any measuring sheet** (a `cold` sheet, a `words` recheck, the late-recheck `probe` of plan.md §7; a `diagnostic`, `mock` or `checkpoint` too): closes the topic's open cold block (`status=done`), and sets `last_cold`. Except on a `words` recheck (levels don't read it), only for a topic with at least `MIN_COLD_ASKS` (2) asks on it that count toward a level (§6.5): with fewer, the sitting can't be a cold pass, so it closes nothing and leaves `last_cold` as it was, and prints `T01: 1 counted question; a cold pass needs at least 2, so this sitting can't raise mastery.` plus, for a 2-day recheck, when its window closes (or that it has passed: a late recheck). The block closed is the one the sheet was issued against, else each whose time holds the sitting (within 2 h), or, for an obligation or a block whose time passed before the sitting, whose window does; a recheck booked for later stays open. On a practice sheet it closes nothing and sets nothing, and a note says the booked recheck stays open.
 

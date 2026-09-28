@@ -385,15 +385,17 @@ def missed_blocks(ws, subj, blocks, sessions, now, lock=None):
 def topic_close(block, topic, now, exposures, ts_all, window):
     """When the 2-day window of ``topic`` on a recheck block closes (local time), or None.
 
-    For a topic still waiting for its first recheck, the later of the block's
-    stored window end and the topic's own window (last warm exposure +
-    cold_window_h[1]), since a later warm exposure opens the window again. For
-    any other topic, the stored window end only (None when there is none).
+    For a topic still waiting for its 2-day recheck (the first, or one again
+    after a recheck that left it below 3: learning.needs_window), the later of
+    the block's stored window end and the topic's own window (last warm
+    exposure + cold_window_h[1]), since a later warm exposure opens the window
+    again. For any other topic, the stored window end only (None when there is
+    none).
     """
     tz = now.tzinfo
     w = block.get("window") if isinstance(block.get("window"), dict) else {}
     stored = to_local(w.get("to"), tz)
-    if learning.is_first_serve(ts_all.get(topic)):
+    if learning.needs_window(topic, ts_all.get(topic), exposures):
         own = learning.window_closes(topic, now, exposures, window)
         if own is not None:
             own = own.astimezone(tz)
@@ -429,7 +431,8 @@ def rebook_first_recheck(ws, subj, tid, at):
 
     The window is measured from the last warm exposure (CONTRACT 6.4), so drills
     or a repair on a later day than the teaching move it: to at + cold_window_h.
-    Only a topic still waiting for its first recheck is moved, and only a recheck
+    Only a topic still waiting for its 2-day recheck (learning.needs_window: the
+    first, or one again after a recheck left it below 3) is moved, and only a recheck
     of that topic alone that is not placed, or placed after ``at``; one with other
     topics keeps its window. Used by session expose and error repair; call it
     inside ws.lock(). Returns None when nothing applies, else ((from, to), moved
@@ -437,7 +440,7 @@ def rebook_first_recheck(ws, subj, tid, at):
     """
     exposures = subj.load_exposures()
     state = subj.load_topics_state().get(tid)
-    if not learning.is_first_serve(state) or not learning.has_first_serve_basis(tid, exposures, state):
+    if not learning.needs_window(tid, state, exposures) or not learning.has_first_serve_basis(tid, exposures, state):
         return None
     lo, hi = subj.cold_window()
     wf, wt = dates.plus(at, hours=lo), dates.plus(at, hours=hi)
@@ -465,7 +468,7 @@ def rebook_text(subj, rebooked, now):
     """The sentence that gives a re-booked first window (rebook_first_recheck's result)."""
     (wf, wt), _, _ = rebooked
     lo, hi = subj.cold_window()
-    return "Its first 2-day recheck now falls between %s and %s (%s–%s h after this)." % (
+    return "Its 2-day recheck now falls between %s and %s (%s–%s h after this)." % (
         fmt_when(wf, now), fmt_when(wt, now), _hours_num(lo), _hours_num(hi))
 
 
@@ -674,10 +677,12 @@ def due_state(subj, now):
     tier 0 ``late``: open 2-day rechecks whose window has passed
     (late_rechecks, leaving out the missed? blocks), each owed as a late
     recheck (plan.md section 7);
-    tier 1 ``cold``: topics whose first 2-day recheck is eligible now (only
-    topics with teaching on record: ``taught_at``, a ``teach`` exposure, or the
+    tier 1 ``cold``: topics whose 2-day recheck is eligible now: the first
+    since teaching, or one again after a recheck that left the topic below 3
+    and a warm exposure since (``again``; learning.needs_window). Only topics
+    with teaching on record: ``taught_at``, a ``teach`` exposure, or the
     ``review`` set that confirms a 3p topic; a topic that was only measured or
-    only repaired is never recheck material), each with ``closes``, the time
+    only repaired is never recheck material. Each has ``closes``, the time
     its window closes (a sitting that starts later is a late recheck);
     tier 2 ``beliefs``: repaired beliefs due; tier 3 ``shaky``; tier 4
     ``oldest``: every other due error, oldest first; tier 5 ``untreated``:
@@ -694,15 +699,17 @@ def due_state(subj, now):
         names[t["id"]] = t.get("name") or t["id"]
         if t.get("scope") == "out":
             continue
-        if not learning.is_first_serve(ts_all.get(t["id"])):
+        state = ts_all.get(t["id"])
+        if not learning.needs_window(t["id"], state, exposures):
             continue
-        if not learning.has_first_serve_basis(t["id"], exposures, ts_all.get(t["id"])):
+        if not learning.has_first_serve_basis(t["id"], exposures, state):
             continue
         res = learning.cold_eligibility(t["id"], now, exposures, errors, window, first_serve=True)
         if res["eligible"]:
             closes = learning.window_closes(t["id"], now, exposures, window)
             cold.append({"topic": t["id"], "name": names[t["id"]], "hours": res["hours"],
-                         "closes": closes.astimezone(now.tzinfo) if closes is not None else None})
+                         "closes": closes.astimezone(now.tzinfo) if closes is not None else None,
+                         "again": not learning.is_first_serve(state)})
     cold.sort(key=lambda c: -(c["hours"] or 0.0))
     today = now.date()
     live = [dict(e) for e in errors if e.get("status") in ("untreated", "spacing", "reopened")]
@@ -1521,7 +1528,8 @@ def cmd_due(args):
                                                 for t, name, h in x["topics"]]}
                                     for x in st["late"]],
                          "1_cold": [{"topic": c["topic"], "name": c["name"], "hours": round(c["hours"] or 0, 1),
-                                     "closes_at": dates.fmt_iso(c["closes"]) if c.get("closes") else None}
+                                     "closes_at": dates.fmt_iso(c["closes"]) if c.get("closes") else None,
+                                     "again": bool(c.get("again"))}
                                     for c in st["cold"]],
                          "2_repaired_beliefs": [err(e) for e in st["beliefs"]],
                          "3_shaky": [err(e) for e in st["shaky"]],
@@ -1548,8 +1556,10 @@ def cmd_due(args):
     _out("1. 2-day rechecks in their window (%d–%d h after the last exposure):" % (window[0], window[1]))
     for c in st["cold"] or []:
         closes = _closes_text(c, now)
-        _out("   %s %s · %d h since last seen%s" % (c["topic"], c["name"], int(c["hours"] or 0),
-                                                    (" · " + closes) if closes else ""))
+        _out("   %s %s · %d h since last seen%s%s" % (c["topic"], c["name"], int(c["hours"] or 0),
+                                                      (" · " + closes) if closes else "",
+                                                      " · again: its last recheck left it below 3"
+                                                      if c.get("again") else ""))
     if not st["cold"]:
         _out("   none")
     for n, key, title in ((2, "beliefs", "fixed mistakes due"), (3, "shaky", "shaky answers due"),

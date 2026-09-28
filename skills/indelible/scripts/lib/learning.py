@@ -8,7 +8,8 @@ Sections:
   1. Ladder (spacing of errors): add, repair, pass_, fail, deadline cap,
      short-runway retirement.
   2. Session budget: work minutes, question budget, close start, breaks.
-  3. Cold eligibility: the 2-day recheck window and the 24-hour rule.
+  3. Cold eligibility: the 2-day recheck window (a first serve, or one again
+     after a recheck left the topic below 3) and the 24-hour rule.
   4. Levels: compute_levels_from(attempts, subject, errors=None) -> {topic: {level, level_basis}}.
   5. Metrics: accuracy by instrument, careless per 10, unnamed-wrong %,
      least-sure hit rate, check coverage and catches, retention, execution.
@@ -430,6 +431,30 @@ def is_first_serve(topic_state):
     return a is not None and b is not None and b < a
 
 
+def needs_rerecheck(topic, topic_state, exposures):
+    """True if a topic served cold is still below 3 and has had a warm exposure since.
+
+    A recheck that leaves a topic below 3 (a miss, a score under 75%, a sitting
+    outside its window) is not the end of it: its next warm exposure (the fix
+    sheet, the feedback logged after marking, drills) opens a new 2-day window,
+    and the topic comes back cold inside it, as a first serve does. A topic at 3
+    or above never does: its later serves have no window.
+    """
+    st = topic_state or {}
+    last_cold = dates.try_parse_iso(st.get("last_cold"))
+    if last_cold is None or level_rank(st.get("level")) >= 3:
+        return False
+    last = last_exposure(topic, exposures)
+    return last is not None and last > last_cold
+
+
+def needs_window(topic, topic_state, exposures):
+    """True if a cold serve of ``topic`` is a 2-day recheck, judged by its window:
+    the first serve since it was taught (is_first_serve), or one again after a
+    recheck that left it below 3 (needs_rerecheck)."""
+    return is_first_serve(topic_state) or needs_rerecheck(topic, topic_state, exposures)
+
+
 def error_reserve_eligibility(error, t, exposures, errors):
     """Error re-serve: rules 2 and 3 of cold eligibility plus next_due <= date(t)."""
     topic = error.get("topic")
@@ -693,11 +718,13 @@ def _levels_for_topic(sittings, window, untreated=None, least_sure_only=False):
         basis = "no evidence yet"
     if st["thin"] and level_rank(lvl) < 3 and basis != st["thin"]:
         basis = "%s; %s" % (basis, st["thin"])
+    out = {"level": lvl, "level_basis": basis, "held": False}
     if untreated and level_rank(lvl) >= 3:
         held = "3p" if st["m3p"] else 2
-        basis = "%s; held at %s while a wrong idea is not fixed (%s)" % (basis, held, ", ".join(untreated))
-        lvl = held
-    return {"level": lvl, "level_basis": basis}
+        out.update({"level": held, "held": True,
+                    "level_basis": "%s; held at %s while a wrong idea is not fixed (%s)" % (
+                        basis, held, ", ".join(untreated))})
+    return out
 
 
 def compute_levels_from(attempts, subject=None, topic_ids=None, errors=None):
@@ -706,7 +733,8 @@ def compute_levels_from(attempts, subject=None, topic_ids=None, errors=None):
     ``subject`` is the subject.json dict (for the cold window and topic list).
     ``errors`` (optional) are the subject's mistakes: a topic with an untreated
     wrong idea is held below 3 until the idea is repaired.
-    Returns ``{topic: {"level": 0|1|2|"3p"|3|4|5, "level_basis": str}}``.
+    Returns ``{topic: {"level": 0|1|2|"3p"|3|4|5, "level_basis": str, "held": bool}}``,
+    ``held`` true when that wrong idea alone keeps the topic below 3.
     """
     window = _window((subject or {}).get("cold_window_h"))
     ids = list(topic_ids or [])

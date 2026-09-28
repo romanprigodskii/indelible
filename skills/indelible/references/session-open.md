@@ -175,7 +175,7 @@ Rough figures at the default paces (estimates): 20 minutes verbal gives about 12
 The recheck takes at most a quarter of the planned minutes in sessions of 30 minutes or less (5 minutes of a 20-minute session), and 10–15 minutes otherwise. Its questions come out of the same question budget.
 
 1. **Choose the content with `ind due <s> --list`.** A tier 0 (late rechecks, window passed) comes first, as [plan.md](plan.md) §7 says: the issued `cold` sheet if there is one, otherwise a `probe` on those topics (lint L7 refuses a `cold` sheet outside its window). Then fill the recheck in tier order until its share is used:
-   1. 2-day rechecks inside their window;
+   1. 2-day rechecks inside their window: a topic's first, or one again after a recheck that left it below 3 (marked "again");
    2. fixed mistakes that are due;
    3. shaky answers (right, but named on a Least-sure line);
    4. the oldest due items;

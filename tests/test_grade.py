@@ -702,6 +702,48 @@ class GradingRegressionTests(GradeBase):
                       "Its window has passed: it is a late recheck (plan.md §7).", r.stdout)
         self.assert_no_secrets()
 
+    def test_a_recheck_that_left_a_topic_below_3_comes_back_after_its_fix(self):
+        # T01 and T02 were taught Mon; the recheck on Wed leaves both at 50%: T01 with a wrong idea, T02 a slip.
+        add_exposure(self.ws, self.sid, "T01", "2026-10-12T07:40+01:00")
+        add_exposure(self.ws, self.sid, "T02", "2026-10-12T07:50+01:00")
+        items = [make_item(n, ("T02", "T01")[n % 2], ["%da" % n], origin="cold:%s" % ("T02", "T01")[n % 2],
+                           layer="reading") for n in (1, 2, 3, 4)]
+        key = write_sheet(self.ws, self.sid, "ielts-cold-01", "cold", items)
+        self.remember_key(key)
+        r = self.grade("ielts-cold-01", {"date": "2026-10-14", "start": "08:00", "stop": "08:08", "asks": [
+            {"ask": "1a", "verdict": "right", "check": "filled"},
+            {"ask": "2a", "verdict": "right", "check": "filled"},
+            {"ask": "3a", "verdict": "wrong", "check": "filled", "mode": "D", "kind": "belief",
+             "account": "picked the heading that shares a word", "belief": "matches a heading by a shared word"},
+            {"ask": "4a", "verdict": "wrong", "check": "filled", "mode": "C", "kind": "slip",
+             "account": "copied the wrong letter", "belief": "copied the wrong letter into the box"}]})
+        self.assertIn("T01 is below 3 after this recheck: it comes back as a 2-day recheck 44–72 h after its "
+                      "fix sheet (error repair logs it).", r.stdout)
+        self.assertIn("T02 is below 3 after this recheck: log the feedback on it (session expose ielts T02 "
+                      "--kind review), and it comes back as a 2-day recheck 44–72 h later.", r.stdout)
+        self.cli(["session", "expose", self.sid, "T02", "--kind", "review"], now="2026-10-14T09:00+01:00")
+        r = self.cli(["due", self.sid, "--list"], now="2026-10-16T10:00+01:00")
+        tier1 = r.stdout.split("1. 2-day rechecks", 1)[1].split("2. ", 1)[0]
+        self.assertIn("T02 True, false or not given · 49 h since last seen", tier1)
+        self.assertIn("again: its last recheck left it below 3", tier1)
+        self.assertNotIn("T01", tier1)                      # its wrong idea is not fixed yet
+        # T01 is fixed on Sat; it comes back 44-72 h later, and a pass there counts for level 3.
+        self.cli(["error", "repair", self.sid, "E-ielts-0001"], now="2026-10-17T10:00+01:00")
+        r = self.cli(["due", self.sid, "--list"], now="2026-10-19T11:00+01:00")
+        tier1 = r.stdout.split("1. 2-day rechecks", 1)[1].split("2. ", 1)[0]
+        self.assertIn("T01 Matching headings · 49 h since last seen", tier1)
+        data = json.loads(self.cli(["due", self.sid, "--json"], now="2026-10-19T11:00+01:00").stdout)
+        self.assertEqual([(c["topic"], c["again"]) for c in data["tiers"]["1_cold"]], [("T01", True)])
+        items = [make_item(n, "T01", ["%da" % n], origin="cold:T01", layer="reading") for n in (1, 2)]
+        key = write_sheet(self.ws, self.sid, "ielts-cold-02", "cold", items, issued="2026-10-19T10:55+01:00")
+        self.remember_key(key)
+        r = self.grade("ielts-cold-02", {"date": "2026-10-19", "start": "11:00", "stop": "11:05", "asks": [
+            {"ask": "%da" % n, "verdict": "right", "check": "filled"} for n in (1, 2)]},
+            now="2026-10-19T11:10+01:00")
+        self.assertIn("Levels: T01 0 → 3", r.stdout)
+        self.assertNotIn("below 3 after this recheck", r.stdout)
+        self.assert_no_secrets()
+
     def test_a_words_recheck_still_closes_its_booking(self):
         add_exposure(self.ws, self.sid, "T01", "2026-10-12T07:40+01:00")
         add_blocks(self.ws, [cold_obligation("B-20261014-ielts-2", self.sid, "T01",

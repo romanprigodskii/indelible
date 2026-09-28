@@ -535,7 +535,7 @@ def level(attempts, topic="T04", window=(44, 72)):
 class LevelTests(Base):
     def test_level_0(self):
         out = learning.compute_levels_from([], {"topics": [{"id": "T04", "name": "Paraphrase", "layer": "verbal"}]})
-        self.assertEqual(out["T04"], {"level": 0, "level_basis": "no evidence yet"})
+        self.assertEqual(out["T04"], {"level": 0, "level_basis": "no evidence yet", "held": False})
         low = level(att("ielts-diag-a", "rwwww", "diagnostic", 0))
         self.assertEqual(low["level"], 0)
         self.assertIn("latest measurement", low["level_basis"])

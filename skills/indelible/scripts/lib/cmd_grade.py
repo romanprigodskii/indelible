@@ -537,7 +537,7 @@ def cmd_grade_record(args):
             for t in served:
                 n_counted = len([a for a in attempts if a["topic"] == t and learning.counts_toward_level(a)])
                 if n_counted < learning.MIN_COLD_ASKS:
-                    thin.append((t, n_counted, learning.is_first_serve(topics_state.get(t))))
+                    thin.append((t, n_counted, learning.needs_window(t, topics_state.get(t), exposures)))
             served = [t for t in served if t not in [x[0] for x in thin]]
         closed = close_cold_obligations(ws, subj.id, served, sit_at=sit_at, sheet_block=sheet.get("block"))
 
@@ -550,18 +550,27 @@ def cmd_grade_record(args):
         subj.save_topics_state(merged)
         changes = learning.level_changes(topics_state, levels)
 
-        # A first recheck sat outside its window is a late recheck: the level
-        # rules ignore it for level 3, but it still uses up the first serve.
-        late = []
+        # A 2-day recheck sat outside its window is a late recheck: the level
+        # rules ignore it for level 3, but it still uses up the serve.
+        late, again = [], []
         if is_cold_sheet:
             lo, hi = subj.cold_window()
             for t in served:
                 ih = interval_cache.get(t)
-                if ih is None or lo <= ih <= hi or not learning.is_first_serve(topics_state.get(t)):
+                if ih is None or lo <= ih <= hi or not learning.needs_window(t, topics_state.get(t), exposures):
                     continue
                 if learning.level_rank((levels.get(t) or {}).get("level")) >= 3:
                     continue  # the pass confirmed a 3p level, which needs no window
                 late.append((t, ih))
+            # A topic this recheck left below 3 comes back as a 2-day recheck after its next
+            # warm exposure (learning.needs_rerecheck). One held below 3 only by a wrong idea
+            # is released by its repair instead.
+            for t in served:
+                lv = levels.get(t) or {}
+                if t in [x[0] for x in late] or lv.get("held") or learning.level_rank(lv.get("level")) >= 3:
+                    continue
+                if learning.has_first_serve_basis(t, exposures, topics_state.get(t)):
+                    again.append((t, bool(learning.untreated_on(t, errors))))
 
     # ---- report (never anything from the key)
     n = len(attempts)
@@ -616,6 +625,13 @@ def cmd_grade_record(args):
             else:
                 why += ". Its window has passed: it is a late recheck (plan.md §7)"
         out(why + ".")
+    for t, fix_first in again:
+        if fix_first:
+            out("%s is below 3 after this recheck: it comes back as a 2-day recheck %s–%s h after its fix sheet "
+                "(error repair logs it)." % (t, fmt_num(lo), fmt_num(hi)))
+        else:
+            out("%s is below 3 after this recheck: log the feedback on it (session expose %s %s --kind review), "
+                "and it comes back as a 2-day recheck %s–%s h later." % (t, subj.id, t, fmt_num(lo), fmt_num(hi)))
     for t, ih in late:
         out("Not counted toward level 3: %s was sat at %s h, outside its %s–%s h window. Treat it as a late "
             "recheck [measured] and book a fresh one from now (plan.md §7)." % (t, fmt_num(ih), fmt_num(lo),

@@ -668,9 +668,10 @@ def _l7(spec, ctx):
     """Cold validity (CONTRACT 6.4), judged at the time the sheet will be sat.
 
     ``ctx["at"]`` is that time (the linked block's start); without it, now.
-    cold:<topic>: the first serve after teaching needs teaching on record and
-    the window, plus no exposure in the 24 h before and no untreated mistake
-    on the topic. error:<E>: not untreated, due (next_due <= that day), no
+    cold:<topic>: the first serve after teaching (or one again after a recheck
+    that left the topic below 3: learning.needs_window) needs teaching on record
+    and the window, plus no exposure in the 24 h before and no untreated mistake
+    on the topic; any later serve needs only the last two. error:<E>: not untreated, due (next_due <= that day), no
     exposure in the 24 h before, no untreated mistake on the topic.
     sentinel:<E> (a retired mistake, possibly archived): the same without the
     due date. A mixed sheet is practice, but grading moves the ladder for its
@@ -702,7 +703,7 @@ def _l7(spec, ctx):
                              "build the recheck as type cold" % (n, topic, stype))
                 continue
             state = topics_state.get(topic)
-            first = learning.is_first_serve(state)
+            first = learning.needs_window(topic, state, exposures)
             if first and not learning.has_first_serve_basis(topic, exposures, state):
                 probs.append("item %s (%s): not taught yet (no teaching on record), so it is not recheck "
                              "material" % (n, topic))

@@ -365,6 +365,24 @@ class RuleTests(Base):
         self.assertEqual(self.status(spec, "L7", errors=[]), "FAIL")  # an unknown error id
         self.assertEqual(self.status(drills_spec(), "L7", exposures=taught_10h_ago), "PASS")
 
+    def test_l7_judges_a_recheck_again_by_its_window_and_a_later_serve_by_24_h_only(self):
+        # T04's recheck on 8 Oct left it below 3; its fix sheet came 33 h ago.
+        exposures = [{"topic": "T04", "at": "2026-10-06T08:00+01:00", "kind": "teach"},
+                     {"topic": "T04", "at": "2026-10-11T00:00+01:00", "kind": "repair"},
+                     {"topic": "T01", "at": "2026-10-10T08:00+01:00", "kind": "teach"}]
+        below = {"T04": {"level": 2, "last_cold": "2026-10-08T08:00+01:00", "taught_at": "2026-10-06T08:00+01:00"}}
+        r = result(cold_spec(), "L7", exposures=exposures, topics_state=below)
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("T04): seen 33 h ago; the recheck window opens at 44 h", r["detail"])
+        # At mastery 3 the same serve is its level-4 recheck: no window, only the 24-hour rule.
+        owned = {"T04": dict(below["T04"], level=3)}
+        self.assertEqual(self.status(cold_spec(), "L7", exposures=exposures, topics_state=owned), "PASS")
+        # A fix 3 days back: the recheck again has closed; the level-4 recheck still passes.
+        exposures[1]["at"] = "2026-10-09T08:00+01:00"
+        r = result(cold_spec(), "L7", exposures=exposures, topics_state=below)
+        self.assertIn("the recheck window closed at 72 h", r["detail"])
+        self.assertEqual(self.status(cold_spec(), "L7", exposures=exposures, topics_state=owned), "PASS")
+
     def test_l7_a_recheck_topic_needs_two_questions(self):
         spec = cold_spec()
         del spec["items"][3]                                   # T04, T01, T04: T01 once

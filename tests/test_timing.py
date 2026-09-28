@@ -266,7 +266,7 @@ class MovedWindowTests(TimingCase):
         bid = self.obligation()["id"]
         self.assertEqual(self.obligation()["window"]["to"], "2026-10-18T07:00+01:00")
         r = self.cli(["session", "expose", self.sid, "T03", "--kind", "drill"], now=self.DRILLS)
-        self.assertIn("Its first 2-day recheck now falls between Sun 18 Oct 09:00 and Mon 19 Oct 13:00", r.stdout)
+        self.assertIn("Its 2-day recheck now falls between Sun 18 Oct 09:00 and Mon 19 Oct 13:00", r.stdout)
         self.assertIn("Recheck %s: window moved" % bid, r.stdout)
         self.assertEqual(self.obligation()["window"], {"from": "2026-10-18T09:00+01:00",
                                                        "to": "2026-10-19T13:00+01:00", "basis": "exposure"})
@@ -294,7 +294,7 @@ class MovedWindowTests(TimingCase):
                   "--belief", "reads the heading as the first line", "--account", "took the first line"])
         repaired = "2026-10-16T20:00+01:00"
         r = self.cli(["error", "repair", self.sid, "E-ielts-0001"], now=repaired)
-        self.assertIn("Its first 2-day recheck now falls between Sun 18 Oct 16:00 and Mon 19 Oct 20:00", r.stdout)
+        self.assertIn("Its 2-day recheck now falls between Sun 18 Oct 16:00 and Mon 19 Oct 20:00", r.stdout)
         self.assertIn("WARN: the 2-day recheck booked Sat 17 Oct 10:00 (%s) is outside its new window: move it "
                       "inside (plan move %s --start 2026-10-18T16:00+01:00)" % (bid, bid), r.stdout)
         self.assertEqual(self.obligation()["window"], {"from": "2026-10-18T16:00+01:00",
@@ -308,11 +308,22 @@ class MovedWindowTests(TimingCase):
         path = self.sdir / "data" / "topics.json"
         state = fio.read_json(path)
         state["T03"]["last_cold"] = "2026-10-17T07:00+01:00"
+        state["T03"]["level"] = 3
         fio.write_json(path, state)
         before = self.obligation()["window"]
         r = self.cli(["session", "expose", self.sid, "T03", "--kind", "chat"], now="2026-10-17T09:00+01:00")
         self.assertIn("It cannot be on a 2-day recheck before", r.stdout)
         self.assertEqual(self.obligation()["window"], before)
+
+    def test_a_topic_its_recheck_left_below_3_gets_a_new_window(self):
+        # The recheck left T03 below 3: the next warm exposure opens a new 2-day window.
+        self.cli(["session", "taught", self.sid, "T03"])
+        path = self.sdir / "data" / "topics.json"
+        state = fio.read_json(path)
+        state["T03"].update({"last_cold": "2026-10-17T07:00+01:00", "level": 2})
+        fio.write_json(path, state)
+        r = self.cli(["session", "expose", self.sid, "T03", "--kind", "review"], now="2026-10-17T09:00+01:00")
+        self.assertIn("Its 2-day recheck now falls between Mon 19 Oct 05:00 and Tue 20 Oct 09:00", r.stdout)
 
 
 # ==========================================================================

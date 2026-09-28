@@ -556,7 +556,7 @@ def cold_window_for(ctx, b, by_id, pair_times=None):
     start = b_start(b, tz) or ctx.now
     lows, highs, refs = [], [], []
     for t in topics:
-        if not learning.is_first_serve(ctx.topics_state(b.get("subject")).get(t)):
+        if not learning.needs_window(t, ctx.topics_state(b.get("subject")).get(t), ctx.exposures(b.get("subject"))):
             continue
         last = learning.last_exposure(t, ctx.exposures(b.get("subject")), before=start)
         if last is None:
@@ -582,7 +582,7 @@ def _window_opens_later(ctx, b, s):
     lo, _ = ctx.cold_window(b.get("subject"))
     known = ctx.topic_ids(b.get("subject"))
     for t in cold_topics(b, known):
-        if not learning.is_first_serve(ctx.topics_state(b.get("subject")).get(t)):
+        if not learning.needs_window(t, ctx.topics_state(b.get("subject")).get(t), ctx.exposures(b.get("subject"))):
             continue
         last = learning.last_exposure(t, ctx.exposures(b.get("subject")), before=s)
         if last is None:

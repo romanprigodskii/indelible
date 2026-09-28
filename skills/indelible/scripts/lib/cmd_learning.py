@@ -409,9 +409,12 @@ def cmd_error_repair(args):
         rebooked = None
         if e.get("topic"):
             subj.append_exposure({"v": 1, "topic": e["topic"], "at": dates.fmt_iso(now), "kind": "repair"})
-            # A warm exposure: a topic still waiting for its first recheck gets its window moved.
-            rebooked = brief.rebook_first_recheck(ws, subj, e["topic"], now)
+        # Levels first: a topic held below 3 by this wrong idea is released now, so it is
+        # no longer waiting for a recheck.
         changes = refresh_levels(subj)
+        if e.get("topic"):
+            # A warm exposure: a topic still waiting for its 2-day recheck gets its window moved.
+            rebooked = brief.rebook_first_recheck(ws, subj, e["topic"], now)
     out("%s repaired: back on the ladder at rung 0; its recheck is due %s (%s)."
         % (new["id"], new.get("next_due"), fmt_day(new.get("next_due"))))
     if e.get("topic"):
