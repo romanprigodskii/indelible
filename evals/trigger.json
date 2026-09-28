@@ -11,6 +11,9 @@
   {"query": "here are the photos of this morning's drill sheet, can you mark them and log whatever I got wrong", "should_trigger": true},
   {"query": "put my study blocks for the next two weeks into my Google Calendar, and ask me before you change anything", "should_trigger": true},
   {"query": "that's it for today's chemistry, wrap up the session and tell me what's next", "should_trigger": true},
+  {"query": "I'm back after a week off, where was I with rust?", "should_trigger": true},
+  {"query": "I looked at my notes on confidence intervals last night, does that matter for tomorrow's recheck?", "should_trigger": true},
+  {"query": "Make me a printable revision timetable for my six GCSE exams", "should_trigger": true},
   {"query": "What's the difference between a confidence interval and a credible interval? Just a quick explanation, I'm reading a paper.", "should_trigger": false},
   {"query": "Can you review this Rust function for borrow checker problems? fn longest(a: &str, b: &str) -> &str { if a.len() > b.len() { a } else { b } }", "should_trigger": false},
   {"query": "Find a 30-minute slot next week when my two teammates and I are all free and send them a meeting invite about the Q4 roadmap", "should_trigger": false},
@@ -22,5 +25,9 @@
   {"query": "Explain what ownership means in Rust with a small example", "should_trigger": false},
   {"query": "Solve this integral and show the steps: ∫ x·eˣ dx", "should_trigger": false},
   {"query": "Convert this vocabulary list into a CSV with two columns, word and meaning, so I can import it somewhere else", "should_trigger": false},
-  {"query": "Grade these five student essays against the rubric I pasted and give each a mark out of 20", "should_trigger": false}
+  {"query": "Grade these five student essays against the rubric I pasted and give each a mark out of 20", "should_trigger": false},
+  {"query": "Quiz me with 10 questions on the French subjunctive right now", "should_trigger": false},
+  {"query": "Make Anki flashcards from these lecture notes for my exam next month", "should_trigger": false},
+  {"query": "My daughter has a spelling test on Friday, give her 10 practice words", "should_trigger": false},
+  {"query": "Explain Bayes' theorem, my stats final is in 3 weeks", "should_trigger": false}
 ]

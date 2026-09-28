@@ -200,7 +200,7 @@ indelible is an independent open-source project. It is not made, endorsed or sup
 - **Tests:** `python3 -m unittest discover -s tests` (Python 3.9+, standard library only). CI runs them on macOS, Linux and Windows.
 - **Privacy rule:** every example, fixture, test and issue uses only the synthetic learners A–D in `evals/fixtures/`. Never add real learner data, even your own. Once per clone, run `git config core.hooksPath dev/hooks`, so `dev/privacy_grep.py` runs before every push and stops it on any hit (it needs a local, git-ignored denylist; it also checks commit author names and emails).
 - **Build contract:** file formats, commands and checker rules are defined in `dev/CONTRACT.md`. Where code and the contract disagree, open an issue.
-- **Trigger evals:** `evals/trigger.json` lists prompts that should and shouldn't start the skill.
+- **Trigger evals:** `evals/trigger.json` lists prompts that should and shouldn't start the skill, near misses included (a one-off quiz or explanation with an exam ahead). Running them needs a model, for example the skill-creator skill's description evals, so CI doesn't. `tests/test_skill_meta.py` checks that the set is well formed and that the SKILL.md description stays within its 1,024 characters.
 
 ## License
 

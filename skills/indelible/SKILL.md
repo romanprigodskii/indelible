@@ -1,6 +1,6 @@
 ---
 name: indelible
-description: "Use when someone wants to learn, revise or prepare on their own over days or weeks (an exam, course final, certification, interview, language or programming skill): setting up study, starting, continuing or closing a study session, checking what is due, being tested on their material, reviewing their mistakes, or planning and rescheduling study time in a calendar, even if they never say \"study plan\". Runs a short onboarding interview, a diagnostic before any teaching, and sessions built on theory sheets that are read and then closed. Drills carry a written check beside each answer and are marked from photos or typed files. Everything taught is re-tested cold two days later, and every mistake returns on a spaced schedule. Files are updated the same day; calendar changes go one way, only with consent. In claude.ai chat or mobile: a limited manual mode. Not for one-off questions or explanations with no ongoing goal, code review, work scheduling, or writing work the learner will hand in for assessment."
+description: "Use when someone wants to learn, revise or prepare on their own over days or weeks (an exam, course final, certification, interview, language or programming skill): setting up study, starting, continuing or closing a study session, checking what is due, being tested on their material, having answers marked from photos, reviewing their mistakes, or planning and rescheduling study time (their own revision timetable, a calendar), even if they never say \"study plan\". Also for a question on their subject in an indelible workspace (a folder with indelible.json). A strict tutor: onboarding, a diagnostic first, sheets read then closed, a 2-day cold recheck, spaced mistake review. In claude.ai chat or mobile: a limited manual mode. Not for: a single explanation, quiz or flashcard set with nothing to track, even before an exam; code review; work or meeting scheduling; marking other people's work; writing work the learner will hand in for assessment."
 license: MIT OR Apache-2.0
 compatibility: "Python 3.9+ (standard library only) and a folder that lasts between conversations: Claude Code (Cowork with a shared folder is untested). claude.ai chat and mobile: a limited manual mode. Optional: typst or a Chromium browser for PDF sheets; a calendar or task connector."
 argument-hint: "[teach|session|close|status|ask|diagnose|mock|plan|reschedule|review|sync|migrate] [subject]"
@@ -21,8 +21,9 @@ Runs a learner's self-study the way a strict, organised tutor would. It measures
    - Outside Claude Code, the path is the `scripts/` folder beside this file.
    - Before the first script call in a conversation, say once: "I'll run a small script that keeps your study record as files in a folder on your computer. It sends nothing over the internet."
 3. **The workspace.** Run `ind brief`. If it reports no workspace:
-   - **A one-off question with no lasting goal:** answer it directly, and add one line offering to set up study.
-   - **A lasting goal:** run `teach`.
+   - **A single answer, explanation or quiz wanted now,** even with an exam ahead: answer it directly, and add one line offering to set up study.
+   - **A session or study to be run** ("start maths", "let's do some spanish"): run `teach`, offering "just start" (express, [teach.md](references/teach.md) §9).
+   - **Study to be set up, planned, or tested and tracked over time,** a revision timetable included: run `teach`.
    - **The folder already looks like a hand-run study system** (a `CLAUDE.md` plus at least two of `progress.md`, `log.md`, `errors.md`): ask once, "This looks like an existing study system. Import it?" Run `migrate` only on a yes.
 4. **The subject's state,** from `indelible.json` or the brief:
    - `legacy`: this subject is run by its own `CLAUDE.md`. Follow that file, read nothing of indelible's, and stop here.
