@@ -1,6 +1,6 @@
 # Sheets
 
-Load this for anything that builds, renders, issues, files or marks a sheet. Marking itself is in [session-grade.md](session-grade.md). Examples use personas A (`ielts`), B (`spanish`), C (`stats`) and D (`rust`).
+Load this for anything that builds, renders, issues, files or marks a sheet. Marking itself is in [session-grade.md](session-grade.md); what the builder writes, and the checker's rules, are in [builder.md](../assets/prompts/builder.md). Examples use personas A (`ielts`), B (`spanish`), C (`stats`) and D (`rust`).
 
 ## Contents
 
@@ -44,14 +44,7 @@ Load this for anything that builds, renders, issues, files or marks a sheet. Mar
 
 ## 2. What every sheet carries
 
-The templates print these:
-- **Header:** title, date and weekday, estimated minutes, number of questions, `Practice — written by Claude`, `Measurement — written by Claude` or `Measurement — official`, and the sheet code (`Sheet IELTS-07`: the subject and a running number, never a topic word), so a photo is matched to its sheet ([session-grade.md](session-grade.md) §2).
-- **Rules box:** closed book ("no other AI" on drills; with `format.reference_sheet`, a clean copy of the exam's formula sheet is allowed, and the tools line names it); one answer in each box, on paper; the check beside each answer (on a mock, or a sheet of official questions only: "Check your answers as you would in the exam: there is no check line on this sheet."); a failed check the learner can't resolve within a minute: mark it ✗ or "no", leave the answer and the check as they are, name it on the Least-sure line, go on; "I don't know" is always an accepted answer, and on theory, external, example, repair and drills sheets, "Stuck on a question after a real try? Tell me its number: you get a small hint, never the answer" ([session-teach.md](session-teach.md) §3); stop after N minutes (on theory, external, example and repair sheets, "Allow about N minutes, and read it all even if it takes longer"), and on a sheet with the Least-sure line, "Then fill in the Least-sure line: item numbers, or “none”."; tools allowed; "If a word here was never explained to you, on this sheet or an earlier one, write it beside that answer: that's my mistake, not yours" (marking looks the word up: [session-grade.md](session-grade.md) §3).
-- **Item 0** `Start time: ____`. **Last line** `Stop time: ____`, plus the Least-sure line when `least_sure` is true.
-- **Each question:** label, answer box, and `Check: ____` with the hint in small text. On a practice sheet an item may print working lines or an empty table (`scaffold`) between its text and its first box: a place for each step to write, never graded or counted. **Drills** add block titles and, after item 3 of each block: "If 2 of items 1–3 have a failed check, an “I don't know” or an empty box: stop and send a photo of 1–3." A block's `gate_after` moves the gate after that item, over the 3 items that end there: at mastery 0–1 a block of 6 or more sets it to its 4th item, so the gate skips the worked item 1. A block with `gate: "always"` (required below mastery 2, lint L6) prints "Stop here and send a photo of items 1–3. Go on once I've marked them." instead.
-- **Theory:** floor box, words, sections, the pencil questions, then "Send me your pencil answers and keep this sheet open until I've marked them. Then put it away and tell me “closed”. The drills come on their own sheet." (external pages end the same way). Its rules box starts "Read this sheet, then do the pencil questions at the end with it open." **Footer:** page X of Y where the format has pages.
-
-No printed "Looked at any of this since last time?" line exists in v0.1; ask it in chat before marking a recheck ([session-grade.md](session-grade.md) §10).
+The templates print a header with the sheet code (`Sheet IELTS-07`: the subject and a running number, never a topic word), so a photo is matched to its sheet ([session-grade.md](session-grade.md) §2); a rules box; item 0 `Start time: ____`; per question a labelled box and a `Check: ____` line with its hint; on drills, the failure gate ([session-teach.md](session-teach.md) §4); and a last line `Stop time: ____` with the Least-sure line (§4). The rules box says what to do with a failed check (§3), that "I don't know" is always accepted, how to ask for a hint on a practice sheet ([session-teach.md](session-teach.md) §3), and to write beside an answer any word never explained ([session-grade.md](session-grade.md) §3). The full wording is in builder.md, "What the templates print". No sheet prints "Looked at any of this since last time?" in v0.1: ask it in chat before marking a recheck ([session-grade.md](session-grade.md) §10).
 
 ## 3. Check lines
 
@@ -85,20 +78,7 @@ Every answer on `drills`, `cold`, `mixed`, `review`, `diagnostic` and `checkpoin
 
 ## 5. Don'ts
 
-| Don't | Instead |
-|---|---|
-| The classmate device: "A classmate says it's 12. Is she right?" | Ask directly. For a common wrong idea on a topic the learner owns (mastery 3 or above), show working and ask "Which line is the first wrong one?"; below that, put the wrong working beside the right one and ask where they part (unless finding errors is the exam's own question form) |
-| A formula as a label: `f′(x) = ___` | Say what goes in the box: "The value of f′ at x = 1:" |
-| A label that leaves the form open when only one form counts, or names none when any would do | "as one fraction", "the exam's name for the test", or "any equivalent form" ([session-grade.md](session-grade.md) §9 marks the exam's form) |
-| "Give two answers", "both" or "each" for one box | One labelled box per answer: 3a, 3b |
-| A topic name or id anywhere on a measuring or mixed sheet | Neutral titles: "2-day recheck", "Part A" |
-| A formula in a heading | The operation in words |
-| The answer anywhere visible: a hint, an option the key accepts word for word, a worked case on the same details | Choices answered by letter; worked cases on different details |
-| A concept introduced only by its definition | A concrete worked case first, then the rule (lint L11); one for each operation the drills use (L12) |
-| A procedure with no meaning: steps the learner can follow but can't picture | After the worked case, "What it is and why" in at most 5 lines: what the object is, and why the rule follows from it (lint L13, W6) |
-| Hints, worked steps or printed working (a scaffold) on a measuring or mixed sheet | Only question, box and check line (lint L14) |
-| A step asked for in a sentence ("write u first", "finish steps 2 and 3") | A printed working line or table for it (`scaffold`), faded before the block ends |
-| Official questions copied into a spec | A pointer: "Test 2, questions 1–13" (`origin: official:<source>`) |
+What never goes on a sheet (the classmate device, a formula as a label or in a heading, two answers in one box, a topic name on a measuring or mixed sheet, the answer anywhere visible, a definition before any worked case, a scaffold on a measuring sheet, official questions copied) is builder.md's Don'ts table. The builder follows it, and lint checks most of it (§7).
 
 ## 6. Building a sheet
 
@@ -119,34 +99,9 @@ A builder subagent writes every sheet that has answers, so no answer enters this
 
 ## 7. The checker: rules L1–L14
 
-`ind sheet lint <s> <id> --budget-min N` prints one PASS, FAIL or WARN line per rule and exits 1 on any FAIL. The builder fixes and re-lints. Never show rule codes to a plain-vocabulary learner.
+`ind sheet lint <s> <id> --budget-min N` prints one PASS, FAIL or WARN line per rule and exits 1 on any FAIL. `ind sheet build` needs a PASS, and a builder `FAILED` line names each failing rule with its reason (§6). What fails each rule, and its fix, is in builder.md, "The checker": L1 structure, L2 check lines, L3 unlabelled, L4 terms, L5 budget, L6 drill blocks, L7 cold validity, L8 key leak, L9 Least-sure, L10 check hints, L11 worked case first, L12 taught operations, L13 meaning box, L14 scaffolds; W1–W8 warn. Never show rule codes to a plain-vocabulary learner.
 
-| Rule | Fails when | Fix |
-|---|---|---|
-| L1 structure | no items; an item with no question; a repeated question id; a box with no label | split multi-answer items into 3a, 3b; label every box |
-| L2 check lines | a question on drills, cold, mixed, review, diagnostic or checkpoint lacks `check: true`; not on a mock, nor an official question on a diagnostic or checkpoint (exam conditions) | add it, with the hint for its kind (§3) |
-| L3 unlabelled | on cold, mixed, diagnostic, mock, checkpoint, probe: a topic name or id in the title, a block title or a label; or two neighbouring items on one topic | neutral wording; reorder; add or cut an item if one topic dominates |
-| L4 terms | a word from `assets/lists/sense_seed.txt` or the subject's `sense_list` or `lexicon` (in text, labels, titles or check hints; in code, only the subject's own entries) has no `terms` entry; on theory, one neither `defined_here` (and in `theory.words`) nor `everyday`; `everyday` for a lexicon word, or on theory, example or repair for a word the sheet teaches (title, section title, topic name, a question, or 3+ uses); a `defined_on:<id>` whose sheet is not on file or doesn't define the word | add where the learner met the word; if they never did, use plain words or teach it first |
-| L5 budget | the estimate is under the pace floor (each question's `pace_s[layer]`, over 60, plus 1 minute; not on triage, and official questions are left out: the exam's clock times them), or exceeds `--budget-min` (else 0.8 × the linked block, or the open session's work minutes when it runs on that block, less the sheets already issued on it); a diagnostic, mock or checkpoint: its block's minutes less 10 to record, else a mock's or checkpoint's exam minutes | an estimate under the floor: recount it; over budget: cut questions, lowest tier first; never lower the estimate alone. A measurement is never cut to fit: split a part Claude wrote into sittings ([measure.md](measure.md) §3), or book an official paper a longer block |
-| L6 drill blocks | an item in no block or two, a block outside `block_size`, two operations in one block; a `gate_after` that is not an item of its block, or has fewer than 3 items up to it or 2 after it; a block with a topic below mastery 2 (no level on file counts as 0) without `gate: "always"` | regroup by `op`; move `gate_after`, or leave it out; set `gate: "always"` |
-| L7 cold validity | on cold, words and mixed: a topic outside its window (a words recheck: its first one only) or seen in the last 24 hours, an untreated mistake, or a mistake not due yet; on mixed, any `cold:` item (a recheck in its window is a cold sheet); on cold, a `cold:` topic with fewer than 2 questions (one can't count toward mastery) | remove it: untreated goes to repair; a window not open yet waits for the open; a window that has passed becomes a late recheck ([plan.md](plan.md) §7); a recheck topic with one question gets a second, or comes off the sheet. Never change `origin` or `type` to pass. A learner's override is not a fix: it gets a separate `mixed` sheet with `origin: new` only, and the recheck stays booked ([session-open.md](session-open.md) §3 step 6) |
-| L8 key leak | an accepted answer of 3+ characters appears in the visible text (only the question id is named) | reword; accept letters for choices; for words copied from the item's own passage, set `answer_in_passage: true`, or ask for the line number |
-| L9 Least-sure | `least_sure` not true on any type but theory, external, example, triage | set it true |
-| L10 check hints | a check hint asks the learner to find their own mistake ("find the error", "is there a mistake?"), to re-solve ("redo", "do it again", "double-check"), to rate their confidence, or says only "check your answer" | name the check to run (§3) |
-| L11 worked case first | a theory or repair sheet with no `worked` section, or with a `rule` section before the first one (a locked override of R12 order lets the rule come first, never the worked case go); a `prequestion` (a guess before reading) on any other type, or after the first worked section | a concrete worked case first, then the rule; a guess goes first, on a theory sheet only |
-| L12 taught operations | on drills, a new item whose `op` no theory, external, example or repair sheet of its topic has shown (as a pencil question's `op` or in a worked section's `ops`); a topic with no such sheet is skipped. On those sheets, a pencil question with no `op` | show it worked on the theory and rebuild that, or drop the item; never rename an `op`. Name each pencil's operation as the drills will |
-| L13 meaning box | a theory sheet on a procedural, conceptual or code topic with no `meaning` section | after the worked case, say in at most 5 lines what the object is and why the rule follows from it |
-| L14 scaffolds | printed working (`scaffold`) on a cold, mixed or measuring sheet; on drills, a scaffold on one of a block's last two items | take it off; on drills, fade it: the last two items of a block print only the box |
-| W1 | `=` in a block title | the operation in words |
-| W2 | on drills with both computed and sentence items, a sentence item with no computed item before it on its topic | make it the last question of the computed item it is about |
-| W3 | on a topic below mastery 3 (3p counts as 3): a check line with no hint, or a hint that needs a second method or the weakest step ("another way", "which step would you be pushed on?") | the check the theory sheet worked, or one using only what the learner owns |
-| W4 | a theory or repair sheet whose worked case shows no check (no step labelled "Check:") | end the worked case with the check the drills will ask for |
-| W5 | a theory, example or repair sheet whose estimate leaves no time to read it: under the pace floor plus its words (floor box, words box, sections) at 150 a minute | add the reading time: its words over 120 a minute, over 90 in a second language (builder.md) |
-| W6 | a theory sheet on another topic (verbal, reading, production) with no `meaning` section; a meaning box over about 5 lines (80 words), or after the rule | the meaning in at most 5 lines, before the rule; for a convention, one line saying it is learned as given |
-| W7 | on a 2-day recheck, a `cold:` item whose `op` no earlier sheet of its topic (theory, external, example, repair or drills) showed or practised; a topic with no teaching sheet is skipped | swap it for a case the topic's sheets worked; a case never taught is my mistake at marking ([session-grade.md](session-grade.md) §5) |
-| W8 | on a cold, mixed or measuring sheet, a word resolved `defined_on:<sheet>` that no question the learner answered used (an item's text or label on a practice sheet sat or graded): read once in a words box is not owned | use it in a drills question first, or use plain words here |
-
-L4 resolutions (`defined_here`, `defined_on:<sheet-id>`, `glossary`, `everyday`, `measured_here`) are in builder.md rule 5. Words the learner owns reach the glossary with `ind glossary add` at marking ([session-grade.md](session-grade.md) §8). Lint checks that a `defined_on` sheet is on file and defines the word, and `ind sheet issue` holds the sheet back until that one is issued; that the learner really read it, lint can't see, so it must be true.
+Words the learner owns reach the glossary with `ind glossary add` at marking ([session-grade.md](session-grade.md) §8), so later sheets may use them. `ind sheet issue` holds back a sheet whose word is `defined_on` a sheet not issued yet.
 
 ## 8. What the learner gets
 

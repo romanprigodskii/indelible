@@ -15,6 +15,12 @@ becomes a usage error (exit 2) in the middle of a session. Every backticked
 Placeholders are `<…>`, a quoted string holding `…`, and the words N, ISO,
 DATE, TEXT, MIN or a single capital letter. Optional `[--opt …]` groups are
 left out of the parse, but their flags and choices are still checked.
+
+The docs also point at each other by section ("[close.md](close.md) §6 step 5",
+"builder.md rule 4"), and the CLI prints such pointers too. A section moved or
+renumbered would leave them pointing at nothing, so every pointer to a
+reference's section must name a "## N." heading of that file, and a step must
+be a "### Step N" heading or a numbered line inside it.
 """
 
 import argparse
@@ -223,6 +229,72 @@ class DocUsages(unittest.TestCase):
             got = check_usage(self.parser, usage)
             self.assertIsNotNone(got, usage)
             self.assertIn(why, got, usage)
+
+
+# "[close.md](close.md) §6 step 5", "session-grade.md §8", "sheets.md section 8".
+FILE_POINTER_RE = re.compile(r"\b([a-z][a-z-]*)\.md\]?(?:\([^)\s]*\))?`? (?:§ ?(\d+)|section (\d+))(?: step (\d+))?")
+# A bare "§3" in a reference points into that file, unless another file is named before it on the line.
+BARE_POINTER_RE = re.compile(r"§ ?(\d+)(?: step (\d+))?")
+OTHER_FILE_RE = re.compile(r"[A-Za-z-]+\.md|CONTRACT")
+BUILDER_RULE_RE = re.compile(r"builder\.md(?:\]\([^)\s]*\))?`? rules? (\d+)")
+
+
+def sections(text):
+    """{N: the text of section "## N. …", up to the next "## " heading}."""
+    found = {}
+    for m in re.finditer(r"(?m)^## (\d+)\. ", text):
+        end = re.search(r"(?m)^## ", text[m.end():])
+        found[int(m.group(1))] = text[m.start():m.end() + (end.start() if end else len(text))]
+    return found
+
+
+class SectionPointers(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.refs = {p.stem: sections(p.read_text(encoding="utf-8"))
+                    for p in (SKILL_DIR / "references").glob("*.md")}
+        cls.sources = (doc_files() + [SKILL_DIR.parents[1] / "dev" / "CONTRACT.md", SKILL_DIR.parents[1] / "README.md"]
+                       + sorted((SKILL_DIR / "scripts").rglob("*.py")))
+
+    def resolves(self, name, number, step):
+        section = self.refs[name].get(int(number))
+        if section is None:
+            return False
+        return step is None or bool(re.search(r"(?m)^### Step %s\b|^\s*%s\. " % (step, step), section))
+
+    def test_every_pointer_to_another_file_names_a_section_it_has(self):
+        bad, n = [], 0
+        for path in self.sources:
+            for no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                for m in FILE_POINTER_RE.finditer(line):
+                    if m.group(1) not in self.refs:
+                        continue
+                    n += 1
+                    if not self.resolves(m.group(1), m.group(2) or m.group(3), m.group(4)):
+                        bad.append("%s:%d %s" % (path.name, no, m.group(0)))
+        self.assertGreater(n, 150, "far fewer section pointers than expected: is the extraction broken?")
+        self.assertEqual(bad, [], "pointers to a section or step that doesn't exist")
+
+    def test_every_pointer_inside_a_reference_names_a_section_it_has(self):
+        bad = []
+        for path in (SKILL_DIR / "references").glob("*.md"):
+            for no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                for m in BARE_POINTER_RE.finditer(line):
+                    if OTHER_FILE_RE.search(line[:m.start()]):
+                        continue
+                    if not self.resolves(path.stem, m.group(1), m.group(2)):
+                        bad.append("%s:%d %s" % (path.name, no, m.group(0)))
+        self.assertEqual(bad, [], "pointers to a section or step that doesn't exist")
+
+    def test_every_pointer_to_a_builder_rule_names_a_rule_it_has(self):
+        builder = (SKILL_DIR / "assets" / "prompts" / "builder.md").read_text(encoding="utf-8")
+        rules = set(re.findall(r"(?m)^(\d+)\. \*\*", builder.split("### Writing rules", 1)[1]))
+        bad = []
+        for path in self.sources:
+            for no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                bad += ["%s:%d %s" % (path.name, no, m.group(0)) for m in BUILDER_RULE_RE.finditer(line)
+                        if m.group(1) not in rules]
+        self.assertEqual(bad, [], "pointers to a builder.md writing rule that doesn't exist")
 
 
 if __name__ == "__main__":

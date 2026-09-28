@@ -969,7 +969,7 @@ def order_overridden(overrides):
 
 def _l11(spec, ctx):
     """A theory or repair sheet shows a worked case, and shows it before the rule: a
-    concept introduced only by its definition is a don't (sheets.md §5). The order is a
+    concept introduced only by its definition is a don't (builder.md, "Don'ts"). The order is a
     default (R12 order): a locked override lets the rule come first, never the worked
     case go. A guess before reading (a ``prequestion`` section) goes only on a theory
     sheet, before the worked case that answers it."""
