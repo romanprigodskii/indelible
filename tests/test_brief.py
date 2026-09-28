@@ -9,9 +9,9 @@ import unittest
 from pathlib import Path
 
 try:
-    from helpers import make_ws, run
+    from helpers import SKILL_DIR, make_ws, run
 except ImportError:  # run as part of the tests package
-    from tests.helpers import make_ws, run
+    from tests.helpers import SKILL_DIR, make_ws, run
 
 from lib import dates
 from lib import io as fio
@@ -369,6 +369,30 @@ class AlarmTests(BriefBase):
         self.set_cfg("subjects", [{"id": "ielts", "dir": "ielts", "state": "paused", "priority": 1,
                                    "target_weekly_min": 240, "min_weekly_min": None}])
         self.assertNotIn("hasn't run lately", self.brief())
+
+    def test_the_alarm_is_offered_with_no_count_and_not_at_re_entry(self):
+        # At re-entry the subject's own brief still raises the missed-blocks alarm, and the open's step 2
+        # records every block as skipped with no question, so the references must hold its offer back
+        # there (re-entry re-plans the week), and the offer never repeats the flag's count.
+        self.put("plan/blocks.jsonl", self.two_missed())
+        self.put("ielts/data/sessions.jsonl", [self.session_row(1, "2026-10-06T07:00+01:00",
+                                                                 "2026-10-06T08:00+01:00")])
+        learner, _ = self.parts(self.brief())
+        self.assertIn("LAST SESSIONS (6 days since the last one)", learner)
+        self.assertIn("hasn't run lately: the last two planned sessions didn't happen", learner)
+        refs = SKILL_DIR / "references"
+        plan = (refs / "plan.md").read_text(encoding="utf-8")
+        alarm = [l for l in plan.splitlines() if l.startswith("- **Alarm:**")][0]
+        offer = re.search(r'"([^"]*1\) Re-plan the week[^"]*)"', alarm).group(1)
+        self.assertEqual(offer, "IELTS hasn't been running lately. 1) Re-plan the week 2) Pause IELTS until "
+                                "a date you pick 3) Ask me again on Monday")
+        self.assertIn("never at re-entry", alarm)
+        opening = (refs / "session-open.md").read_text(encoding="utf-8")
+        bullet = [l for l in opening.splitlines() if l.startswith("- **An alarm**")][0]
+        self.assertIn("never the flag's count", bullet)
+        self.assertIn("never at re-entry", bullet)
+        teach = (refs / "session-teach.md").read_text(encoding="utf-8")
+        self.assertIn("5. **Re-plan the week**", teach)
 
     def test_an_ask_again_to_do_with_no_subject_leaves_the_alarm_on(self):
         self.put("plan/blocks.jsonl", self.two_missed())

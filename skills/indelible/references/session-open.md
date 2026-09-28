@@ -64,7 +64,7 @@ All the `missed?` blocks in one message, by day (up to 3 named; beyond that, "th
   - Moved: `ind plan move <B> --start <ISO>`, if a new time was given.
   - Skipped: `ind plan miss <B> --reason "<their words, or 'no reason given'>"`; its content is placed again at the close or in [plan.md](plan.md), and a missed recheck is never replaced by a warm review.
 - **Never ask** about soft blocks, or anything in on-demand mode.
-- **An alarm** ("<subject> hasn't run lately"): [plan.md](plan.md) §7's three choices, in its words, once per open, in their own message; record the choice as it says. For this subject, only once the answers above confirm two skips in a row (not sessions held without you or moved); for another, after this step's answers.
+- **An alarm** ("<subject> hasn't run lately"): [plan.md](plan.md) §7's three choices, in its words (never the flag's count), once per open, in their own message; record the choice as it says. For this subject, only once the answers above confirm two skips in a row (not sessions held without you or moved), and never at re-entry, which re-plans the week instead ([session-teach.md](session-teach.md) §6 step 5); for another, after this step's answers.
 
 ### Step 3: a sheet issued and not taken after two session opens
 
