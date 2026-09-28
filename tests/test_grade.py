@@ -388,7 +388,28 @@ class ColdSheetTests(GradeBase):
         self.grades["least_sure_line"] = "sure"
         r = self.record(expect=2)
         self.assertIn("grades.least_sure_line must be one of: named, none, blank", r.stderr)
+        # "named" with nothing named, and nothing left out of the file, is refused too.
+        self.grades["least_sure_line"] = "named"
+        for g in self.grades["asks"]:
+            g["least_sure"] = False
+        r = self.record(expect=2)
+        self.assertIn("grades.least_sure_line is named, but no question has least_sure true", r.stderr)
         self.assertEqual(self.attempts(), [])
+
+    def test_a_line_whose_only_named_question_was_left_out_is_still_named(self):
+        # The learner named only 6, and 6 was withdrawn as unclear: out of the file, the line still named.
+        self.grades["asks"] = [g for g in self.grades["asks"] if g["ask"] != "6a"]
+        for g in self.grades["asks"]:
+            g["least_sure"] = False
+        r = self.record(expect=2)
+        self.assertIn('or, when every question named is left out of this file, "named"', r.stderr)
+        self.grades["least_sure_line"] = "named"
+        out = self.record().stdout
+        self.assertIn("no entry for 6a in the grades file", out)
+        self.assertIn("Wrong answers not on the Least-sure line: 2 of 2", out)
+        self.assertNotIn("left blank", out)
+        self.assertEqual(set(a["least_sure_line"] for a in self.attempts()), {"named"})
+        self.assertEqual(len(self.attempts()), 7)
 
     def test_a_sheet_without_the_line_records_none_of_it(self):
         spec_path = self.sdir / ".indelible" / "specs" / "ielts-cold-01.json"

@@ -737,11 +737,11 @@ def validate_grades(g):
             p.append("%s.least_sure must be true or false" % name)
         if isinstance(a.get("belief"), str) and len(a["belief"]) > 120:
             p.append("%s.belief is longer than 120 characters" % name)
+    # "named" with no ask named is left to grade record: it is right when every named
+    # question was left out of the file (withdrawn, not counted), which only it can see.
     named = [a.get("ask") for a in asks if isinstance(a, dict) and a.get("least_sure") is True]
     line = g.get("least_sure_line")
-    if line == "named" and not named:
-        p.append("grades.least_sure_line is named, but no ask has least_sure true")
-    elif line in ("none", "blank") and named:
+    if line in ("none", "blank") and named:
         p.append("grades.least_sure_line is %s, but %s %s least_sure true" % (
             line, ", ".join(str(x) for x in named), "has" if len(named) == 1 else "have"))
     return p
@@ -1100,7 +1100,8 @@ RECORDS = {
             ("least_sure", "true for every ask of an item the learner named on the Least-sure line"),
             ("least_sure_line", "named | none (the learner wrote none) | blank (left empty; never read as "
                                 "'sure of everything'). On a sheet with the Least-sure line: named when left out "
-                                "and an ask is named, otherwise required. Left out on a sheet without the line"),
+                                "and an ask is named, otherwise required; named with no ask named only when every "
+                                "question named was left out of the file. Left out on a sheet without the line"),
             ("kind", "belief | slip | shaky: creates an error for wrong, half or dont_know asks"),
             ("account", "the learner's own words, asked before classifying; or 'no account'"),
             ("belief", "at most 120 characters; never the correct answer"),

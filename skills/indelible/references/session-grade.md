@@ -67,7 +67,7 @@ Run `ind key open <subject> <id>`. It refuses (exit 1) until the sheet is `sat` 
 | `check` | `filled` · `missing` · `caught` (answer changed after a failed check) · `failed` (check didn't hold, answer kept, usually marked ✗) · `head` (empty line, checked in the head: [self-report], §7) · `n/a` (no check line printed, or no answer to check) |
 | `least_sure` | `true` for every question of an item named on the Least-sure line |
 
-Record the Least-sure line once per sheet as `least_sure_line`: `named`, `none` (they wrote "none") or `blank`, never read as "sure of everything" (the unnamed-wrong share leaves that sheet out). Never ask for it afterwards (it would no longer record doubt while working), and never count how often it was left blank (Law 10). A named wrong answer counts as any miss; named right answers wait for their re-serve (§8).
+Record the Least-sure line once per sheet as `least_sure_line`: `named` (even when every question named is left out of the file, §8), `none` (they wrote "none") or `blank`, never read as "sure of everything" (the unnamed-wrong share leaves that sheet out). Never ask for it afterwards (it would no longer record doubt while working), and never count how often it was left blank (Law 10). A named wrong answer counts as any miss; named right answers wait for their re-serve (§8).
 
 **A word written beside an answer** flags a word never given. Look it up first (the sheet's `terms`, the sheets they read, the glossary): never defined, it is my mistake (§5), even on a right answer; defined, on a miss it is the account "a word stopped me".
 

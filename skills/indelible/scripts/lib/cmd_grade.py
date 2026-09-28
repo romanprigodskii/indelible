@@ -11,7 +11,8 @@ What it does, in order:
      exists, a miss that opens a mistake has a mode (and an account), a
      belief line never contains an accepted answer from the key, and a sheet
      with the Least-sure line says how it came back (``least_sure_line``:
-     named, none or blank; named when a question is named).
+     named, none or blank; named when a question is named, or when every
+     question named was left out of the file).
   3. Appends one attempt per question. Topic and layer come from the spec
      (a question may carry its own ``topic``, e.g. one hidden-test group of a
      code task), the instrument from the sheet type, ``cold`` is true on cold
@@ -329,18 +330,30 @@ def cmd_grade_record(args):
 
         # ---- pass 1: check every question and build the rows (nothing written yet)
         bad, leaks = [], []
+        # A question with no entry is simply not recorded. That is right for a block cut
+        # for time, a question not counted, one withdrawn or an untaught case on a recheck,
+        # never for a page missed when transcribing; a note, not a refusal, since leaving one
+        # out is often deliberate.
+        graded = set(g["ask"] for g in grades["asks"])
+        left_out = [aid for aid in ask_index if aid not in graded]
         # The closing Least-sure line: items named, "none" written, or left blank. A blank is
         # recorded as blank, never as "sure of everything": the unnamed-wrong share leaves it out.
+        # It is named even when every question named was left out (withdrawn, not counted).
         has_line = spec.get("least_sure") is True
         ls_line = grades.get("least_sure_line")
+        any_named = any(g.get("least_sure") is True for g in grades["asks"])
         if has_line and ls_line is None:
-            if any(g.get("least_sure") is True for g in grades["asks"]):
+            if any_named:
                 ls_line = "named"
             else:
                 bad.append("%s ends with the Least-sure line: give least_sure_line \"none\" (the learner wrote "
-                           "none) or \"blank\" (left empty)" % sid)
+                           "none), \"blank\" (left empty) or, when every question named is left out of this "
+                           "file, \"named\"" % sid)
         elif not has_line and ls_line is not None:
             bad.append("%s has no Least-sure line: leave least_sure_line out" % sid)
+        elif ls_line == "named" and not any_named and not left_out:
+            bad.append("grades.least_sure_line is named, but no question has least_sure true (named with none "
+                       "is only for a line whose every question was left out of the file)")
         attempts, pending_errors, no_kind, notes = [], [], [], []
         shaky_items = {}      # (item n, topic) -> the one shaky mistake for its named right answers
         reserve = {}          # E-id -> [verdicts] for re-served mistakes
@@ -464,12 +477,6 @@ def cmd_grade_record(args):
         if practised_cold:
             notes.append("%s: a 2-day recheck item on a %s sheet is practice, so it serves no recheck; the "
                          "booked recheck stays open." % (", ".join(practised_cold), stype))
-        # A question with no entry is simply not recorded. That is right for a block cut
-        # for time, a question not counted, one withdrawn or an untaught case on a recheck,
-        # never for a page missed when transcribing; a note, not a refusal, since leaving one
-        # out is often deliberate.
-        graded = set(g["ask"] for g in grades["asks"])
-        left_out = [aid for aid in ask_index if aid not in graded]
         if left_out:
             notes.append("no entry for %s in the grades file, so %s not recorded. Leaving a question out is "
                          "right only in the cases session-grade.md §8 lists; one left out by mistake can't be "
