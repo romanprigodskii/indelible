@@ -158,7 +158,7 @@ Building your diagnostic now (about 3 minutes). Part A is set for Mon 07:00.
   - macOS with an iPhone (A): as above.
   - Windows with an iPhone (C): "Photos of your work: email them to yourself and save the attachments in <ws>\inbox (Phone Link works too), then say 'sent'. Pasting a photo into this chat also works."
   - Claude Code desktop: add "or attach them to your message".
-- Offer "part A now" only inside a learner window. First `teach` only: "While I build sheets, don't expand my tool calls or thinking: they can contain answers."
+- Offer "part A now" only inside a learner window. First `teach` only: "While I build sheets or you work one, don't expand my tool output or thinking, and turn off prompt suggestions (/config): both are drawn from this chat and can show answers."
 - The build is outside the budget. Instrument and blueprint: [measure.md](measure.md) §1 and §3. The builder (`assets/prompts/builder.md`) gets the blueprint only (topics, part, counts, formats, minutes, tools), runs `sheet new`, `lint` and `build`, and returns one line. Issue the sheet at hand-over, when part A starts: `ind sheet issue <subject> <sheet> --block <block>`.
 
 ## 9. Express path and second subject
