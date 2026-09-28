@@ -11,7 +11,7 @@
 | exam | one unseen official test at the exam's time of day, if one is left after the checkpoints and final mock have theirs; else a two-part diagnostic Claude builds | timed sections, mocks, checkpoints | paper, phone photos | mastery per topic; 5 = 75%+ in a timed mock or checkpoint | final mocks, then a taper |
 | course | an unseen past paper in session 1; probes in session 2 | timed past papers | paper, phone photos | as exam, on past papers | the last past papers |
 | interview | 3–4 timed explanations; the required points stay in the key | explanations, timed 3-minute answers, mock panels | typed or dictated | required points covered, cold and timed | a full mock interview |
-| language | 10-minute placement: 40 common words in sentences, 5 can-do prompts, 1 listening item if there is audio | words cards, speaking, chat practice corrected afterwards | typed or spoken | words owned, can-do scenarios passed | scenario role-plays |
+| language | placement in two short probes, sessions 1 and 2: up to 8 common words in sentences, then 3 can-do prompts (plus 1 listening item if there is audio) | words cards, speaking, chat practice corrected afterwards | typed or spoken | words owned, can-do scenarios passed | scenario role-plays |
 | code | 15-minute starter task in the editor (compiler yes; docs and AI no), plus 6 concept questions | editor exercises, code reading, Parsons problems | the learner's editor | a fresh task passes hidden tests | a small project |
 | skill | 10-minute placement probe | as for its main layer | as fits | a transfer task passed | a project check every 4 weeks |
 

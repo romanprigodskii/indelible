@@ -12,7 +12,7 @@ Contents: 1 Instrument · 2 Scope map · 3 Two-stage diagnostic · 4 Sitting · 
 | Exam, no official test to spare (A: two unopened, kept for a checkpoint and the final mock) | Two-stage Claude-built `diagnostic` (§3) | `[mine]`, `[measured n=…]` |
 | Course final with an unseen past paper (C) | That paper in session 1; probes ride in session 2 | `[published]`, `[measured n=…]` |
 | "Never studied it" | 10–15-minute floor `probe`; teaching starts in session 2 | `[mine]` |
-| Language (B) | Placement `probe`: 40 high-frequency words, each in a sentence; 5 can-do prompts (typed or voice); 1 listening item if the learner has audio | `[mine]` |
+| Language (B) | Placement in two `probe` sheets, sessions 1 and 2, pooled as one measurement (the CLI pools probes sat within 72 h): 1) at most 8 high-frequency words from different frequency bands, each in a sentence, answered with a one-word gloss in the instruction language; 2) 3 can-do prompts, each answered in one typed line, plus 1 listening item if the learner has audio. Both go in session 1 when its work minutes hold them. Size each by the work minutes `ind session open` prints; never lower `est_min` to fit | `[mine]` |
 | Code (D) | 15-minute capstone in the learner's editor (compiler allowed; no AI, no docs) as a one-item `diagnostic`, plus a 6-item concept `probe` | `[mine]` |
 | Interview | A `diagnostic` of 3–4 timed explanations; the required points stay in the key | `[mine]` |
 | Skill or interest | 10-minute placement `probe` | `[mine]` |
@@ -136,11 +136,12 @@ Log the order and its reason as a ledger decision whose `--check-on` is the firs
 
 | Day | 30 min or less (B) | 45–75 min (A) | 120 min or more (C) |
 |---|---|---|---|
-| 1 | Placement probe (10 min) and results | Diagnostic part A | Part A; break while Part B is built; Part B; results |
-| 2 | Theory card for topic 1 (read, then closed) | Part B, results, probes | Probes, then first teach (theory closed, drills) |
-| 3 | Drills for topic 1 | First teach | Second teach |
-| 4 | — | — | 2-day recheck for day 2, then third teach |
-| 5 | 2-day recheck on topic 1 (44–72 h after drills); theory card for topic 2 | 2-day recheck for day 3, then second teach | 2-day recheck for day 3, then a timed set |
+| 1 | Placement probe 1 (words in sentences) | Diagnostic part A | Part A; break while Part B is built; Part B; results |
+| 2 | Placement probe 2 (can-do prompts) and results | Part B, results, probes | Probes, then first teach (theory closed, drills) |
+| 3 | Theory card for topic 1 (read, then closed) | First teach | Second teach |
+| 4 | Drills for topic 1 | — | 2-day recheck for day 2, then third teach |
+| 5 | — | 2-day recheck for day 3, then second teach | 2-day recheck for day 3, then a timed set |
+| 6 | 2-day recheck on topic 1 (44–72 h after drills); theory card for topic 2 | — | — |
 | 7 | 3-line check-in | Week-1 review (15 min) | Week-1 review |
 
 Code, and on-demand learners (D), whatever they come for: session 1 is the capstone `diagnostic` plus the concept `probe`, with results; session 2 the first teach (code has no Part B); from then on each session opens with any recheck whose window is open. Each recheck is an obligation with a window, never a slot.

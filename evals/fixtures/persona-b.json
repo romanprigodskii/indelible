@@ -145,7 +145,7 @@
     "checks": [
       "No file exists in the workspace before the readback 'yes'.",
       "The plan preview uses the narrow layout: one day per line, week 2 collapsed into one line.",
-      "Week 1 starts with a 10-minute placement probe, not a long diagnostic.",
+      "Week 1 starts with two short placement probes (sessions 1 and 2), not a long diagnostic.",
       "Every 20-minute session is budgeted with 1 minute to open, 2 to close, a work fraction of 0.8 and no breaks, and new material arrives by session 3.",
       "No printer is assumed: sheets read on a phone, and answers are typed.",
       "No calendar event and no .ics file are created.",
