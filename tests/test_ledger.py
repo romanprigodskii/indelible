@@ -145,6 +145,15 @@ class LedgerTests(LedgerBase):
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertEqual((self.rows()[-1]["kind"], self.rows()[-1]["category"]), ("defect", "untaught"))
 
+    def test_a_badly_worded_item_is_its_own_defect(self):
+        # session-grade.md §9: a question withdrawn as unclear is logged apart from a wrong
+        # key (content_error), so the weekly review counts wording defects on their own.
+        r = self.ind("ledger", "add", "defect", "--subject", "ielts", "--category", "item_wording",
+                     "--what", "ielts-cold-02 q4: stem ambiguous (the heading or the paragraph number)",
+                     "--fix-type", "template", "--fix", "builder: say in the label which is wanted")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertEqual((self.rows()[-1]["kind"], self.rows()[-1]["category"]), ("defect", "item_wording"))
+
     def test_a_repeat_after_a_structural_fix_still_refuses_rule(self):
         base = ["ledger", "add", "defect", "--subject", "ielts", "--category", "sizing", "--what", "ran 75 of 60 min"]
         self.assertEqual(self.ind(*(base + ["--fix-type", "lint", "--fix", "budget check"])).returncode, 0)

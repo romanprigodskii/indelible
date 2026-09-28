@@ -260,7 +260,7 @@ A topic's cold passes are not stored: the level rules find them in `attempts.jso
 
 - **`kind`:** `owed` | `decision` | `defect` | `override` | `hypothesis` | `status`.
 - **An `owed` row requires `due`.**
-- **`defect.category`:** `sizing` | `floor` | `undefined_term` | `untaught` | `late_build` | `content_error` | `promise_broken` | `contamination` | `late_close` | `scheduling` | `misclassification` | `wrong_inference`.
+- **`defect.category`:** `sizing` | `floor` | `undefined_term` | `untaught` | `item_wording` | `late_build` | `content_error` | `promise_broken` | `contamination` | `late_close` | `scheduling` | `misclassification` | `wrong_inference`.
 - **A second defect in the same category** requires `fix_type` to be something other than `rule`: `template`, `lint`, `script` or `planner`.
 
 ## 6. Learning logic (`lib/learning.py`; pure functions, shared by every command)

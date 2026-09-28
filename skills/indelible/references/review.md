@@ -111,7 +111,7 @@ From the review output:
 
 Log a mistake the moment you notice it, in any command, not only here: `ind ledger add defect --subject S --category C --what TEXT --fix-type T --fix TEXT`.
 
-- **Categories:** `sizing`, `floor`, `undefined_term`, `untaught`, `late_build`, `content_error`, `promise_broken`, `contamination`, `late_close`, `scheduling`, `misclassification`, `wrong_inference`. `session close` logs `late_close` and `promise_broken` itself.
+- **Categories:** `sizing`, `floor`, `undefined_term`, `untaught`, `item_wording`, `late_build`, `content_error`, `promise_broken`, `contamination`, `late_close`, `scheduling`, `misclassification`, `wrong_inference`. `session close` logs `late_close` and `promise_broken` itself.
 - **The first time,** a `rule` fix is allowed: a stated rule you follow from now on. The brief lists every open `rule` fix, and every fix that starts "builder:", under MY RULES, so later conversations and the builder follow them; close one that no longer applies with `ind ledger close <L-id> --status dropped`.
 - **A second mistake in the same category** needs a structural fix: `template`, `lint`, `script` or `planner`. The CLI refuses `rule` a second time. Fixes you can make inside the workspace:
 
@@ -119,6 +119,7 @@ Log a mistake the moment you notice it, in any command, not only here: `ind ledg
 |---|---|---|
 | `undefined_term` | lint | Add the word to the subject's sense list: `ind set <s> sense_list.+ '"gist"'`. The sheet checker then demands a definition |
 | `untaught` | template | Name the case in a fix that starts "builder:" ("builder: work every case the drills and rechecks ask"), so every later build works it on the theory sheet |
+| `item_wording` | template | Name the stem shape that misled in a fix that starts "builder:" ("builder: say in the label which quantity and in what form"), so every later build avoids it; a wrong key is `content_error` instead |
 | `sizing` | script | Record the measured pace so budgets shrink: `ind set <s> pace_s.verbal 95` |
 | `scheduling` | planner | Encode the missing constraint: `ind set root time.blocked.+ '{…}'`, or `time.windows` |
 | `contamination` | planner | Mark confusable topics (`ind set <s> topics.T04.confusable_with '["T07"]'`) so the plan checker warns about same-day teaching |
