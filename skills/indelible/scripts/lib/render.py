@@ -84,7 +84,11 @@ NO_LEAST_SURE = ("theory", "external", "example", "triage")
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August",
           "September", "October", "November", "December"]
 
-V_RULE = "A word used and not defined on this sheet is my error: mark it V."
+# A word the learner was never given is Claude's mistake (session-grade.md §5). A word defined on an
+# earlier sheet (defined_on:<id>, the drills' usual case) is not, so the rule says "never explained
+# to you", not "not on this sheet"; and it asks for the word itself, which marking looks up.
+V_RULE = ("If a word here was never explained to you, on this sheet or an earlier one, write it beside "
+          "that answer: that's my mistake, not yours.")
 CLOSE_LINE_THEORY = "Close this sheet now. The drills come separately."
 CLOSE_LINE_EXAMPLE = "Close this sheet now, then go back to your question."
 START_LABEL = "Start time:"

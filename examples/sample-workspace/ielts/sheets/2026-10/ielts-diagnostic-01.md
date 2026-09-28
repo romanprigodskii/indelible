@@ -11,7 +11,7 @@
 > - “I don't know” is always an accepted answer.
 > - Stop after 15 minutes.
 > - Tools allowed: none.
-> - A word used and not defined on this sheet is my error: mark it V.
+> - If a word here was never explained to you, on this sheet or an earlier one, write it beside that answer: that's my mistake, not yours.
 
 **0.** Start time: ____
 

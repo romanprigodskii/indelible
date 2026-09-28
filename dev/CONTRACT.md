@@ -537,7 +537,7 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
   - "I don't know" is always an accepted answer;
   - stop after N minutes;
   - tools allowed;
-  - "If a word here was never defined for you, that's my mistake: mark the question V";
+  - "If a word here was never explained to you, on this sheet or an earlier one, write it beside that answer: that's my mistake, not yours" (marking looks the word up: a word defined on an earlier sheet is the learner's miss);
 - **item 0:** `Start time: ____`;
 - **items:** each ask shows its label, an answer box and, when `check`, a line `Check: ____` with the `check_hint` in small text;
 - **drills:** block titles, plus after item 3 of each block the failure gate: *If your check failed on 2 of items 1–3, or you left 2 blank: stop and send a photo of 1–3*;

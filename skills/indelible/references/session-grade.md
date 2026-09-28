@@ -59,6 +59,8 @@ For each question, record the following.
 | `check` | `filled` · `missing` · `caught` (the answer changed after a failed check) · `n/a` (no check line on this sheet type, or no answer to check) |
 | `least_sure` | `true` for every question of an item named on the "Least sure of" line |
 
+**A word written beside an answer** is the learner flagging a word they were never given (the rules box asks for it). Look it up in the record before any account: the sheet's `terms`, the sheets they read, the glossary. Never defined: §5's "an undefined word is my mistake", even when the answer is right. Defined, on an earlier sheet or in the glossary: on a miss, that is the account "a word stopped me", so don't ask which word again.
+
 Take `start` and `stop` from items 0 and N. If both are blank on a recheck or a sheet with mistakes re-served, and it wasn't sat in this session, ask once: "What day and time did you start it?", and put `date` and `start` in `grades.json`. `ind grade record` won't guess them.
 
 Say "wrong" when the answer fails an objective test: a number that fails substitution, code that fails a test, or an official key. For a Claude-written item where another answer could be defensible (verbal, reading, language, or wording in a concept), say "doesn't match my answer" (see §9).

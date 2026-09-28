@@ -29,7 +29,8 @@ from lib import io as fio
 DAY = "2026-10-15"  # a Thursday
 GATE_1 = "If your check failed on 2 of items 1–3, or you left 2 blank: stop and send a photo of 1–3."
 GATE_2 = "If your check failed on 2 of items 4–6, or you left 2 blank: stop and send a photo of 4–6."
-V_RULE = "A word used and not defined on this sheet is my error: mark it V"
+V_RULE = ("If a word here was never explained to you, on this sheet or an earlier one, write it beside "
+          "that answer: that's my mistake, not yours")
 CLOSE = "Close this sheet now. The drills come separately."
 
 
@@ -126,6 +127,16 @@ class HtmlTemplateTests(Base):
         self.assertTrue(any(line.startswith("If a check fails and you can't see why within a minute")
                             for line in lines))
         self.assertIn(V_RULE, " ".join(lines))
+
+    def test_the_word_rule_counts_earlier_sheets_and_asks_for_the_word(self):
+        # Drills and rechecks use words defined on the theory sheet (defined_on:<id>): those are
+        # not Claude's mistake, so the rule can't say "not defined on this sheet".
+        for spec in (drills_spec(), cold_spec(), theory_spec()):
+            lines = render.rules(spec, "none")
+            self.assertEqual(lines[-1], V_RULE + ".")
+        self.assertIn('<li class="v-rule">%s.</li>' % htmlmod.escape(V_RULE, quote=True), self.page)
+        for old in ("mark it V", "not defined on this sheet"):
+            self.assertNotIn(old, self.text)
 
     def test_a_failed_check_is_a_flag_not_a_hunt_only_where_there_are_checks(self):
         from lib import render
