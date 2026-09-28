@@ -27,8 +27,10 @@ from lib import TEMPLATES_DIR, render
 from lib import io as fio
 
 DAY = "2026-10-15"  # a Thursday
-GATE_1 = "If your check failed on 2 of items 1–3, or you left 2 blank: stop and send a photo of 1–3."
-GATE_2 = "If your check failed on 2 of items 4–6, or you left 2 blank: stop and send a photo of 4–6."
+GATE_1 = ("If 2 of items 1–3 have a failed check, an “I don't know” or an empty box: "
+          "stop and send a photo of 1–3.")
+GATE_2 = ("If 2 of items 4–6 have a failed check, an “I don't know” or an empty box: "
+          "stop and send a photo of 4–6.")
 V_RULE = ("If a word here was never explained to you, on this sheet or an earlier one, write it beside "
           "that answer: that's my mistake, not yours")
 CLOSE = ("Send me your pencil answers and keep this sheet open until I've marked them. "
@@ -198,9 +200,29 @@ class HtmlTemplateTests(Base):
         t = self.text
         self.assertIn("Block A: swap one word", t)
         self.assertIn("Block B: swap one word", t)
-        self.assertEqual(t.count("If your check failed on 2 of items"), 2)
+        self.assertEqual(t.count("have a failed check, an “I don't know” or an empty box"), 2)
         self.assertTrue(t.index("Question 3.") < t.index(GATE_1) < t.index("Question 4."))
         self.assertTrue(t.index("Question 6.") < t.index(GATE_2) < t.index("Stop time:"))
+
+    def test_gate_after_moves_the_gate_past_the_worked_item(self):
+        # At mastery 0–1 item 1 of a block is worked: gate_after 4 covers the faded item and two
+        # independent ones.
+        spec = drills_spec(n=12)
+        spec["blocks"][0]["gate_after"] = 4
+        gate = ("If 2 of items 2–4 have a failed check, an “I don't know” or an empty box: "
+                "stop and send a photo of 2–4.")
+        t = visible_text(render.render_html(spec, date=DAY))
+        self.assertTrue(t.index("Question 4.") < t.index(gate) < t.index("Question 5."))
+        self.assertNotIn("items 1–3", t)
+        self.assertIn("items 7–9", t, "the second block keeps its gate after its third item")
+        md = render.render_markdown(spec, date=DAY)
+        self.assertTrue(md.index("**4.**") < md.index("> **%s**" % gate) < md.index("**5.**"))
+        src = render.render_typst(spec, date=DAY)
+        self.assertTrue(src.index('#"4."') < src.index('#"%s"' % gate) < src.index('#"5."'))
+        # A gate_after lint refuses (too early, or not in the block) leaves the gate after item 3.
+        for bad in (2, 99):
+            spec["blocks"][0]["gate_after"] = bad
+            self.assertIn("items 1–3", visible_text(render.render_html(spec, date=DAY)), bad)
 
     def test_end_lines(self):
         t = self.text
@@ -239,7 +261,7 @@ class HtmlTemplateTests(Base):
         for it in spec["items"]:
             it["origin"] = "official:Cambridge 18 Test 2"
         self.assertIn("Measurement — official", visible_text(render.render_html(spec, date=DAY)))
-        self.assertNotIn("If your check failed", visible_text(render.render_html(cold_spec(), date=DAY)),
+        self.assertNotIn("have a failed check", visible_text(render.render_html(cold_spec(), date=DAY)),
                          "the failure gate is for drills only")
 
     def test_theory_layout(self):

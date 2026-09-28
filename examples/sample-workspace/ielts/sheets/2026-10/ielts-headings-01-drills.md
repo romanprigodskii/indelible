@@ -63,8 +63,6 @@ D. Gardens in art
   Answer: ______________________  
   Check: ______________________ *(Read the whole paragraph again under your heading.)*
 
-> **If your check failed on 2 of items 1–3, or you left 2 blank: stop and send a photo of 1–3.**
-
 **4.** Paragraph: The Kell valley once had eleven working farms. Today two are left. Most of the land is now a forest planted in the 1980s, and the old farmhouses have become holiday cottages.
 
 Headings:  
@@ -76,6 +74,8 @@ D. Farm work in the 1980s
 - **4a** Letter of the heading for this paragraph:  
   Answer: ______________________  
   Check: ______________________ *(Read the whole paragraph again under your heading.)*
+
+> **If 2 of items 2–4 have a failed check, an “I don't know” or an empty box: stop and send a photo of 2–4.**
 
 **5.** Paragraph: At the start of the school year, the pupils at Harlow Road asked for a quieter lunch hall. The teachers split lunch into two sittings, added a wall of plants and asked the older pupils to eat outside on dry days. By December the noise had halved, and fewer pupils skipped lunch.
 

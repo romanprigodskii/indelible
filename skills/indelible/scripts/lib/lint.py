@@ -626,6 +626,14 @@ def _l6(spec, ctx):
                 ops.append(op)
         if len(ops) > 1:
             probs.append("%s mixes operations (%s)" % (name, _listed(ops)))
+        # The failure gate covers the 3 items that end at gate_after, and stops something only
+        # when at least 2 items come after it.
+        if b.get("gate_after") is not None:
+            ga = b.get("gate_after")
+            pos = its.index(ga) + 1 if ga in its and not isinstance(ga, bool) else 0
+            if pos < 3 or len(its) - pos < 2:
+                probs.append("%s: gate_after must be one of its items, with at least 3 items up to it and 2 after "
+                             "it (got %s)" % (name, _s(ga)))
     twice = [n for n, c in seen.items() if c > 1 and n in by_n]
     if twice:
         probs.append("item %s is in more than one block" % _listed(twice))

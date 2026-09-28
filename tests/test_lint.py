@@ -498,6 +498,18 @@ class RuleTests(Base):
         self.assertEqual(self.status(spec, "W4"), "WARN", "no worked case at all")
         self.assertEqual(self.status(drills_spec(), "W4"), "PASS")
 
+    def test_l6_gate_after_leaves_three_items_before_and_two_after(self):
+        spec = drills_spec(n=12)                              # two blocks of 6
+        spec["blocks"][0]["gate_after"] = 4
+        self.assertEqual(self.status(spec, "L6"), "PASS")
+        for bad in (2, 5, 9, "4"):
+            spec["blocks"][0]["gate_after"] = bad
+            r = result(spec, "L6")
+            self.assertEqual(r["status"], "FAIL", bad)
+            self.assertIn("block 1: gate_after must be one of its items", r["detail"])
+        spec["blocks"][0]["gate_after"] = 3
+        self.assertEqual(self.status(spec, "L6"), "PASS", "the default place, written out")
+
     def test_w5_a_reading_sheet_allows_time_to_read(self):
         self.assertEqual(self.status(theory_spec(), "W5"), "PASS")
         # 451 words to read and one pencil question: the pace floor alone (3 min) passes L5.

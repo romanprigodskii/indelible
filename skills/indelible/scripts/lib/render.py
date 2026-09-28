@@ -258,10 +258,23 @@ def _range_text(nums):
     return ", ".join(parts[:-1]) + " and " + parts[-1]
 
 
-def gate_text(first_three):
-    r = _range_text(first_three)
-    return ("If your check failed on 2 of items %s, or you left 2 blank: "
+def gate_text(three):
+    """The failure gate over three items. Any mix counts: "I don't know" is an accepted answer, so a
+    learner who writes it has left nothing blank, and one failed check plus one blank is 2 too."""
+    r = _range_text(three)
+    return ("If 2 of items %s have a failed check, an “I don't know” or an empty box: "
             "stop and send a photo of %s." % (r, r))
+
+
+def gate_position(block, its):
+    """Where a drills block's failure gate goes: after the block's ``gate_after`` item (lint L6 keeps
+    it at the third item or later, with 2 after it), else after its third item. It covers the three
+    items that end there, so at mastery 0–1 (gate_after: the 4th) it skips the worked item 1."""
+    ns = [it.get("n") for it in its]
+    ga = block.get("gate_after")
+    if ga is not None and ga in ns and ns.index(ga) + 1 >= 3:
+        return ns.index(ga) + 1
+    return 3
 
 
 def _box_mm(spec, item, ask):
@@ -393,13 +406,14 @@ def build_model(spec, date=None, tools=None, fmt="html", profile=None, reference
                 used.add(key)
         if not its:
             continue
-        gate = None
+        gate, gate_at = None, None
         if t == "drills" and len(its) >= 3:
-            gate = gate_text([it.get("n") for it in its[:3]])
-        groups.append({"title": _s(b.get("title")).strip() or None, "items": its, "gate": gate})
+            gate_at = gate_position(b, its)
+            gate = gate_text([it.get("n") for it in its[gate_at - 3:gate_at]])
+        groups.append({"title": _s(b.get("title")).strip() or None, "items": its, "gate": gate, "gate_at": gate_at})
     rest = [it for it in items if it.get("n") not in used]
     if rest:
-        groups.append({"title": None, "items": rest, "gate": None})
+        groups.append({"title": None, "items": rest, "gate": None, "gate_at": None})
 
     model_groups = []
     for g in groups:
@@ -413,7 +427,7 @@ def build_model(spec, date=None, tools=None, fmt="html", profile=None, reference
                               "box_mm": _box_mm(spec, it, a)})
             keep = len(_s(it.get("text"))) <= KEEP_MAX_CHARS and len(masks) <= 2
             mitems.append({"n": _s(it.get("n")), "paras": segments(it.get("text")), "asks": masks, "keep": keep})
-        model_groups.append({"title": g["title"], "items": mitems, "gate": g["gate"]})
+        model_groups.append({"title": g["title"], "items": mitems, "gate": g["gate"], "gate_at": g["gate_at"]})
 
     theory = None
     th = spec.get("theory")
@@ -605,7 +619,7 @@ def render_html(spec, date=None, tools=None, lang="en", profile=None, reference_
                         o.append('<p class="hint">%s</p>\n' % _e(a["hint"]))
                 o.append("</div>\n")
             o.append("</div>\n</article>\n")
-            if g["gate"] and idx == 3:
+            if g["gate"] and idx == g["gate_at"]:
                 o.append('<p class="gate" role="note">%s</p>\n' % _e(g["gate"]))
         o.append("</section>\n")
 
@@ -716,7 +730,7 @@ def render_typst(spec, date=None, tools=None, lang="en", profile=None, reference
                 o.append("]\n")
             if it["keep"]:
                 o.append("]\n")
-            if g["gate"] and idx == 3:
+            if g["gate"] and idx == g["gate_at"]:
                 o.append("#shaded[#strong[%s]]\n\n" % _tl(g["gate"]).strip())
 
     o.append("#v(10pt)\n#line(length: 100%, stroke: 0.5pt + luma(150))\n\n")
@@ -814,7 +828,7 @@ def render_markdown(spec, date=None, tools=None, lang="en", profile=None, refere
                     hint = " *(%s)*" % _md_escape(a["hint"]) if a["hint"] else ""
                     o.append("  %s ______________________%s\n" % (CHECK_LABEL, hint))
             o.append("\n")
-            if g["gate"] and idx == 3:
+            if g["gate"] and idx == g["gate_at"]:
                 o.append("> **%s**\n\n" % _md_escape(g["gate"]))
     o.append("---\n\n%s ____\n\n" % STOP_LABEL)
     if m["least_sure"]:

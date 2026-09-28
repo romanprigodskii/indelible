@@ -969,6 +969,9 @@ RECORDS = {
                        "ladder only on cold, mixed and measuring sheets, and lint L7 checks their timing on cold "
                        "and mixed, so repair, theory and drill pencils use new (name the E-id in op or text if "
                        "useful)"),
+            ("blocks[]", "{title, items}; on drills, optional gate_after (an item of the block): the failure gate "
+                         "follows it, covering the 3 items that end there (default: the block's 3rd item; at "
+                         "mastery 0-1, a block of 6 or more sets its 4th, so the gate skips the worked item)"),
             ("asks[]", "{id, label, check, check_hint}: one labelled blank per required answer; optional topic "
                        "(a question on another topic than its item, e.g. one hidden-test group), answer_form "
                        "(letter, number, word, test-line, short, sentence, long, code, none: sizes the box), "

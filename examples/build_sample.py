@@ -377,7 +377,9 @@ DRILLS_SPEC = {
              "C. The end of the keepers, and new uses for their homes\nD. The best hotels on the coast",
              [ask("6a", HEADING_LABEL, DRILL_CHECK)]),
     ],
-    "blocks": [{"title": "Block A: choose the heading from the whole paragraph", "items": [1, 2, 3, 4, 5, 6]}],
+    # Item 1 is worked and item 2 faded (mastery 0–1), so the failure gate follows item 4 and watches 2–4.
+    "blocks": [{"title": "Block A: choose the heading from the whole paragraph", "items": [1, 2, 3, 4, 5, 6],
+                "gate_after": 4}],
     "terms": [], "theory": None, "least_sure": True,
 }
 
