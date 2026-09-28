@@ -38,7 +38,7 @@ v0.1 has no migrate command in the CLI. Everything below uses existing `ind` com
 - The CLI refuses topic and mistake writes for `legacy` and `shadow` subjects, hence the short import window: `ind set root subjects.stats.state '"paused"'`, the writes, the checklist, then back.
 - Log each move between `legacy`, `shadow` and `live`: `ind ledger add decision --subject stats --summary "stats: legacy to shadow" --why "<their words>"`.
 - Going back is always possible and loses nothing: set `legacy` again and log it.
-- In `legacy` and `shadow`, "its own CLAUDE.md" (SKILL.md setup, step 3) means the hand-run one. The subject's `CLAUDE.md` in the workspace says where it is (section 4).
+- In `legacy` and `shadow`, "its own CLAUDE.md" (SKILL.md setup, step 4) means the hand-run one. The subject's `CLAUDE.md` in the workspace says where it is (section 4).
 
 ## 3. Look (read-only)
 

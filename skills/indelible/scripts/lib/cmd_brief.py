@@ -4,7 +4,8 @@
     due [subject] [--list] [--json]
     render [subject|all] [--force]
 
-``brief`` is the only thing read at session open. It is at most 4,500
+``brief`` is the first thing read at session open (apart from it, only the
+CLI listings session-open.md section 2 names are read). It is at most 4,500
 characters: long lists are cut with ``+N more (run: ...)``. Everything above
 the line ``-- for Claude, do not read aloud --`` may be read to the learner,
 so with ``learner.vocab = plain`` it uses plain words and never shows an
@@ -92,7 +93,7 @@ OPEN_BLOCK_STATUSES = ("planned", "synced")
 # ==========================================================================
 
 def register(subparsers):
-    p = subparsers.add_parser("brief", help="the session-open summary (the only thing read at open)")
+    p = subparsers.add_parser("brief", help="the session-open summary (the first thing read at open)")
     p.add_argument("subject", nargs="?", default=None, help="subject id (default: the current or only subject)")
     p.add_argument("--open", action="store_true",
                    help="count this as a session open (session-open step 1 only); without it, brief writes nothing")

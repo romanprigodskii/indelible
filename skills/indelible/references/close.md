@@ -168,6 +168,6 @@ Message the learner again only if something needs them.
 3. Send one message: "Saved. To do: send the photo of block B by Fri 07:40. Next: Sat 10:00 · 60 min. Go; I'll prepare the sheets."
 4. If a 2-day recheck was sat and not photographed, that photo is the to-do to name first.
 
-**No reply at all:** the lock stays. The next start finishes the close first (see SKILL.md, setup step 4).
+**No reply at all:** the lock stays. The next start finishes the close first (see SKILL.md, setup step 5).
 
 **A late close** (the brief shows an unclosed session): do it before anything else, in at most 10 minutes, using the same checklist. The CLI records it as late and logs its own mistake. Say one line: "Finishing Tuesday's close first: about 5 minutes."

@@ -25,7 +25,7 @@ When time runs short, cut in this order: new theory, then the second drill block
 - **Practice sheets are built ahead.** At the previous close, after the "you can go" message, the builder subagent (`assets/prompts/builder.md`) built the next block's theory, drills and repair sheets: linted, rendered, keys sealed. They wait as `rendered` and are issued at hand-over ([sheets.md](sheets.md) §6).
 - **The recheck is built now, at the open.** Lint L7 checks the 2-day timing at the moment it runs, so a recheck can't be built the day its topic was taught. Building it here, inside its window, is the normal order (always so for on-demand learners), not a late build: no defect. Start the builder as soon as the lock is set, from `ind due <s> --list` (section 5); give the opener while it runs.
 - **A window that closes soon comes first.** RECHECK NOW and `ind due <s> --list` give each window's closing time; `CLOSING` means within 30 minutes. Build and issue that recheck before anything else, and have the learner start before the time `ind sheet issue` prints ("Start by …"). The level rules judge a recheck by its start time: a later start is a late recheck ([plan.md](plan.md) §7).
-- **At the open, list the rest** with `ind sheet show <s> --status rendered`. Apart from the brief, only this listing and `ind due <s> --list` are read, plus the two reads of step 4 when a session is already open. Never open data files, views, notes or anything under `.indelible/`.
+- **At the open, list the rest** with `ind sheet show <s> --status rendered`. Apart from the brief, only this listing and `ind due <s> --list` are read, plus the two reads of step 4 when a session is already open: these are the reads Law 6 allows at the open. Never open data files, views, notes or anything under `.indelible/`.
 - **If a practice sheet for today is missing:**
   1. Log the gap as your own mistake: `ind ledger add defect --subject <s> --category late_build --what "no new-material sheet ready for the <time> block" --fix-type rule --fix "builder runs right after the close message"`. If the CLI refuses `rule` because late_build has been logged before, pick a structural fix instead, such as `--fix-type planner --fix "at least 2 h between a close and the next block"`.
   2. Run the builder for it while the learner works on the recheck. Never make the learner wait for a build that could run in parallel.
@@ -35,7 +35,7 @@ When time runs short, cut in this order: new theory, then the second drill block
 
 Ask one question at a time (Law 9). The learner may answer "skip" at steps 2, 3 and 7.
 
-### Step 1: `ind brief <s> --open`, the only read
+### Step 1: `ind brief <s> --open`, the first read
 
 `--open` counts this as a session open for step 3. Every other brief (status, planning, a review) runs without it and changes nothing. The brief is at most 4,500 characters. Handle each section like this:
 

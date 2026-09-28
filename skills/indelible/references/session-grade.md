@@ -20,15 +20,16 @@ Load this whenever a sheet comes back: a photo, a typed file, or a photo pasted 
 Never reorder these steps.
 
 1. File the evidence with `ind scan ingest`.
-2. Open the key with `ind key open`.
-3. Mark every question privately.
-4. Show the learner the list of verdicts.
-5. Take misses one at a time: get the account (how they got their answer), classify it, then give the feedback for that question: point to the step, and ask for the fix (a slip whose fix doesn't come is reclassified before `grades.json` is written).
-6. Coach any check line that was missing or didn't run the other way.
-7. Write `grades.json`, then run `ind grade record`.
-8. Give the result card.
+2. On a 2-day recheck, before the key is opened, ask once: "Did you look at any of this since last time? Which questions?" (§10). Asked after the verdicts, it would let the learner name the questions they got wrong.
+3. Open the key with `ind key open`.
+4. Mark every question privately.
+5. Show the learner the list of verdicts.
+6. Take misses one at a time: get the account (how they got their answer), classify it, then give the feedback for that question: point to the step, and ask for the fix (a slip whose fix doesn't come is reclassified before `grades.json` is written).
+7. Coach any check line that was missing or didn't run the other way.
+8. Write `grades.json`, then run `ind grade record`.
+9. Give the result card.
 
-No part of the key reaches chat for a question until its account is in (step 5).
+No part of the key reaches chat for a question until its account is in (step 6).
 
 ## 2. File the evidence
 

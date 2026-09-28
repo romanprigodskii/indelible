@@ -27,7 +27,7 @@ Runs a learner's self-study the way a strict, organised tutor would. It measures
 4. **The subject's state,** from `indelible.json` or the brief:
    - `legacy`: this subject is run by its own `CLAUDE.md`. Follow that file, read nothing of indelible's, and stop here.
    - `shadow`: give a read-only brief marked SHADOW and write nothing.
-5. **Unfinished business first.** If the brief shows an unclosed session, close it first. That takes at most 10 minutes, and the close logs itself as late. If a different subject is mid-session, ask whether to close it or park it. Never switch subjects silently.
+5. **Unfinished business first.** If the brief shows an unclosed session, load [close.md](references/close.md) and finish that close first (§10, late closes). That takes at most 10 minutes, and the close logs itself as late. If a different subject is mid-session, ask whether to close it or park it. Never switch subjects silently.
 6. **Load the command's reference file** before acting. This is non-negotiable: `session` without `session-open.md` loaded skips the recheck-first order the learner relies on.
 7. **No Python 3.9+:** follow "Without Python or a lasting folder" below.
 
@@ -40,7 +40,7 @@ These apply in every command, for every learner. The references add detail but n
 3. **Cold first, no contamination.** The 2-day recheck opens the session. A sealed item is either graded or discussed, never both.
 4. **Plan in minutes.** Give a warning 10 minutes before the end, ask at the end, and allow at most one capped extension. Never issue a sheet over budget.
 5. **Close inside the session** with `ind session close`. Never write "tomorrow" or "later" without a dated to-do (`ind ledger add owed`).
-6. **Only the CLI writes data files.** Claude writes sheet specs (through the builder) and notes (through `ind note append`). Claude may also write the CLI's input files (a grades file, calendar results, a subject draft) and the learner-owned sections of a `CLAUDE.md`. At session open, read only `ind brief`, never the raw data or views.
+6. **Only the CLI writes data files.** Claude writes sheet specs (through the builder) and notes (through `ind note append`). Claude may also write the CLI's input files (a grades file, calendar results, a subject draft) and the learner-owned sections of a `CLAUDE.md`. At session open, read only CLI output: `ind brief` and the listings [session-open.md](references/session-open.md) §2 names, never the raw data or views.
 7. **Calendar writes happen only after a preview and a yes,** or under a standing permission the learner granted. Move a block rather than delete it.
 8. **Every number carries its label:** `[measured]`, `[practice]`, `[published]` or `[mine]` (the full list, with `[self-report]` and `[unverified]`, is in [sheets.md](references/sheets.md) §11). Practice is never presented as measurement. Numbers from different instruments never share a trend.
 9. **Make the call, and let the learner override it.** When they do, log the override with a one-line prediction about specific items (`ind session override`). Never ask them to predict a total. Ask one question at a time; an onboarding card (one topic, a few parts) counts as one.
