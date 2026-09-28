@@ -4,7 +4,7 @@
 
 > **Rules**
 >
-> - Read this sheet once, doing the pencil items as you meet them. Then close it: the questions that follow are closed book.
+> - Read this sheet, then do the pencil questions at the end with it open. The drills that follow are closed book.
 > - Answer on paper (or in a typed file), one answer for each box.
 > - Write the check beside each answer where a Check line is printed. Work backwards from it: put it back in, rebuild the total, or test the definition you used against the question's words.
 > - “I don't know” is always an accepted answer. Stuck on a question after a real try? Tell me its number: you get a small hint, never the answer.
@@ -80,4 +80,4 @@ D. The trouble with car parks
 
 Stop time: ____
 
-**Close this sheet now. The drills come separately.**
+**Send me your pencil answers and keep this sheet open until I've marked them. Then put it away and tell me “closed”. The drills come on their own sheet.**

@@ -93,7 +93,11 @@ V_RULE = ("If a word here was never explained to you, on this sheet or an earlie
 # the ladder starts only when they speak up. Mixed, review and measuring sheets get no hints.
 HINT_TYPES = ("theory", "external", "example", "repair", "drills")
 STUCK_LINE = "Stuck on a question after a real try? Tell me its number: you get a small hint, never the answer."
-CLOSE_LINE_THEORY = "Close this sheet now. The drills come separately."
+# The pencils are printed last and marked with the sheet still open (session-teach.md §2: marking
+# points back to a step of the worked case), so the sheet is put away only after that, and "closed"
+# is the learner's signal for the drills.
+CLOSE_LINE_THEORY = ("Send me your pencil answers and keep this sheet open until I've marked them. "
+                     "Then put it away and tell me “closed”. The drills come on their own sheet.")
 CLOSE_LINE_EXAMPLE = "Close this sheet now, then go back to your question."
 START_LABEL = "Start time:"
 STOP_LABEL = "Stop time:"
@@ -303,7 +307,10 @@ def rules(spec, tools, fmt="html", profile=None, reference_sheet=False):
     minutes = _minutes_int(spec.get("est_min"))
     formula_sheet = reference_sheet and t not in IN_VIEW_TYPES   # the closed-book sheets
     out = []
-    if t in ("theory", "example"):
+    if t == "theory":
+        out.append("Read this sheet, then do the pencil questions at the end with it open. "
+                   "The drills that follow are closed book.")
+    elif t == "example":
         out.append("Read this sheet once, doing the pencil items as you meet them. Then close it: "
                    "the questions that follow are closed book.")
     elif t == "external":

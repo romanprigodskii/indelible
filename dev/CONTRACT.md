@@ -542,7 +542,7 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
 - **items:** each ask shows its label, an answer box and, when `check`, a line `Check: ____` with the `check_hint` in small text;
 - **drills:** block titles, plus after item 3 of each block the failure gate: *If your check failed on 2 of items 1–3, or you left 2 blank: stop and send a photo of 1–3*;
 - **the last line:** `Stop time: ____` and, when `least_sure`, `Least sure of (item numbers): ____`;
-- **theory sheets:** floor box, words (with glosses), sections in order, and a final line *Put this sheet away now. The drills come on their own sheet.*;
+- **theory sheets:** a rules box starting *Read this sheet, then do the pencil questions at the end with it open. The drills that follow are closed book.*; floor box, words (with glosses), sections in order, the pencil questions, and a final line *Send me your pencil answers and keep this sheet open until I've marked them. Then put it away and tell me “closed”. The drills come on their own sheet.* (`external` sheets end with the same line; `example` sheets with *Close this sheet now, then go back to your question.*);
 - **page footer:** `page X of Y` where the backend supports it.
 
 Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults with a fallback list (`"Noto Serif", "Libertinus Serif", "New Computer Modern"`); HTML uses a system serif stack.

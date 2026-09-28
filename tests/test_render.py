@@ -31,7 +31,8 @@ GATE_1 = "If your check failed on 2 of items 1–3, or you left 2 blank: stop an
 GATE_2 = "If your check failed on 2 of items 4–6, or you left 2 blank: stop and send a photo of 4–6."
 V_RULE = ("If a word here was never explained to you, on this sheet or an earlier one, write it beside "
           "that answer: that's my mistake, not yours")
-CLOSE = "Close this sheet now. The drills come separately."
+CLOSE = ("Send me your pencil answers and keep this sheet open until I've marked them. "
+         "Then put it away and tell me “closed”. The drills come on their own sheet.")
 
 
 def visible_text(page):
@@ -155,6 +156,18 @@ class HtmlTemplateTests(Base):
             self.assertIn("Closed book: no notes, no book, no search, no AI.", lines, t)
         self.assertIn(stuck, self.text)
 
+    def test_theory_pencils_are_sent_and_marked_before_the_sheet_is_put_away(self):
+        # The pencils print last and are marked by pointing back into the sheet, so the sheet
+        # stays open until then, and "closed" is the learner's signal for the drills.
+        self.assertEqual(render.build_model(theory_spec())["close_line"], CLOSE)
+        ext = theory_spec(type="external")
+        self.assertEqual(render.build_model(ext)["close_line"], CLOSE)
+        self.assertIn("pencil questions at the end with it open", render.rules(theory_spec(), "none")[0])
+        # An example sheet is followed by the stuck question, not by drills: its own lines.
+        ex = theory_spec(type="example")
+        self.assertEqual(render.build_model(ex)["close_line"], render.CLOSE_LINE_EXAMPLE)
+        self.assertNotIn("drills", render.rules(ex, "none")[0])
+
     def test_a_failed_check_is_a_flag_not_a_hunt_only_where_there_are_checks(self):
         from lib import render
         line = "If a check fails and you can't see why within a minute"
@@ -225,7 +238,8 @@ class HtmlTemplateTests(Base):
         positions = [t.index(s) for s in order]
         self.assertEqual(positions, sorted(positions))
         self.assertTrue(t.endswith(CLOSE))
-        self.assertIn("Read this sheet once", t)
+        self.assertIn("Read this sheet, then do the pencil questions at the end with it open. "
+                      "The drills that follow are closed book.", t)
         self.assertNotIn("Least sure of", t)
 
 

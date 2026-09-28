@@ -22,7 +22,7 @@ Load this for anything that builds, renders, issues, files or marks a sheet. Mar
 
 | Type | What it is | Counts as | Check lines | Least-sure |
 |---|---|---|---|---|
-| `theory` | Read, then closed: floor box, words, a worked case with pencil questions, the rule, a contrast, a warning | practice | no | no |
+| `theory` | Read, then closed: floor box, words, a worked case, the rule, a contrast, a warning, then pencil questions marked with the sheet open | practice | no | no |
 | `external` | Pages in the learner's own book ("pp. 44–47: read, then close"), then 3–5 pencil questions, book closed | practice | no | no |
 | `example` | One worked case: the stuck question's structure on different details | practice | no | no |
 | `drills` | Blocks of one operation (`block_size`), sentence questions first, a failure gate after item 3 of each block | practice | yes | yes |
@@ -48,7 +48,7 @@ The templates print these:
 - **Rules box:** closed book ("no other AI" on drills; with `format.reference_sheet`, a clean copy of the exam's formula sheet is allowed, and the tools line names it); one answer in each box, on paper; the check beside each answer; a failed check the learner can't resolve within a minute: keep the answer, name it on the Least-sure line, go on; "I don't know" is always an accepted answer, and on theory, external, example, repair and drills sheets, "Stuck on a question after a real try? Tell me its number: you get a small hint, never the answer" ([session-teach.md](session-teach.md) §3); stop after N minutes; tools allowed; "If a word here was never explained to you, on this sheet or an earlier one, write it beside that answer: that's my mistake, not yours" (marking looks the word up: [session-grade.md](session-grade.md) §3).
 - **Item 0** `Start time: ____`. **Last line** `Stop time: ____`, plus the Least-sure line when `least_sure` is true.
 - **Each question:** label, answer box, and `Check: ____` with the hint in small text. **Drills** add block titles and, after item 3 of each block: "If your check failed on 2 of items 1–3, or you left 2 blank: stop and send a photo of 1–3."
-- **Theory:** floor box, words, sections, then "Put this sheet away now. The drills come on their own sheet." **Footer:** page X of Y where the format has pages.
+- **Theory:** floor box, words, sections, the pencil questions, then "Send me your pencil answers and keep this sheet open until I've marked them. Then put it away and tell me “closed”. The drills come on their own sheet." (external pages end the same way). Its rules box starts "Read this sheet, then do the pencil questions at the end with it open." **Footer:** page X of Y where the format has pages.
 
 No printed "Looked at any of this since last time?" line exists in v0.1; ask it in chat before marking a recheck ([session-grade.md](session-grade.md) §10).
 

@@ -93,7 +93,7 @@ Use plain words, no IDs and no rule codes, in at most 4 lines. Persona A, Thursd
 ```
 IELTS · Thu 07:00–08:00 (closing starts 07:55)
 Since last time: Tuesday ran (58 min). Monday didn't happen (busy); it's moved to Saturday.
-Today: 2-day recheck with 2 fixed mistakes mixed in (~12 min, ready in about 2) → new: matching headings. Read the sheet, close it, then drills (~25 min).
+Today: 2-day recheck with 2 fixed mistakes mixed in (~12 min, ready in about 2) → new: matching headings. Read the sheet and do its pencil questions, then drills (~25 min).
 Say "go", or change anything.
 ```
 
