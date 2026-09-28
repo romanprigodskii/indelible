@@ -46,8 +46,10 @@ What it does, in order:
      window of a 2-day recheck still to come (or books a recheck again), as
      session expose does; a measuring sheet logs none (feedback given afterwards is logged with
      ``session expose``). Then the sheet is marked graded and the levels are
-     recomputed. A drills sheet under half right on a topic whose 2-day
-     recheck is still ahead is named as a new topic that didn't land
+     recomputed. A drills sheet under half right on a topic taught within
+     the recheck window's far end (cold_window_h[1]) before the sitting,
+     whose 2-day recheck is still ahead and with no wrong idea awaiting
+     repair before this sheet, is named as a new topic that didn't land
      (session-teach.md section 4): it is taught again before any recheck.
 
 Output: the score with its label, the unnamed-wrong count (on a sheet with
@@ -86,6 +88,16 @@ JUST_SAT_H = 3.0          # with no start or stop, a sheet graded this soon afte
 # A new topic that didn't land (session-teach.md section 4): drills under half right, "I don't know"
 # and blanks counted as misses, on a topic whose 2-day recheck is still ahead.
 NOT_LANDED_FRACTION = 0.5
+
+
+def last_taught(topic, exposures, topic_state, before):
+    """When ``topic`` was last taught, at or before ``before``: its last ``teach`` exposure, or
+    ``taught_at`` in topics.json when that is later. None when it was never taught."""
+    best = learning.last_exposure(topic, exposures, before=before, kinds=("teach",))
+    at = dates.try_parse_iso((topic_state or {}).get("taught_at"))
+    if at is not None and at <= before and (best is None or at > best):
+        best = at
+    return best
 
 
 def register(subparsers):
@@ -492,6 +504,8 @@ def cmd_grade_record(args):
 
         # ---- pass 2: write
         errors = subj.load_errors()
+        # Topics with a wrong idea awaiting repair before this sheet: its drills are the repair's block.
+        repairing = set(e.get("topic") for e in errors if e.get("status") == "untreated")
         active_idx = dict((e.get("id"), i) for i, e in enumerate(errors))
         archived = {}
         for e in subj.load_errors(include_archive=True):
@@ -659,17 +673,23 @@ def cmd_grade_record(args):
                 moved_lines += [ln for ln in exposure_lines(ws, subj, t, sit_end, rebooked)
                                 if ln.startswith(("WARN", "Recheck to place", "Recheck booked"))]
 
-        # A new topic that didn't land: drills under half right on a topic whose 2-day recheck is
-        # still ahead. It is taught again from a new worked case before any recheck on it; this
-        # only names it, since the re-teach and its to-do are Claude's.
+        # A new topic that didn't land: drills under half right on a topic taught in this session or
+        # the last one (its last teaching within the recheck window's far end before the sitting) whose
+        # 2-day recheck is still ahead. It is taught again from a new worked case before any recheck on
+        # it; this only names it, since the re-teach and its to-do are Claude's. A topic with a wrong
+        # idea awaiting repair before this sheet is left out: these are its repair's drills, and a miss
+        # there gets a new repair page (session-teach.md section 1), not a re-teach.
         not_landed = []
         if stype == "drills":
             logged = subj.load_exposures()
+            recent = dates.plus(sit_at, hours=-subj.cold_window()[1])
             for t in graded_topics:
                 rows = [a for a in attempts if a["topic"] == t]
                 got = sum(a["score"] for a in rows)
                 st = merged.get(t) or {}
+                taught = last_taught(t, logged, st, sit_end)
                 if (not rows or got / float(len(rows)) >= NOT_LANDED_FRACTION
+                        or t in repairing or taught is None or taught < recent
                         or learning.level_rank(st.get("level")) >= 3
                         or not learning.has_first_serve_basis(t, logged, st)
                         or not learning.needs_window(t, st, logged)):

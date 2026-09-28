@@ -598,6 +598,41 @@ class PracticeAndLadderTests(GradeBase):
                       write_grades(self.tmp, "g.json", grades)])
         self.assertNotIn("hasn't landed", r.stdout)
 
+    def under_half_on_t02(self):
+        """A 4-question T02 drills sheet graded 1/4 on Wed 14 Oct; returns the output."""
+        items = [make_item(n, "T02", ["%da" % n], layer="reading") for n in range(1, 5)]
+        write_sheet(self.ws, self.sid, "ielts-tfng-02-drills", "drills", items)
+        grades = {"date": "2026-10-14", "start": "07:10", "stop": "07:30", "least_sure_line": "none", "asks": [
+            {"ask": "1a", "verdict": "right", "check": "filled"},
+            {"ask": "2a", "verdict": "dont_know"},
+            {"ask": "3a", "verdict": "wrong", "check": "filled"},
+            {"ask": "4a", "verdict": "skip"}]}
+        return self.cli(["grade", "record", self.sid, "ielts-tfng-02-drills", "--from",
+                         write_grades(self.tmp, "g.json", grades)]).stdout
+
+    def test_a_repairs_drill_block_under_half_is_not_named_as_not_landed(self):
+        # A wrong idea on T02 awaits repair: these are its repair's drills, and a miss there gets a new
+        # repair page (session-teach.md §1), not a re-teach.
+        add_exposure(self.ws, self.sid, "T02", "2026-10-13T19:00+01:00")
+        self.cli(["error", "add", self.sid, "--topic", "T02", "--kind", "belief", "--mode", "D",
+                  "--belief", "treats a missing fact as false", "--account", "I did it this way"])
+        out = self.under_half_on_t02()
+        self.assertNotIn("hasn't landed", out)
+        self.assertNotIn("re-teach", out)
+
+    def test_a_topic_taught_long_ago_is_not_named_as_not_landed(self):
+        # Taught 10 days before the drills, its first recheck never sat: not "this session or the last".
+        add_exposure(self.ws, self.sid, "T02", "2026-10-04T19:00+01:00")
+        out = self.under_half_on_t02()
+        self.assertNotIn("hasn't landed", out)
+        self.assertNotIn("re-teach", out)
+
+    def test_a_topic_taught_at_the_last_session_is_named_as_not_landed(self):
+        # Taught 60 h before the drills (the last session): still inside the window's far end, 72 h.
+        add_exposure(self.ws, self.sid, "T02", "2026-10-11T19:10+01:00")
+        self.assertIn("T02: 1/4 on these drills [practice], and its 2-day recheck is still ahead: it hasn't "
+                      "landed yet.", self.under_half_on_t02())
+
     def test_error_ladder_moves_through_grade_record(self):
         # A slip and a belief, opened by hand on Wed 14 Oct.
         self.cli(["error", "add", self.sid, "--topic", "T02", "--kind", "slip", "--mode", "C",
