@@ -52,7 +52,7 @@ In v0.1 you propose the blocks and the CLI stores and validates them. There is n
   - Only obligations with windows exist. No missed-block questions, no alarms, no talk about slots.
   - The close names the next useful window: "Your 2-day recheck is best between Thu 14:00 and Fri 18:00."
   - A `plan check` FAIL on an unplaced recheck closing within 24 h means "tell the learner the window" here, not a planning error.
-- **Soft blocks** (`--soft`, scheduled mode), such as persona B's commute sessions: never asked about; they count only toward weekly totals.
+- **Soft blocks** (`--soft`, scheduled mode): never asked about; they count only toward weekly totals.
 
 ## 3. Phases by runway (exam and course profiles)
 
@@ -114,7 +114,7 @@ Why: spaced retrieval beats massed practice, and the best gap grows with the tim
 
 ## 7. Missed sessions (scheduled mode only)
 
-**Detection.** A block is "missed?" when its end has passed, it was planned or synced, no session overlaps it, and it isn't soft. `ind plan list` shows these and the brief flags them. A recheck whose window passed without a sitting (skipped in a session, or never placed) is flagged as a late recheck in either mode: LATE RECHECK below the brief's line names it, and `ind due <s> --list` lists it as tier 0. Ask and record at the next open exactly as [session-open.md](session-open.md) §3 step 2 says: one question per block, never an accusation. When the learner says it first ("I missed Thursday"), don't ask whether it happened: `ind plan miss <block-id> --reason "<their words, or 'no reason given'>"`.
+**Detection.** A block is "missed?" when its end has passed, it was planned or synced, no session overlaps it, and it isn't soft. `ind plan list` shows these and the brief flags them. A recheck whose window passed without a sitting (skipped in a session, or never placed) is flagged as a late recheck in either mode: LATE RECHECK below the brief's line names it, and `ind due <s> --list` lists it as tier 0. Ask and record at the next open exactly as [session-open.md](session-open.md) §3 step 2 says: one message for all of them, the reason asked at most once, never an accusation. When the learner says it first ("I missed Thursday"), don't ask whether it happened: `ind plan miss <block-id> --reason "<their words, or 'no reason given'>"`.
 
 **Policy (`policies.missed`):**
 - **`ask` (default):** propose the rebooking in the next preview.
@@ -132,7 +132,7 @@ Why: spaced retrieval beats massed practice, and the best gap grows with the tim
 
 **Escalation:**
 - **Same slot twice:** two misses in the same weekday and time within 14 days put the slot itself on the agenda. "Thursday 07:00 hasn't worked twice in two weeks. Keep it, move it, or drop it?"
-- **Alarm:** 2 consecutive planned blocks missed, or no session in max(5 days, 2 × the planned gap), for any subject. The brief computes it for every live subject: FLAGS reads "IELTS hasn't run lately: …", and ALARM below the line gives the block ids. Cancelled blocks don't count as planned days, so dropping a subject's blocks shortens its limit rather than silencing it. The brief of the subject being opened shows only the missed blocks: a long gap there is the re-entry session. Offer it once per open, with three choices: "IELTS hasn't run lately: the last two planned sessions didn't happen. 1) Re-plan the week 2) Pause IELTS until a date you pick 3) Ask me again on Monday"
+- **Alarm:** 2 consecutive planned blocks missed, or no session in max(5 days, 2 × the planned gap), for any subject. The brief computes it for every live subject: FLAGS reads "IELTS hasn't run lately: …", and ALARM below the line gives the block ids. Cancelled blocks don't count as planned days, so dropping a subject's blocks shortens its limit rather than silencing it. The brief of the subject being opened shows only the missed blocks: a long gap there is the re-entry session. Offer it once per open, in its own message (for the subject being opened, only once the open's step 2 confirms two skips in a row), with three choices: "IELTS hasn't run lately: the last two planned sessions didn't happen. 1) Re-plan the week 2) Pause IELTS until a date you pick 3) Ask me again on Monday"
   - **1:** section 1.
   - **2:** `ind set root subjects.<id>.state '"paused"'` and `ind ledger add decision --subject <id> --summary "Paused until <date>" --why "<their words>" --check-on <date> --rule "pause ends" --action "set state live and re-plan"`. A paused subject is silent.
   - **3:** `ind ledger add owed --subject <id> --by claude --what "Ask again: IELTS not running" --due <ISO>`; no alarm while that to-do is open.

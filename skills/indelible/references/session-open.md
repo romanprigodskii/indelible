@@ -55,19 +55,20 @@ Ask one question at a time (Law 9). The learner may answer "skip" at steps 2, 3 
 
 ### Step 2: missed blocks (scheduled mode only)
 
-Ask about each `missed?` block in FLAGS, one block per message:
+Ask about all the `missed?` blocks in FLAGS in one message, by day (name up to 3; beyond that, "the sessions since <day>"):
 
-> Wednesday's 07:00 session has no record. Did it happen without me, get moved, or get skipped?
+> Monday's and Tuesday's sessions have no record. Did they happen without me, get moved, or get skipped? If they differ, say which.
 
-Only if the answer is "skipped", ask in the next message: "What got in the way: tired, busy, forgot, didn't feel like it, or something else?"
-
-- This is a question about the plan, not an accusation. Never say "again" or "you missed". Take the answer as given.
-- **Record the answer:**
+- **If the learner already said what happened** ("missed yesterday and today", "sick till Monday", "work ran over"), don't ask: record it with their words.
+- **"What got in the way?"** At most once per open, in the next message, only after a skip and only if they gave no reason: "What got in the way: tired, busy, forgot, didn't feel like it, or something else?" One answer covers every block skipped.
+- This is a question about the plan, not an accusation. Never say "again" or "you missed", and never count the blocks. Take the answer as given.
+- **Re-entry** (a gap of 5 days or more, step 1): don't list or count the blocks. Ask one question only when the missed? line shows a block done on the learner's own ("on your own"): "Did you do any of the sessions on your own since <the last session's day>?" Record those as happened, and every other block as skipped with no reason asked.
+- **Record the answer, block by block** (the ids are under MISSED? below the line):
   - It happened without you: `ind plan done <B>`. Ask for photos of any sheets done then; they are filed and marked after today's recheck, except drills on a topic whose first 2-day recheck is still ahead: those are marked in the open, before the recheck is built, as carried-over marking is (§4).
   - It was moved: `ind plan move <B> --start <ISO>`, if a new time was given.
   - It was skipped: `ind plan miss <B> --reason "<their words, or 'no reason given'>"`. Never ask why a second time. Its content is placed again at the close or in [plan.md](plan.md). A missed recheck is never replaced by a warm review.
 - **Never ask** about soft blocks, and never ask anything in on-demand mode.
-- **An alarm in FLAGS** ("<subject> hasn't run lately", for any subject): after the step 2 answers, unless they showed those sessions happened, offer the three choices once per open, in [plan.md](plan.md) §7's words: "1) Re-plan the week 2) Pause IELTS until a date you pick 3) Ask me again on <day>". Record the choice as that section says; choice 3 is a to-do that keeps the alarm quiet until it is closed.
+- **An alarm in FLAGS** ("<subject> hasn't run lately"): offer the three choices once per open, in their own message, in [plan.md](plan.md) §7's words: "1) Re-plan the week 2) Pause IELTS until a date you pick 3) Ask me again on <day>". For the subject being opened, only once the answer above confirms two skips in a row: never when those sessions happened without you or were moved. For another subject, whose blocks this step doesn't ask about, after this step's answers. Record the choice as that section says; choice 3 is a to-do that keeps the alarm quiet until it is closed.
 
 ### Step 3: a sheet issued and not taken after two session opens
 
@@ -212,7 +213,7 @@ Questions skipped at `teach` (express, or "skip") and follow-ups nobody needed o
 | P1 | Week-1 review or late-session decline | "Your 60-minute sessions ran 58, 95 and 72. Keep 60 with a firmer stop, or plan 75?" |
 | P3 | Week-1 review | "Want a quick energy check at the start of shorter sessions too?" |
 | P5 | First overrun | "Next time we run long: close on time, extend once, or ask?" (`session.overrun`) |
-| P6 | First missed session (scheduled) | Step 2's question; "What got in the way?" only after "skipped", in the next message |
+| P6 | First missed session (scheduled) | Step 2's one question for all the missed blocks; "What got in the way?" at most once, only after a skip with no reason given, in the next message |
 | P7 | First tutor mention | "How often, and what do they set? May I make them a one-page summary of your mistake types? No answers in it." |
 | P8 | First phone photo | "Want me to pick photos up from a folder your phone syncs to? Make it a folder just for study photos, not your whole camera roll. I copy them into your study folder, which itself stays unsynced." On a yes, record the folder's full path under "About the learner" in the root `CLAUDE.md` (a device setting, shared by every subject) |
 | P9 | Wants to test a change | "Shall we write down now what result would make us keep it or undo it?" (`ind ledger add hypothesis`) |
