@@ -443,6 +443,19 @@ class ExposeTaughtOverrideTests(SessionBase):
         self.assertIn("if it shows `(unset)`, `null` or `\"\"` before the arrow", step1)
         self.assertIn("Never look in `subject.json` (Law 6)", step1)
 
+    def test_the_typed_recheck_hand_over_asks_for_no_photos(self):
+        # session-open.md §5 step 4: a learner who types one message (format.answer_form "typed")
+        # is never told to send photos, as on the sheet's rules box and the welcome card.
+        opening = (Path(__file__).resolve().parents[1] / "skills" / "indelible" / "references"
+                   / "session-open.md").read_text(encoding="utf-8")
+        paper = [ln for ln in opening.splitlines() if ln.lstrip().startswith("- **Hand it over**")][0]
+        typed = [ln for ln in opening.splitlines() if ln.lstrip().startswith("- **Typed answers**")][0]
+        self.assertIn("send the photos", paper)
+        self.assertIn("in place of the paper and photos lines", typed)
+        script = typed.split("**Code**")[0]
+        self.assertIn("Type your answers in one message", script)
+        self.assertNotIn("photos (", script)
+
     def test_law_2_keeps_the_hint_ladder_on_a_practice_sheet_in_a_session(self):
         # The ban on discussing a sheet that is out holds outside a session; in one, session-teach.md §3
         # gives hints on a practice sheet, and the references never contradict the laws (SKILL.md).
