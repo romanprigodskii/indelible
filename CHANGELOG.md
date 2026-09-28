@@ -2,7 +2,9 @@
 
 All notable changes to this project are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.1.6] - 2026-09-28
+
+The night audit: rechecks that keep counting after the first, a path for a new topic that didn't land, marking that blames Claude's sheets rather than the learner, answer keys that open only as far as the evidence, and instructions that say each rule once.
 
 ### Changed
 
