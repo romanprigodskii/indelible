@@ -83,7 +83,7 @@ Plan backwards from `target.date`. For a date range, plan to the earliest date a
 - **Validity (hard by default):**
   - checked: the recheck window; no exposure to the topic (a planned teach included) in the 24 h before its recheck; no measurement within 3 h after another ends;
   - yours: measurements first in the day, at the exam's time of day where possible; 15 min between blocks of different subjects.
-  - The learner may override one, but `plan check` has no override: plan what they want as a `review` block, keep the real recheck in its window, log their call with `ind ledger add decision`. Its score is practice.
+  - The learner may override one, but `plan check` has no override: plan what they want as a `review` block, keep the real recheck in its window, log their call with `ind ledger add decision`. Its score is practice. In a session, the 24-hour rule and the window follow [session-open.md](session-open.md) §3 step 6: a practice sheet, `ind session override`, and the recheck stays booked.
 - **Soft (WARN):** outside `time.windows`; under a subject's weekly minimum; confusable topics taught the same day; the rest day. Yours: keep the buffer at `buffer_pct`.
 
 ## 5. Placement order

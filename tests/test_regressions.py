@@ -174,6 +174,19 @@ class LintRuleRegressions(unittest.TestCase):
         r = result(cold_spec(type="probe", title="Part A"), "L7", exposures=[drilled])
         self.assertEqual((r["status"], r["detail"]), ("PASS", "timing not checked on a probe sheet"))
 
+    def test_l7_an_override_gets_a_practice_sheet_of_new_items_not_a_recheck(self):
+        # session-open.md §3 step 6: T04 was explained in chat an hour ago. The recheck the learner
+        # asks for fails L7, and nothing overrides it; the same questions as new items on a mixed sheet pass.
+        chat = {"topic": "T04", "at": "2026-10-12T08:00+01:00", "kind": "chat"}
+        exposures = ctx()["exposures"] + [chat]
+        r = result(cold_spec(), "L7", exposures=exposures)
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("less than 24 h", r["detail"])
+        spec = cold_spec(type="mixed", title="Part A")
+        for it in spec["items"]:
+            it["origin"] = "new"
+        self.assertEqual(result(spec, "L7", exposures=exposures)["status"], "PASS")
+
     def test_l7_a_topic_never_taught_is_not_recheck_material(self):
         spec = cold_spec()
         spec["items"] = [spec["items"][0]]

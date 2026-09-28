@@ -99,7 +99,7 @@ Never print, echo, `cat` or summarise the answers file. Never put an answer in a
 9. **Second-language learners** in a non-language subject: question stems of at most 25 words, no double negatives, no nested clauses.
 10. **Don'ts:** no classmate device, no "which line is the first wrong one?" or "find the error" item on a topic below mastery 3 (put the wrong working beside the right one instead), unless finding errors is the exam's own question form, no formula as a label (write "The value of f′ at x = 1:"), no "give two answers", no formula in a heading, no LaTeX, no per-answer confidence marks.
 11. **Official items:** `origin: official:<source>` and a pointer as the text, never the official wording.
-12. **Never change a `type`, an `origin` or an `op`** to get past a lint rule. If L12 finds an operation the theory never showed, drop the item, or return `FAILED: lint: L12 (op <op> not on the theory)` so the theory is rebuilt.
+12. **Never change a `type`, an `origin` or an `op`** to get past a lint rule. If L12 finds an operation the theory never showed, drop the item, or return `FAILED: lint: L12 (op <op> not on the theory)` so the theory is rebuilt. A learner's override of the 24-hour rule or the recheck window comes to you as its own `mixed` sheet whose SERVE has only `new:` lines: every item `origin: new`, never a `cold:` or `error:` item.
 13. **PROFILE says the exam gives a reference sheet:** never ask the learner to recall a formula that sheet prints; ask them to choose the right one and use it. The rules box lets them use a clean copy of it on every closed-book sheet. Anything the exam's sheet doesn't print is still recalled.
 
 ### Commands, in order

@@ -833,6 +833,32 @@ class GradingRegressionTests(GradeBase):
         self.assertIn("T01", r.stdout.split("1. 2-day rechecks", 1)[1].split("2. ", 1)[0])
         self.assert_no_secrets()
 
+    def test_an_override_of_the_24_hour_rule_is_practice_and_the_recheck_stays_booked(self):
+        # session-open.md §3 step 6: T01 was explained in chat half an hour ago, and the learner
+        # asks to be rechecked on it anyway. They get a mixed sheet of new items, logged as an override.
+        add_exposure(self.ws, self.sid, "T01", "2026-10-12T07:40+01:00")
+        add_exposure(self.ws, self.sid, "T01", "2026-10-14T06:30+01:00", kind="chat")
+        add_blocks(self.ws, [cold_obligation("B-20261014-ielts-2", self.sid, "T01",
+                                             "2026-10-14T06:30+01:00", "2026-10-17T06:30+01:00")])
+        r = self.cli(["session", "override", self.sid, "recheck me on it today anyway", "--predict",
+                      "1 and 2 right"], now="2026-10-14T06:55+01:00")
+        self.assertIn("Override logged", r.stdout)
+        items = [make_item(n, "T01", ["%da" % n], layer="reading") for n in (1, 2)]
+        key = write_sheet(self.ws, self.sid, "ielts-mixed-03", "mixed", items, issued="2026-10-14T06:58+01:00")
+        self.remember_key(key)
+        r = self.grade("ielts-mixed-03", {"date": "2026-10-14", "start": "07:00", "stop": "07:05",
+                                          "least_sure_line": "none", "asks": [
+            {"ask": a, "verdict": "right", "check": "filled"} for a in ("1a", "2a")]})
+        self.assertIn("[practice]", r.stdout)
+        self.assertNotIn("2-day recheck done", r.stdout)
+        blocks = dict((b["id"], b) for b in read_rows(self.ws / "plan" / "blocks.jsonl"))
+        self.assertEqual(blocks["B-20261014-ielts-2"]["status"], "planned")   # the recheck stays booked
+        self.assertIsNone(self.topics().get("T01", {}).get("last_cold"))
+        self.assertEqual(self.exposures()[-1]["kind"], "drill")
+        # The drill, logged at the stop time, moved T01's first window to 44–72 h after it.
+        self.assertEqual(blocks["B-20261014-ielts-2"]["window"]["from"], "2026-10-16T03:05+01:00")
+        self.assert_no_secrets()
+
     def test_a_recheck_topic_with_one_counted_question_uses_nothing_up(self):
         # A one-question recheck on T01 (lint L7 refuses one now; a sheet built before still grades).
         add_exposure(self.ws, self.sid, "T01", "2026-10-12T07:40+01:00")

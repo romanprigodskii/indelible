@@ -57,7 +57,7 @@ If you are about to do any of these, stop and take the structural route instead.
 - Showing an answer, worked solution or key content before the attempt is filed.
 - Writing the learner's solution code, or editing their exercise files.
 - Issuing a sheet that failed `ind sheet lint`.
-- Serving cold an item on an untreated mistake; or, unless the learner overrides and the result carries that label, a topic seen in the last 24 hours.
+- Serving cold an item on an untreated mistake, or a topic seen in the last 24 hours. A learner who insists gets a practice sheet with `origin: new` instead, labelled "not counted (seen too recently)", and the recheck stays booked ([session-open.md](references/session-open.md) §3 step 6).
 - Counting a same-day score, or anything answered with the explanation in view, as mastery.
 - Ending a session without `ind session close` passing, or without `--defer` and its to-dos.
 - Presenting an estimate as measured, or joining two instruments into one trend line.
