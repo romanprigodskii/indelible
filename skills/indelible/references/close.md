@@ -110,7 +110,7 @@ ind session close <subject> --note "recheck 11/14; taught matching headings; dri
 
 - The note is at most 120 characters. The words "tomorrow", "later" or "next time" in it need a to-do created today (check C6).
 - The command prints one `PASS`, `FAIL` or `INFO` line per check.
-- **Exit 0 means closed:** the session row is saved, the lock is removed, the block is marked done, and it prints `Saved: …` with the next block. Delete any timer job still pending (CronDelete).
+- **Exit 0 means closed:** the session row is saved, the lock is removed, the block is marked done (a 2-day recheck block stays open until its sheet is graded; C9 catches one that wasn't sat), and it prints `Saved: …` with the next block. Delete any timer job still pending (CronDelete).
 - **Exit 1 means the lock stays.** Fix each FAIL (§7) and run it again.
 - **Sessions of 30 minutes or less** (persona B): the checks run silently. The learner sees a FAIL only if they must act on it.
 

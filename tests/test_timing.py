@@ -396,6 +396,68 @@ class LateRecheckTests(TimingCase):
         self.assertNotIn("window has passed", learner)
         self.assertNotIn("LATE RECHECK", claude)
 
+    def test_c9_names_a_start_after_the_close_even_on_a_quarter_hour(self):
+        # closing at 07:45 exactly: 07:45 itself would be caught by C9 again at the next close
+        self.cli(["session", "open", self.sid, "--planned", "60"])
+        r = self.cli(["session", "close", self.sid], now="2026-10-15T07:45+01:00", code=1)
+        self.assertIn("(plan move %s --start 2026-10-15T08:00+01:00)" % self.BID, r.stdout)
+        self.cli(["plan", "move", self.BID, "--start", "2026-10-15T08:00+01:00"], now="2026-10-15T07:45+01:00")
+        r = self.cli(["session", "close", self.sid], now="2026-10-15T07:46+01:00")
+        self.assertIn("PASS C9 recheck sat", r.stdout)
+
+    def friday_block(self):
+        """The recheck on Fri 16 Oct 07:00, with a stored window that ends at 07:17, before
+        T01's own window (07:29): plan move keeps to the stored one."""
+        window = {"from": "2026-10-15T03:17+01:00", "to": "2026-10-16T07:17+01:00"}
+        self.save_blocks([self.cold_block(self.BID, "2026-10-16T07:00+01:00", "2026-10-16T07:15+01:00",
+                                          window=window)])
+        self.cli(["session", "open", self.sid, "--planned", "60"], now="2026-10-16T07:00+01:00")
+
+    def test_c9_keeps_its_move_inside_the_window_plan_move_accepts(self):
+        self.friday_block()
+        r = self.cli(["session", "close", self.sid], now="2026-10-16T07:12+01:00", code=1)
+        self.assertIn("(plan move %s --start 2026-10-16T07:15+01:00), then plan check; the window closes "
+                      "today 07:17" % self.BID, r.stdout)
+        self.cli(["plan", "move", self.BID, "--start", "2026-10-16T07:15+01:00"], now="2026-10-16T07:12+01:00")
+        r = self.cli(["session", "close", self.sid], now="2026-10-16T07:13+01:00")
+        self.assertIn("PASS C9 recheck sat", r.stdout)
+
+    def test_c9_is_info_when_no_start_is_left_in_the_window(self):
+        self.friday_block()
+        r = self.cli(["session", "close", self.sid], now="2026-10-16T07:25+01:00")
+        self.assertIn("INFO C9 recheck sat: the 2-day recheck %s (today 07:00) was not sat, and no time is left in "
+                      "its window (it closes today 07:17): it becomes a late recheck, which the next brief flags "
+                      "(plan.md §7)" % self.BID, r.stdout)
+        self.assertNotIn("plan move", r.stdout)
+
+    def test_a_recheck_sat_inside_its_window_is_not_flagged_late(self):
+        self.skip_in_session()
+        # an unlinked cold sheet on T01, sat on Friday inside the window, far from the block's time
+        items = [make_item(1, "T01", ["1a"], origin="cold:T01", layer="reading"),
+                 make_item(2, "T01", ["2a"], origin="cold:T01", layer="reading")]
+        write_sheet(self.ws, self.sid, "ielts-cold-01", "cold", items)
+        asks = [{"ask": "1a", "verdict": "right", "check": "filled", "least_sure": False},
+                {"ask": "2a", "verdict": "right", "check": "filled", "least_sure": False}]
+        path = self.grades_file("friday.json", {"date": "2026-10-16", "start": "07:05", "stop": "07:15",
+                                                "asks": asks})
+        r = self.cli(["grade", "record", self.sid, "ielts-cold-01", "--from", path], now="2026-10-16T07:20+01:00")
+        self.assertIn("T01 0 → 3", r.stdout)
+        self.assertEqual(self.blocks()[self.BID]["status"], "done")
+        out = self.cli(["brief", self.sid], now=self.NEXT_DAY).stdout
+        self.assertNotIn("window has passed", out)
+        self.assertNotIn("LATE RECHECK", out)
+
+    def test_a_recheck_whose_block_stays_open_is_not_flagged_after_an_in_window_serve(self):
+        self.skip_in_session()
+        # served cold inside the window (Fri 07:05), with the booking left open
+        path = self.sdir / "data" / "topics.json"
+        state = fio.read_json(path)
+        state["T01"]["last_cold"] = "2026-10-16T07:05+01:00"
+        fio.write_json(path, state)
+        out = self.cli(["brief", self.sid], now=self.NEXT_DAY).stdout
+        self.assertNotIn("window has passed", out)
+        self.assertNotIn("LATE RECHECK", out)
+
     def test_c9_is_info_once_the_window_has_closed(self):
         rows = [self.cold_block(self.BID, "2026-10-16T07:00+01:00", "2026-10-16T07:15+01:00", window=self.WINDOW)]
         self.save_blocks(rows)

@@ -502,8 +502,10 @@ def late_rechecks(ws, subj, now, blocks=None, skip_ids=()):
 
     A recheck block (kind cold, planned or synced, placed or not) is late when
     the window of at least one of its ``cold:<T>`` topics closed before now
-    (topic_close). A topic served cold or taught again after the block's window
-    or time is left out: a newer recheck carries it. Blocks in ``skip_ids`` are
+    (topic_close). A topic served cold after the block's window opened (or its
+    time, with no window) is left out, since that serve used the booking up, and
+    so is one taught again after the window closed (or the time): a newer recheck
+    carries it. Blocks in ``skip_ids`` are
     left out (the brief's missed? blocks: session-open step 2 asks about them).
     Returns [{"block", "topics": [(id, name, hours since last seen)], "closed"}],
     the oldest first. The late-recheck rule (plan.md section 7) applies to each.
@@ -521,12 +523,14 @@ def late_rechecks(ws, subj, now, blocks=None, skip_ids=()):
     out = []
     for b in rows:
         w = b.get("window") if isinstance(b.get("window"), dict) else {}
+        opened = to_local(w.get("from"), tz) or to_local(b.get("start"), tz)
         ref = to_local(w.get("to"), tz) or to_local(b.get("start"), tz)
         late, closed = [], None
         for t in block_topics(b):
             st = ts_all.get(t) or {}
-            if ref is not None and any(x is not None and x > ref
-                                       for x in (to_local(st.get("last_cold"), tz), to_local(st.get("taught_at"), tz))):
+            served, taught = to_local(st.get("last_cold"), tz), to_local(st.get("taught_at"), tz)
+            if (opened is not None and served is not None and served > opened) or (
+                    ref is not None and taught is not None and taught > ref):
                 continue
             close = topic_close(b, t, now, exposures, ts_all, window)
             if close is None or close >= now:

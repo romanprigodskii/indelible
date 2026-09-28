@@ -174,12 +174,19 @@ def cold_topics_of(block):
 
 
 def _serves(block, sit_at, tz):
-    """True if a sitting at ``sit_at`` serves this recheck block (its time or window, with slack)."""
+    """True if a sitting at ``sit_at`` serves this recheck block (its time or window, with slack).
+
+    A placed block is served near its time. One whose time passed before the
+    sitting (it was not sat then) is also served by a sitting inside its window;
+    one booked for later stays open."""
     slack = SERVED_SLACK_H
     s, e = dates.try_parse_iso(block.get("start")), dates.try_parse_iso(block.get("end"))
     if s is not None:
         e = e or s
-        return dates.plus(s, hours=-slack) <= sit_at <= dates.plus(e, hours=slack)
+        if dates.plus(s, hours=-slack) <= sit_at <= dates.plus(e, hours=slack):
+            return True
+        if e > sit_at:
+            return False
     w = block.get("window") if isinstance(block.get("window"), dict) else {}
     f, t = dates.try_parse_iso(w.get("from")), dates.try_parse_iso(w.get("to"))
     if f is None or t is None:
@@ -192,9 +199,9 @@ def close_cold_obligations(ws, subject_id, topics, sit_at=None, sheet_block=None
 
     The served block is the sheet's linked block when it is an open recheck
     holding one of ``topics``; otherwise every open recheck block of those
-    topics whose time (or, for an obligation, whose window) holds the sitting,
-    within SERVED_SLACK_H hours. Later rechecks, booked for another day, stay
-    open.
+    topics whose time (or, for an obligation or a block whose time passed
+    unsat, whose window) holds the sitting, within SERVED_SLACK_H hours. Later
+    rechecks, booked for another day, stay open.
     """
     if not topics:
         return []

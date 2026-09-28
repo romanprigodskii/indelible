@@ -43,6 +43,7 @@ from lib import ws as wsmod
 from lib import io as fio
 from lib import cmd_brief as brief
 from lib import cmd_ledger as ledger
+from lib import cmd_plan as plan
 
 # Promise words in English and in the personas' first languages (pt, es, de).
 PROMISE_RE = re.compile(r"\b(tomorrow|later|next time|amanhã|mais tarde|mañana|luego|morgen|später)\b",
@@ -722,16 +723,15 @@ def run_checks(ws, subj, lk, now, note):
             notes.append("%s%s: name it in the close message" % (
                 what, "; its window closes %s" % brief.fmt_when(close, now) if close is not None else ""))
         else:
-            w = b.get("window") if isinstance(b.get("window"), dict) else {}
-            wf = brief.to_local(w.get("from"), tz)
-            earliest = max(now, wf) if wf is not None else now
-            target = _next_quarter(earliest)
-            if close is not None and target > close:
-                target = earliest
+            target, last = _recheck_move(ws, b, blocks, close, now)
+            if target is None:
+                notes.append("%s, and no time is left in its window (it closes %s): it becomes a late recheck, "
+                             "which the next brief flags (plan.md §7)" % (what, brief.fmt_when(last, now)))
+                continue
             fixes.append("%s: move it inside its window (plan move %s --start %s), then plan check%s" % (
                 what, b.get("id"), _fmt(target),
-                "; the window closes %s, and after that it is a late recheck (plan.md §7)" % brief.fmt_when(close, now)
-                if close is not None else ""))
+                "; the window closes %s, and after that it is a late recheck (plan.md §7)" % brief.fmt_when(last, now)
+                if last is not None else ""))
     if fixes:
         out.append(Check("C9", "recheck sat", "FAIL", "; ".join(fixes + notes),
                          todo="Move the 2-day recheck that was not sat inside its window",
@@ -825,6 +825,27 @@ def _next_quarter(dt):
     """The next quarter hour at or after dt (07:50 -> 08:00, 08:00 -> 08:00)."""
     dt = dt.replace(second=0, microsecond=0)
     return dt + timedelta(minutes=(15 - dt.minute % 15) % 15)
+
+
+def _recheck_move(ws, block, blocks, close, now):
+    """(start, last) for moving a recheck that was not sat (C9).
+
+    ``start`` is the first quarter hour after now (a start at or before now would
+    be caught by C9 again at the next close), and not before the window opens.
+    ``last`` is the latest start that still counts: the earlier of the window
+    close (``close``, from brief.recheck_close) and the end of the window
+    plan move enforces. ``start`` is None when no quarter hour is left before it.
+    """
+    w = plan.cold_window_for(plan.Ctx(ws), block, dict((b.get("id"), b) for b in blocks))
+    last = close
+    if w is not None and (last is None or w[1] < last):
+        last = w[1]
+    start = _next_quarter(now + timedelta(minutes=1))
+    if w is not None and w[0] > start:
+        start = _next_quarter(w[0])
+    if last is not None and start > last:
+        return None, last
+    return start, last
 
 
 def _mark_block_done(ws, block_id):
