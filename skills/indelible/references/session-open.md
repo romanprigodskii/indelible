@@ -63,7 +63,7 @@ Only if the answer is "skipped", ask in the next message: "What got in the way: 
 
 - This is a question about the plan, not an accusation. Never say "again" or "you missed". Take the answer as given.
 - **Record the answer:**
-  - It happened without you: `ind plan done <B>`. Ask for photos of any sheets done then; they are filed and marked after today's recheck.
+  - It happened without you: `ind plan done <B>`. Ask for photos of any sheets done then; they are filed and marked after today's recheck, except drills on a topic whose first 2-day recheck is still ahead: those are marked in the open, before the recheck is built, as carried-over marking is (§4).
   - It was moved: `ind plan move <B> --start <ISO>`, if a new time was given.
   - It was skipped: `ind plan miss <B> --reason "<their words, or 'no reason given'>"`. Never ask why a second time. Its content is placed again at the close or in [plan.md](plan.md). A missed recheck is never replaced by a warm review.
 - **Never ask** about soft blocks, and never ask anything in on-demand mode.
