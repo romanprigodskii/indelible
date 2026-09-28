@@ -87,7 +87,7 @@ No praise beyond the evidence. End with the next step.
 ## 7. Probes (sessions 2–3)
 
 - **A skipped topic is not an unknown topic.** Blanks often come from labels, time or nerves. Each topic whose evidence is mostly blanks gets 2–3 unlabelled items in one mixed 10–15-minute `probe`, taken within 48 hours of the results. A pass sends the topic to the back of the teach queue; a miss confirms it.
-- **Vocabulary probes.** For each "a word stopped me" miss, and each term-hinged miss whose plain-worded twin was right, one line, cold, quoting the sentence the word came from rather than "in question 6", since the learner no longer has that sheet: "'An unbiased estimate of the mean is…': what does 'unbiased' mean here?" (for an official item, a sentence of the builder's own). At most 10 per `probe`. Fix the word (the words box of the next theory sheet, a `words` sheet, or the subject `lexicon` via `ind set`) before the topic is re-taught.
+- **Vocabulary probes.** For each "a word stopped me" miss, and each term-hinged miss whose plain-worded twin was right, one line, cold, quoting the sentence the word came from rather than "in question 6", since the learner no longer has that sheet: "'An unbiased estimate of the mean is…': what does 'unbiased' mean here?" (for an official item, a sentence of the builder's own). At most 10 per `probe`. The same twin rule holds at ordinary grading for a second-language learner: a sentence miss on an operation they did right in symbols gets a probe without the sentence frame before it is classified ([session-grade.md](session-grade.md) §5). Fix the word (the words box of the next theory sheet, a `words` sheet, or the subject `lexicon` via `ind set`) before the topic is re-taught.
 
 ## 8. Levels
 
