@@ -592,7 +592,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
   - the level changes;
   - the cold obligations passed;
   - on a `cold` sheet, for each first-serve topic sat outside its window (and not confirming a 3p level): `Not counted toward level 3: T01 was sat at 72.1 h, outside its 44–72 h window. Treat it as a late recheck …`.
-  - a note naming any question of the spec with no entry in the grades file (`no entry for 5a, 6a in the grades file, so they were not recorded …`). It is a note, not a refusal: a block cut for time and a question not counted are left out on purpose.
+  - a note naming any question of the spec with no entry in the grades file (`no entry for 5a, 6a in the grades file, so they were not recorded …`). It is a note, not a refusal: a block cut for time, a question not counted and one withdrawn as unclear are left out on purpose.
 - **For a `cold:<topic>` item on a measuring sheet** (a `cold` sheet, or a `words` recheck): closes the topic's cold obligation block (`status=done`) if one is open, and sets `last_cold`. On a practice sheet it closes nothing and sets nothing, and a note says the booked recheck stays open.
 
 **Other commands:**

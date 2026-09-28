@@ -97,6 +97,7 @@ Blanks, when there are any, get a line of their own, numbers only (on a longer s
 - **Official items** (origin `official:…`): before revealing anything, ask for a one-line "why" (why they chose their answer) and any word that stopped them. Then point to the passage line or step the answer turns on (never the answer itself), and ask for their answer now.
 - **Don't lead or infer.** Never ask "was it a slip?" and never say "you rushed". Ask instead (see the ban on inferring what the learner did).
 - **"I don't know" is always an accepted answer.** Never ask the learner to justify it.
+- **"I didn't understand the question,"** on a question Claude wrote, goes to the unclear-question check (§9) before any classifying.
 - **Blanks** (`skip`) need no account and create no error. If most of a topic's questions are blank, the topic gets a probe before it is taught ([measure.md](measure.md)).
 
 ## 5. Classify
@@ -167,7 +168,8 @@ Persona C, question 4: "Your check confirmed the arithmetic of the mean, so it c
 
 Write the input file at `<subject>/.indelible/tmp/<id>.grades.json`. Run `ind schema grades` if you are unsure of a field. Include one entry per question the learner was given. Leave out only:
 - questions from a block cut for time before it started ([close.md](close.md));
-- questions not counted (§10).
+- questions not counted (§10);
+- questions withdrawn as unclear (§9).
 
 `ind grade record` names any question left out in a note. If one was left out by mistake, it can't be added after the record: tell the learner and log a `misclassification` defect.
 
@@ -201,7 +203,7 @@ Mistakes scheduled: 3. One needs a short fix sheet before it comes back.
 Mastery: confidence intervals 2 → 3 [measured].
 ```
 
-Drill scores are `[practice]`; never present them as measured. Every belief now needs a repair before its recheck ([session-teach.md](session-teach.md)). Then run `ind session status <subject>` to see what still fits.
+A question withdrawn as unclear (§9) gets its own card line, "Withdrawn (my wording): 1", and is not in the score. Drill scores are `[practice]`; never present them as measured. Every belief now needs a repair before its recheck ([session-teach.md](session-teach.md)). Then run `ind session status <subject>` to see what still fits.
 
 ## 9. Unverified keys and challenges
 
@@ -209,6 +211,11 @@ Drill scores are `[practice]`; never present them as measured. Every belief now 
 - **If the learner's answer is defensible:** mark it `right`, and say so plainly: "Your answer works too; my answer sheet was too narrow. Marked right." Then log it with `ind ledger add defect --subject <s> --category content_error --what "<sheet> q14: key missed a defensible answer" --fix-type template --fix "builder: list every defensible answer for verbal items"`.
 - **Fix the item for future sheets.** A sealed sheet is never edited, so log the fix as above, starting it with "builder:". The brief carries it under MY RULES to every later build, in any conversation, until that defect is closed.
 - **If the answer is not defensible:** give the standard in one line and treat the question as a miss.
+
+**Unclear questions (my wording).** When the learner's account, or a question they asked while the sheet was sealed, says they didn't understand what a question Claude wrote was asking, reread its stem. If you can say in five words what it asks and in what form, and it has only one reading, it stands: classify as usual. If not, ask one reworded line in chat: the same content, plainly put, with nothing from the key and no teaching.
+- **The reworded answer is right:** leave the question out of `grades.json`, give it no `kind`, and say "Question 6 (<gist>): withdrawn, my wording. Not counted." Log it with `ind ledger add defect --subject <s> --category content_error --what "<sheet> q<n>: stem ambiguous (<the two readings>)" --fix-type template --fix "builder: <the rewrite>"`; the brief carries it to every later build under MY RULES.
+- **The reworded answer is wrong:** the question keeps its verdict, and the reworded answer is its account: classify from it as usual.
+- A reworded question is never graded both ways (law 3): it is withdrawn, or marked on the answer the sheet got. "I don't understand the question" is always a fair thing to say; it is never filed as a wrong idea before this check.
 
 **Challenges to a mark.** Check the record before conceding or refusing:
 1. the filed evidence (`<subject>/scans/`, `<subject>/answers/<id>.txt`, or a code project's snapshot `<subject>/answers/<id>/`);
