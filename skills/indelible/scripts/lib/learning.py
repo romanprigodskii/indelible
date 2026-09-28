@@ -19,6 +19,7 @@ Sections:
 
 import copy
 import math
+import re
 from datetime import timedelta
 
 from lib import dates
@@ -574,17 +575,61 @@ def _instrument(a):
     return inst or PRACTICE
 
 
-def counts_toward_level(a):
+RESERVE_RE = re.compile(r"^error:(E-[a-z0-9-]+-\d+)$")
+REASKED_RE = re.compile(r"^(error|sentinel):")
+
+
+def first_reserve_passed(attempts):
+    """The mistakes whose first counted re-serve was all right: a set of E-ids.
+
+    A re-serve is a question whose origin is ``error:<E>``. As in grade record,
+    it moves the ladder only on a cold, mixed or measuring sheet, with its topic
+    not seen in the 24 h before the sitting; the earliest such sitting of each
+    mistake decides. A shaky mistake opened from right answers named on the
+    Least-sure line lets them count toward their level once it passes there
+    (counts_toward_level). A miss there, and they never count.
+    """
+    sittings = {}
+    for a in attempts or []:
+        m = RESERVE_RE.match(str(a.get("origin") or ""))
+        if not m or not (a.get("sheet_type") == "mixed" or a.get("prov") == "measured"):
+            continue
+        at = dates.try_parse_iso(a.get("at"))
+        if at is None:
+            continue
+        s = sittings.setdefault((m.group(1), a.get("sheet") or "?"), {"at": at, "right": True, "warm": False})
+        s["at"] = min(s["at"], at)
+        if a.get("verdict") != "right":
+            s["right"] = False
+        ih = a.get("interval_h")
+        if isinstance(ih, (int, float)) and not isinstance(ih, bool) and ih < NO_EXPOSURE_H:
+            s["warm"] = True
+    first = {}
+    for (eid, sheet), s in sittings.items():
+        if s["warm"]:
+            continue
+        if eid not in first or (s["at"], sheet) < (first[eid]["at"], first[eid]["sheet"]):
+            first[eid] = dict(s, sheet=sheet)
+    return set(eid for eid, s in first.items() if s["right"])
+
+
+def counts_toward_level(a, confirmed=None):
     """Does this graded question count toward its topic's level?
 
-    Not counted: a *right* answer the learner named on the Least-sure line
-    (a wrong, half or "don't know" answer counts even when named: naming a
-    miss never hides it); a question answered with the explanation in view
-    (theory, external, example and repair sheets); a recheck question marked
-    contaminated (the topic was seen in the 24 h before the sitting).
+    Not counted: a *right* answer the learner named on the Least-sure line,
+    until the shaky mistake it opened comes back right on its first re-serve
+    (``confirmed``, from first_reserve_passed: it then counts at its own
+    sitting, never at the re-serve's); a wrong, half or "don't know" answer
+    counts even when named, since naming a miss never hides it. Nor a question
+    answered with the explanation in view (theory, external, example and
+    repair sheets), or a recheck question marked contaminated (the topic was
+    seen in the 24 h before the sitting).
     """
     if a.get("least_sure") is True and a.get("verdict") == "right":
-        return False
+        # A named right answer on a re-serve carries the mistake it served, not one it opened.
+        if (not confirmed or a.get("error_id") not in confirmed
+                or REASKED_RE.match(str(a.get("origin") or ""))):
+            return False
     if a.get("sheet_type") in IN_VIEW_TYPES:
         return False
     if a.get("contaminated") is True:
@@ -595,8 +640,9 @@ def counts_toward_level(a):
 def _sittings(attempts):
     """Group counted asks into per-(topic, sheet) sittings."""
     groups = {}
+    confirmed = first_reserve_passed(attempts)
     for a in attempts or []:
-        if not counts_toward_level(a):
+        if not counts_toward_level(a, confirmed):
             continue
         topic = a.get("topic")
         if not topic:
@@ -764,7 +810,8 @@ def _levels_for_topic(sittings, window, untreated=None, least_sure_only=False):
     elif st["measure"]:
         basis = "latest measurement: " + st["measure"][1]
     elif least_sure_only:
-        basis = "only least-sure questions so far (right answers named on the Least-sure line do not count)"
+        basis = ("only least-sure questions so far (a right answer named on the Least-sure line counts once it "
+                 "comes back right)")
     elif st["thin"]:
         basis = st["thin"]
     else:

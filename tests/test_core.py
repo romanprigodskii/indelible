@@ -635,7 +635,7 @@ class LevelTests(Base):
         self.assertEqual(level(early_mock + att("c1", "rrrr", "cold", 3, interval_h=49)
                                + att("c2", "rrrr", "cold", 11, interval_h=240))["level"], 4)
 
-    def test_least_sure_right_answers_never_count(self):
+    def test_least_sure_right_answers_never_count_without_a_right_re_serve(self):
         taught = att("d", "rrrrrr", "practice", 0)
         # 3 right of 4 would pass; with the least-sure right answer removed it is 2/3
         cold = att("c1", "rrwr", "cold", 2, interval_h=49, least_sure=(3,))
@@ -645,6 +645,37 @@ class LevelTests(Base):
         lv = level(all_named)
         self.assertEqual(lv["level"], 0)
         self.assertIn("only least-sure questions so far", lv["level_basis"])
+
+    def test_a_named_right_answer_counts_once_its_re_serve_comes_back_right(self):
+        taught = att("d", "rrrrrr", "practice", 0)
+        cold = att("c1", "rrwr", "cold", 2, interval_h=49, least_sure=(3,))
+        cold[3]["error_id"] = "E-ielts-0007"     # the shaky mistake grade record opened for it
+
+        def reserve(verdicts, day=5, ih=72.0, sheet="c2", stype="cold", named=()):
+            rows = att(sheet, verdicts, "practice" if stype == "drills" else stype, day, interval_h=ih,
+                       least_sure=named)
+            for a in rows:
+                a.update(origin="error:E-ielts-0007", sheet_type=stype, error_id="E-ielts-0007")
+            return rows
+
+        # Right at +3 days: the named answer counts at its own sitting, which passes in its window.
+        lv = level(taught + cold + reserve("r"))
+        self.assertEqual(lv["level"], 3)
+        self.assertEqual(lv["first_pass"], cold[0]["at"])
+        self.assertIn("cold 3/4 on c1 at 49 h", lv["level_basis"])
+        # A miss there, and it never counts: the first counted re-serve decides.
+        self.assertEqual(level(taught + cold + reserve("w"))["level"], 2)
+        self.assertEqual(level(taught + cold + reserve("w") + reserve("r", day=7, sheet="c3"))["level"], 2)
+        # A re-serve seen in the 24 h before, or on a drills sheet, moves no ladder, so it decides nothing.
+        self.assertEqual(level(taught + cold + reserve("r", ih=10.0))["level"], 2)
+        self.assertEqual(level(taught + cold + reserve("r", stype="drills"))["level"], 2)
+        self.assertEqual(level(taught + cold + reserve("r", ih=10.0) + reserve("r", day=7, sheet="c3"))["level"], 3)
+        # A right answer named on the re-serve itself carries the mistake it served, never one it opened.
+        again = reserve("r", named=(0,))
+        confirmed = learning.first_reserve_passed(taught + cold + again)
+        self.assertEqual(confirmed, {"E-ielts-0007"})
+        self.assertFalse(learning.counts_toward_level(again[0], confirmed))
+        self.assertTrue(learning.counts_toward_level(cold[3], confirmed))
 
     def test_a_miss_named_least_sure_still_counts(self):
         # Regression: naming a miss on the Least-sure line must never hide it from the level.

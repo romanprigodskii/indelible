@@ -325,6 +325,7 @@ def cmd_grade_record(args):
         elif not has_line and ls_line is not None:
             bad.append("%s has no Least-sure line: leave least_sure_line out" % sid)
         attempts, pending_errors, no_kind, notes = [], [], [], []
+        shaky_items = {}      # (item n, topic) -> the one shaky mistake for its named right answers
         reserve = {}          # E-id -> [verdicts] for re-served mistakes
         reserve_dirty = set()  # E-ids with a contaminated question: not counted
         cold_topics = []
@@ -404,17 +405,25 @@ def cmd_grade_record(args):
                         leaks.append(aid)
                     entries = {aid: key[aid]} if aid in key else {}
                     pending_errors.append({
-                        "ask": aid, "item": item.get("n"), "topic": topic, "kind": kind, "mode": mode,
-                        "belief": belief, "account": account, "least_sure": least_sure, "entries": entries,
+                        "ask": aid, "asks": [aid], "item": item.get("n"), "topic": topic, "kind": kind,
+                        "mode": mode, "belief": belief, "account": account, "least_sure": least_sure,
+                        "entries": entries,
                     })
             elif verdict == "right" and least_sure and args.shaky:
-                entries = {aid: key[aid]} if aid in key else {}
-                pending_errors.append({
-                    "ask": aid, "item": item.get("n"), "topic": topic, "kind": "shaky",
-                    "mode": mode or LEAST_SURE_MODE, "belief": g.get("belief"),
-                    "account": account or "named on the Least-sure line", "least_sure": True,
-                    "entries": entries,
-                })
+                # One shaky mistake per named item (and topic), not one per question: its right
+                # answers come back together at +3 days, and count toward the level once they
+                # come back right (learning.first_reserve_passed).
+                pe = shaky_items.get((item.get("n"), topic))
+                if pe is None:
+                    pe = {"ask": aid, "asks": [], "item": item.get("n"), "topic": topic, "kind": "shaky",
+                          "mode": mode or LEAST_SURE_MODE, "belief": g.get("belief"),
+                          "account": account or "named on the Least-sure line", "least_sure": True,
+                          "entries": {}}
+                    shaky_items[(item.get("n"), topic)] = pe
+                    pending_errors.append(pe)
+                pe["asks"].append(aid)
+                if aid in key:
+                    pe["entries"][aid] = key[aid]
             elif verdict in MISS_VERDICTS:
                 no_kind.append(aid)
 
@@ -503,16 +512,18 @@ def cmd_grade_record(args):
         for pe in pending_errors:
             eid = subj.next_error_id(taken=taken_ids)
             taken_ids.append(eid)
+            # A mistake covering several questions of its item names the item only.
+            one = pe["ask"] if len(pe["asks"]) == 1 else None
             row = new_error(eid, pe["topic"], pe["kind"], pe["mode"], pe["belief"], pe["account"], today,
-                            deadline=deadline, today=today, sheet=sid, item=pe["item"], ask=pe["ask"],
+                            deadline=deadline, today=today, sheet=sid, item=pe["item"], ask=one,
                             named_least_sure=pe["least_sure"], prov=prov)
             row["answer_ref"] = seal_error_key(subj, eid, pe["entries"])
             if not pe["entries"]:
-                no_key.append(pe["ask"])
+                no_key.extend(pe["asks"])
             errors.append(row)
             created.append(row)
             for a in attempts:
-                if a["ask"] == pe["ask"]:
+                if a["ask"] in pe["asks"]:
                     a["error_id"] = eid
         for row in created:
             problems = schema.validate_error(row)
@@ -557,7 +568,12 @@ def cmd_grade_record(args):
             for t in served:
                 n_counted = len([a for a in attempts if a["topic"] == t and learning.counts_toward_level(a)])
                 if n_counted < learning.MIN_COLD_ASKS:
-                    thin.append((t, n_counted, learning.needs_window(t, topics_state.get(t), exposures)))
+                    # Right answers named on the Least-sure line, with a shaky mistake opened for
+                    # them: they count once it comes back right, at this sitting.
+                    pending = len([a for a in attempts if a["topic"] == t and a["least_sure"]
+                                   and a["verdict"] == "right" and a.get("error_id")
+                                   and not learning.REASKED_RE.match(a["origin"])])
+                    thin.append((t, n_counted, learning.needs_window(t, topics_state.get(t), exposures), pending))
             served = [t for t in served if t not in [x[0] for x in thin]]
         closed = close_cold_obligations(ws, subj.id, served, sit_at=sit_at, sheet_block=sheet.get("block"))
 
@@ -567,6 +583,22 @@ def cmd_grade_record(args):
         for t in served:
             state.setdefault(t, {})["last_cold"] = dates.fmt_iso(sit_at)
         old, levels, merged = recompute_levels(subj, topics_state=state, errors=errors)
+        # A re-serve that comes back right lets the right answers named on the Least-sure line
+        # that opened it count, at their own sitting (learning.first_reserve_passed). That can make
+        # an earlier recheck the pass that raises its topic to 3: it served the topic, so set
+        # last_cold to it and close the booking it served, or the brief would still offer it.
+        confirmed = []
+        for t, lv in sorted(levels.items()):
+            fp = dates.try_parse_iso(lv.get("first_pass"))
+            if (fp is None or fp >= sit_at or learning.level_rank(lv.get("level")) < 3
+                    or learning.level_rank((topics_state.get(t) or {}).get("level")) >= 3):
+                continue
+            row = merged.setdefault(t, {})
+            last = dates.try_parse_iso(row.get("last_cold"))
+            if last is None or last < fp:
+                row["last_cold"] = dates.fmt_iso(fp)
+            closed += close_cold_obligations(ws, subj.id, [t], sit_at=fp)
+            confirmed.append((t, fp))
         subj.save_topics_state(merged)
         changes = learning.level_changes(topics_state, levels)
 
@@ -656,9 +688,15 @@ def cmd_grade_record(args):
             "stays open." % (", ".join(dirty), ", ".join(contaminated_topics)))
     for line in moved_lines:
         out(line)
-    for t, n_counted, window_serve in thin:
+    for t, fp in confirmed:
+        out("%s: its recheck of %s counts now that the right answers named on its Least-sure line came back "
+            "right." % (t, fmt_when(fp.astimezone(now.tzinfo), now)))
+    for t, n_counted, window_serve, pending in thin:
         why = "%s: %d counted question%s; a cold pass needs at least %d, so this sitting can't raise mastery" % (
             t, n_counted, "" if n_counted == 1 else "s", learning.MIN_COLD_ASKS)
+        if pending and n_counted + pending >= learning.MIN_COLD_ASKS:
+            why += " unless the %d right answer%s named on the Least-sure line come%s back right at +3 days" % (
+                pending, "" if pending == 1 else "s", "s" if pending == 1 else "")
         if window_serve:
             closes = learning.window_closes(t, now, exposures, subj.cold_window())
             if closes is not None and closes > now:

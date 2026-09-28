@@ -13,7 +13,7 @@ Contents: 1 Rules for every subject · 2 Quantitative · 3 Verbal · 4 Language 
 - **Kinds:**
   - `belief`: a wrong idea (including an unknown word). Repair sheet first; never served cold while untreated.
   - `slip`: careless or answer form. Straight onto the ladder at +1 day, no repair.
-  - `shaky`: right, but on the Least-sure line (`--shaky`). Ladder at +3 days.
+  - `shaky`: right, but on the Least-sure line (`--shaky`: one per named item). Ladder at +3 days; right there, those answers then count toward the level.
   - Time (unreached questions): verdict `skip`, no `kind`, no error row.
 - **The `belief` text** is at most 120 characters, states the wrong idea, and never the right answer. The examples below follow that style.
 - **Codes** are single capital letters stored as `mode`. Set them at `teach` from the profile's table: `ind set <subject> taxonomy '[{"code":"V","name":"a word stopped me","treatment":"…"}, …]'`. A subject spanning layers combines sets, renaming a code only if two collide. Persona A (IELTS): verbal V D E R T C, essay A S O W, and L from language.

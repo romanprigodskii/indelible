@@ -821,7 +821,8 @@ RECORDS = {
             ("4", "a second cold pass >= 75%, at least 7 days after the first"),
             ("5", ">= 75% on the topic's asks in a mock or checkpoint after reaching 4"),
             ("drop", "a later cold fail (< 50%) drops the level to 2; level_basis says so"),
-            ("least_sure", "asks named on the Least-sure line never count toward a level"),
+            ("least_sure", "a right answer named on the Least-sure line counts toward a level only once its "
+                           "shaky re-serve comes back right; a named miss always counts"),
             ("taught_by", "sheet | external | chat | tutor"),
             ("recompute", "indelible.py topic recompute <subject>"),
         ],
@@ -874,7 +875,8 @@ RECORDS = {
                            "explanation in view) never count toward a level"),
             ("contaminated", "true on a recheck question whose topic was seen in the 24 h before the sitting: "
                              "recorded, not counted"),
-            ("levels", "a right answer on the Least-sure line does not count; a wrong one always does"),
+            ("levels", "a right answer on the Least-sure line counts only once the shaky mistake it opened "
+                       "(error_id) passes its first re-serve; a wrong one always does"),
             ("written by", "grade record; never by hand"),
         ],
     },
@@ -888,7 +890,7 @@ RECORDS = {
                     "fails": [], "answer_ref": ".indelible/keys/errors/E-ielts-0031.json", "prov": "measured"},
         "notes": [
             ("id", "E-<subject>-NNNN, never reused"),
-            ("kind", "belief (a wrong idea; repair before cold) | slip (careless or answer form) | shaky (right but on the Least-sure line, or a guess)"),
+            ("kind", "belief (a wrong idea; repair before cold) | slip (careless or answer form) | shaky (right but on the Least-sure line, one per named item, or a guess)"),
             ("status", "untreated | spacing | retired | reopened"),
             ("belief", "at most 120 characters; never contains the correct answer"),
             ("ladder", "rungs +1 d, +3 d, +7 d, +21 d; slip starts at rung 0, shaky at rung 1, belief after repair at rung 0"),

@@ -438,6 +438,79 @@ class ColdSheetTests(GradeBase):
 
 
 # ==========================================================================
+# Right answers named on the Least-sure line
+# ==========================================================================
+
+class NamedRightAnswerTests(GradeBase):
+    """T01 was taught Mon 12 Oct. Its 2-day recheck on Wed 14 Oct has item 1 (1a, 1b) and item 2 (2a),
+    all right, and the learner names item 1: one shaky mistake, back on Sat 17 Oct."""
+
+    def setUp(self):
+        GradeBase.setUp(self)
+        add_exposure(self.ws, self.sid, "T01", "2026-10-12T07:40+01:00")
+        add_blocks(self.ws, [cold_obligation("B-20261014-ielts-2", self.sid, "T01",
+                                             "2026-10-14T03:40+01:00", "2026-10-15T07:40+01:00")])
+        items = [make_item(1, "T01", ["1a", "1b"], origin="cold:T01", layer="reading"),
+                 make_item(2, "T01", ["2a"], origin="cold:T01", layer="reading")]
+        self.remember_key(write_sheet(self.ws, self.sid, "ielts-cold-01", "cold", items))
+        path = write_grades(self.tmp, "g1.json", {"date": "2026-10-14", "start": "08:00", "stop": "08:06", "asks": [
+            {"ask": "1a", "verdict": "right", "check": "filled", "least_sure": True},
+            {"ask": "1b", "verdict": "right", "check": "filled", "least_sure": True},
+            {"ask": "2a", "verdict": "right", "check": "filled"}]})
+        self.first = self.cli(["grade", "record", self.sid, "ielts-cold-01", "--from", path, "--shaky"],
+                              now="2026-10-14T08:30+01:00").stdout
+
+    def reserve(self, verdicts):
+        items = [make_item(1, "T01", ["1a", "1b"], origin="error:E-ielts-0001", layer="reading")]
+        self.remember_key(write_sheet(self.ws, self.sid, "ielts-cold-02", "cold", items,
+                                      issued="2026-10-17T07:55+01:00"))
+        path = write_grades(self.tmp, "g2.json", {"date": "2026-10-17", "start": "08:00", "stop": "08:04",
+                                                  "least_sure_line": "none", "asks": [
+            {"ask": "%s" % a, "verdict": v, "check": "filled"} for a, v in zip(("1a", "1b"), verdicts)]})
+        return self.cli(["grade", "record", self.sid, "ielts-cold-02", "--from", path, "--shaky"],
+                        now="2026-10-17T08:30+01:00").stdout
+
+    def test_one_shaky_mistake_per_named_item(self):
+        self.assertIn("Mistakes opened: E-ielts-0001 (shaky, due 2026-10-17)", self.first)
+        errs = self.errors()
+        self.assertEqual(len(errs), 1)
+        self.assertEqual((errs[0]["kind"], errs[0]["item"], errs[0]["ask"]), ("shaky", 1, None))
+        self.assertEqual(sorted(fio.read_json(self.sdir / errs[0]["answer_ref"])), ["1a", "1b"])
+        by_ask = dict((a["ask"], a["error_id"]) for a in self.attempts())
+        self.assertEqual(by_ask, {"1a": "E-ielts-0001", "1b": "E-ielts-0001", "2a": None})
+        # One counted question: the recheck stays open, and the note says what can still make it count.
+        self.assertIn("T01: 1 counted question; a cold pass needs at least 2, so this sitting can't raise mastery "
+                      "unless the 2 right answers named on the Least-sure line come back right at +3 days. "
+                      "Its 2-day recheck stays open", self.first)
+        self.assertIsNone(self.topics()["T01"]["last_cold"])
+        self.assert_no_secrets()
+
+    def test_a_right_re_serve_lets_the_named_answers_count_at_their_recheck(self):
+        out = self.reserve(("right", "right"))
+        self.assertIn("E-ielts-0001 passed", out)
+        self.assertIn("Levels: T01 0 → 3", out)
+        self.assertIn("T01: its recheck of Wed 14 Oct 08:00 counts now that the right answers named on its "
+                      "Least-sure line came back right.", out)
+        self.assertIn("2-day recheck done: T01 (B-20261014-ielts-2)", out)
+        t01 = self.topics()["T01"]
+        self.assertEqual((t01["level"], t01["last_cold"]), (3, "2026-10-14T08:00+01:00"))
+        self.assertIn("cold 3/3 on ielts-cold-01", t01["level_basis"])
+        # No longer waiting for its 2-day recheck: due offers it no more.
+        r = self.cli(["due", self.sid, "--list"], now="2026-10-17T09:00+01:00")
+        self.assertNotIn("T01", r.stdout.split("1. 2-day rechecks", 1)[1].split("2. ", 1)[0])
+        self.assert_no_secrets()
+
+    def test_a_missed_re_serve_leaves_them_uncounted(self):
+        out = self.reserve(("right", "wrong"))
+        self.assertIn("E-ielts-0001 missed", out)
+        self.assertNotIn("counts now", out)
+        self.assertEqual(self.topics()["T01"]["level"], 0)
+        self.assertIsNone(self.topics()["T01"]["last_cold"])
+        blocks = dict((b["id"], b) for b in read_rows(self.ws / "plan" / "blocks.jsonl"))
+        self.assertEqual(blocks["B-20261014-ielts-2"]["status"], "planned")
+
+
+# ==========================================================================
 # Practice sheets and the ladder through grade record
 # ==========================================================================
 

@@ -80,7 +80,7 @@ Every answer on `drills`, `cold`, `mixed`, `review`, `diagnostic` and `checkpoin
 
 - One closing line per sheet: "Least sure I chose the right idea (item numbers): ___", the same wording for every subject. It asks about the idea or method chosen, not a possible slip ([method.md](method.md) §4). No per-answer confidence marks; never add them or ask for them.
 - Marking records the line as `least_sure_line`: `named`, `none` or `blank`. A blank line is never read as "sure of everything"; the unnamed-wrong share leaves that sheet out ([session-grade.md](session-grade.md) §3).
-- Every question of a named item gets `least_sure: true`. These never count toward mastery, even when right; with `--shaky`, right ones return at +3 days. Wrong answers that were not named get accounts first and come back first.
+- Every question of a named item gets `least_sure: true`. A named wrong answer counts as any miss does. The right ones count toward mastery only once they come back right: with `--shaky`, each named item's right answers open one shaky mistake, back at +3 days, and a right re-serve there lets them count at their own sitting (a miss, and they never do). So naming an item costs a delay, never the level. Wrong answers that were not named get accounts first and come back first.
 - Why: [method.md](method.md) §4.
 
 ## 5. Don'ts
