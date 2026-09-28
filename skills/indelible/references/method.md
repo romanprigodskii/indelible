@@ -212,12 +212,12 @@ Why no "sure / not sure" beside each answer? People stop filling it in, and the 
 - Metcalfe (2017), *Annual Review of Psychology*.
 - Morris, Bransford & Franks (1977), *Journal of Verbal Learning and Verbal Behavior*.
 - Newbury, Crowley, Rastle & Tamminen (2021), *Psychological Bulletin*.
-- Pashler et al. (2005), *JEP: LMC*.
 - Pan & Carpenter (2023), *Educational Psychology Review*.
+- Pashler et al. (2005), *JEP: LMC*.
 - Patall, Cooper & Robinson (2008), *Psychological Bulletin*.
 - Rawson, Dunlosky & Sciartelli (2013), *Educational Psychology Review*.
-- Rittle-Johnson, Schneider & Star (2015), *Educational Psychology Review*.
 - Renkl & Atkinson (2003), *Educational Psychologist*.
+- Rittle-Johnson, Schneider & Star (2015), *Educational Psychology Review*.
 - Roediger & Karpicke (2006), *Psychological Science*.
 - Rohrer & Taylor (2006), *Applied Cognitive Psychology*. Rohrer & Taylor (2007), *Instructional Science*. Rohrer et al. (2020), *Journal of Educational Psychology*.
 - Rosenshine (2012), *American Educator*.
