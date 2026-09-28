@@ -23,6 +23,12 @@
 - **heading** *(título)*: a short title that says what a whole paragraph is about
 - **distractor** *(distrator)*: a wrong option written to look right, often because it repeats a word from the paragraph
 
+## Before you read: have a guess
+
+Look at the Selby paragraph in the worked case below and its three headings, A, B and C, but not at the steps yet. Which heading would you choose, and why?
+
+Write a guess on paper before reading on. Wrong guesses are expected and help. The answer is further down this sheet.
+
 ## A worked case
 
 Paragraph: In 1890 the town of Selby had no clean water. Families carried water up from the river, and every summer many children fell ill. In 1902 the council built a pumping station and laid pipes to every street. Within ten years, summer illness in the town had almost disappeared.

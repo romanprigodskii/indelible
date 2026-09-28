@@ -113,9 +113,14 @@ LEAST_SURE_LABEL = "Least sure I chose the right idea (item numbers):"
 # blank reads the same as "none", so the learner is told that "none" is an answer.
 LEAST_SURE_RULE = "Then fill in the Least-sure line: item numbers, or “none”."
 CHECK_LABEL = "Check:"
+# Printed under a prequestion's questions: a guess before reading gives the reading a target, and
+# helps even when it is wrong, once the answer follows (method.md R53). Nobody marks it.
+GUESS_LINE = ("Write a guess on paper before reading on. Wrong guesses are expected and help. "
+              "The answer is further down this sheet.")
 # A theory section's heading when the spec gives none. "What it is and why" is the meaning box: what the
 # object is, and why the rule follows from it, between the worked case and the rule (lint L13).
-SECTION_TITLES = {"worked": "Worked case", "meaning": "What it is and why", "rule": "The rule",
+SECTION_TITLES = {"prequestion": "Before you read: have a guess", "worked": "Worked case",
+                  "meaning": "What it is and why", "rule": "The rule",
                   "contrast": "Contrast", "both_hold": "When both hold", "warning": "Warning",
                   "where": "Where this lives"}
 
@@ -468,8 +473,11 @@ def build_model(spec, date=None, tools=None, fmt="html", profile=None, reference
         sections = []
         for sec in th.get("sections") or []:
             if isinstance(sec, dict):
-                sections.append({"kind": _s(sec.get("kind")) or "text", "title": _s(sec.get("title")).strip(),
-                                 "paras": segments(sec.get("body"))})
+                kind = _s(sec.get("kind")) or "text"
+                paras = segments(sec.get("body"))
+                if kind == "prequestion":
+                    paras = paras + segments(GUESS_LINE)
+                sections.append({"kind": kind, "title": _s(sec.get("title")).strip(), "paras": paras})
         theory = {
             "floor": [_s(f).strip() for f in (th.get("floor") or []) if _s(f).strip()],
             "words": words,

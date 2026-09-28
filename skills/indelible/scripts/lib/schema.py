@@ -66,7 +66,8 @@ DEFECT_CATEGORIES = [
 ]
 FIX_TYPES = ["rule", "template", "lint", "script", "planner"]
 CHECKPOINT_STATUSES = ["armed", "passed", "failed"]
-THEORY_SECTION_KINDS = ["worked", "meaning", "rule", "contrast", "both_hold", "warning", "where", "text"]
+THEORY_SECTION_KINDS = ["prequestion", "worked", "meaning", "rule", "contrast", "both_hold", "warning", "where",
+                        "text"]
 PRACTICE_TYPES = ["drills", "mixed", "repair", "review", "example"]
 
 SHEET_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,60}$")
@@ -1014,7 +1015,9 @@ RECORDS = {
                        "optional ops lists the operations it shows, which drills may then ask for (lint L12, "
                        "with the pencil questions' op); on theory, a meaning section ('What it is and why', at "
                        "most 5 lines) follows the worked case (lint L13 on procedural, conceptual and code "
-                       "topics, W6 elsewhere)"),
+                       "topics, W6 elsewhere); on a new topic's theory only, a prequestion section ('Before "
+                       "you read: have a guess', one or two questions the worked case answers, never keyed) "
+                       "may open the sections (lint L11)"),
             ("unlabelled", "measuring sheets name no topic in titles or labels and, when they hold 2 or more "
                            "topics, never put two same-topic items together"),
             ("block", "sheet new/lint --block ID links the block it is built for: L5 uses its minutes, L7 judges "

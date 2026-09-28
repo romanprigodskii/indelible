@@ -22,7 +22,7 @@ Load this for anything that builds, renders, issues, files or marks a sheet. Mar
 
 | Type | What it is | Counts as | Check lines | Least-sure |
 |---|---|---|---|---|
-| `theory` | Read, then closed: floor box, words, a worked case, what it is and why, the rule, a contrast, a warning, then pencil questions marked with the sheet open | practice | no | no |
+| `theory` | Read, then closed: floor box, words, a guess before reading (a new topic), a worked case, what it is and why, the rule, a contrast, a warning, then pencil questions marked with the sheet open | practice | no | no |
 | `external` | Pages in the learner's own book ("pp. 44–47: read, then close"), then 3–5 pencil questions, book closed | practice | no | no |
 | `example` | One worked case: the stuck question's structure on different details | practice | no | no |
 | `drills` | Blocks of one operation (`block_size`), a sentence question last in the item whose numbers it uses, a failure gate after item 3 of each block (item 4 in a block of 6 or more whose item 1 is worked) | practice | yes | yes |
@@ -103,7 +103,7 @@ Every answer on `drills`, `cold`, `mixed`, `review`, `diagnostic` and `checkpoin
 
 A builder subagent writes every sheet that has answers, so no answer enters this conversation (Law 1).
 
-1. **Decide the brief, never the items:** the inputs builder.md lists: what to serve (`ind due <s> --list`, the brief's BELIEFS DUE, or the topic being taught), the minutes it may take (from `ind session open`, or the block), the block it will be sat in (for a sheet built ahead, the next block: lint judges its recheck and mistake items at that block's start), mastery (`ind topic show <s>`), access layout. Copy the brief's MY RULES lines that start "builder:" into NOTES.
+1. **Decide the brief, never the items:** the inputs builder.md lists: what to serve (`ind due <s> --list`, the brief's BELIEFS DUE, or the topic being taught), the minutes it may take (from `ind session open`, or the block), the block it will be sat in (for a sheet built ahead, the next block: lint judges its recheck and mistake items at that block's start), mastery (`ind topic show <s>`), access layout; for a new topic's theory at mastery 0–1, the diagnostic item it missed, when you know it ("prequestion from ielts-diagnostic-01 item 5"). Copy the brief's MY RULES lines that start "builder:" into NOTES.
 2. **Launch it** with the Agent tool, in the foreground: "Read `<skill>/assets/prompts/builder.md` and follow it exactly. Inputs: …", filling the inputs that file lists, with absolute paths.
 3. **It runs** `ind sheet new` → `ind sheet lint` (fix and re-run, at most 3 rounds) → `ind sheet build`, and returns one line: `ielts-cold-05 built: lint PASS, 5 questions, ~7 min, sheets/2026-10/ielts-cold-05.pdf`. The builder never issues.
 4. **Read only that line.** Don't review the sheet's content at build time or ask for items; lint has checked it. A line ending `; dropped …` names what was left out and why. During a sitting, the visible sheet may be read to point to a step for a hint ([session-teach.md](session-teach.md) §3).
@@ -132,7 +132,7 @@ A builder subagent writes every sheet that has answers, so no answer enters this
 | L8 key leak | an accepted answer of 3+ characters appears in the visible text (only the question id is named) | reword; accept letters for choices; for words copied from the item's own passage, set `answer_in_passage: true`, or ask for the line number |
 | L9 Least-sure | `least_sure` not true on any type but theory, external, example, triage | set it true |
 | L10 check hints | a check hint asks the learner to find their own mistake ("find the error", "is there a mistake?"), to re-solve ("redo", "do it again", "double-check"), to rate their confidence, or says only "check your answer" | name the check to run (§3) |
-| L11 worked case first | a theory or repair sheet with no `worked` section, or with a `rule` section before the first one (a locked override of R12 order lets the rule come first, never the worked case go) | a concrete worked case first, then the rule |
+| L11 worked case first | a theory or repair sheet with no `worked` section, or with a `rule` section before the first one (a locked override of R12 order lets the rule come first, never the worked case go); a `prequestion` (a guess before reading) on any other type, or after the first worked section | a concrete worked case first, then the rule; a guess goes first, on a theory sheet only |
 | L12 taught operations | on drills, a new item whose `op` no theory, external, example or repair sheet of its topic has shown (as a pencil question's `op` or in a worked section's `ops`); a topic with no such sheet is skipped | show it worked on the theory and rebuild that, or drop the item; never rename an `op` |
 | L13 meaning box | a theory sheet on a procedural, conceptual or code topic with no `meaning` section | after the worked case, say in at most 5 lines what the object is and why the rule follows from it |
 | W1 | `=` in a block title | the operation in words |

@@ -271,6 +271,9 @@ THEORY_SPEC = {
              "def": "a wrong option written to look right, often because it repeats a word from the paragraph"},
         ],
         "sections": [
+            {"kind": "prequestion", "title": "Before you read: have a guess", "body":
+                "Look at the Selby paragraph in the worked case below and its three headings, A, B and C, but "
+                "not at the steps yet. Which heading would you choose, and why?"},
             {"kind": "worked", "title": "A worked case", "body":
                 "Paragraph: In 1890 the town of Selby had no clean water. Families carried water up from the "
                 "river, and every summer many children fell ill. In 1902 the council built a pumping station "

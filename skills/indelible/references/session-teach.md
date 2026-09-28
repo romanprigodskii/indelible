@@ -40,14 +40,15 @@ A wrong idea (an error of kind `belief`) is never served cold until it has been 
 3. **A theory sheet follows this order:**
    1. the floor box (what the topic stands on);
    2. the words and symbols, each with a gloss (a first-language gloss on first use, when set); a symbol, built-in or piece of syntax also says how to read it aloud and what it does;
-   3. the smallest worked concrete case, one for each operation the drills will use, ending with its check worked as a step ("Check: …"): the check the drills will ask for, so the learner has seen it run once. Lint L11 fails a theory sheet with no worked case before the rule, and L12 fails drills that ask for an operation the theory never showed;
-   4. what it is and why (the meaning box), at most 5 lines: what the object is, as one everyday anchor or a picture in words, and why the rule follows from it; for a pure convention, one line saying it is learned as given (lint L13 asks for it on procedural, conceptual and code topics). A procedure learned without its meaning fades before its recheck;
-   5. the rule, in a box;
-   6. a contrast pair, then the case where both hold;
-   7. a warning box with the likeliest wrong turn;
-   8. "where this lives": where it turns up in the exam or the work;
-   9. pencil questions, printed at the end of the sheet: completion steps on a fresh case, with the worked case's named steps and every operation named;
-   10. "Send me your pencil answers and keep this sheet open until I've marked them. Then put it away and tell me “closed”. The drills come on their own sheet."
+   3. on a new topic at mastery 0–1, "Before you read: have a guess": one or two questions the worked case then answers, on the structure of the diagnostic item the learner missed. The sheet says wrong guesses are expected and help; the guess stays on paper, is never marked and is not discussed in chat;
+   4. the smallest worked concrete case, one for each operation the drills will use, ending with its check worked as a step ("Check: …"): the check the drills will ask for, so the learner has seen it run once. Lint L11 fails a theory sheet with no worked case before the rule, and L12 fails drills that ask for an operation the theory never showed;
+   5. what it is and why (the meaning box), at most 5 lines: what the object is, as one everyday anchor or a picture in words, and why the rule follows from it; for a pure convention, one line saying it is learned as given (lint L13 asks for it on procedural, conceptual and code topics). A procedure learned without its meaning fades before its recheck;
+   6. the rule, in a box;
+   7. a contrast pair, then the case where both hold;
+   8. a warning box with the likeliest wrong turn;
+   9. "where this lives": where it turns up in the exam or the work;
+   10. pencil questions, printed at the end of the sheet: completion steps on a fresh case, with the worked case's named steps and every operation named;
+   11. "Send me your pencil answers and keep this sheet open until I've marked them. Then put it away and tell me “closed”. The drills come on their own sheet."
 
    By default (R12 order), a concrete case comes before any definition. A learner's locked override of R12 order (the brief's OVERRIDES) puts the rule first; the worked case still follows.
 4. **At mastery 0–1, the worked example comes first and fades, in each drill block whose operation is new.** The block's first item is fully worked, ending with its check (a step labelled "Check:"), and asks one "why does this step follow?" question. The second has its last steps blank. The rest of the block is independent; in a block of 3, only the first item is worked. In a block of 6 or more, the failure gate moves to after item 4 (`gate_after`), so it watches the faded item and two independent ones, not the worked one.

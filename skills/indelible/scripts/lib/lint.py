@@ -49,7 +49,8 @@ English wording only; the rules themselves hold in any language.
 
 L11 asks a theory or repair sheet for a worked section, before any rule
 section; a locked override of R12 order (``overrides[]`` in subject.json)
-lifts the order, never the worked section. L12 asks that every new item on a drills sheet uses an operation a
+lifts the order, never the worked section. A ``prequestion`` section (a guess
+before reading) goes only on a theory sheet, before its first worked section. L12 asks that every new item on a drills sheet uses an operation a
 theory, external, example or repair sheet of its topic has shown: a pencil
 question with that ``op``, or a worked section listing it in ``ops``. The theory
 and its drills come from two builder runs, so this is what ties them.
@@ -923,11 +924,16 @@ def _l11(spec, ctx):
     """A theory or repair sheet shows a worked case, and shows it before the rule: a
     concept introduced only by its definition is a don't (sheets.md §5). The order is a
     default (R12 order): a locked override lets the rule come first, never the worked
-    case go."""
-    if spec.get("type") not in WORKED_CHECK_TYPES:
-        return "PASS", "not a theory or repair sheet"
+    case go. A guess before reading (a ``prequestion`` section) goes only on a theory
+    sheet, before the worked case that answers it."""
     theory = spec.get("theory") if isinstance(spec.get("theory"), dict) else {}
     kinds = [_s(sec.get("kind")) for sec in (theory.get("sections") or []) if isinstance(sec, dict)]
+    if "prequestion" in kinds and spec.get("type") != "theory":
+        return "FAIL", "a guess before reading (prequestion) goes on a new topic's theory sheet only"
+    if spec.get("type") not in WORKED_CHECK_TYPES:
+        return "PASS", "not a theory or repair sheet"
+    if "prequestion" in kinds and "worked" in kinds and kinds.index("prequestion") > kinds.index("worked"):
+        return "FAIL", "the guess comes after the worked case that answers it: put the prequestion first"
     if "worked" not in kinds:
         return "FAIL", "no worked section: show a concrete worked case, then the rule"
     if "rule" in kinds and kinds.index("rule") < kinds.index("worked"):

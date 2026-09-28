@@ -330,6 +330,20 @@ class HtmlTemplateTests(Base):
                       "The drills that follow are closed book.", t)
         self.assertNotIn("Least sure", t)
 
+    def test_a_guess_before_reading_says_wrong_guesses_help(self):
+        spec = theory_spec()
+        spec["theory"]["sections"].insert(0, {"kind": "prequestion", "title": "",
+                                              "body": "Say it another way: The shop shut at noon."})
+        for fn in (render.render_html, render.render_typst, render.render_markdown):
+            out = fn(spec, date=DAY)
+            positions = [out.index(s) for s in ("Before you read: have a guess", "The shop shut at noon",
+                                                "Write a guess on paper before reading on",
+                                                "The answer is further down this sheet", "A worked case")]
+            self.assertEqual(positions, sorted(positions), fn.__name__)
+        self.assertNotIn("Write a guess", render.render_markdown(theory_spec(), date=DAY))
+        # A guess is never a question: nothing to key, count or mark.
+        self.assertEqual(render.ask_count(spec), render.ask_count(theory_spec()))
+
     def test_an_untitled_section_gets_its_kinds_heading_in_every_format(self):
         spec = theory_spec()
         for sec in spec["theory"]["sections"]:

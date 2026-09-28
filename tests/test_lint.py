@@ -680,6 +680,22 @@ class RuleTests(Base):
         self.assertEqual(self.status(spec, "L11"), "PASS", "external pages are named, never copied")
         self.assertEqual(self.status(drills_spec(), "L11"), "PASS")
 
+    def test_l11_a_guess_comes_first_and_only_on_a_theory_sheet(self):
+        guess = {"kind": "prequestion", "title": "", "body": "Say it another way: The shop shut at noon."}
+        spec = theory_spec()
+        spec["theory"]["sections"].insert(0, guess)
+        self.assertEqual(self.status(spec, "L11"), "PASS")
+        spec["theory"]["sections"].insert(2, spec["theory"]["sections"].pop(0))    # after the worked case
+        r = result(spec, "L11")
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("after the worked case that answers it", r["detail"])
+        for t in ("repair", "example", "external"):
+            spec = theory_spec(type=t)
+            spec["theory"]["sections"].insert(0, guess)
+            r = result(spec, "L11")
+            self.assertEqual(r["status"], "FAIL", t)
+            self.assertIn("theory sheet only", r["detail"])
+
     def test_l13_a_theory_on_a_procedure_says_what_it_is_and_why(self):
         self.assertEqual(self.status(theory_spec(), "L13"), "PASS")
         spec = theory_spec()
