@@ -436,7 +436,7 @@ def is_cold_eligible(topic, t, exposures, errors, window=None, first_serve=True)
 
 
 def window_closes(topic, t, exposures, window=None):
-    """When the first 2-day recheck window of ``topic`` closes, seen at time t.
+    """When the 2-day recheck window of ``topic`` closes, seen at time t.
 
     It is the last warm exposure at or before t, plus window[1] elapsed hours
     (the same rule as cold_eligibility and the level rules). None when the

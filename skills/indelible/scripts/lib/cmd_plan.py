@@ -26,12 +26,13 @@ the next session), and a FAIL would block every preview until then.
 Recheck (``kind: cold``) windows come from, in order:
   1. the block's own ``window`` (an obligation made by ``session taught``,
      or one placed with ``plan place``; ``session expose`` moves it to follow
-     a later warm exposure of a topic still waiting for its first recheck);
+     a later warm exposure of a topic waiting for its 2-day recheck: its
+     first, or one again after a recheck left it below 3, learning.needs_window);
   2. its ``pair`` block, while that block is not done: from the pair's end
      + cold_window_h[0] to the pair's start + cold_window_h[1], so the
      recheck is valid whenever inside the pair the teaching happens;
   3. the last recorded warm exposure of its ``cold:<T>`` topics, while the
-     topic has not been served cold since it was taught.
+     topic is waiting for its 2-day recheck (learning.needs_window).
 
 Moving a block moves the rechecks paired to it by the same amount. A window
 derived from a planned pair is stored with ``"basis": "pair"`` and moves
