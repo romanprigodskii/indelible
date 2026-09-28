@@ -151,6 +151,7 @@ Everything the plugin's scripts do is readable source in this repository, and th
   - for programming subjects, the copy of your code that Claude tests, which Claude deletes once the marks are recorded, and the helper agent's own test folder, which holds its reference solution (part of the answer key) and none of your data. v0.1's instructions don't yet tell it to delete that folder.
 - **Python's usual compiled-code cache** (`__pycache__`) beside the scripts. It holds none of your data.
 - **Files you hand over** (photos, PDFs, typed answers, or a project folder for programming practice) are read where they are and copied into your study folder. The originals are never changed or deleted.
+  - When you say "sent", Claude lists the names of photos and PDFs newer than the sheet in your study folder's inbox, your Downloads folder (where AirDrop puts them) and a photos folder you named, if any. It reads nothing else there, and files them only after you confirm which they are.
 
 **What it sends**
 

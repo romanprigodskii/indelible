@@ -38,6 +38,7 @@ No part of the key reaches chat for a question until its account is in (step 6).
 | Evidence arrives as | Run |
 |---|---|
 | Photos in `<ws>/inbox/` or at a path | `ind scan ingest stats stats-cold-04 <ws>/inbox/IMG_0412.jpg <ws>/inbox/IMG_0413.jpg` (one path per page) |
+| The learner says "sent" | List the image and PDF files newer than the sheet's issue time in `<ws>/inbox/`, in `~/Downloads` (where AirDrop puts them) and in the photos folder named under "About the learner" in the root `CLAUDE.md`, if any; names only, nothing else there. Name them to the learner ("IMG_0412 and IMG_0413: those two?") and file them only after a yes |
 | A typed-answers file | `ind scan ingest stats stats-cold-04 --typed <file>` |
 | A photo pasted into chat | Transcribe it, then pipe the text in: `ind scan ingest stats stats-cold-04 --transcript - <<'EOF'` … `EOF` |
 | A sheet sat on an earlier day (solo block), or a photo sent on a later day than the sheet was issued | Add `--date YYYY-MM-DD`. Without it, ingest refuses a recheck, or a sheet with mistakes re-served, issued on an earlier day: their sitting date decides the 2-day window and the 24-hour rule |

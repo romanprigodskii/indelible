@@ -149,10 +149,15 @@ Week: ~4 h · 60-min sessions · clearest before work
 Me: I name mistakes exactly, tell you the next step, and give a small hint when you're stuck on practice. "I don't know" is always an accepted answer.
 You: turn up, work on paper, write the check beside each answer, name what you're least sure of, and tell me honestly how you got each answer.
 What I keep: your answers, sheets and marks, all in ~/Study. Say "what do you keep?" to see it.
+Photos of your work: AirDrop them to this Mac (they land in Downloads) or save them in ~/Study/inbox, then say "sent". Pasting a photo here works too.
 Next time: open Claude in ~/Study and say "start ielts".
 Building your diagnostic now (about 3 minutes). Part A is set for Mon 07:00.
 ```
 
+- **The photos line** (paper answers only; typed answers need none) fits the learner's computer and phone, with the workspace's real path. File routes come first: the original photo is kept in `scans/`, while a pasted one leaves only a transcript ([sheets.md](sheets.md) §10).
+  - macOS with an iPhone (A): as above.
+  - Windows with an iPhone (C): "Photos of your work: email them to yourself and save the attachments in <ws>\inbox (Phone Link works too), then say 'sent'. Pasting a photo into this chat also works."
+  - Claude Code desktop: add "or attach them to your message".
 - Offer "part A now" only inside a learner window. First `teach` only: "While I build sheets, don't expand my tool calls or thinking: they can contain answers."
 - The build is outside the budget. Instrument and blueprint: [measure.md](measure.md) §1 and §3. The builder (`assets/prompts/builder.md`) gets the blueprint only (topics, part, counts, formats, minutes, tools), runs `sheet new`, `lint` and `build`, and returns one line. Issue the sheet at hand-over, when part A starts: `ind sheet issue <subject> <sheet> --block <block>`.
 

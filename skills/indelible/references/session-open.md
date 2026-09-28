@@ -184,7 +184,7 @@ The recheck takes at most a quarter of the planned minutes in sessions of 30 min
 3. **The sheet** is type `cold`: unlabelled and mixed, with no topic names in titles or labels and no two neighbouring questions on the same topic. Every question has a check line, and the sheet ends with the Least-sure line. The builder writes it ([sheets.md](sheets.md)).
 4. **Looked since last time:** no sheet prints this in v0.1. When the photo arrives, before marking, ask once in chat: "Did you look at any of this since last time? Which questions?" Any question named is "not counted (seen too recently)" ([session-grade.md](session-grade.md) §10).
 5. **The sitting:**
-   - **Hand it over** and issue it against the session block from step 4 (`ind sheet issue <s> <id> --block <B>`): "Here's your 2-day recheck: <path>. On paper, book closed. Write the start time on the first line and a check beside every answer. At the end, write the stop time and fill in 'Least sure of'. Writing 'I don't know' is always fine. Send a photo when you're done."
+   - **Hand it over** and issue it against the session block from step 4 (`ind sheet issue <s> <id> --block <B>`): "Here's your 2-day recheck: <path>. On paper, book closed. Write the start time on the first line and a check beside every answer. At the end, write the stop time and fill in 'Least sure of'. Writing 'I don't know' is always fine. When you're done, send the photos (<the route from the welcome card>) and say 'sent'."
    - **No printer** (persona B): the learner reads the sheet on screen and writes the answers in a notebook: first line the sheet code from the header ("Sheet SPANISH-12") and the start time, then the answers numbered as on the sheet.
    - **Sealed until marked:** while the sheet is out, discuss nothing that is on it. If the learner asks about a question, say "Write 'I don't know' for now. We'll go through it right after marking." A sealed item is marked or discussed, never both.
    - **Meanwhile,** build any missing practice sheet (section 2).
@@ -204,7 +204,7 @@ Questions skipped at `teach` (express, or "skip") and follow-ups nobody needed o
 | P5 | First overrun | "Next time we run long: close on time, extend once, or ask?" (`session.overrun`) |
 | P6 | First missed session (scheduled) | Step 2's question; "What got in the way?" only after "skipped", in the next message |
 | P7 | First tutor mention | "How often, and what do they set? May I make them a one-page summary of your mistake types? No answers in it." |
-| P8 | First phone photo | "Want a synced phone-photos folder as your inbox?" |
+| P8 | First phone photo | "Want me to pick photos up from a folder your phone syncs to? Make it a folder just for study photos, not your whole camera roll. I copy them into your study folder, which itself stays unsynced." On a yes, record the folder's full path under "About the learner" in the root `CLAUDE.md` (a device setting, shared by every subject) |
 | P9 | Wants to test a change | "Shall we write down now what result would make us keep it or undo it?" (`ind ledger add hypothesis`) |
 | P10 | Week-2 review, if 3/3 starts finish ≥5/6 | "Stop a drill block early after 3 right?" |
 | P11 | Express: first session that can't be placed | Q7 |
