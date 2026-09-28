@@ -28,7 +28,7 @@ Privacy: this repository is public. Every example uses the synthetic learners Aâ
 skills/indelible/
   SKILL.md
   references/  teach.md session-open.md session-teach.md session-grade.md close.md measure.md
-               plan.md calendar.md review.md sheets.md profiles.md taxonomies.md method.md migrate.md
+               plan.md calendar.md review.md sheets.md profiles.md taxonomies.md method.md migrate.md ask.md
   scripts/indelible.py            entry point; auto-registers lib/cmd_*.py
   scripts/lib/  __init__.py io.py dates.py ws.py schema.py learning.py
                 cmd_setup.py cmd_session.py cmd_brief.py cmd_learning.py cmd_grade.py

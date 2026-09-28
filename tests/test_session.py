@@ -329,7 +329,7 @@ class ExposeTaughtOverrideTests(SessionBase):
         self.assertIn("WARN", r.stdout)
 
     def test_ask_route_logs_a_chat_explanation_with_no_session(self):
-        # SKILL.md "Questions outside a session": the brief, the sheets out, then the exposure at once;
+        # The ask route (references/ask.md): the brief, the sheets out, then the exposure at once;
         # no lock is written, and plan check then refuses the booked recheck until it is moved.
         bid = "B-20261013-ielts-1"
         self.put("plan/blocks.jsonl", [self.block(bid, "2026-10-13T07:00+01:00", "2026-10-13T07:15+01:00",
@@ -350,12 +350,15 @@ class ExposeTaughtOverrideTests(SessionBase):
         skill = (Path(__file__).resolve().parents[1] / "skills" / "indelible" / "SKILL.md").read_text(
             encoding="utf-8")
         self.assertIn("| `ask [subject]` |", skill)
+        self.assertIn("[ask.md](references/ask.md)", skill)
         self.assertIn("goes to `ask`", skill)
+        # a route no session uses stays out of what every session loads (test_skill_meta)
+        self.assertNotIn("### Questions outside a session", skill)
         law2 = [ln for ln in skill.splitlines() if ln.startswith("2. **Nothing is taught in chat")][0]
         self.assertIn("`ind session expose <s> <T> --kind chat`", law2)
 
     def test_ask_route_logs_a_pointer_to_the_sheet_as_a_review(self):
-        # SKILL.md "Questions outside a session" step 4: a pointer sends the learner back to the sheet the
+        # references/ask.md step 4: a pointer sends the learner back to the sheet the
         # evening before a recheck, a warm look no check sees, so it is logged as a review exposure at
         # once, and plan check then refuses the booked recheck until it is moved.
         bid = "B-20261013-ielts-1"
@@ -371,9 +374,8 @@ class ExposeTaughtOverrideTests(SessionBase):
         self.assertEqual(r.returncode, 1, r.stdout)
         rules = [(f["rule"], f["block"]) for f in json.loads(r.stdout)["findings"] if f["level"] == "FAIL"]
         self.assertIn(("cold_24h", bid), rules)
-        skill = (Path(__file__).resolve().parents[1] / "skills" / "indelible" / "SKILL.md").read_text(
+        ask = (Path(__file__).resolve().parents[1] / "skills" / "indelible" / "references" / "ask.md").read_text(
             encoding="utf-8")
-        ask = skill.split("### Questions outside a session", 1)[1].split("\n## ", 1)[0]
         step4 = [ln for ln in ask.splitlines() if ln.startswith("4. ")][0]
         self.assertIn("`ind session expose <s> <T> --kind review` for the pointer", step4)
         self.assertIn("`--kind chat` for the explanation", step4)

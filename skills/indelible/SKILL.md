@@ -79,7 +79,7 @@ If you are about to do any of these, stop and take the structural route instead.
 | `session [subject]` (default) | "start", "let's go", "what's due", "I have 15 minutes" | A full study session. Load one phase at a time | [session-open.md](references/session-open.md) → [session-grade.md](references/session-grade.md) (the recheck) → [session-teach.md](references/session-teach.md); session-grade, already loaded, marks each later sheet. Re-read a reference only after a compaction |
 | `close` | "done", "gotta go", "wrap up" | The close checklist. Re-read the reference every time | [close.md](references/close.md) |
 | `status [subject\|all]` | "where am I", "this week", "how am I doing", "what do you keep?" | A read-only look: at most 5 plain lines, then the offer of a full review. Changes nothing in the plan or records | [review.md](references/review.md) §9 |
-| `ask [subject]` | "what does X mean?", "explain X", "why…?", with no session running | A question about the subject's content, answered without spoiling a sheet or a recheck. No lock and no session | "Questions outside a session", below |
+| `ask [subject]` | "what does X mean?", "explain X", "why…?", with no session running | A question about the subject's content, answered without spoiling a sheet or a recheck. No lock and no session | [ask.md](references/ask.md) |
 | `diagnose`, `mock [subject]` | "test me properly", "full mock" | A measurement sitting with no teaching | [measure.md](references/measure.md), [taxonomies.md](references/taxonomies.md) |
 | `plan`, `reschedule` | "plan my week", "I missed Thursday", "sick till Monday" | Build or repair the plan, check it, preview it, confirm it | [plan.md](references/plan.md) |
 | `review` | "weekly review", "review my week", "am I on track?", a yes to the close offer | The weekly review, plus 1–3 decisions | [review.md](references/review.md) |
@@ -99,15 +99,6 @@ If you are about to do any of these, stop and take the structural route instead.
    3. the block that is on now or next;
    4. otherwise, numbered options.
 
-### Questions outside a session (`ask`)
-
-A content question ("what does 'median' mean again?") with no session running.
-
-1. **Read the state:** `ind brief <s>` (no `--open`) and `ind sheet show <s> --status issued`.
-2. **A question on a sheet that is out** (issued, not yet marked) is sealed (Law 3): "Write 'I don't know' for now. We'll go through it right after marking." Nothing more.
-3. **Otherwise ask before telling** (Law 2): one probe ("What do you remember about it?"), or a pointer to the sheet that taught it ("Look at 'What it is and why' on your sheet about it."). "Teach me X", or a question needing a lesson, goes to `session`.
-4. **After a pointer, or an explanation** (a few lines), log it at once: `ind session expose <s> <T> --kind review` for the pointer (a look at the sheet), `--kind chat` for the explanation. A WARN about a booked 2-day recheck: `ind plan check`, and move that recheck as [plan.md](references/plan.md) says (Law 7). Tell the learner only "Your next 2-day recheck moves to <day>, so it still counts", never its topics or block id.
-
 ## File contract
 
 - **The workspace belongs to the learner,** found through `--workspace`, `INDELIBLE_WORKSPACE`, an `indelible.json` in a parent folder, or `~/.indelible/workspace`.
@@ -116,7 +107,7 @@ A content question ("what does 'median' mean again?") with no session running.
 - **Keys live in `<subject>/.indelible/keys/`.** Never read, grep or list that folder; `ind key open` is the only way in.
 - **Notes (`notes/`) are append-only** and are never read at session open.
 - **Size caps** keep every session cheap: the brief is at most 4,500 characters, a subject's `CLAUDE.md` at most 80 lines, and one log line at most 200 characters. `ind compact` runs at close.
-- **Write session facts when they happen,** since what is only in the chat is lost at a context compaction: a promise to `ind ledger add owed` (Law 5); an agreed extension to `ind session extend`; anything explained in chat (Law 2); a discussed sealed question to its contamination defect ([session-grade.md](references/session-grade.md) §10).
+- **Write session facts when they happen,** since what is only in the chat is lost at a context compaction: a promise to `ind ledger add owed` (Law 5); an agreed extension to `ind session extend`; anything explained in chat to `ind session expose <s> <T> --kind chat`; a discussed sealed question to its contamination defect ([session-grade.md](references/session-grade.md) §10).
 - **After a context compaction,** re-read the current command's reference, then rebuild the state with `ind session status <s>` (the time, any extension, the sheets out) and `ind ledger list --kind owed --open --subject <s>`.
 
 ## Surfaces
