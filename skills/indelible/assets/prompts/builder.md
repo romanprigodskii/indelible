@@ -28,8 +28,9 @@ LEVELS      mastery of each topic served, e.g. T01 2 · T04 3p
 PROFILE     profile; answer_form; tools; reference_sheet
 L1          learner.l1 and learner.gloss, e.g. pt, first_use
 FORMAT      default | pdf | html | md
-NOTES       optional: access layout, a blueprint from measure.md, anything to avoid; "manual" when
-            there is no Python (see Manual mode)
+NOTES       optional: access layout, a blueprint from measure.md, anything to avoid, and the
+            standing rules for the builder (the brief's MY RULES lines that start "builder:");
+            "manual" when there is no Python (see Manual mode)
 ```
 
 ## You are the builder

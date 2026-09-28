@@ -97,7 +97,7 @@ Every answer on `drills`, `cold`, `mixed`, `review`, `diagnostic`, `mock` and `c
 
 A builder subagent writes every sheet that has answers, so no answer enters this conversation (Law 1).
 
-1. **Decide the brief, never the items:** the inputs builder.md lists: what to serve (`ind due <s> --list`, the brief's BELIEFS DUE, or the topic being taught), the minutes it may take (from `ind session open`, or the block), mastery (`ind topic show <s>`), access layout.
+1. **Decide the brief, never the items:** the inputs builder.md lists: what to serve (`ind due <s> --list`, the brief's BELIEFS DUE, or the topic being taught), the minutes it may take (from `ind session open`, or the block), mastery (`ind topic show <s>`), access layout. Copy the brief's MY RULES lines that start "builder:" into NOTES.
 2. **Launch it** with the Agent tool, in the foreground: "Read `<skill>/assets/prompts/builder.md` and follow it exactly. Inputs: …", filling the inputs that file lists, with absolute paths.
 3. **It runs** `ind sheet new` → `ind sheet lint` (fix and re-run, at most 3 rounds) → `ind sheet build`, and returns one line: `ielts-cold-05 built: lint PASS, 5 questions, ~7 min, sheets/2026-10/ielts-cold-05.pdf`. The builder never issues.
 4. **Read only that line.** Don't review the sheet's content or ask for items; lint has checked it. A line ending `; dropped …` names what was left out and why.

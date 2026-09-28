@@ -68,6 +68,8 @@ ALARM_MIN_DAYS = 5
 ALARM_GAP_BACK_DAYS = 28
 ALARM_GAP_AHEAD_DAYS = 14
 ASK_AGAIN = "ask again"
+RULES_SHOWN = 5           # MY RULES: the newest open rule fixes, each clipped
+RULE_MAX = 140
 
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -1251,6 +1253,18 @@ def brief_sections(ws, subj, now, sheets=None, overview=False):
                                         (' "%s"' % clip(o.get("why"), 80)) if o.get("why") else ""))
     if ovr:
         claude.append(Section("OVERRIDES:", ovr, more="see %s/subject.json" % subj.dirname))
+    # Rules Claude set itself after a mistake (review.md section 7): an open
+    # defect with a `rule` fix, or a fix addressed to the builder. They reach a
+    # later conversation, and the builder's NOTES, only through here.
+    rules = []
+    for r in ws.open_ledger_items(kind="defect", subject=sid, rows=ledger):
+        fix = " ".join(str(r.get("fix") or "").split())
+        if fix and (r.get("fix_type") == "rule" or fix.lower().startswith("builder:")):
+            rules.append(clip("%s %s: %s" % (r.get("id") or "?", r.get("category") or "?", fix), RULE_MAX))
+    if rules:
+        sec = Section("MY RULES:", list(reversed(rules)), more="ledger list --kind defect --open --subject %s" % sid)
+        sec.k = min(sec.k, RULES_SHOWN)
+        claude.append(sec)
     return learner, claude
 
 

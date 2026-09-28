@@ -397,6 +397,43 @@ class AlarmTests(BriefBase):
         self.assertIn("Statistics final hasn't run lately: no session yet, 20 days into the plan", self.brief())
 
 
+class MyRulesTests(BriefBase):
+    """MY RULES: the fixes Claude set itself after a mistake reach later conversations."""
+
+    def defect(self, category, fix_type, fix):
+        r = self.ind("ledger", "add", "defect", "--subject", "ielts", "--category", category,
+                     "--what", "a %s mistake" % category, "--fix-type", fix_type, "--fix", fix)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        return r.stdout.split()[1].rstrip(":.")     # "Added L-0001: ..."
+
+    def test_open_rule_and_builder_fixes_are_listed_below_the_line(self):
+        rule = self.defect("late_build", "rule", "builder runs right after the close message")
+        builder = self.defect("content_error", "template", "builder: list every defensible answer for verbal items")
+        self.defect("sizing", "script", "pace_s.verbal 95")
+        self.defect("floor", "template", "floor boxes name the topics they stand on")   # a skill change
+        learner, claude = self.parts(self.brief())
+        self.assertNotIn("builder runs", learner)
+        line = [l for l in claude.splitlines() if l.startswith("MY RULES:")][0]
+        self.assertEqual(line, "MY RULES: %s content_error: builder: list every defensible answer for verbal items"
+                               " · %s late_build: builder runs right after the close message" % (builder, rule))
+        self.assertNotIn("pace_s", claude)
+        self.assertNotIn("floor boxes", claude)
+        # A rule that no longer applies is closed, and leaves the brief.
+        self.ind("ledger", "close", rule, "--status", "dropped", "--note", "unused for 14 days")
+        claude = self.parts(self.brief())[1]
+        self.assertNotIn("builder runs", claude)
+        self.assertIn("builder: list every defensible answer", claude)
+
+    def test_at_most_five_rules_are_shown(self):
+        cats = ("sizing", "floor", "undefined_term", "late_build", "content_error", "scheduling", "wrong_inference")
+        for n, cat in enumerate(cats):
+            self.defect(cat, "rule", "rule number %d, followed from now on" % n)
+        line = [l for l in self.parts(self.brief())[1].splitlines() if l.startswith("MY RULES:")][0]
+        self.assertTrue(line.startswith("MY RULES: L-0007 wrong_inference: rule number 6"), line)
+        self.assertEqual(line.count("rule number"), 5)
+        self.assertTrue(line.endswith("+2 more (run: ledger list --kind defect --open --subject ielts)"), line)
+
+
 class DueTests(BriefBase):
     def test_due_list_tiers(self):
         exposures = [{"v": 1, "topic": "T02", "at": "2026-10-10T08:00+01:00", "kind": "teach"}]

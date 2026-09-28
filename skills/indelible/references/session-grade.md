@@ -198,7 +198,7 @@ Drill scores are `[practice]`; never present them as measured. Every belief now 
 
 **Unverified keys.** Claude-written keys are unverified. Say "doesn't match my answer", then ask: "What's your reading of it?" That answer also serves as the account.
 - **If the learner's answer is defensible:** mark it `right`, and say so plainly: "Your answer works too; my answer sheet was too narrow. Marked right." Then log it with `ind ledger add defect --subject <s> --category content_error --what "<sheet> q14: key missed a defensible answer" --fix-type template --fix "builder: list every defensible answer for verbal items"`.
-- **Fix the item for future sheets.** A sealed sheet is never edited, so put the fix in the next build brief to the builder.
+- **Fix the item for future sheets.** A sealed sheet is never edited, so log the fix as above, starting it with "builder:". The brief carries it under MY RULES to every later build, in any conversation, until that defect is closed.
 - **If the answer is not defensible:** give the standard in one line and treat the question as a miss.
 
 **Challenges to a mark.** Check the record before conceding or refusing:

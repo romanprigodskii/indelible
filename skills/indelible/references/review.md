@@ -89,7 +89,7 @@ From the review output:
     - Run it: keep it.
     - Reschedule it: move its future blocks ([plan.md](plan.md)).
     - Delete it: `ind plan cancel` each future block in that slot. The calendar items are marked cancelled, not deleted.
-  - A **rule** is a subject override or an open ledger decision that nothing has exercised in 14 days.
+  - A **rule** is a subject override, an open ledger decision, or an open `rule` or "builder:" defect (MY RULES in the brief) that nothing has exercised in 14 days.
     - Delete it: `ind ledger close <L-id> --status dropped --note "unused for 14 days"`.
     - Or remove the override with `ind set <subject> overrides …` after a yes.
   - Ask at most 2 liveness questions per review; the rest wait a week.
@@ -99,7 +99,7 @@ From the review output:
 Log a mistake the moment you notice it, in any command, not only here: `ind ledger add defect --subject S --category C --what TEXT --fix-type T --fix TEXT`.
 
 - **Categories:** `sizing`, `floor`, `undefined_term`, `late_build`, `content_error`, `promise_broken`, `contamination`, `late_close`, `scheduling`, `misclassification`, `wrong_inference`. `session close` logs `late_close` and `promise_broken` itself.
-- **The first time,** a `rule` fix is allowed: a stated rule you follow from now on.
+- **The first time,** a `rule` fix is allowed: a stated rule you follow from now on. The brief lists every open `rule` fix, and every fix that starts "builder:", under MY RULES, so later conversations and the builder follow them; close one that no longer applies with `ind ledger close <L-id> --status dropped`.
 - **A second mistake in the same category** needs a structural fix: `template`, `lint`, `script` or `planner`. The CLI refuses `rule` a second time. Fixes you can make inside the workspace:
 
 | Category | Fix type | How |
