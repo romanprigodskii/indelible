@@ -102,7 +102,7 @@ One table, one row per hand-run rule that differs from a skill default, with cla
 | 3 | Re-test a mistake the next day; drop it once right | Back after 1, 3, 7 and 21 days, capped before the final | core · [lit-strong] | Switch |
 | 4 | A new topic re-tested the next day | 2-day recheck, 44–72 h | core · [lit-strong]; window [one-learner] | Switch |
 | 5 | Practice by textbook section, heading visible | Rechecks and tests unlabelled and mixed | core · [lit-strong] | Switch for anything that measures |
-| 6 | Two hours straight | Two hours with one 10-minute break | default · [lit-mixed] | Keep two hours; add the break if they agree |
+| 6 | Two hours straight | Two hours with one 10-minute break | default · [lit-mixed]; interval [one-learner] | Keep two hours; add the break if they agree |
 
 1. **Import each learner value as it stands,** as a dated decision, and set it where a setting exists (raise `session.max_min` first when the length would exceed it). The hand-run rules stay in force anyway while its `CLAUDE.md` runs the sessions:
    ```
