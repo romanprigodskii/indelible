@@ -151,44 +151,23 @@ You act only when a message or a timer arrives, so the moments of Law 4 need tim
 
 ## 4. The budget
 
-With P = planned minutes:
-
-| P | open | close | work fraction | breaks |
-|---|---|---|---|---|
-| ≤30 | 1 | 2 | 0.8 | none |
-| 31–75 | 2 | 5 | 0.7 | none |
-| >75 | 3 | 8 | 0.6 | ceil(P/75) − 1 breaks of 10 min |
-
-Work minutes are also reduced by a grading estimate: 15 seconds per question, plus 1 minute for each expected miss, at a 25% miss rate. The question budget is the work minutes divided by the pace of the subject's main layer. Never recompute these numbers; use what `ind session open` prints:
+`ind session open` prints the budget. Use its numbers; never recompute them:
 
 - **Work minutes:** the total sheet time for today, covering the recheck, repair, theory and drills. Give the remaining minutes to the builder, and lint with `ind sheet lint <s> <id> --budget-min <remaining>`. Never issue a sheet over budget (Law 4): `ind sheet issue` refuses one over these work minutes, less the sheets already issued on the session's block. **Minutes win:** fit sheets by their estimated minutes against the work minutes.
 - **Question budget:** a rough guide to the total number of questions today, the recheck included. It assumes the main layer's pace, so a session that mixes layers (code with short concept questions, say) may fit more questions than it prints.
 - **Close start:** the close begins at this time, not at the planned end.
 - **Break times:** only for sessions over 75 minutes.
-
-Rough figures at the default paces (estimates): 20 minutes verbal gives about 12 work minutes and 9 questions. Persona A's 60 minutes of reading gives about 37 work minutes and 31 questions. Persona C's 120 minutes of conceptual work gives about 72 work minutes, 48 questions and one break at 75 minutes.
-
 - **Short sessions (30 minutes or less):**
   - A teach and its recheck may span sessions: the theory card one day, drills the next, and the recheck 44–72 h after the last warm exposure.
   - Drills on a topic whose first recheck is still ahead are marked in the session they are sat: when drills and their marking don't both fit, cut drill questions, not the marking. If marking still carries over, do it in the open, before the recheck is built: the verdicts and the standard for each miss, naming each question by its gist and the learner's answer, not its number alone ([session-grade.md](session-grade.md) §3). For each topic with a miss, run `ind session expose <s> <T> --kind review`, then `ind plan check`: lint L7 then keeps that topic off today's recheck, and its window restarts 44–72 h from this marking. A recheck is always marked the same day.
 - **A quick session** (scheduled mode only) is one opened with no block and fewer planned minutes than half of `session.length_min`. It serves, in order: the 2-day recheck if its window is open (Law 3; it is never cut), then the rest of `ind due <s> --list` in section 5's tier order. No new topic unless the learner overrides (step 6, `ind session override`); then the new-material block is sized to the minutes left, and its recheck is placed at the close. No diagnostic, mock or checkpoint. A 120-minute learner's daily 15-minute catch-up ([teach.md](teach.md) Q6) is one. A drop-in of half the usual length or more is an ordinary session. On-demand sessions are never quick sessions: any of them may teach ([measure.md](measure.md) §11).
-- **Measurement sittings** (diagnostic, mock, checkpoint) are sized by the exam clock, not this table ([measure.md](measure.md)).
+- **Measurement sittings** (diagnostic, mock, checkpoint) are sized by the exam clock, not this budget ([measure.md](measure.md)).
 
 ## 5. The cold block (the 2-day recheck)
 
 The recheck takes at most a quarter of the planned minutes in sessions of 30 minutes or less (5 minutes of a 20-minute session), and 10–15 minutes otherwise. Its questions come out of the same question budget.
 
-1. **Choose the content with `ind due <s> --list`.** A tier 0 (late rechecks, window passed) comes first, as [plan.md](plan.md) §7 says: the issued `cold` sheet if there is one, otherwise a `probe` on those topics (lint L7 refuses a `cold` sheet outside its window). Then fill the recheck in tier order until its share is used:
-   1. 2-day rechecks inside their window: a topic's first, or one again after a recheck that left it below 3 (marked "again");
-   2. fixed mistakes that are due;
-   3. shaky answers (right, but named on a Least-sure line);
-   4. the oldest due items;
-   5. last checks on retired mistakes (`sentinel:<E-id>`), about 4 weeks after they retired;
-   6. level-4 rechecks: a topic at mastery 3 whose first pass is 7 days old or more (`cold:<topic>`);
-   7. upkeep rechecks: a topic at mastery 4 or 5, 3 weeks after its last pass, until the date (`cold:<topic>`);
-   8. untreated mistakes. These are listed as "needs repair" and never go on the sheet; they go to repair ([session-teach.md](session-teach.md)).
-
-   Tiers 6 and 7 wait whenever the share is full: a later session serves them, since they have no window. Every question is new: fresh numbers or sentences, never the item that was missed. Within a tier, earlier wrong answers the learner had not named as least sure come first.
+1. **Choose the content with `ind due <s> --list`,** which lists what is due by tier. A tier 0 (late rechecks, window passed) comes first, as [plan.md](plan.md) §7 says: the issued `cold` sheet if there is one, otherwise a `probe` on those topics (lint L7 refuses a `cold` sheet outside its window). Then fill the recheck in tier order until its share is used: 1, 2-day rechecks inside their window (a topic's first, or "again" after a recheck that left it below 3); 2, fixed mistakes due; 3, shaky answers (right, but named on a Least-sure line); 4, the oldest due; 5, last checks on retired mistakes (`sentinel:<E-id>`, about 4 weeks after they retired); 6, level-4 rechecks (mastery 3, 7 days or more after the first pass) and 7, upkeep rechecks (mastery 4 or 5, 3 weeks after the last pass, until the date), both `cold:<topic>`. Tier 8, untreated mistakes ("needs repair"), never goes on the sheet: it goes to repair ([session-teach.md](session-teach.md)). Tiers 6 and 7 wait whenever the share is full: a later session serves them, since they have no window. Every question is new: fresh numbers or sentences, never the item that was missed. Within a tier, earlier wrong answers the learner had not named as least sure come first.
 
    **At least 2 questions on each recheck topic** (tiers 1, 6 and 7). A cold pass counts toward mastery only with 2 counted questions on the topic, so give every tier 1 topic 2 before any later tier goes on, and a tier 6 or 7 topic goes on with 2 or not at all (lint L7 refuses a topic with fewer). If the share can't hold 2 for each tier 1 topic, drop the one whose window stays open longest: it goes to a later session inside its window, or, with none left, to the late-recheck rule ([plan.md](plan.md) §7). Never cut a recheck topic to one question. A quick session serves a recheck only when 2 questions per topic fit.
 2. **Excluded:** any topic with an untreated mistake, and any topic with a warm exposure (teach, repair, chat, drill or review) in the last 24 hours. Lint rule L7 refuses both; never work around it. Also any topic with an open re-teach to-do (TO-DO in the brief: a new topic that didn't land, [session-teach.md](session-teach.md) §4) until that re-teach has run: its recheck comes 44–72 h after it. If the learner insists, the recheck stays booked and they get a practice sheet instead (§3 step 6).
