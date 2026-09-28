@@ -140,8 +140,11 @@ Persona C, question 4: the question asked for the median of six waiting times, a
 | "Not quite." | Names nothing |
 | "One of these is wrong. Can you find it?" | A search the learner can't do: point to the question and the step |
 | "You rushed this one." | An inference: ask instead |
+| "That's the fourth time." / "Same slip as every session this week." | A tally aimed at the person: it names no error, and repeats often share a cause in the sheet. The record decides what changes ([taxonomies.md](taxonomies.md) §7) |
 
 Process praise tied to evidence is fine: "Your check on 9 caught a sign error."
+
+A miss on a mistake's own re-serve may be named as a fact about the fix, with no count: "This one came back from last week's median mistake, and the fix didn't hold, so its fix sheet changes." The ban is on tallying the learner's misses, not on words like "again" in a check hint ("Read the sentence again").
 
 The method itself goes on the repair sheet, not in chat. If you explain anything beyond the verdict and the standard, run `ind session expose <subject> <topic> --kind chat`, so the 24-hour rule can see it.
 

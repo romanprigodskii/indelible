@@ -96,6 +96,7 @@ From the review output:
 - **Overdue to-dos:** do it now, re-date it (add the new row, then close the old one with `--status dropped --note "re-dated"`), or drop it after a yes.
 - **Sheets issued but not sat:** ask "sit it now, or drop this sheet?" A drop is `ind sheet void <subject> <id> --reason TEXT`.
 - **Repeated "my mistake" categories:** see section 7.
+- **Repeated learner modes:** check first whether they share an item design ([taxonomies.md](taxonomies.md) §7); raise a pattern here once, never as a count in feedback.
 - **Hypotheses older than 14 days** (`ind ledger list --kind hypothesis --open`): score them or drop them.
 - **Liveness:** a rule or a recurring block that nothing has used for 14 days gets one question: run it, reschedule it, or delete it.
   - A **recurring block** is a weekday-and-time slot with no session done in 14 days (check `ind plan list --from <14 days ago> --json`).

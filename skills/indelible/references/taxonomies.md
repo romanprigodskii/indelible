@@ -93,6 +93,7 @@ The tables are starting points. Revise at the weekly review ([review.md](review.
 - Count modes from `ind error list <subject>` and read the accounts.
 - **Split** a code whose misses need two different treatments (for example, V into "never met the word" and "known word, a new sense here").
 - **Rewrite a treatment** when errors in that mode keep failing their rechecks (2 or more fails within two weeks).
+- **Repeats first get a look at the sheets.** Before rewriting a treatment, or raising a pattern at all (3 or more misses in one mode within two weeks), check whether the repeats share an item design: the last sub-item of a long item, a printed formula or criterion, a multi-part question asked in chat, a word never defined, a late-evening block. If they do, it is my defect: `ind ledger add defect --subject <s> --category <sizing|undefined_term|item_wording|…> --what TEXT --fix-type template --fix "builder: …"` with a structural fix ([review.md](review.md) §7). If not, propose one structural change at the review (a check line, a sheet feature, a new block order: [review.md](review.md) §8), never a reminder. Raise a learner pattern once, at the weekly review, never as a count in feedback (Law 10).
 - **Add** a code when 3 or more accounts fit none.
 - **Merge or drop** a code unused for 4 weeks. V and C always stay.
 - Propose each change in one plain line and act on a yes: "Most of your misses this fortnight were 'the passage didn't say it'. I'd split that into two kinds so each gets its own fix. OK?"

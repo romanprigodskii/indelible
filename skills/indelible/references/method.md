@@ -92,7 +92,7 @@ IDs are stable, so `overrides[].rule` in `subject.json` can name one (for exampl
 | R48 | Easily confused topics are learned apart, then mixed weekly once both are owned | default | [lit-strong] | Brunmair & Richter, 2019 |
 | R49 | Distress stops the study frame | core | [integrity] | |
 | R50 | The learner owns the data; nothing is deleted without a preview and a yes (a `forget` command comes in v0.2) | core | [integrity] | |
-| Law 10 | Feedback names the error, states the standard, says it is within reach, gives the next step; no person-level praise | core | [lit-mixed] | Yeager et al., 2014 |
+| Law 10 | Feedback names the error, states the standard, says it is within reach, gives the next step; no person-level praise, and no tally of the learner's repeats | core | [lit-mixed] | Yeager et al., 2014 |
 | breaks | One 10-minute break per 75 minutes in long sessions | default | [lit-mixed] | Biwer et al., 2023 |
 | if-then | One if-then plan for the obstacle the learner names | default | [lit-strong] | Gollwitzer & Sheeran, 2006 |
 | early exit | Leave a block after 3 right answers | opt (off) | [one-learner] | Rohrer & Taylor, 2006 |
