@@ -70,14 +70,29 @@ def pass_days(e):
     return out
 
 
+def last_miss_day(e):
+    """The latest date in an error's fails (``YYYY-MM-DD``), or None."""
+    out = None
+    for f in e.get("fails") or []:
+        try:
+            day = dates.fmt_date(f.get("date") if isinstance(f, dict) else f)
+        except (ValueError, TypeError, AttributeError):
+            continue
+        if out is None or day > out:
+            out = day
+    return out
+
+
 def short_runway_retire_ok(e, d, deadline):
     """True if the error may retire early: +21 d from d is past the deadline
-    and it has at least 2 passes on different days."""
+    and it has passes on at least 2 different days since its last miss (a pass
+    from before the idea came back says nothing about it now)."""
     if deadline is None:
         return False
     if _d(d) + timedelta(days=LADDER_DAYS[LAST_RUNG]) <= _d(deadline):
         return False
-    return len(pass_days(e)) >= 2
+    miss = last_miss_day(e)
+    return len([p for p in pass_days(e) if miss is None or p > miss]) >= 2
 
 
 def add(e, d, deadline=None, today=None):
@@ -134,7 +149,7 @@ def pass_(e, d, deadline=None, today=None, short_runway=True):
     Appends d to passes. At the last rung (3): retired. Otherwise rung += 1
     and next_due = d + LADDER_DAYS[rung], capped by the deadline. With a
     deadline, an error retires early when +21 d is past it and it has passes
-    on at least 2 different days.
+    on at least 2 different days since its last miss.
 
     An untreated wrong idea is not on the ladder yet: a right answer before
     its repair (a repair drill done with the fix in view) is no pass, so the

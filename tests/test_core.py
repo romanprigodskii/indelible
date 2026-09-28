@@ -379,6 +379,31 @@ class LadderTests(Base):
         no_deadline = learning.pass_(e, "2026-10-22")
         self.assertEqual(no_deadline["status"], "spacing")
 
+    def test_short_runway_counts_only_passes_since_the_last_miss(self):
+        # A wrong idea that came back is not retired by one fresh pass plus one from before the miss.
+        b = learning.repair(learning.add({"kind": "belief"}, "2026-10-01"), "2026-10-01T19:00+01:00",
+                            deadline="2026-10-20")
+        b = learning.pass_(b, "2026-10-02", deadline="2026-10-20")
+        b = learning.fail(b, "2026-10-05", deadline="2026-10-20")
+        b = learning.repair(b, "2026-10-05T19:00+01:00", deadline="2026-10-20")
+        b = learning.pass_(b, "2026-10-06", deadline="2026-10-20")
+        self.assertEqual((b["status"], b["rung"]), ("spacing", 1))
+        b = learning.pass_(b, "2026-10-07", deadline="2026-10-20")
+        self.assertEqual((b["status"], b["next_due"]), ("retired", None))
+        # The same for a slip, and for a retired item that missed its sentinel serve.
+        s = learning.add({"kind": "slip"}, "2026-10-01", deadline="2026-10-20")
+        s = learning.pass_(s, "2026-10-02", deadline="2026-10-20")
+        s = learning.fail(s, "2026-10-05", deadline="2026-10-20")
+        s = learning.pass_(s, "2026-10-06", deadline="2026-10-20")
+        self.assertEqual((s["status"], s["rung"]), ("spacing", 1))
+        retired = {"kind": "slip", "status": "retired", "rung": 1, "next_due": None,
+                   "passes": ["2026-10-02", "2026-10-04"], "fails": []}
+        back = learning.fail(retired, "2026-10-12", deadline="2026-10-20")
+        back = learning.pass_(back, "2026-10-13", deadline="2026-10-20")
+        self.assertEqual((back["status"], back["rung"]), ("reopened", 1))
+        self.assertEqual(learning.last_miss_day(back), "2026-10-12")
+        self.assertIsNone(learning.last_miss_day({"fails": []}))
+
     def test_is_due(self):
         e = learning.add({"kind": "slip"}, "2026-10-15")
         self.assertFalse(learning.is_due(e, "2026-10-15"))

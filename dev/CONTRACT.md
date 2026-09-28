@@ -278,7 +278,7 @@ A topic's cold passes are not stored: the level rules find them in `attempts.jso
   - A belief goes to `status=untreated`, `rung=0`, `next_due=None` (it needs repair again).
   - A slip or shaky item gets `rung=0`, `next_due=d+1`, and its status stays `spacing`.
 - **Deadline cap:** if the subject has `target.date`, `next_due = min(next_due, date - 2 days)` but never before today+1. A cap that would force the date before today+1 leaves it at today+1.
-- **Short runway:** an error may retire early if +21 d is past the deadline and it has at least 2 passes on different days.
+- **Short runway:** an error may retire early if +21 d is past the deadline and it has at least 2 passes on different days since its last miss (passes from before a miss don't count).
 
 ### 6.2 Session lock (`<subject>/.indelible/session.lock`)
 
