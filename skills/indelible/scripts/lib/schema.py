@@ -57,7 +57,7 @@ BLOCK_STATUSES = ["planned", "synced", "done", "missed?", "missed", "moved", "ca
 LEDGER_KINDS = ["owed", "decision", "defect", "override", "hypothesis", "status"]
 LEDGER_CLOSE_STATUSES = ["done", "dropped", "scored"]
 DEFECT_CATEGORIES = [
-    "sizing", "floor", "undefined_term", "late_build", "content_error", "promise_broken",
+    "sizing", "floor", "undefined_term", "untaught", "late_build", "content_error", "promise_broken",
     "contamination", "late_close", "scheduling", "misclassification", "wrong_inference",
 ]
 FIX_TYPES = ["rule", "template", "lint", "script", "planner"]

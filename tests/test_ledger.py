@@ -136,6 +136,15 @@ class LedgerTests(LedgerBase):
                      "--what", "x", "--fix-type", "lint", "--fix", "y")
         self.assertEqual(r.returncode, 2)
 
+    def test_an_untaught_case_is_its_own_defect(self):
+        # session-grade.md §5: a missed case no sheet the learner read ever worked is
+        # Claude's mistake, logged with a "builder:" fix that MY RULES carries.
+        r = self.ind("ledger", "add", "defect", "--subject", "ielts", "--category", "untaught",
+                     "--what", "ielts-cold-02 q3: a heading for a two-idea paragraph, never worked on a sheet",
+                     "--fix-type", "template", "--fix", "builder: work every case the drills and rechecks ask")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertEqual((self.rows()[-1]["kind"], self.rows()[-1]["category"]), ("defect", "untaught"))
+
     def test_a_repeat_after_a_structural_fix_still_refuses_rule(self):
         base = ["ledger", "add", "defect", "--subject", "ielts", "--category", "sizing", "--what", "ran 75 of 60 min"]
         self.assertEqual(self.ind(*(base + ["--fix-type", "lint", "--fix", "budget check"])).returncode, 0)
