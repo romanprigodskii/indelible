@@ -73,7 +73,7 @@ Hints: on practice sheets only (theory pencils, drills, example sheets, repair p
   2. **Say it plainly, with no "don't review":** "This one hasn't landed yet. That's common on a first day, and it's on me to fix. Next session we start it again from a different worked case, and the 2-day recheck moves to after that. Rereading the sheet before then is fine."
   3. **The to-do** `ind grade record` printed: `ind ledger add owed --subject <s> --what "re-teach <topic name> from a new worked case" --due <the next session's start> --by claude`.
   4. **At the close,** don't place its recheck ([close.md](close.md) §6 step 2). After the close message, the builder makes a new theory sheet on a different concrete case, with more completion steps in its drills (check its floor topics and words first).
-  5. **At the next open,** it stays off the recheck while the to-do is open ([session-open.md](session-open.md) §5 step 2). The re-teach's `ind session taught` moves the window to 44–72 h after it; then `ind ledger close` the to-do.
+  5. **At the next open,** it stays off the recheck, a late one included, until the re-teach: `ind due`, the brief and `ind plan check` leave it out while the to-do is open. The re-teach's `ind session taught` moves the window to 44–72 h after it, even a passed one; then `ind ledger close` the to-do.
 - **Drills in a later session than their theory:** `ind session expose <s> <T> --kind drill` moves the recheck window to 44–72 h after the drills; place or move the recheck inside it, then `ind plan check`. Grading the drills moves it too, from the sitting, and warns about a placed recheck left outside.
 
 ## 5. Profile blocks

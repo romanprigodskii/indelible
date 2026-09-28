@@ -577,6 +577,76 @@ class LateRecheckTests(TimingCase):
 
 
 # ==========================================================================
+# A new topic that didn't land waits for its re-teach (novice-journey-1)
+# ==========================================================================
+
+class ReteachTests(TimingCase):
+    """T01 was taught Tue 13 Oct 07:29 and its drills didn't land, so a re-teach is owed before any
+    recheck on it (session-teach.md §4). Its recheck is unplaced: Thu 15 Oct 03:29 – Fri 16 Oct 07:29."""
+
+    NOW = "2026-10-13T08:00+01:00"
+    BID = "B-20261015-ielts-1"
+    WINDOW = {"from": "2026-10-15T03:29+01:00", "to": "2026-10-16T07:29+01:00"}
+    CLOSING = "2026-10-15T09:00+01:00"   # the window closes within 24 h
+    PASSED = "2026-10-16T12:00+01:00"    # the window has passed: the next session came 3 days later
+
+    def setUp(self):
+        TimingCase.setUp(self)
+        self.teach()
+        self.save_blocks([self.cold_block(self.BID, window=self.WINDOW, status="planned")])
+
+    def owe_reteach(self, what="re-teach Matching headings from a new worked case"):
+        self.cli(["ledger", "add", "owed", "--subject", self.sid, "--by", "claude", "--what", what,
+                  "--due", "2026-10-15T07:00"])
+        return [x for x in fio.read_jsonl(self.ws / "ledger.jsonl") if x.get("kind") == "owed"][-1]["id"]
+
+    def test_without_the_to_do_the_recheck_must_be_placed_or_run_late(self):
+        self.assertIn("FAIL obligation_due", self.cli(["plan", "check"], now=self.CLOSING, code=1).stdout)
+        self.assertIn("LATE RECHECK", self.cli(["brief", self.sid], now=self.PASSED).stdout)
+        self.assertIn("WARN late_recheck", self.cli(["plan", "check"], now=self.PASSED).stdout)
+
+    def test_plan_check_leaves_a_recheck_owed_a_reteach_unplaced(self):
+        todo = self.owe_reteach()
+        self.assertNotIn("obligation_due", self.cli(["plan", "check"], now=self.CLOSING, code=0).stdout)
+        self.assertNotIn("late_recheck", self.cli(["plan", "check"], now=self.PASSED, code=0).stdout)
+        # closed, the to-do holds it no more; a to-do about something else never did
+        self.cli(["ledger", "close", todo], now=self.CLOSING)
+        self.owe_reteach("grade ielts-headings-01-drills")
+        self.assertIn("FAIL obligation_due", self.cli(["plan", "check"], now=self.CLOSING, code=1).stdout)
+
+    def test_no_late_probe_for_a_topic_owed_a_reteach(self):
+        todo = self.owe_reteach()
+        out = self.cli(["brief", self.sid], now=self.PASSED).stdout
+        self.assertNotIn("LATE RECHECK", out)
+        self.assertNotIn("window has passed", out)
+        r = self.cli(["due", self.sid, "--list"], now=self.PASSED)
+        self.assertNotIn("0. late rechecks", r.stdout)
+        self.assertIn("   T01 Matching headings · off until re-taught (to-do %s; session-teach.md §4)" % todo,
+                      r.stdout)
+        data = json.loads(self.cli(["due", self.sid, "--json"], now=self.PASSED).stdout)
+        self.assertEqual(data["tiers"]["0_late"], [])
+        self.assertEqual(data["reteach"], [{"topic": "T01", "name": "Matching headings", "todo": todo}])
+
+    def test_inside_its_window_it_stays_off_the_recheck(self):
+        self.owe_reteach()
+        _, claude = self.parts(self.cli(["brief", self.sid], now=self.CLOSING).stdout)
+        self.assertNotIn("RECHECK NOW", claude)
+        data = json.loads(self.cli(["due", self.sid, "--json"], now=self.CLOSING).stdout)
+        self.assertEqual(data["tiers"]["1_cold"], [])
+
+    def test_the_reteach_moves_a_passed_window(self):
+        self.owe_reteach()
+        r = self.cli(["session", "taught", self.sid, "T01", "--by", "sheet"], now=self.PASSED)
+        self.assertIn("Recheck %s: window moved to the new one" % self.BID, r.stdout)
+        self.assertEqual(self.blocks()[self.BID]["window"],
+                         {"from": "2026-10-18T08:00+01:00", "to": "2026-10-19T12:00+01:00"})
+        # the re-teach has run: the to-do, still open, keeps the topic off nothing
+        r = self.cli(["due", self.sid, "--list"], now="2026-10-18T09:00+01:00")
+        self.assertIn("   T01 Matching headings · 45 h since last seen", r.stdout)
+        self.assertNotIn("off until re-taught", r.stdout)
+
+
+# ==========================================================================
 # Sick days over a recheck window (persona-journeys-4)
 # ==========================================================================
 

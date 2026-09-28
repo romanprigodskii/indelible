@@ -523,6 +523,25 @@ class ColdEligibilityTests(Base):
         self.assertTrue(learning.is_first_serve({"taught_at": "2026-10-20T07:00+01:00",
                                                  "last_cold": "2026-10-15T07:00+01:00"}))
 
+    def test_reteach_owed(self):
+        # session-teach.md §4: a new topic that didn't land stays off rechecks until it is taught again.
+        topics = [{"id": "T02", "name": "Mean"}, {"id": "T03", "name": "Mean deviation"},
+                  {"id": "T04", "name": "Paraphrase"}]
+        written = "2026-10-13T08:00+01:00"
+
+        def row(i, what):
+            return {"id": "L-000%d" % i, "kind": "owed", "subject": "stats", "what": what, "at": written}
+        rows = [row(1, "re-teach Mean deviation from a new worked case"), row(2, "Re-teach T02 before its recheck"),
+                row(3, "reteach Paraphrases"), row(4, "grade stats-drills-03")]
+        owed = learning.reteach_owed(topics, rows, [self.exp(30)])
+        # the longest name that fits wins; a name must end where a word ends; other to-dos never count
+        self.assertEqual(owed, {"T03": "L-0001", "T02": "L-0002"})
+        # a teach after the to-do was written: the re-teach has run, though the to-do is still open
+        again = {"v": 1, "topic": "T03", "at": "2026-10-14T19:00+01:00", "kind": "teach"}
+        self.assertEqual(learning.reteach_owed(topics, rows, [again]), {"T02": "L-0002"})
+        drill = dict(again, kind="drill")
+        self.assertEqual(learning.reteach_owed(topics, rows, [drill]), {"T03": "L-0001", "T02": "L-0002"})
+
 
 # ==========================================================================
 # levels

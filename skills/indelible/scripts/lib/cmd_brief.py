@@ -530,6 +530,16 @@ def exposure_lines(ws, subj, tid, now, rebooked):
     return out
 
 
+def reteach_topics(ws, subj, exposures=None, ledger=None):
+    """{topic id: to-do id} for this subject's topics owed a re-teach that hasn't run
+    (learning.reteach_owed): off every recheck, a late one included, until it has."""
+    rows = [r for r in ws.open_ledger_items(kind="owed", subject=subj.id, rows=ledger)
+            if r.get("subject") == subj.id]
+    if not rows:
+        return {}
+    return learning.reteach_owed(subj.topics(), rows, subj.load_exposures() if exposures is None else exposures)
+
+
 def late_rechecks(ws, subj, now, blocks=None, skip_ids=()):
     """Open 2-day rechecks of this subject whose window has passed (no writes).
 
@@ -538,7 +548,8 @@ def late_rechecks(ws, subj, now, blocks=None, skip_ids=()):
     (topic_close). A topic served cold after the block's window opened (or its
     time, with no window) is left out, since that serve used the booking up, and
     so is one taught again after the window closed (or the time): a newer recheck
-    carries it. Blocks in ``skip_ids`` are
+    carries it. So is a topic owed a re-teach (reteach_topics): no late probe, as
+    its re-teach moves the window. Blocks in ``skip_ids`` are
     left out (the brief's missed? blocks: session-open step 2 asks about them).
     Returns [{"block", "topics": [(id, name, hours since last seen)], "closed"}],
     the oldest first. The late-recheck rule (plan.md section 7) applies to each.
@@ -553,6 +564,7 @@ def late_rechecks(ws, subj, now, blocks=None, skip_ids=()):
     ts_all = subj.load_topics_state()
     window = subj.cold_window()
     names = topic_names(subj)
+    owed = reteach_topics(ws, subj, exposures=exposures)
     out = []
     for b in rows:
         w = b.get("window") if isinstance(b.get("window"), dict) else {}
@@ -560,6 +572,8 @@ def late_rechecks(ws, subj, now, blocks=None, skip_ids=()):
         ref = to_local(w.get("to"), tz) or to_local(b.get("start"), tz)
         late, closed = [], None
         for t in block_topics(b):
+            if t in owed:
+                continue
             st = ts_all.get(t) or {}
             served, taught = to_local(st.get("last_cold"), tz), to_local(st.get("taught_at"), tz)
             if (opened is not None and served is not None and served > opened) or (
@@ -713,7 +727,9 @@ def due_state(subj, now):
     with teaching on record: ``taught_at``, a ``teach`` exposure, or the
     ``review`` set that confirms a 3p topic; a topic that was only measured or
     only repaired is never recheck material. Each has ``closes``, the time
-    its window closes (a sitting that starts later is a late recheck);
+    its window closes (a sitting that starts later is a late recheck). A
+    topic owed a re-teach (reteach_topics) is left out of tiers 0 and 1 and
+    listed in ``reteach`` instead;
     tier 2 ``beliefs``: repaired beliefs due; tier 3 ``shaky``; tier 4
     ``oldest``: every other due error, oldest first; tier 5 ``sentinels``:
     retired mistakes (the archive too) whose one sentinel serve is due
@@ -734,10 +750,14 @@ def due_state(subj, now):
     levels = learning.compute_levels_from(attempts, subj.load(), errors=errors)
     today = now.date()
     names = {}
-    cold, later = [], {"level4": [], "upkeep": []}
+    cold, later, reteach = [], {"level4": [], "upkeep": []}, []
+    owed = reteach_topics(subj.ws, subj, exposures=exposures)
     for t in subj.topics():
         names[t["id"]] = t.get("name") or t["id"]
         if t.get("scope") == "out":
+            continue
+        if t["id"] in owed:
+            reteach.append({"topic": t["id"], "name": names[t["id"]], "todo": owed[t["id"]]})
             continue
         state = ts_all.get(t["id"])
         if not learning.needs_window(t["id"], state, exposures):
@@ -801,6 +821,7 @@ def due_state(subj, now):
     return {
         "late": late, "cold": cold, "beliefs": beliefs, "shaky": shaky, "oldest": oldest, "untreated": untreated,
         "sentinels": sentinels, "level4": later["level4"], "upkeep": later["upkeep"], "names": names,
+        "reteach": reteach,
         "counts": {"late": len(late), "cold": len(cold), "beliefs": len(beliefs), "slips": len(slips),
                    "shaky": len(shaky), "other": len(oldest) - len(slips), "untreated": len(untreated),
                    "sentinels": len(sentinels), "level4": len(later["level4"]), "upkeep": len(later["upkeep"]),
@@ -1648,7 +1669,8 @@ def cmd_due(args):
                                          for e in st["sentinels"]],
                          "6_level4": [later(r, "first_pass") for r in st["level4"]],
                          "7_upkeep": [later(r, "last_pass") for r in st["upkeep"]],
-                         "8_needs_repair": [err(e) for e in st["untreated"]]}}
+                         "8_needs_repair": [err(e) for e in st["untreated"]]},
+               "reteach": st["reteach"]}
         _out(json.dumps(out, ensure_ascii=False, indent=2))
         return 0
     head = "%s · due at %s" % (subj.title(), fmt_when(now))
@@ -1674,7 +1696,10 @@ def cmd_due(args):
                                                       (" · " + closes) if closes else "",
                                                       " · again: its last recheck left it below 3"
                                                       if c.get("again") else ""))
-    if not st["cold"]:
+    for r in st["reteach"]:
+        # Off the recheck, a late one included, until its re-teach (session-teach.md section 4).
+        _out("   %s %s · off until re-taught (to-do %s; session-teach.md §4)" % (r["topic"], r["name"], r["todo"]))
+    if not st["cold"] and not st["reteach"]:
         _out("   none")
     for n, key, title in ((2, "beliefs", "fixed mistakes due"), (3, "shaky", "shaky answers due"),
                           (4, "oldest", "oldest due")):

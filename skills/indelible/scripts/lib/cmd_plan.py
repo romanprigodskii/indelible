@@ -21,7 +21,11 @@ proposes blocks, these commands store them, and ``plan check`` validates the
 future ones. There is no solver in v0.1. A recheck whose window has already
 passed, placed or not, is a WARN (``late_recheck``), not a FAIL: nothing done
 while planning can fix it (the late-recheck rule of plan.md section 7 runs at
-the next session), and a FAIL would block every preview until then.
+the next session), and a FAIL would block every preview until then. A recheck
+whose every topic is owed a re-teach (a new topic that didn't land,
+session-teach.md section 4) gets neither that WARN nor the unplaced
+``obligation_due`` FAIL: it waits for the re-teach, whose ``session taught``
+moves its window, even one that has passed.
 
 Recheck (``kind: cold``) windows come from, in order:
   1. the block's own ``window`` (an obligation made by ``session taught``,
@@ -359,6 +363,22 @@ class Ctx(object):
     def session_lock(self, sid):
         s = self.subject(sid)
         return self._cached(("lock", sid), s.read_session_lock) if s else None
+
+    def reteach(self, sid):
+        """{topic id: to-do id}: topics owed a re-teach that hasn't run (learning.reteach_owed)."""
+        def load():
+            rows = [r for r in self.ws.open_ledger_items(kind="owed", subject=sid) if r.get("subject") == sid]
+            if not rows:
+                return {}
+            return learning.reteach_owed(self.subject_cfg(sid).get("topics") or [], rows, self.exposures(sid))
+        return self._cached(("reteach", sid), load) or {}
+
+    def awaits_reteach(self, b):
+        """True when every topic of recheck ``b`` is owed a re-teach (session-teach.md section 4):
+        no late probe and no placing it; the re-teach's session taught moves its window."""
+        topics = cold_topics(b, self.topic_ids(b.get("subject")))
+        owed = self.reteach(b.get("subject"))
+        return bool(topics) and all(t in owed for t in topics)
 
 
 # ==========================================================================
@@ -1526,7 +1546,7 @@ def run_checks(ctx, blocks):
                 if w[2] == "pair":
                     fix += " (or move its teach block; the recheck follows)"
                 f.add("FAIL", "cold_window", b, "Recheck %s %s." % (b["id"], what), fix, when=iso(s))
-            else:
+            elif not ctx.awaits_reteach(b):
                 # Nothing done while planning can fix a window that has passed: the late-recheck
                 # rule runs at the next session, so a FAIL would only block the preview until then.
                 fix = ("the window has passed: run it first at the next session as a late recheck [measured], "
@@ -1601,8 +1621,8 @@ def run_checks(ctx, blocks):
                   "plan cancel %s --reason \"unreadable window\" and book a fresh recheck" % b.get("id"))
             continue
         left = hours_from(now, w[1])
-        if left > OBLIGATION_DUE_H:
-            continue
+        if left > OBLIGATION_DUE_H or ctx.awaits_reteach(b):
+            continue   # a topic owed a re-teach waits for it: its session taught moves the window
         if left <= 0:   # a WARN, as for a placed recheck past its window: the next session fixes it
             f.add("WARN", "late_recheck", b, "Recheck %s was never placed and its window closed %s."
                   % (b["id"], when_label(w[1])),

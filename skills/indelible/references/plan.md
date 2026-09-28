@@ -75,7 +75,7 @@ Plan backwards from `target.date`. For a date range, plan to the earliest date a
 "Checked" means `ind plan check` enforces the rule. "Yours" means the CLI doesn't, so you keep it while proposing.
 
 - **Integrity (never broken):**
-  - every teach has a protected 2-day recheck inside `cold_window_h` (checked: an unplaced recheck closing within 24 h FAILs, and one whose window has already closed, placed or not, WARNs, since only the late-recheck rule of §7 at the next session can fix it; `session close` checks it is booked);
+  - every teach has a protected 2-day recheck inside `cold_window_h` (checked: an unplaced recheck closing within 24 h FAILs, and one whose window has already closed, placed or not, WARNs, since only the late-recheck rule of §7 at the next session can fix it; neither for a topic owed a re-teach, §7; `session close` checks it is booked);
   - no untreated belief (wrong idea) is served cold (the sheet checker and `session close`);
   - a repair comes at least 24 h before a new belief's recheck (yours): a repair is an exposure, so one less than 24 h before takes its topic off that recheck;
   - on a day with both, the recheck comes before new material (yours).
@@ -127,6 +127,7 @@ Why: spaced retrieval beats massed practice, and the best gap grows with the tim
   1. It runs first at the next session, never swapped for a review of the topic: the issued `cold` sheet if there is one, otherwise a `probe` on the same topics (lint L7 refuses a `cold` sheet outside its window). It is `[measured]`, labelled with its real interval ("late recheck, 80 h"), and can't raise mastery: level 3 needs an in-window recheck.
   2. Grade it before booking anything. Grading closes the expired recheck block only when the sheet has its `cold:<topic>` items and was issued with `--block <B>`; if it is still open, `ind plan cancel <B> --reason "window passed"`.
   3. Then log the feedback given at marking as a review exposure (`ind session expose <s> <T> --kind review`): a measuring sheet logs none, and the fresh window counts from it. For a topic the late recheck left below 3, the expose books the fresh recheck (`Recheck to place: <B>`); one it confirmed at 3 needs none. A late probe with under 2 counted questions counts for nothing, so book that one by hand from the grading time: `ind plan add <subject> --kind cold --protected --content "cold:<topic-id>" --window-from <ISO, grading + 44 h> --window-to <ISO, grading + 72 h>` (the subject's `cold_window_h`). Scheduled: place it (section 1). On demand: leave it unplaced; the close names the window. Booked before the grading, it would be closed by it.
+- **A topic owed a re-teach** (a new topic that didn't land, [session-teach.md](session-teach.md) §4): no late probe, and its recheck is not placed. While the to-do is open and the topic has had no teaching since, `ind plan check`, the brief's LATE RECHECK and `ind due` leave it out. The re-teach's `ind session taught` moves the window, even one that has passed; place it then.
 - **A missed teach:** moving it moves its paired recheck, and `ind plan check` confirms the window.
 - **Slack** goes in one line: "Slack left this week: 35 min."
 

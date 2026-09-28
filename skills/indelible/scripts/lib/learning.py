@@ -506,6 +506,46 @@ def needs_window(topic, topic_state, exposures):
     return is_first_serve(topic_state) or needs_rerecheck(topic, topic_state, exposures)
 
 
+RETEACH_PREFIXES = ("re-teach ", "reteach ")
+
+
+def reteach_owed(topics, owed_rows, exposures):
+    """Topics owed a re-teach that hasn't run yet: {topic id: the to-do's id}.
+
+    A new topic whose drills didn't land is taught again from a new worked case
+    before any recheck on it (session-teach.md section 4), and stays off every
+    recheck until then, a late one included. The to-do is an open owed row
+    whose ``what`` starts "re-teach " and then names the topic, by name or id,
+    as grade record prints it; the longest name that fits wins, so "Mean"
+    never claims "Mean deviation". The re-teach has run once the topic has a
+    ``teach`` exposure after the row was written, even with the row still open.
+    ``topics`` are the subject's topic entries, ``owed_rows`` its open owed rows.
+    """
+    names = []
+    for t in topics or []:
+        if not isinstance(t, dict) or not t.get("id"):
+            continue
+        for name in (t.get("name"), t.get("id")):
+            if name and str(name).strip():
+                names.append((str(name).strip().lower(), t["id"]))
+    names.sort(key=lambda x: -len(x[0]))
+    out = {}
+    for r in owed_rows or []:
+        what = str(r.get("what") or "").strip().lower()
+        rest = next((what[len(p):].lstrip() for p in RETEACH_PREFIXES if what.startswith(p)), None)
+        if not rest:
+            continue
+        tid = next((i for n, i in names if rest.startswith(n) and not rest[len(n):len(n) + 1].isalnum()), None)
+        if tid is None or tid in out:
+            continue
+        written = dates.try_parse_iso(r.get("at"))
+        taught = last_exposure(tid, exposures, kinds=("teach",))
+        if written is not None and taught is not None and taught > written:
+            continue
+        out[tid] = r.get("id")
+    return out
+
+
 def error_reserve_eligibility(error, t, exposures, errors):
     """Error re-serve: rules 2 and 3 of cold eligibility plus next_due <= date(t)."""
     topic = error.get("topic")
