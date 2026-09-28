@@ -10,7 +10,9 @@ sure it keeps working with the current CLI:
 - its files stay within the plugin directory's limits (text only, small, few,
   valid names) and hold no path from anyone's machine;
 - examples/build_sample.py still rebuilds it through the CLI, with the same
-  files. If that test fails after a CLI change, rebuild the sample:
+  files and the same contents (line endings aside: a Windows checkout may
+  turn LF into CRLF). If that test fails after a CLI change or a version
+  bump, rebuild the sample:
       python3 examples/build_sample.py --force
 
 Two README promises a reviewer checks are tested here too, on the sample: the
@@ -37,6 +39,8 @@ try:
     from helpers import REPO_DIR, base_env, run
 except ImportError:  # run as part of the tests package
     from tests.helpers import REPO_DIR, base_env, run
+
+from lib import VERSION, dates
 
 EXAMPLES = REPO_DIR / "examples"
 SAMPLE = EXAMPLES / "sample-workspace"
@@ -338,24 +342,53 @@ class SampleFiles(unittest.TestCase):
         self.assertIn("<skill>/scripts/indelible.py", text)
         self.assertIn("synthetic sample learner", text)
 
+    def test_the_calendar_file_carries_the_current_version(self):
+        # Checked on every runner, even where the content comparison below is skipped.
+        text = (SAMPLE / "plan" / "ics" / "study-20261011.ics").read_text(encoding="utf-8")
+        self.assertIn("PRODID:-//indelible//indelible %s//EN" % VERSION, text,
+                      "the sample predates version %s; run: python3 examples/build_sample.py --force" % VERSION)
+
+
+def normalised(path):
+    """A file's bytes with CRLF read as LF: a Windows checkout may turn the committed LF into CRLF."""
+    return path.read_bytes().replace(b"\r\n", b"\n")
+
 
 class SampleRebuild(unittest.TestCase):
-    """build_sample.py still runs through the current CLI and makes the same set of files."""
+    """build_sample.py still runs through the current CLI and makes the same files, with the same contents."""
+
+    REBUILD = "run: python3 examples/build_sample.py --force"
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = Path(tempfile.mkdtemp(prefix="indelible-sample-rebuild-"))
+        cls.out = cls.tmp / "sample-workspace"
+        env = base_env()
+        env.update({"PYTHONDONTWRITEBYTECODE": "1", "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"})
+        cls.result = subprocess.run([sys.executable, str(BUILD_SCRIPT), "--out", str(cls.out)], capture_output=True,
+                                    text=True, encoding="utf-8", errors="replace", env=env, cwd=str(cls.tmp),
+                                    timeout=600)
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(str(cls.tmp), ignore_errors=True)
+
+    def setUp(self):
+        r = self.result
+        self.assertEqual(r.returncode, 0, "build_sample.py failed:\n%s\n%s" % (r.stdout, r.stderr))
 
     def test_rebuild_matches_the_committed_file_list(self):
-        tmp = Path(tempfile.mkdtemp(prefix="indelible-sample-rebuild-"))
-        try:
-            out = tmp / "sample-workspace"
-            env = base_env()
-            env.update({"PYTHONDONTWRITEBYTECODE": "1", "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"})
-            r = subprocess.run([sys.executable, str(BUILD_SCRIPT), "--out", str(out)], capture_output=True,
-                               text=True, encoding="utf-8", errors="replace", env=env, cwd=str(tmp), timeout=600)
-            self.assertEqual(r.returncode, 0, "build_sample.py failed:\n%s\n%s" % (r.stdout, r.stderr))
-            self.assertEqual(sample_files(out), sample_files(),
-                             "the committed sample differs from a rebuild; run: "
-                             "python3 examples/build_sample.py --force")
-        finally:
-            shutil.rmtree(str(tmp), ignore_errors=True)
+        self.assertEqual(sample_files(self.out), sample_files(),
+                         "the committed sample differs from a rebuild; " + self.REBUILD)
+
+    def test_rebuild_matches_the_committed_contents(self):
+        tz = json.loads((SAMPLE / "indelible.json").read_text(encoding="utf-8")).get("timezone")
+        if dates.zone_problem(tz) is not None:
+            self.skipTest("no tz database here: the rebuilt brief carries a TIME ZONE line")
+        both = sorted(set(sample_files(self.out)) & set(sample_files()))
+        differ = [rel for rel in both
+                  if normalised(self.out.joinpath(*rel.split("/"))) != normalised(SAMPLE.joinpath(*rel.split("/")))]
+        self.assertEqual(differ, [], "the committed sample differs from a rebuild in these files; " + self.REBUILD)
 
 
 if __name__ == "__main__":
