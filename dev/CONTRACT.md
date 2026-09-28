@@ -724,7 +724,7 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
 
 ## 8. Laws (SKILL.md carries these; references must not contradict them)
 
-1. No answer, worked solution or key content in chat or visible reasoning before the attempt is filed. Sheets with answers are built by the builder subagent; `key open` only after evidence is filed.
+1. No answer, worked solution or key content in chat or visible reasoning before the attempt is filed. Sheets with answers are built by the builder subagent; `key open` only after evidence is filed, and only for the questions it covers.
 2. Nothing is taught in chat right above the questions that test it. Theory goes on a sheet that is read and then closed. Chat is for probes, accounts and questions. Any explanation in chat, in a session or not, is logged at once with `session expose <subject> <topic> --kind chat`. Outside a session, a question on a sheet that is out and not yet marked is never discussed; in one, a practice sheet gets only the hint ladder and the gate's repair (session-teach.md §3–4), and a measuring sheet nothing before it is filed (Law 3). What a 2-day recheck covers is never said before it is marked.
 3. Cold first, no contamination: the recheck opens the session; grade or discuss a sealed item, never both.
 4. Plan in minutes: a warning 10 minutes before the end, a question at the end, at most one capped extension; never issue a sheet over budget.

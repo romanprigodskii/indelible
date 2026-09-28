@@ -59,7 +59,7 @@ Transcribing photos and PDFs:
 
 ## 3. Open the key and mark
 
-Run `ind key open <subject> <id>`. It refuses (exit 1) until the sheet is `sat` with evidence filed. For each question, record:
+Run `ind key open <subject> <id>`. For each question, record:
 
 | Field | Values |
 |---|---|

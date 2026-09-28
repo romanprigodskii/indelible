@@ -625,6 +625,23 @@ class KeyTests(SheetBase):
         for k in ("1a", "2a", "3a", "4a", "6a"):
             self.assertNotIn(answers[k]["accept"][0], r.stdout + r.stderr)
 
+    def test_law_1_says_key_open_shows_only_the_questions_filed(self):
+        # The two tests above: before the finished sheet is filed, key open prints only the
+        # questions a failure-gate photo covers. Law 1, its copy in the contract and sheets.md §9
+        # say so, and none of them says the sheet must be sat first.
+        root = Path(__file__).resolve().parents[1]
+        skill = (root / "skills" / "indelible" / "SKILL.md").read_text(encoding="utf-8")
+        law1 = [ln for ln in skill.splitlines() if ln.startswith("1. **No answer before a real attempt.**")][0]
+        self.assertIn("`ind key open` works only after evidence is filed, and only for the questions it covers.", law1)
+        contract = (root / "dev" / "CONTRACT.md").read_text(encoding="utf-8")
+        laws = contract.split("## 8. Laws")[1]
+        self.assertIn("`key open` only after evidence is filed, and only for the questions it covers.",
+                      laws.splitlines()[2])
+        sheets = (root / "skills" / "indelible" / "references" / "sheets.md").read_text(encoding="utf-8")
+        keys = sheets.split("## 9. Keys")[1].split("## 10.")[0]
+        self.assertIn("refuses until evidence is filed, prints only the questions that evidence covers", keys)
+        self.assertNotIn("until the sheet is sat", keys)
+
     def test_gate_asks_are_checked(self):
         spec = drills_spec()
         self.to_issued(spec)

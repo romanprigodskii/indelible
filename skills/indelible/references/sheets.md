@@ -107,7 +107,7 @@ A builder subagent writes every sheet that has answers, so no answer enters this
 ## 9. Keys
 
 - `ind sheet new` seals the answers into `.indelible/keys/<id>.json` (mode 600) and deletes the answers file; `ind grade record` copies a mistake's answer to `keys/errors/`.
-- Never read, list, grep or open `.indelible/keys/` or any `*.answers.json`, even to check the builder. `ind key open <s> <id>`, the one way in, refuses until the sheet is sat with evidence filed, and logs every opening. Reveal a question's answer only after its account ([session-grade.md](session-grade.md) §4). If any other output ever shows an answer, the sheet is no longer sealed: say so and void it.
+- Never read, list, grep or open `.indelible/keys/` or any `*.answers.json`, even to check the builder. `ind key open <s> <id>`, the one way in, refuses until evidence is filed, prints only the questions that evidence covers, and logs every opening. Reveal a question's answer only after its account ([session-grade.md](session-grade.md) §4). If any other output ever shows an answer, the sheet is no longer sealed: say so and void it.
 - The learner's own answer books are registered by path in `materials.sources` and opened only at marking. A key opened before sitting makes the sheet practice.
 
 ## 10. Evidence
