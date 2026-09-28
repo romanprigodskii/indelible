@@ -44,6 +44,8 @@ jobs:
         if: runner.os == 'Windows' && matrix.python == '3.13'
         run: python -m pip install tzdata
 
+      # The unit tests include tests/test_versions.py: plugin.json, SKILL.md,
+      # lib.VERSION and the newest CHANGELOG release must carry one version.
       - name: Unit tests
         run: python -m unittest discover -s tests -v
 
@@ -55,18 +57,6 @@ jobs:
           for p in files:
               json.loads(p.read_text(encoding="utf-8"))
           print("%d eval files parsed" % len(files))
-          EOF
-
-      - name: Plugin and skill versions match
-        run: |
-          python - <<'EOF'
-          import json, pathlib, re, sys
-          plugin = json.loads(pathlib.Path(".claude-plugin/plugin.json").read_text(encoding="utf-8"))["version"]
-          skill = pathlib.Path("skills/indelible/SKILL.md").read_text(encoding="utf-8")
-          m = re.search(r'^\s*version:\s*"?([^"\s]+)"?\s*$', skill, re.M)
-          found = m.group(1) if m else None
-          print("plugin.json %s, SKILL.md %s" % (plugin, found))
-          sys.exit(0 if found == plugin else 1)
           EOF
 
       - name: Doctor (informational)
