@@ -19,16 +19,9 @@ Levels are computed by the CLI the same way for every profile ([measure.md](meas
 
 ## 2. Check lines by layer
 
-Every question on `drills`, `cold`, `mixed`, `diagnostic`, `checkpoint` and `review` sheets has a written backwards check beside the answer (lint L2), except an official question: a mock, and an official question on a diagnostic or checkpoint, are sat as the exam sets them, with no check column. When a key word decides the answer, the check also tests the definition used against the question's words. Each sheet ends with one line: "Least sure I chose the right idea (item numbers): ___". There are no per-answer confidence marks. No check line on `mock`, `theory`, `external`, `example`, `probe`, `triage`, `words`, `explain` or `miss-review`. Hint rules: [sheets.md](sheets.md) §3.
+Every question on `drills`, `cold`, `mixed`, `diagnostic`, `checkpoint` and `review` sheets has a written backwards check beside the answer (lint L2), except an official question: a mock, and an official question on a diagnostic or checkpoint, are sat as the exam sets them, with no check column. When a key word decides the answer, the check also tests the definition used against the question's words. Each sheet ends with one line: "Least sure I chose the right idea (item numbers): ___". There are no per-answer confidence marks. No check line on `mock`, `theory`, `external`, `example`, `probe`, `triage`, `words`, `explain` or `miss-review`.
 
-| Layer or form | The learner writes | Example hint |
-|---|---|---|
-| procedural | the answer substituted back, or the total rebuilt from the other direction | "Put your answer back into the equation" |
-| conceptual | the definition used, tested against the question's words | "Which meaning of 'range' did you use?" |
-| verbal, reading | the sentence read again with the answer in it | "Read the sentence again with your word in it" |
-| production | a back-translation into the instruction language | "Translate it back: is that what you meant?" |
-| code | an assert or test that runs the other way | "Parse what you printed: do you get the input back?" |
-| explanation | below mastery 3: the answer re-read against the question's words; from 3: the weakest point named, then said again | "Read it as the listener: does every sentence answer the question?" / "Which part would you be pushed on?" |
+The forms of the check, with the hint on the sheet and the line to say when coaching, are in one table, in [sheets.md](sheets.md) §3, with its hint rules. Its rows go by what the question turns on, which follows the topic's layer: a `procedural` topic, a number; `conceptual`, a definition or key word; `verbal` and `reading`, a sentence; `production`, language production; `code`, code. An interview or viva answer is an explanation, and a proof has a row of its own, whatever its layer.
 
 ## 3. exam
 

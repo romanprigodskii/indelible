@@ -24,7 +24,7 @@ Contents: 1 Rules for every subject · 2 Quantitative · 3 Verbal · 4 Language 
 
 | Code | Mode | Example | Treatment |
 |---|---|---|---|
-| C | Careless | Wrote 0.35 for 0.53 in the last line; same subtraction right in question 4; "I can see my slip: copied 0.53 as 0.35" | `slip`. Ladder only. Point to the line and their value ("last line: your 0.35"), then name the check that would have caught it (the form for that question kind in [session-grade.md](session-grade.md) §7); a missing check line is the thing to fix |
+| C | Careless | Wrote 0.35 for 0.53 in the last line; same subtraction right in question 4; "I can see my slip: copied 0.53 as 0.35" | `slip`. Ladder only. Point to the line and their value ("last line: your 0.35"), then name the check that would have caught it (the form for that question kind in [sheets.md](sheets.md) §3); a missing check line is the thing to fix |
 | M | Method (did not know how, or a wrong method) | Divides by n for a sample standard deviation | `belief`. Repair sheet: worked case, the wrong worked example beside it, the case where both hold; one drill block; recheck at least 24 h after (the repair is an exposure) |
 | V | A word stopped me | Didn't know what "unbiased" meant, so left it blank | `belief`. Vocabulary probe first ([measure.md](measure.md)); the word on the next theory sheet or a words sheet, and in `lexicon`; then re-serve the question type |
 | F | Answer form | Gave a decimal where the question asked for a percentage to one decimal place; called a paired t-test "the before-after test" on a paper that marks the test's name | `slip`. A short answer-form block; the check reads the form back (units, rounding, the form asked for) |

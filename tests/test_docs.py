@@ -318,5 +318,21 @@ class CheckerRules(unittest.TestCase):
         self.assertIn("W1–W%d" % len([r for r in lint.RULES if r.startswith("W")]), stub)
 
 
+class CheckForms(unittest.TestCase):
+    """The forms of the written check are one table, in sheets.md §3; copies elsewhere drift apart."""
+
+    def test_only_sheets_md_section_3_has_a_table_of_check_forms(self):
+        found = []
+        for path in doc_files():
+            text = path.read_text(encoding="utf-8")
+            for no, line in enumerate(text.splitlines(), 1):
+                cells = [c.strip().lower() for c in line.strip().strip("|").split("|")] if line.startswith("|") else []
+                if "the learner writes" in cells:
+                    found.append((path.name, no))
+        self.assertEqual(len(found), 1, "tables of check forms: %s" % found)
+        sheets = (SKILL_DIR / "references" / "sheets.md").read_text(encoding="utf-8")
+        self.assertIn("| The learner writes |", sections(sheets)[3])
+
+
 if __name__ == "__main__":
     unittest.main()
