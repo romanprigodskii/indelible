@@ -240,15 +240,18 @@ def compute_stats(ws, subj, since=None, until=None, now=None):
 
 
 def unreadable_attempts(ws, subj):
-    """[{file, bad, lines}] for the graded-question files (active and archived) that hold
+    """[{file, bad, lines, copy}] for the graded-question files (active and archived) that hold
     unreadable lines now: those lines are left out of every figure, and a file with none
-    readable would otherwise read as "No graded questions yet"."""
+    readable would otherwise read as "No graded questions yet". ``copy`` is how the learner
+    restores a file with none readable (``ws.restore_route``), else None."""
     out = []
     paths = sorted(subj.archive_dir.glob("attempts-*.jsonl")) if subj.archive_dir.is_dir() else []
     for p in paths + [subj.attempts_path]:
         bad, total = fio.jsonl_unreadable(p)
         if bad:
-            out.append({"file": ws.rel(p), "bad": bad, "lines": total})
+            rel = ws.rel(p)
+            out.append({"file": rel, "bad": bad, "lines": total,
+                        "copy": ws.restore_route(rel) if bad == total else None})
     return out
 
 
@@ -293,9 +296,11 @@ def stats_lines(subj, st):
     lost = st.get("unreadable") or []
     for u in lost:
         if u["bad"] == u["lines"]:
+            route = ("The learner restores it, never you: %s." % u["copy"] if u.get("copy") else
+                     "No copy here (no readable .bak, none in the last git commit): ask the learner for a backup "
+                     "of their own.")
             lines.append("Unreadable: every line of %s (%d) is kept aside in .indelible/quarantine.jsonl and left out "
-                         "of these figures. Restore the file from the workspace's git history or a .bak."
-                         % (u["file"], u["lines"]))
+                         "of these figures. %s" % (u["file"], u["lines"], route))
         else:
             lines.append("Left out: %d unreadable line%s of %s (kept aside in .indelible/quarantine.jsonl)."
                          % (u["bad"], "" if u["bad"] == 1 else "s", u["file"]))

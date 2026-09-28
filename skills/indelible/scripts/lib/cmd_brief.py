@@ -1257,22 +1257,31 @@ def brief_sections(ws, subj, now, sheets=None, overview=False):
         if unsat:
             cflags.append(Section("NOT TAKEN (sit now, or sheet void):", [s.get("id") or "?" for s in unsat],
                                   more="sheet show %s --status issued" % sid))
-        q = ws.quarantine_count()
+        # A file whose every line is unreadable reads as empty ("No graded questions yet"): it gets
+        # its own flag, and its lines are left out of the count of lines kept aside.
+        lost = ws.unreadable_files()
+        lost_files = set(r for r, _ in lost)
+        q = len([r for r in ws.quarantine_rows() if r.get("file") not in lost_files])
         if q:
             flags.append("%d line%s in the record could not be read; kept aside" % (q, "" if q == 1 else "s")
                          if plain else "quarantine: %d unreadable line%s" % (q, "" if q == 1 else "s"))
-        # A file whose every line is unreadable reads as empty ("No graded questions yet"): say so.
-        lost = ws.unreadable_files()
         if lost:
             flags.append(("a whole record file can't be read, so nothing in it counts until it is restored"
                           if len(lost) == 1 else "%d record files can't be read, so nothing in them counts until "
                           "they are restored" % len(lost)) if plain else
                          "unreadable file%s: %s" % ("" if len(lost) == 1 else "s", ", ".join(r for r, _ in lost)))
+        for r, n in lost:
+            route = ws.restore_route(r)
+            route = ("The learner restores it, never you: %s. Then run brief again. Until it is back, no grading, "
+                     "planning or stats." % route if route else
+                     "No copy here (no readable .bak, none in the last git commit): say so, and ask whether they "
+                     "have a backup of their own or would go on without that part of the record (a backup to look "
+                     "for later is a to-do: ledger add owed --by learner). Until it is back or they choose to go on, no "
+                     "grading, planning or stats.")
             cflags.append(Section("", text=clip(
-                "UNREADABLE FILE: %s: every line is unreadable (kept in .indelible/quarantine.jsonl), so reads "
-                "treat it as empty. Restore it from the workspace's git history (or a .bak beside it) before "
-                "grading, planning or stats" % "; ".join("%s (%d line%s)" % (r, n, "" if n == 1 else "s")
-                                                         for r, n in lost), 400)))
+                "UNREADABLE FILE: %s (%d line%s): every line is unreadable (kept in .indelible/quarantine.jsonl), "
+                "so reads treat it as empty. Say in one line that part of their record can't be read and doesn't "
+                "count until the file is restored. %s" % (r, n, "" if n == 1 else "s", route), 800)))
         for r in ws.open_ledger_items(kind="decision", subject=sid, rows=ledger):
             sg = r.get("safeguard") or {}
             co = sg.get("check_on")

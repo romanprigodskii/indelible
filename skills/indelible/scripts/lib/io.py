@@ -170,7 +170,11 @@ def _quarantine(bad, path, ws_root):
 def jsonl_unreadable(path):
     """(bad, total) for a JSONL file as it is now: its non-blank lines that are not a JSON
     object, and all its non-blank lines. (0, 0) for a missing or empty file. Quarantines nothing."""
-    text = read_text(Path(path))
+    return jsonl_text_unreadable(read_text(Path(path)))
+
+
+def jsonl_text_unreadable(text):
+    """(bad, total) for JSONL text, as ``jsonl_unreadable`` counts a file."""
     bad = total = 0
     for line in (text or "").split("\n"):
         stripped = line.strip()

@@ -22,12 +22,14 @@ Usage in a command handler::
 
 import os
 import re
+import subprocess
 from pathlib import Path
 
 from lib import NoWorkspace, UsageError, DataError, WORKSPACE_ASSETS
 from lib import io as fio
 
 MAX_WALK_UP = 4
+GIT_TIMEOUT_S = 5
 ENV_WORKSPACE = "INDELIBLE_WORKSPACE"
 CONFIG_NAME = "indelible.json"
 MARK_BEGIN = "<!-- indelible:begin -->"
@@ -303,6 +305,27 @@ class Workspace(object):
             if total and bad == total:
                 out.append((rel, total))
         return out
+
+    def restore_route(self, rel):
+        """How the learner gets back a record file whose every line is unreadable (Claude never
+        writes a data file): copy its .bak over it when that has a readable line (the version
+        before the CLI's last write), else check it out from the workspace's last git commit
+        when that holds a readable copy. None when neither is here."""
+        bak = self.root / (rel + ".bak")
+        if bak.is_file():
+            bad, total = fio.jsonl_unreadable(bak)
+            if bad < total:
+                return "copy %s.bak over it (it may lack the last change)" % rel
+        try:
+            proc = subprocess.run(["git", "-C", str(self.root), "show", "HEAD:./" + rel],
+                                  stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=GIT_TIMEOUT_S)
+        except (OSError, subprocess.SubprocessError):
+            return None
+        if proc.returncode == 0:
+            bad, total = fio.jsonl_text_unreadable(proc.stdout.decode("utf-8", "replace"))
+            if bad < total:
+                return 'git -C "%s" checkout HEAD -- %s' % (self.root, rel)
+        return None
 
     # ---- config -----------------------------------------------------------
     def load_config(self, reload=False):

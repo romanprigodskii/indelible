@@ -186,11 +186,16 @@ class StatsTests(StatsBase):
         path.write_text("BEGIN:VCALENDAR\nVERSION:2.0\nEND:VCALENDAR\n", encoding="utf-8")
         out = self.cli(["stats", self.sid]).stdout
         self.assertIn("Unreadable: every line of ielts/data/attempts.jsonl (3) is kept aside in "
-                      ".indelible/quarantine.jsonl and left out of these figures.", out)
+                      ".indelible/quarantine.jsonl and left out of these figures. No copy here (no readable .bak, "
+                      "none in the last git commit): ask the learner for a backup of their own.", out)
         self.assertIn("No graded questions can be read.", out)
         self.assertNotIn("No graded questions yet.", out)
         st = json.loads(self.cli(["stats", self.sid, "--json"]).stdout)
-        self.assertEqual(st["unreadable"], [{"file": "ielts/data/attempts.jsonl", "bad": 3, "lines": 3}])
+        self.assertEqual(st["unreadable"], [{"file": "ielts/data/attempts.jsonl", "bad": 3, "lines": 3, "copy": None}])
+        # A readable .bak beside it is the copy the learner restores it from.
+        (self.sdir / "data" / "attempts.jsonl.bak").write_text(good, encoding="utf-8")
+        self.assertIn("The learner restores it, never you: copy ielts/data/attempts.jsonl.bak over it (it may lack "
+                      "the last change).", self.cli(["stats", self.sid]).stdout)
         path.write_text("", encoding="utf-8")
         self.assertIn("No graded questions yet.", self.cli(["stats", self.sid]).stdout)
 

@@ -43,6 +43,7 @@ One question at a time (Law 9). The learner may answer "skip" at steps 2, 3 and 
   - A 2-day recheck whose window has passed: the late-recheck rule ([plan.md](plan.md) §7) at this session (LATE RECHECK below the line; tier 0 of `ind due <s> --list`).
   - A sheet issued and not taken after 2 session opens: step 3.
   - Quarantined lines: one line to the learner ("A few lines in your record couldn't be read. They're kept aside and nothing is lost."); edit nothing.
+  - UNREADABLE FILE (a whole file can't be read): as that line says; the learner restores it, never you (Law 6).
   - An armed safeguard that is due: one line, then the weekly review handles it ([review.md](review.md)).
 - **NOW/NEXT** is today's plan, **DUE** the recheck's size; a **TO-DO** due today or overdue gets a line in the opener.
 - **LEVELS (MASTERY in plain mode), LAST SESSIONS, PACE and NOTES** are for you; follow NOTES (the learner's notes, the "do not calibrate on" list, their overrides).

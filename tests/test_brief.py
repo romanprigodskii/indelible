@@ -4,6 +4,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -262,12 +263,15 @@ class BriefTests(BriefBase):
 
     def test_quarantine_and_safeguard_flags(self):
         path = self.s / "data" / "errors.jsonl"
-        path.write_text('{"v": 1, "id": "E-ielts-0001", "status": "spacing"\n', encoding="utf-8")
+        # One readable row and one cut short: a line kept aside, not a whole file lost.
+        path.write_text('{"v": 1, "id": "E-ielts-0001", "status": "spacing"}\n'
+                        '{"v": 1, "id": "E-ielts-0002", "status": "spacing"\n', encoding="utf-8")
         self.ind("ledger", "add", "decision", "--subject", "ielts", "--summary", "Timed section moves to 09:00",
                  "--why", "mornings are clearer", "--check-on", "2026-10-11", "--rule", "timed accuracy < 0.70",
                  "--action", "revert")
         learner, claude = self.parts(self.brief())
-        self.assertIn("could not be read; kept aside", learner)
+        self.assertIn("1 line in the record could not be read; kept aside", learner)
+        self.assertNotIn("whole record file", learner)
         self.assertIn("a check on an earlier decision is due (2026-10-11): Timed section moves to 09:00", learner)
         self.assertIn("SAFEGUARD DUE: L-0001", claude)
 
@@ -280,12 +284,51 @@ class BriefTests(BriefBase):
         self.assertIn("a whole record file can't be read, so nothing in it counts until it is restored", learner)
         self.assertIn("UNREADABLE FILE: ielts/data/attempts.jsonl (3 lines): every line is unreadable", claude)
         self.assertNotIn("attempts.jsonl", learner)
+        # Its lines are not also counted as lines kept aside ("nothing is lost" is not said of them).
+        self.assertNotIn("could not be read; kept aside", learner)
+        # No .bak and no git history here: the brief says there is no copy, never implies one.
+        self.assertIn("Say in one line that part of their record can't be read and doesn't count until the file "
+                      "is restored. No copy here (no readable .bak, none in the last git commit): say so, and ask "
+                      "whether they have a backup of their own or would go on without that part of the record", claude)
+        self.assertIn("Until it is back or they choose to go on, no grading, planning or stats.", claude)
         # One readable line left: only the count of unreadable lines, no UNREADABLE FILE.
         path.write_text('BEGIN:VCALENDAR\n{"v": 1, "sheet": "ielts-cold-01"}\n', encoding="utf-8")
         learner, claude = self.parts(self.brief())
         self.assertNotIn("UNREADABLE FILE", claude)
         self.assertNotIn("whole record file", learner)
         self.assertIn("could not be read; kept aside", learner)
+
+    def test_an_unreadable_file_names_the_copy_the_learner_restores_it_from(self):
+        # A snapshot file keeps a .bak: the learner copies it back (Claude never writes a data file).
+        path = self.s / "data" / "errors.jsonl"
+        bak = self.s / "data" / "errors.jsonl.bak"
+        bak.write_text('{"v": 1, "id": "E-ielts-0001", "status": "spacing"}\n', encoding="utf-8")
+        path.write_text("BEGIN:VCALENDAR\nEND:VCALENDAR\n", encoding="utf-8")
+        _, claude = self.parts(self.brief())
+        self.assertIn("UNREADABLE FILE: ielts/data/errors.jsonl (2 lines)", claude)
+        self.assertIn("The learner restores it, never you: copy ielts/data/errors.jsonl.bak over it "
+                      "(it may lack the last change). Then run brief again. Until it is back, no grading, planning "
+                      "or stats.", claude)
+        # A .bak with no readable line is no copy.
+        bak.write_text("junk\n", encoding="utf-8")
+        _, claude = self.parts(self.brief())
+        self.assertIn("No copy here", claude)
+        bak.unlink()
+        if not shutil.which("git"):
+            return
+        # A readable copy in the workspace's last git commit: the checkout the learner runs.
+        path.write_text('{"v": 1, "id": "E-ielts-0001", "status": "spacing"}\n', encoding="utf-8")
+        git = ["git", "-C", str(self.ws), "-c", "user.name=test", "-c", "user.email=test@example.invalid"]
+        for args in (["init", "-q"], ["add", "-A"], ["commit", "-q", "-m", "record"]):
+            self.assertEqual(subprocess.run(git + args, stdout=subprocess.DEVNULL,
+                                            stderr=subprocess.DEVNULL).returncode, 0)
+        path.write_text("BEGIN:VCALENDAR\nEND:VCALENDAR\n", encoding="utf-8")
+        _, claude = self.parts(self.brief())
+        self.assertIn('The learner restores it, never you: git -C "%s" checkout HEAD -- ielts/data/errors.jsonl.'
+                      % wsmod.Workspace(self.ws).root, claude)
+        subprocess.run(["git", "-C", str(self.ws), "checkout", "HEAD", "--", "ielts/data/errors.jsonl"],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.assertNotIn("UNREADABLE FILE", self.parts(self.brief())[1])
 
     def test_notes_from_the_subject_claude_md(self):
         md = self.s / "CLAUDE.md"
