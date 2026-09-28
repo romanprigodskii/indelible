@@ -434,9 +434,14 @@ def rebook_first_recheck(ws, subj, tid, at):
     Only a topic still waiting for its 2-day recheck (learning.needs_window: the
     first, or one again after a recheck left it below 3) is moved, and only a recheck
     of that topic alone that is not placed, or placed after ``at``; one with other
-    topics keeps its window. Used by session expose and error repair; call it
-    inside ws.lock(). Returns None when nothing applies, else ((from, to), moved
-    blocks, placed blocks now outside the window).
+    topics keeps its window. A topic waiting for its recheck again (the first
+    one's block is closed) with no open recheck of it still ahead gets one
+    booked, as session taught does: an obligation with the new window, so plan
+    check and the late-recheck flags see it. Not while a wrong idea on it is
+    unfixed: its repair opens the window. Used by session expose, error repair
+    and grade record's drill exposures; call it inside ws.lock(). Returns None
+    when nothing applies, else ((from, to), moved blocks, placed blocks now
+    outside the window, the block booked or None).
     """
     exposures = subj.load_exposures()
     state = subj.load_topics_state().get(tid)
@@ -444,20 +449,32 @@ def rebook_first_recheck(ws, subj, tid, at):
         return None
     lo, hi = subj.cold_window()
     wf, wt = dates.plus(at, hours=lo), dates.plus(at, hours=hi)
+    window = {"from": dates.fmt_iso(wf), "to": dates.fmt_iso(wt), "basis": "exposure"}
     blocks = ws.load_blocks()
-    moved, outside = [], []
+    moved, outside, ahead = [], [], False
     for b in cold_blocks_for(ws, subj, tid, blocks):
         s = to_local(b.get("start"), at.tzinfo)
         if s is not None and s < at:
             continue  # already past: the brief reports it if it was not sat
+        ahead = True
         if block_topics(b) == [tid]:
-            b["window"] = {"from": dates.fmt_iso(wf), "to": dates.fmt_iso(wt), "basis": "exposure"}
+            b["window"] = dict(window)
             moved.append(b)
             if s is not None and not (wf <= s <= wt):
                 outside.append(b)
-    if moved:
+    created = None
+    if not ahead and not learning.is_first_serve(state) and not learning.untreated_on(tid, subj.load_errors()):
+        created = {"v": 1, "id": ws.next_block_id(subj.id, wf.date()), "subject": subj.id, "kind": "cold",
+                   "start": None, "end": None, "window": window, "protected": True, "measurement": False,
+                   "soft": False, "pair": None, "content": "cold:%s" % tid, "status": "planned", "cal": None,
+                   "moved_from": None, "miss_reason": None}
+        problems = schema.validate_block(created)
+        if problems:
+            raise DataError("Internal: a recheck block failed validation: " + "; ".join(problems))
+        blocks.append(created)
+    if moved or created:
         ws.save_blocks(blocks)
-    return (wf, wt), moved, outside
+    return (wf, wt), moved, outside, created
 
 
 def _hours_num(x):
@@ -465,21 +482,32 @@ def _hours_num(x):
 
 
 def rebook_text(subj, rebooked, now):
-    """The sentence that gives a re-booked first window (rebook_first_recheck's result)."""
-    (wf, wt), _, _ = rebooked
+    """The sentence that gives a re-booked 2-day window (rebook_first_recheck's result)."""
+    wf, wt = rebooked[0]
     lo, hi = subj.cold_window()
     return "Its 2-day recheck now falls between %s and %s (%s–%s h after this)." % (
         fmt_when(wf, now), fmt_when(wt, now), _hours_num(lo), _hours_num(hi))
 
 
+def recheck_booked_line(ws, block_id):
+    """The line for a newly booked 2-day recheck (session taught, a recheck again):
+    place it (scheduled), or leave it unplaced and name its window (on demand)."""
+    if ws.schedule_mode() == "on_demand":
+        return ("Recheck booked as %s (unplaced; on-demand learner: leave it unplaced and name the window in "
+                "the close message)." % block_id)
+    return ("Recheck to place: %s. Put it in the first session inside the window: plan place %s --start ISO "
+            "--min N" % (block_id, block_id))
+
+
 def exposure_lines(ws, subj, tid, now, rebooked):
     """The lines after a warm exposure of ``tid`` at ``now`` (session expose, error repair):
     each recheck whose window moved (``rebooked``, from rebook_first_recheck, or None),
-    a WARN for each placed one now outside its new window, and a WARN for any other
-    placed recheck of ``tid`` now within 24 h of the exposure."""
+    a WARN for each placed one now outside its new window, the recheck booked for a
+    recheck again, and a WARN for any other placed recheck of ``tid`` now within 24 h
+    of the exposure."""
     out, shown = [], set()
     if rebooked is not None:
-        (wf, wt), moved, outside = rebooked
+        (wf, wt), moved, outside, created = rebooked
         for b in moved:
             out.append("Recheck %s: window moved to %s – %s." % (b.get("id"), fmt_when(wf, now), fmt_when(wt, now)))
         for b in outside:
@@ -488,6 +516,8 @@ def exposure_lines(ws, subj, tid, now, rebooked):
                        "(plan move %s --start %s), or it will not count." % (
                            fmt_when(s, now), b.get("id"), b.get("id"), dates.fmt_iso(wf)))
             shown.add(b.get("id"))
+        if created is not None:
+            out.append(recheck_booked_line(ws, created["id"]))
     until = dates.plus(now, hours=learning.NO_EXPOSURE_H)  # elapsed hours: right across a clock change
     for b in cold_blocks_for(ws, subj, tid):
         s, _ = block_times(b, now.tzinfo)

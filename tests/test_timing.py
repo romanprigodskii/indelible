@@ -157,7 +157,12 @@ class ClosingWindowTests(TimingCase):
         r = self.cli(["grade", "record", self.sid, "ielts-cold-01", "--from", path], now="2026-10-16T08:00+01:00")
         self.assertIn("Levels: no change", r.stdout)
         self.assertIn("Not counted toward level 3: T01 was sat at 72.1 h, outside its 44–72 h window. Treat it "
-                      "as a late recheck [measured] and book a fresh one from now (plan.md §7).", r.stdout)
+                      "as a late recheck [measured]; its next warm exposure (the feedback logged with session expose "
+                      "ielts T01 --kind review, or its repair) books a fresh one (plan.md §7).", r.stdout)
+        # plan.md section 7 step 3: the feedback opens the fresh window and books it.
+        r = self.cli(["session", "expose", self.sid, "T01", "--kind", "review"], now="2026-10-16T08:05+01:00")
+        self.assertIn("Its 2-day recheck now falls between Sun 18 Oct 04:05 and Mon 19 Oct 08:05", r.stdout)
+        self.assertIn("Recheck to place: B-20261018-ielts-1.", r.stdout)
 
     def test_a_first_recheck_sat_inside_its_window_has_no_late_note(self):
         self.teach()

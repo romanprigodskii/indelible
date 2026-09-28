@@ -465,14 +465,8 @@ def cmd_taught(args):
                 ws.save_blocks(blocks)
     _out("Taught: %s %s (by %s). 2-day recheck window: %s – %s." % (
         tid, t.get("name") or "", args.by, brief.fmt_when(wf, now), brief.fmt_when(wt, now)))
-    on_demand = ws.schedule_mode() == "on_demand"
     if created:
-        if on_demand:
-            _out("Recheck booked as %s (unplaced; on-demand learner: leave it unplaced and name the window in "
-                 "the close message)." % created["id"])
-        else:
-            _out("Recheck to place: %s. Put it in the first session inside the window: plan place %s --start ISO "
-                 "--min N" % (created["id"], created["id"]))
+        _out(brief.recheck_booked_line(ws, created["id"]))
     for b in updated:
         _out("Recheck %s: window moved to the new one (the last teaching resets it)." % b.get("id"))
     for b in warn:

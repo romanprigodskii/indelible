@@ -42,8 +42,8 @@ What it does, in order:
      cold pass, so the note says so and its recheck stays open, even on a block
      booked for several topics (so does one seen too recently). A practice sheet
      logs a ``drill`` exposure per topic, timed at the sitting, and moves the
-     window of a 2-day recheck still to come, as session expose does; a
-     measuring sheet logs none (feedback given afterwards is logged with
+     window of a 2-day recheck still to come (or books a recheck again), as
+     session expose does; a measuring sheet logs none (feedback given afterwards is logged with
      ``session expose``). Then the sheet is marked graded and the levels are
      recomputed. A drills sheet under half right on a topic whose 2-day
      recheck is still ahead is named as a new topic that didn't land
@@ -634,7 +634,8 @@ def cmd_grade_record(args):
             for t in graded_topics:
                 at = max(sit_end, learning.last_exposure(t, logged) or sit_end)
                 rebooked = rebook_first_recheck(ws, subj, t, at)
-                moved_lines += [ln for ln in exposure_lines(ws, subj, t, sit_end, rebooked) if ln.startswith("WARN")]
+                moved_lines += [ln for ln in exposure_lines(ws, subj, t, sit_end, rebooked)
+                                if ln.startswith(("WARN", "Recheck to place", "Recheck booked"))]
 
         # A new topic that didn't land: drills under half right on a topic whose 2-day recheck is
         # still ahead. It is taught again from a new worked case before any recheck on it; this
@@ -755,14 +756,15 @@ def cmd_grade_record(args):
     for t, fix_first in again:
         if fix_first:
             out("%s is below 3 after this recheck: it comes back as a 2-day recheck %s–%s h after its fix sheet "
-                "(error repair logs it)." % (t, fmt_num(lo), fmt_num(hi)))
+                "(error repair logs it and books the recheck)." % (t, fmt_num(lo), fmt_num(hi)))
         else:
             out("%s is below 3 after this recheck: log the feedback on it (session expose %s %s --kind review), "
-                "and it comes back as a 2-day recheck %s–%s h later." % (t, subj.id, t, fmt_num(lo), fmt_num(hi)))
+                "which books its 2-day recheck %s–%s h later." % (t, subj.id, t, fmt_num(lo), fmt_num(hi)))
     for t, ih in late:
         out("Not counted toward level 3: %s was sat at %s h, outside its %s–%s h window. Treat it as a late "
-            "recheck [measured] and book a fresh one from now (plan.md §7)." % (t, fmt_num(ih), fmt_num(lo),
-                                                                               fmt_num(hi)))
+            "recheck [measured]; its next warm exposure (the feedback logged with session expose %s %s --kind "
+            "review, or its repair) books a fresh one (plan.md §7)." % (t, fmt_num(ih), fmt_num(lo), fmt_num(hi),
+                                                                       subj.id, t))
     for note in notes:
         out("Note: " + note)
     return 0
