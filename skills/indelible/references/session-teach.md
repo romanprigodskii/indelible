@@ -53,12 +53,12 @@ A wrong idea (an error of kind `belief`) is never served cold until it has been 
 6. **When the learner says "closed"** (the sheet is put away, out of sight):
    - Run `ind session taught <s> <T> --by sheet --block <B>`, or `--by external` for textbook pages. This books the 2-day recheck window and prints it (drills on a later day move it). The window is placed at the close ([close.md](close.md), [plan.md](plan.md)).
    - Tell the learner: "Your 2-day recheck on this is due in about two days; I'll put it in the plan at the close. Please don't review it before then; that's what makes the recheck count."
-   - Only then hand over the drills, in a new message. They were built ahead and wait as `rendered`; issuing is the hand-over: `ind sheet issue <s> <drills-id> --block <B>`, then give the path. Never send drills in the same message as the theory.
+   - Only then hand over the drills, in a new message. They were built ahead and wait as `rendered`; issuing is the hand-over: `ind sheet issue <s> <drills-id> --block <B>`, then give the path and say: "Stuck on a question after a real try? Tell me its number and you get a small hint." Never send drills in the same message as the theory.
    - If the learner reopens the theory after a real attempt, that's allowed, but ask them to say so. That answer counts as looked up, not recalled; add a line to the session note with `ind note append <s> session`.
 
 ## 3. The hint ladder
 
-Hints are given on practice sheets only: theory pencils, drills, example sheets and repair pages. There are never hints on a measuring sheet (recheck, diagnostic, mock, checkpoint, probe, words) before it is filed. For code, a hint never contains code for the learner's current task.
+Hints are given on practice sheets only: theory pencils, drills, example sheets and repair pages. Their rules box says so ("Stuck on a question after a real try? Tell me its number…"), since the ladder starts only when the learner speaks up: you can't see someone working silently on paper. There are never hints on a measuring sheet (recheck, diagnostic, mock, checkpoint, probe, words) before it is filed. For code, a hint never contains code for the learner's current task.
 
 When the learner is stuck, climb one rung per message:
 
@@ -67,7 +67,7 @@ When the learner is stuck, climb one rung per message:
 3. The smallest hint: one pointer and no steps ("Look at the verb in the second sentence.").
 4. A second hint: one step further, still not the answer.
 
-**Floundering timeout** (2 hints, or 5 minutes without progress): "One more hint, or a worked example?"
+**Floundering timeout** (2 hints, or 5 minutes without progress after the learner first asks): "One more hint, or a worked example?"
 
 - **"Worked example":** the builder makes an `example` sheet with an isomorphic case: the same structure on different surface details, never the current question. The learner reads it, closes it and tries again. The answer then counts as looked up; add a line to the session note with `ind note append <s> session`.
 - **"Show me this one"** (explicit surrender only; never offer it): "Write 'I don't know' in the box. That's always accepted. Carry on with the next question, or stop the block here. We'll go through this one as soon as the sheet is filed." At marking, go through the solution from `ind key open`. Record the question as `dont_know` with `kind: belief` and the account "asked for the solution", so it gets a repair and goes on the ladder ([session-grade.md](session-grade.md)). If the question came from outside a sheet, use `ind error add <s> --topic <T> --kind belief --mode <mode> --belief "<120 characters at most, without the answer>" --account "asked for the solution"`.

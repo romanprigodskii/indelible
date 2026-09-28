@@ -138,6 +138,23 @@ class HtmlTemplateTests(Base):
         for old in ("mark it V", "not defined on this sheet"):
             self.assertNotIn(old, self.text)
 
+    def test_practice_sheets_say_the_learner_may_ask_for_a_hint(self):
+        stuck = "Stuck on a question after a real try? Tell me its number: you get a small hint, never the answer."
+        idk = "“I don't know” is always an accepted answer."
+        # The sheets the hint ladder serves (session-teach.md §3) say so, on the "I don't know" line.
+        for t in ("drills", "theory", "external", "example", "repair"):
+            spec = theory_spec() if t in ("theory", "external", "example") else drills_spec(type=t)
+            spec["type"] = t
+            self.assertIn("%s %s" % (idk, stuck), render.rules(spec, "none"), t)
+        self.assertIn("Closed book: no notes, no book, no search, no other AI.", render.rules(drills_spec(), "none"))
+        # Mixed, review and measuring sheets get no hints before they are filed.
+        for t in ("mixed", "review", "cold", "diagnostic", "mock", "checkpoint", "probe", "words"):
+            lines = render.rules(drills_spec(type=t), "none")
+            self.assertFalse(any("Stuck on a question" in r for r in lines), t)
+            self.assertIn(idk, lines, t)
+            self.assertIn("Closed book: no notes, no book, no search, no AI.", lines, t)
+        self.assertIn(stuck, self.text)
+
     def test_a_failed_check_is_a_flag_not_a_hunt_only_where_there_are_checks(self):
         from lib import render
         line = "If a check fails and you can't see why within a minute"

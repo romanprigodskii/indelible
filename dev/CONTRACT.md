@@ -530,11 +530,11 @@ A brief without `--open` writes nothing. `brief <subject> --open`, run only at s
 **Templates** (`assets/templates/typ/sheet.typ`, `html/sheet.html`, `md/sheet.md`): Python fills them with `string.Template`-style `$placeholders`, or builds the body in code. Every rendered sheet has:
 - **header:** title, date and weekday, estimated minutes, number of questions, and the provenance line `Practice — written by Claude`, `Measurement — written by Claude`, or `Measurement — official`;
 - **a rules box:**
-  - closed book; with the subject's `format.reference_sheet` true, a closed-book sheet (any type but `theory`, `external`, `example` and `repair`) adds "You may use a clean copy of the exam's formula sheet, with nothing written on it", and its tools line names the formula sheet;
+  - closed book ("no notes, no book, no search, no AI"; on `drills`, where Claude gives hints, "no other AI"); `theory`, `external`, `example` and `repair` print their read-then-close line instead; with the subject's `format.reference_sheet` true, a closed-book sheet (any type but `theory`, `external`, `example` and `repair`) adds "You may use a clean copy of the exam's formula sheet, with nothing written on it", and its tools line names the formula sheet;
   - answer on paper, one answer in each box;
   - write the check beside each answer;
   - on sheets with check lines and a Least-sure line: a failed check the learner can't resolve within a minute is kept, named on the Least-sure line, and left ("I'll show you where at marking");
-  - "I don't know" is always an accepted answer;
+  - "I don't know" is always an accepted answer; on the sheets that get hints (`theory`, `external`, `example`, `repair`, `drills`) the same line adds "Stuck on a question after a real try? Tell me its number: you get a small hint, never the answer";
   - stop after N minutes;
   - tools allowed;
   - "If a word here was never explained to you, on this sheet or an earlier one, write it beside that answer: that's my mistake, not yours" (marking looks the word up: a word defined on an earlier sheet is the learner's miss);

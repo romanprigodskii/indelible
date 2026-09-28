@@ -4,11 +4,11 @@
 
 > **Rules**
 >
-> - Closed book: no notes, no book, no search, no AI.
+> - Closed book: no notes, no book, no search, no other AI.
 > - Answer on paper (or in a typed file), one answer for each box.
 > - Write the check beside each answer. Work backwards from it: put it back in, rebuild the total, or test the definition you used against the question's words.
 > - If a check fails and you can't see why within a minute, keep your answer, put its number on the Least-sure line and go on: I'll show you where at marking.
-> - “I don't know” is always an accepted answer.
+> - “I don't know” is always an accepted answer. Stuck on a question after a real try? Tell me its number: you get a small hint, never the answer.
 > - Stop after 8 minutes.
 > - Tools allowed: none.
 > - If a word here was never explained to you, on this sheet or an earlier one, write it beside that answer: that's my mistake, not yours.

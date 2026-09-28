@@ -89,6 +89,10 @@ MONTHS = ["January", "February", "March", "April", "May", "June", "July", "Augus
 # to you", not "not on this sheet"; and it asks for the word itself, which marking looks up.
 V_RULE = ("If a word here was never explained to you, on this sheet or an earlier one, write it beside "
           "that answer: that's my mistake, not yours.")
+# The sheets the hint ladder serves (session-teach.md §3): the learner is told they may ask, since
+# the ladder starts only when they speak up. Mixed, review and measuring sheets get no hints.
+HINT_TYPES = ("theory", "external", "example", "repair", "drills")
+STUCK_LINE = "Stuck on a question after a real try? Tell me its number: you get a small hint, never the answer."
 CLOSE_LINE_THEORY = "Close this sheet now. The drills come separately."
 CLOSE_LINE_EXAMPLE = "Close this sheet now, then go back to your question."
 START_LABEL = "Start time:"
@@ -309,7 +313,8 @@ def rules(spec, tools, fmt="html", profile=None, reference_sheet=False):
         out.append("Read the fix once, with the page open, doing its pencil items as you meet them. "
                    "Then close it: anything after it is closed book.")
     else:
-        closed = "Closed book: no notes, no book, no search, no AI."
+        # Drills are done in a session with Claude, who gives hints: "no other AI".
+        closed = "Closed book: no notes, no book, no search, no %sAI." % ("other " if t == "drills" else "")
         if formula_sheet:
             closed += " You may use a clean copy of the exam's formula sheet, with nothing written on it."
         out.append(closed)
@@ -333,7 +338,8 @@ def rules(spec, tools, fmt="html", profile=None, reference_sheet=False):
     if any_check and spec.get("least_sure") is True:
         out.append("If a check fails and you can't see why within a minute, keep your answer, put its number "
                    "on the Least-sure line and go on: I'll show you where at marking.")
-    out.append("“I don't know” is always an accepted answer.")
+    # One line for "can't do it": the hint offer shares the "I don't know" line, to keep the box short.
+    out.append("“I don't know” is always an accepted answer." + (" " + STUCK_LINE if t in HINT_TYPES else ""))
     if minutes:
         out.append("Stop after %d minute%s." % (minutes, "" if minutes == 1 else "s"))
     else:
