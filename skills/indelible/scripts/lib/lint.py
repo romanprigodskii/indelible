@@ -23,9 +23,11 @@ in ``theory.words`` on this sheet), ``defined_on:<sheet-id>`` (a sheet of this
 subject, not void, that defines the word; ``sheet issue`` waits until that
 sheet is issued), ``glossary`` (the
 word is in data/glossary.jsonl: ``glossary add``), ``everyday`` (used in its
-plain everyday sense; never for a word in the subject lexicon, and never on a
-theory sheet for a word it defines), and ``measured_here`` (a measuring sheet
-that deliberately tests the word).
+plain everyday sense; never for a word in the subject lexicon or one the sheet
+defines, and on a theory, example or repair sheet never for one it teaches: in
+the title, a section title, the topic's name or a question, or used 3 times or
+more), and ``measured_here`` (a measuring sheet that deliberately tests the
+word).
 
 L10 and W3 read check hints only. A hint is how the learner checks an answer,
 so it must name a check that runs: never a search for their own mistake, a
@@ -67,6 +69,9 @@ BUDGET_EXEMPT = ("diagnostic", "mock", "checkpoint")
 FLOOR_EXEMPT = ("triage",)
 MEASURING = ("cold", "diagnostic", "mock", "checkpoint", "probe", "words")
 RESOLUTIONS = ("defined_here", "defined_on:<sheet-id>", "glossary", "everyday", "measured_here")
+# L4: on these sheets a word the sheet teaches is never "everyday" (see _taught).
+TEACHING_TYPES = ("theory", "example", "repair")
+TAUGHT_USES = 3
 LEAST_SURE_EXEMPT = ("theory", "external", "example", "triage")
 # L7: the types whose re-served mistakes move the ladder at grading, so they get
 # the recheck timing checks. A words recheck is not checked here (profiles.md).
@@ -379,6 +384,26 @@ def _term_texts(spec):
     return [strip_code(x) for x in texts if _s(x).strip()]
 
 
+def _taught(w, spec, ctx, texts):
+    """On a teaching sheet (theory, example, repair): is ``w`` a word the sheet teaches,
+    so never ``everyday``? It is when it is in the title, a theory section title or
+    the name of a topic on the sheet, in a pencil question's text or label, or used
+    TAUGHT_USES times or more. One plain use in a box ("the difference is small") is not."""
+    pat = phrase_pattern(w)
+    if pat is None:
+        return False
+    th = spec.get("theory") if isinstance(spec.get("theory"), dict) else {}
+    names = ctx.get("topics") or {}
+    heads = [spec.get("title")] + [sec.get("title") for sec in th.get("sections") or [] if isinstance(sec, dict)]
+    heads += [names.get(it.get("topic")) for it in _items(spec)]
+    for it in _items(spec):
+        heads.append(it.get("text"))
+        heads += [a.get("label") for a in _asks(it)]
+    if any(pat.search(strip_code(h)) for h in heads if _s(h).strip()):
+        return True
+    return sum(len(pat.findall(x)) for x in texts) >= TAUGHT_USES
+
+
 def _res_ok(res):
     if res in ("defined_here", "glossary", "everyday", "measured_here"):
         return True
@@ -415,7 +440,7 @@ def _l4(spec, ctx):
             if w not in defined:
                 wrong.append(w)
         elif res == "everyday":
-            if w in lexicon or w in defined:
+            if w in lexicon or w in defined or (t in TEACHING_TYPES and _taught(w, spec, ctx, texts)):
                 bad_everyday.append(w)
         elif res == "measured_here":
             if t not in MEASURING:
@@ -430,19 +455,21 @@ def _l4(spec, ctx):
                 not_there.append("'%s' (%s)" % (w, target))
     probs = []
     if missing:
-        probs.append("used without a resolution: %s" % _listed(["'%s'" % w for w in missing]))
+        probs.append("used without a resolution (use %s, or plain words): %s"
+                     % (", ".join(RESOLUTIONS), _listed(["'%s'" % w for w in missing])))
     if unknown:
         probs.append("unknown resolution for %s (use %s)" % (_listed(["'%s'" % w for w in unknown]),
                                                             ", ".join(RESOLUTIONS)))
     if wrong:
         if t == "theory":
-            probs.append("must be defined_here and listed in theory.words (or everyday, in its plain sense): %s"
-                         % _listed(["'%s'" % w for w in wrong]))
+            probs.append("must be defined_here and listed in theory.words: %s" % _listed(["'%s'" % w for w in wrong]))
         else:
             probs.append("marked defined_here but not in theory.words: %s" % _listed(["'%s'" % w for w in wrong]))
     if bad_everyday:
-        probs.append("everyday is not allowed for a word in the subject lexicon or one this sheet defines: %s"
-                     % _listed(["'%s'" % w for w in bad_everyday]))
+        probs.append("everyday is not allowed for a word in the subject lexicon, one this sheet defines, or one "
+                     "it teaches (in the title, a section title, the topic's name or a question, or used %d times "
+                     "or more): define it in theory.words: %s"
+                     % (TAUGHT_USES, _listed(["'%s'" % w for w in bad_everyday])))
     if bad_measured:
         probs.append("measured_here is only for measuring sheets (%s): %s"
                      % (", ".join(MEASURING), _listed(["'%s'" % w for w in bad_measured])))

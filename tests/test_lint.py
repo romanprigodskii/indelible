@@ -187,10 +187,43 @@ class RuleTests(Base):
         spec["terms"] = [{"term": "paraphrase", "resolution": "defined_on:ielts-theory-01"}]
         self.assertEqual(self.status(spec, "L4", sheet_words={"ielts-theory-01": {"paraphrase"}}), "PASS")
 
+    def test_l4_everyday_never_covers_a_word_the_sheet_teaches(self):
+        def with_valid(body, where=2, title=None):
+            spec = theory_spec()
+            spec["terms"].append({"term": "valid", "resolution": "everyday"})
+            spec["theory"]["sections"][where]["body"] = body
+            if title:
+                spec["theory"]["sections"][where]["title"] = title
+            return spec
+        # One plain use in a box passes.
+        self.assertEqual(self.status(with_valid("Only a valid ticket gets you in."), "L4"), "PASS")
+        # Used 3 times, in a section title, or in a pencil question: it is being taught.
+        r = result(with_valid("A valid reading keeps the idea. Is it valid? Yes, valid."), "L4")
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("one it teaches", r["detail"])
+        self.assertIn("'valid'", r["detail"])
+        self.assertEqual(self.status(with_valid("Keep the idea.", title="When a reading is valid"), "L4"), "FAIL")
+        spec = with_valid("Keep the idea.")
+        spec["items"][0]["text"] = "Is the second sentence a valid way to say the first?"
+        self.assertEqual(self.status(spec, "L4"), "FAIL")
+        # A drills sheet teaches nothing: there "everyday" is the builder's call.
+        spec = drills_spec(terms=[{"term": "valid", "resolution": "everyday"}])
+        spec["items"][0]["text"] = "A valid ticket. A valid pass. A valid card."
+        self.assertEqual(self.status(spec, "L4"), "PASS")
+
+    def test_l4_names_the_resolutions_when_one_is_missing(self):
+        spec = drills_spec()
+        spec["items"][0]["text"] = "What is the median of the three prices?"
+        r = result(spec, "L4")
+        self.assertIn("used without a resolution (use defined_here, defined_on:<sheet-id>, glossary, everyday, "
+                      "measured_here, or plain words): 'median'", r["detail"])
+
     def test_l4_theory_terms_must_be_defined_here(self):
         self.assertEqual(self.status(theory_spec(), "L4"), "PASS")
         spec = theory_spec(terms=[{"term": "paraphrase", "resolution": "defined_on:other-sheet"}])
-        self.assertEqual(self.status(spec, "L4"), "FAIL")
+        r = result(spec, "L4")
+        self.assertEqual(r["status"], "FAIL")
+        self.assertNotIn("everyday", r["detail"], "the theory message never points at the loophole")
         spec = theory_spec()
         spec["theory"]["words"] = []
         self.assertEqual(self.status(spec, "L4"), "FAIL")

@@ -69,7 +69,7 @@ For interviews, vivas and oral exams.
 - **Words:**
   - at most 12 new words on a sheet, each inside a sentence, never a bare list;
   - ladder: 48 h, then +3 days, +1 week, +3 weeks;
-  - triage new words as use / seen / no ("If you hesitate, it isn't 'use'"); only "seen" and "no" words go on a card;
+  - triage new words as use / seen / no ("If you hesitate, it isn't 'use'"); only "seen" and "no" words go on a card, and "use" words go in the glossary ([session-grade.md](session-grade.md) §8);
   - words that stopped the learner in real material come before any word list;
   - split long words into parts, with a check that the parts fit the meaning.
 - **Words in v0.1:** each batch is one topic (layer `verbal`). Teach it on a card with every word in a sentence and a gloss, then `ind session taught <s> <topic>` books the 48-hour window. Rechecks are `words` sheets: the words blanked out of new sentences, items with origin `cold:<topic>` so marking closes the booking. Lint doesn't check a `words` sheet's timing, so confirm the window with `ind due <s> --list` first. Missed words become errors on the mistake ladder, and right words on the Least-sure line too (`ind grade record … --shaky`). For words that passed, place the later rungs by hand: `ind plan add <s> --kind words --start ISO --min N` at +3 days, +1 week and +3 weeks.

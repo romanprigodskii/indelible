@@ -171,6 +171,7 @@ Run `ind grade record stats stats-cold-04 --from <ws>/stats/.indelible/tmp/stats
 - Pass `--shaky` on 2-day rechecks, words sheets, mocks and checkpoints, so that right answers on the Least-sure line come back at +3 days.
 - Omit it on drills (the topic's own 2-day recheck covers them), and on diagnostics and probes ([measure.md](measure.md)).
 - On a non-zero exit, read the message, fix the file and run it again. Never edit a data file by hand.
+- **Words the learner owns go in the glossary,** so later sheets may use them with the resolution `glossary`: after a triage sheet, each word marked "use"; after a words recheck, each word right and not on the Least-sure line. Run `ind glossary add <s> <term> --def "<meaning>" --sheet <id>` for each.
 - **"Not counted toward level 3"** means a first recheck was started outside its window. The card calls it a late recheck with its real interval ("late recheck, 72 h"), and you book a fresh recheck from now, as [plan.md](plan.md) §7 step 3 says.
 
 Turn the output into a result card of at most 6 lines. Every number carries its label, and IDs never appear:
