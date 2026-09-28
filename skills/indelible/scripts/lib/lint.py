@@ -215,7 +215,8 @@ def _norm(text):
 
 
 def strip_code(text):
-    """Text with fenced code blocks and inline code spans blanked out (code is never term-checked)."""
+    """Text with fenced code blocks and inline code spans blanked out. Code is checked
+    separately, for the subject's own words only (``code_parts``)."""
     out, fence = [], None
     for line in _s(text).split("\n"):
         m = _FENCE_OPEN.match(line)
@@ -526,11 +527,18 @@ def _l4(spec, ctx):
             probs.append("must be defined_here and listed in theory.words: %s" % _listed(["'%s'" % w for w in wrong]))
         else:
             probs.append("marked defined_here but not in theory.words: %s" % _listed(["'%s'" % w for w in wrong]))
-    if bad_everyday:
+    if bad_everyday and t in TEACHING_TYPES:
         probs.append("everyday is not allowed for a word in the subject lexicon, one this sheet defines, or one "
                      "it teaches (in the title, a section title, the topic's name or a question, or used %d times "
                      "or more): define it in theory.words: %s"
                      % (TAUGHT_USES, _listed(["'%s'" % w for w in bad_everyday])))
+    elif bad_everyday:
+        # No theory block here (drills, cold ...), so point at the resolutions this sheet can use.
+        opts = (["defined_here"] if defined else []) + ["defined_on:<sheet>", "glossary"]
+        opts += ["measured_here"] if t in MEASURING else []
+        probs.append("everyday is not allowed for a word in the subject lexicon or one this sheet defines: "
+                     "resolve it %s or %s, or use plain words: %s"
+                     % (", ".join(opts[:-1]), opts[-1], _listed(["'%s'" % w for w in bad_everyday])))
     if bad_measured:
         probs.append("measured_here is only for measuring sheets (%s): %s"
                      % (", ".join(MEASURING), _listed(["'%s'" % w for w in bad_measured])))

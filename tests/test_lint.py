@@ -161,6 +161,16 @@ class RuleTests(Base):
         sense = lint.sense_words({"sense_list": ["gerund"], "lexicon": [{"term": "cohesive device"}]})
         self.assertEqual(self.status(spec, "L4", sense=sense), "FAIL")
         self.assertIn("cohesive device", sense)
+        # A lexicon word is never everyday. A drills sheet has no theory.words, so the
+        # message names the resolutions it can use instead.
+        spec = drills_spec(terms=[{"term": "paraphrase", "resolution": "everyday"}])
+        spec["items"][0]["text"] = "Write a paraphrase of the first sentence."
+        r = result(spec, "L4", sense=["paraphrase"], lexicon={"paraphrase"})
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("resolve it defined_on:<sheet> or glossary, or use plain words: 'paraphrase'", r["detail"])
+        self.assertNotIn("theory.words", r["detail"])
+        r = result(dict(spec, type="cold"), "L4", sense=["paraphrase"], lexicon={"paraphrase"})
+        self.assertIn("resolve it defined_on:<sheet>, glossary or measured_here", r["detail"])
 
     def test_l4_code_is_read_for_the_subjects_own_words_only(self):
         spec = drills_spec()
