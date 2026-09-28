@@ -24,7 +24,7 @@ from datetime import datetime
 from pathlib import Path
 
 from lib import CheckFailed, IndelibleError, UsageError, SKILL_DIR, SCHEMA_VERSION
-from lib import dates, schema
+from lib import dates, learning, schema
 from lib import io as fio
 from lib import ws as wsmod
 
@@ -867,6 +867,13 @@ def cmd_set(args):
         _out("%s %s: %s -> %s" % (label, args.path, _fmt(old), _fmt(value)))
         for path, a, b in also:
             _out("%s %s: %s -> %s (derived)" % (label, path, _fmt(a), _fmt(b)))
+        errors, recapped = _recap_mistakes(ws, subj, data, new) if subj is not None else (None, [])
+        if recapped:
+            _out("%s/data/errors.jsonl: %d open mistake%s due too close to the new date %s brought forward "
+                 "(the date - 2 days, never before tomorrow): %s" % (
+                     subj.dirname, len(recapped), "" if len(recapped) == 1 else "s",
+                     "is" if len(recapped) == 1 else "are",
+                     ", ".join("%s %s -> %s" % r for r in recapped[:5]) + (" …" if len(recapped) > 5 else "")))
         if args.dry_run:
             _out("(dry run: nothing written)")
             return 0
@@ -874,12 +881,47 @@ def cmd_set(args):
             ws.save_config(new)
         else:
             subj.save(new)
+            if recapped:
+                subj.save_errors(errors)
 
     if subj is None and parts[0] == "subjects":
         note = _render_after_change(args, ws)
         if note:
             _out(note)
     return 0
+
+
+def _recap_mistakes(ws, subj, old, new):
+    """(error rows, [(id, old due, new due)]) when a subject's date is set or moved earlier.
+
+    The ladder caps each due date at the date - 2 days (learning.cap_due), but
+    only when a mistake event happens, so due dates stored under a later date
+    would fall after the new one. A cap only ever brings a date forward.
+    """
+    def _date(cfg):
+        try:
+            d = (cfg.get("target") or {}).get("date")
+            return dates.to_date(d) if d else None
+        except (ValueError, TypeError, AttributeError):
+            return None
+    before, after = _date(old), _date(new)
+    if after is None or (before is not None and after >= before):
+        return None, []
+    today = ws.now().date()
+    rows = subj.load_errors()
+    changed = []
+    for e in rows:
+        if not isinstance(e, dict) or e.get("status") == "retired" or not e.get("next_due"):
+            continue
+        try:
+            due = dates.to_date(e["next_due"])
+        except (ValueError, TypeError):
+            continue
+        capped = learning.cap_due(due, after, today)
+        if capped is not None and capped < due:
+            changed.append((e.get("id"), dates.fmt_date(due), dates.fmt_date(capped)))
+            e["next_due"] = dates.fmt_date(capped)
+    return rows, changed
 
 
 def _derive_root(old, new, path):

@@ -291,6 +291,14 @@ class Ctx(object):
     def title(self, sid):
         return self.subject_cfg(sid).get("title") or sid
 
+    def target_date(self, sid):
+        """The subject's date (exam, final, trip), or None."""
+        d = (self.subject_cfg(sid).get("target") or {}).get("date")
+        try:
+            return dates.to_date(d) if d else None
+        except (ValueError, TypeError):
+            return None
+
     def cold_window(self, sid):
         w = self.subject_cfg(sid).get("cold_window_h") or list(learning.DEFAULT_COLD_WINDOW_H)
         try:
@@ -1605,6 +1613,43 @@ def run_checks(ctx, blocks):
                     f.add("WARN", "rest_day", b, "%s falls on the rest day (%s)." % (span_label(s, e), rest),
                           "plan move %s --start ISO (another day), unless the learner asked for it" % b["id"],
                           when=iso(s))
+
+    # ---- soft: blocks after the subject's date ------------------------------
+    for s, e, b in future:
+        d = ctx.target_date(b.get("subject"))
+        if b.get("kind") == "admin" or d is None or s.date() <= d:
+            continue
+        f.add("WARN", "after_date", b, "%s is after the %s date (%s)."
+              % (span_label(s, e), ctx.title(b.get("subject")), day_label(d)),
+              "plan move %s --start ISO (on or before %s), or plan cancel %s --reason \"after the date\""
+              % (b["id"], dates.fmt_date(d), b["id"]), when=iso(s))
+
+    # ---- soft: checkpoints and rationed tests on or after the date --------
+    for entry in ctx.ws.subject_entries("live"):
+        sid = entry.get("id")
+        d = ctx.target_date(sid)
+        if d is None:
+            continue
+        cfg = ctx.subject_cfg(sid)
+        dated = [("checkpoints", i, c, "armed", "checkpoint") for i, c in enumerate(cfg.get("checkpoints") or [])]
+        dated += [("materials.ration", i, r, "assigned", "rationed test")
+                  for i, r in enumerate((cfg.get("materials") or {}).get("ration") or [])]
+        for path, i, row, live, what in dated:
+            if not isinstance(row, dict) or row.get("status") != live:
+                continue
+            try:
+                cd = dates.to_date(row.get("date"))
+            except (ValueError, TypeError):
+                continue
+            if cd < d:
+                continue
+            name = row.get("instrument") or row.get("unit") or row.get("job") or what
+            f.add("WARN", "checkpoint_after_date", None, "%s: the %s %s (%s) is on or after the date (%s)."
+                  % (sid, what, name, day_label(cd), day_label(d)),
+                  "re-date it before the date (set %s %s.%d.date '\"YYYY-MM-DD\"') or drop it%s "
+                  "(plan.md §11, \"The date moves\")"
+                  % (sid, path, i, ", and replace its mirror decision" if what == "checkpoint" else ""),
+                  when=dates.fmt_date(cd), subject=sid)
 
     order = {"FAIL": 0, "WARN": 1}
     f.rows.sort(key=lambda r: (order.get(r["level"], 2), r.get("when") or "", r.get("block") or ""))

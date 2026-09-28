@@ -137,7 +137,7 @@ Why: spaced retrieval beats massed practice, and the best gap grows with the tim
 
 ## 8. Re-baselining (the learner's call, with a safeguard)
 
-**Triggers:** a checkpoint below its threshold; 2 misses in a week; slack below zero; a short runway verdict at the weekly review ([review.md](review.md) §2); a new commitment; the date gets fixed; a load score of 2 or less at the weekly check-in; the learner asks.
+**Triggers:** a checkpoint below its threshold; 2 misses in a week; slack below zero; a short runway verdict at the weekly review ([review.md](review.md) §2); a new commitment; the date gets fixed or moves; a load score of 2 or less at the weekly check-in; the learner asks.
 
 **Protocol:**
 1. Show the evidence, with every number labelled.
@@ -179,3 +179,9 @@ The brief flags the safeguard on Mon 26 Oct, a week before the final, and [revie
   - **Preview line:** "Thursday's 2-day recheck can't happen in time; it becomes a short check on your first day back." Then check and preview. If slack drops below zero, re-baseline (section 8).
 - **A new weekly commitment:** add `{"days":["Wed"],"from":"18:00","to":"20:00","what":"class"}` to `time.blocked` the same way, move what clashes, and re-baseline if slack drops below zero.
 - **"Fewer hours this week":** apply the drop order, say what goes, keep the protected pairs.
+- **The date moves** (a new sitting is booked, the final moves, or the learner picks cut 3 of [measure.md](measure.md) §9). The date also lives in the checkpoints, the rationed tests and each checkpoint's mirror decision, so change them together:
+  1. `ind set <s> target.date '"YYYY-MM-DD"' --dry-run`, then without `--dry-run`. Moving it earlier also brings forward any mistake due too close to the new date (it prints them).
+  2. Each armed checkpoint and assigned rationed test: keep it, re-date it (`ind set <s> checkpoints.<i>.date …`, `ind set <s> materials.ration.<i>.date …`) or drop it. Keep [measure.md](measure.md) §12's order: the final mock before the date, checkpoints every 1–2 weeks.
+  3. Each re-dated checkpoint's mirror decision: add a new one with the new `--check-on` (same rule and action), then `ind ledger close <old L-id> --status dropped --note "superseded by <new L-id>"`.
+  4. Read the §3 row for the new runway, taper included, and re-run the verdict of [measure.md](measure.md) §9. If it no longer fits, ask its three-cut question.
+  5. Move or cancel the blocks after the new date, rechecks first. `ind plan check` WARNs about any block after the date (`after_date`) and any checkpoint or rationed test on or after it (`checkpoint_after_date`). Then `ind render`, and preview the calendar.

@@ -370,6 +370,7 @@ Invoke as `python3 <skill>/scripts/indelible.py <command> ...`. Every command ac
   - Writes the subject CLAUDE.md from its template.
 - **`set <root|subject-id> <dotted.path> <json-value> [--dry-run]`**
   - Validates against the known type for known paths and prints the before and after.
+  - Setting a subject's `target.date` for the first time or earlier re-applies the deadline cap (§6.1) to each open mistake's `next_due` in `errors.jsonl`, bringing forward only (never before tomorrow, never later), and prints each change; `--dry-run` prints them and writes nothing.
   - Unknown paths are refused unless `--force`.
 - **`schema <record>`:** prints the example and field notes for `indelible|subject|topics|sheet|attempt|error|session|exposure|block|ledger|sheetspec|answers|grades`.
 
@@ -620,7 +621,9 @@ Unicode maths only (no LaTeX) in v0.1. Fonts: typst uses its bundled defaults wi
   - the block is outside `time.windows`;
   - the weekly minutes are under the subject minimum;
   - confusable topics are taught on the same day;
-  - the block falls on the rest day.
+  - the block falls on the rest day;
+  - a block other than `admin` starts on a day after its subject's `target.date` (`after_date`);
+  - an `armed` checkpoint or an `assigned` rationed test (`materials.ration`) of a live subject is dated on or after its `target.date` (`checkpoint_after_date`, no block).
 
   Each finding carries one suggested fix. The ceiling fix prints the drop order and names a `buffer` block first, then an unprotected block of the lowest-priority subject (the highest `priority` number; a higher-priority subject only when the lower ones have none): the smallest that covers the minutes over, else the largest. The outside-window fix names the first start in that day's windows where the block fits clear of other blocks and blocked time, or says there is none.
 - **`plan diff [--json]`:** neutral operations against the recorded calendar state.

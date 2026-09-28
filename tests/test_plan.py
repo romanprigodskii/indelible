@@ -354,6 +354,39 @@ class HardRuleTests(PlanCase):
         self.assertEqual(self.findings(data, "FAIL", "overlap"), [], data)
         self.assertEqual(self.findings(data, "WARN", "outside_window", short_one), [], data)
 
+    def test_blocks_checkpoints_and_rationed_tests_after_the_date_warn(self):
+        # Persona A's exam moves from 12 Dec to 7 Nov.
+        self.ok("set", SID, "checkpoints.+", json.dumps({"date": "2026-11-14", "instrument": "official test 1",
+                                                        "threshold": "30 of 40", "status": "armed", "result": None}))
+        self.ok("set", SID, "checkpoints.+", json.dumps({"date": "2026-10-31", "instrument": "mock",
+                                                        "status": "armed", "result": None}))
+        self.ok("set", SID, "materials.ration.+", json.dumps({"unit": "official test 2", "job": "final mock",
+                                                             "date": "2026-11-21", "status": "assigned"}))
+        after = self.add("teach", "2026-11-10T07:00+00:00", 60)
+        on_the_day = self.add("review", "2026-11-07T07:00+00:00", 30)
+        admin = self.add("admin", "2026-11-12T07:00+00:00", 15)
+        rc, data = self.check()
+        self.assertEqual(self.findings(data, "WARN", "after_date"), [])     # the date is still 12 Dec
+        self.assertEqual(self.findings(data, "WARN", "checkpoint_after_date"), [])
+        self.ok("set", SID, "target.date", '"2026-11-07"')
+        rc, data = self.check()
+        self.assertEqual(rc, 0, data)                                       # warnings only
+        hits = self.findings(data, "WARN", "after_date")
+        self.assertEqual([h["block"] for h in hits], [after], data)       # not the day itself, not admin
+        self.assertIn("after the IELTS Academic date (Sat 7 Nov)", hits[0]["message"])
+        self.assertIn("plan cancel %s" % after, hits[0]["fix"])
+        dated = self.findings(data, "WARN", "checkpoint_after_date")
+        self.assertEqual(len(dated), 2, data)                               # the 31 Oct checkpoint is fine
+        self.assertIn("set ielts checkpoints.0.date", dated[0]["fix"])
+        self.assertIn("mirror decision", dated[0]["fix"])
+        self.assertIn("set ielts materials.ration.0.date", dated[1]["fix"])
+        self.assertNotIn("mirror decision", dated[1]["fix"])
+        self.ok("set", SID, "checkpoints.0.status", '"passed"')
+        rc, data = self.check()
+        self.assertEqual(len(self.findings(data, "WARN", "checkpoint_after_date")), 1)
+        self.assertFalse([f for f in data["findings"] if f["block"] in (on_the_day, admin)
+                          and f["rule"] == "after_date"])
+
     def test_soft_warnings_rest_day_and_confusable(self):
         self.set_root("time.rest_day", "Sun")
         sunday = self.add("review", "2026-10-18T10:00+01:00", 30)

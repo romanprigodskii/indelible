@@ -909,6 +909,40 @@ class CliSetupTests(Base):
         r = run(["subject", "list", "--json"], ws=root)
         self.assertEqual([x["id"] for x in json.loads(r.stdout)], ["ielts", "chem"])
 
+    def test_an_earlier_date_brings_open_mistakes_forward(self):
+        # The ladder caps a due date at the date - 2 days only when a mistake event happens, so
+        # moving the date earlier re-applies the cap to what is stored (never pushing one later).
+        root = make_ws(self.tmp, "A")
+        errors = root / "ielts" / "data" / "errors.jsonl"
+        rows = [
+            {"v": 1, "id": "E-ielts-0001", "topic": "T01", "kind": "slip", "status": "spacing", "rung": 2,
+             "next_due": "2026-11-20"},
+            {"v": 1, "id": "E-ielts-0002", "topic": "T02", "kind": "slip", "status": "spacing", "rung": 0,
+             "next_due": "2026-10-11"},                                     # overdue: stays
+            {"v": 1, "id": "E-ielts-0003", "topic": "T02", "kind": "belief", "status": "untreated", "rung": 0,
+             "next_due": None},
+            {"v": 1, "id": "E-ielts-0004", "topic": "T03", "kind": "slip", "status": "retired", "rung": 3,
+             "next_due": "2026-12-20"},
+            {"v": 1, "id": "E-ielts-0005", "topic": "T04", "kind": "shaky", "status": "spacing", "rung": 1,
+             "next_due": "2026-10-14"},                                     # already before the cap: stays
+        ]
+        fio.write_jsonl(errors, rows)
+        before = errors.read_text(encoding="utf-8")
+        r = run(["set", "ielts", "target.date", '"2026-11-07"', "--dry-run"], ws=root)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("1 open mistake due too close to the new date is brought forward", r.stdout)
+        self.assertIn("E-ielts-0001 2026-11-20 -> 2026-11-05", r.stdout)
+        self.assertEqual(errors.read_text(encoding="utf-8"), before)
+        r = run(["set", "ielts", "target.date", '"2026-11-07"'], ws=root)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        due = dict((e["id"], e["next_due"]) for e in fio.read_jsonl(errors))
+        self.assertEqual(due, {"E-ielts-0001": "2026-11-05", "E-ielts-0002": "2026-10-11",
+                               "E-ielts-0003": None, "E-ielts-0004": "2026-12-20", "E-ielts-0005": "2026-10-14"})
+        # A later date changes no mistake.
+        r = run(["set", "ielts", "target.date", '"2026-12-12"'], ws=root)
+        self.assertNotIn("brought forward", r.stdout)
+        self.assertEqual(fio.read_jsonl(errors)[0]["next_due"], "2026-11-05")
+
     def test_set(self):
         root = make_ws(self.tmp, "A")
         cfg_path = root / "indelible.json"
