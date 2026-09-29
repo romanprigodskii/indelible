@@ -63,8 +63,7 @@ DENYLIST_REL = "dev/.privacy-denylist.txt"
 PLUGIN_JSON_REL = ".claude-plugin/plugin.json"
 README_REL = "README.md"
 
-CREDIT_TEMPLATE = ("Designed and field-tested by [@{h}](https://github.com/{h}). "
-                   "Written with Claude.")
+CREDIT_TEMPLATE = "Designed and field-tested by [@{h}](https://github.com/{h})."
 INSTALL_TEMPLATE = "claude plugin marketplace add {h}/indelible"
 HANDLE_RE = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$")
 ALLOW_PREFIX = "allow:"

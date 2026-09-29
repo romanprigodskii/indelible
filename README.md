@@ -207,4 +207,4 @@ indelible is an independent open-source project. It is not made, endorsed or sup
 
 Dual-licensed under [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE), at your option.
 
-Designed and field-tested by [@romanprigodskii](https://github.com/romanprigodskii). Written with Claude.
+Designed and field-tested by [@romanprigodskii](https://github.com/romanprigodskii).
