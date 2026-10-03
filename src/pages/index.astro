@@ -412,14 +412,14 @@ Sat 10:00 2-day recheck + second skill     Timed section</pre>
         document.querySelector<HTMLElement>('[data-ready-note]')?.removeAttribute('hidden');
       }
 
-      // Star count, shown once there are enough stars to be worth a number
+      // Star count, live from GitHub; hidden if the request fails or there are none yet
       const star = document.querySelector<HTMLElement>('[data-star]');
       if (star) {
         fetch('https://api.github.com/repos/romanprigodskii/indelible', { headers: { Accept: 'application/vnd.github+json' } })
           .then((r) => (r.ok ? r.json() : null))
           .then((d) => {
             const n = d && typeof d.stargazers_count === 'number' ? d.stargazers_count : 0;
-            if (n >= 20) {
+            if (n > 0) {
               const out = star.querySelector<HTMLElement>('[data-star-count]')!;
               out.textContent = `★ ${n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : n}`;
               out.hidden = false;
